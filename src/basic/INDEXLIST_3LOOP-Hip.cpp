@@ -155,10 +155,11 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
 
     INDEXLIST_3LOOP_DATA_SETUP_HIP;
 
+    Index_type* len;
+    allocData(DataSpace::HipPinned, len, 1);
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      RAJA::ReduceSum<RAJA::hip_reduce, Index_type> len(0);
 
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend),
@@ -174,14 +175,19 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
         [=] __device__ (Index_type i) {
         if (counts[i] != counts[i+1]) {
           list[counts[i]] = i;
-          len += 1;
+        }
+        if (i == iend-1) {
+          *len = counts[i+1];
         }
       });
 
-      m_len = len.get();
+      res.wait();
+      m_len = *len;
 
     }
     stopTimer();
+
+    deallocData(DataSpace::HipPinned, len);
 
     INDEXLIST_3LOOP_DATA_TEARDOWN_HIP;
 
