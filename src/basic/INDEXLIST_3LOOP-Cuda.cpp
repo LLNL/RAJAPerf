@@ -133,10 +133,11 @@ void INDEXLIST_3LOOP::runCudaVariantImpl(VariantID vid)
 
     INDEXLIST_3LOOP_DATA_SETUP_CUDA;
 
+    Index_type* len;
+    allocData(DataSpace::CudaPinned, len, 1);
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      RAJA::ReduceSum<RAJA::cuda_reduce, Index_type> len(0);
 
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend),
@@ -152,14 +153,19 @@ void INDEXLIST_3LOOP::runCudaVariantImpl(VariantID vid)
         [=] __device__ (Index_type i) {
         if (counts[i] != counts[i+1]) {
           list[counts[i]] = i;
-          len += 1;
+        }
+        if (i == iend-1) {
+          *len = counts[i+1];
         }
       });
 
-      m_len = len.get();
+      res.wait();
+      m_len = *len;
 
     }
     stopTimer();
+
+    deallocData(DataSpace::CudaPinned, len);
 
     INDEXLIST_3LOOP_DATA_TEARDOWN_CUDA;
 
