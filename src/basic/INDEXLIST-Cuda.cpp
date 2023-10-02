@@ -208,7 +208,7 @@ __global__ void indexlist(Real_ptr x,
                           Index_type* len,
                           Index_type iend)
 {
-  // blocks do start running in order in cuda and hip, so a block with a higher
+  // blocks do start running in order in cuda, so a block with a higher
   // index can wait on a block with a lower index without deadlocking
   // (replace with an atomicInc if this changes)
   const int block_id = blockIdx.x;
