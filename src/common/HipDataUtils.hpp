@@ -81,6 +81,33 @@ inline int getHipDevice()
   return device;
 }
 
+/*!
+ * \brief Get properties of the current hip device.
+ */
+inline hipDeviceProp_t getHipDeviceProp()
+{
+  hipDeviceProp_t prop;
+  hipErrchk(hipGetDeviceProperties(&prop, getHipDevice()));
+  return prop;
+}
+
+/*!
+ * \brief Get max occupancy in blocks for the given kernel for the current
+ *        hip device.
+ */
+template < typename Func >
+RAJA_INLINE
+int getHipOccupancyMaxBlocks(Func&& func, int num_threads, size_t shmem_size)
+{
+  int max_blocks = -1;
+  hipErrchk(hipOccupancyMaxActiveBlocksPerMultiprocessor(
+      &max_blocks, func, num_threads, shmem_size));
+
+  size_t multiProcessorCount = getHipDeviceProp().multiProcessorCount;
+
+  return max_blocks * multiProcessorCount;
+}
+
 /*
  * Copy memory len bytes from src to dst.
  */
