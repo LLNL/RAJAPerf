@@ -188,7 +188,7 @@ void REDUCE3_INT::runCudaVariantOccGS(VariantID vid)
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
       reduce3int<block_size><<<grid_size, block_size,
-                   shmem, res.get_stream()>>>(vec,
+                               shmem, res.get_stream()>>>(vec,
                                                     vmem + 0, m_vsum_init,
                                                     vmem + 1, m_vmin_init,
                                                     vmem + 2, m_vmax_init,

@@ -172,7 +172,8 @@ void TRAP_INT::runHipVariantOccGS(VariantID vid)
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
-      hipLaunchKernelGGL((trapint<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(), x0, xp,
+      hipLaunchKernelGGL((trapint<block_size>), dim3(grid_size), dim3(block_size),
+                                                shmem, res.get_stream(), x0, xp,
                                                 y, yp,
                                                 h,
                                                 sumx,

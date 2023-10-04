@@ -212,7 +212,7 @@ void REDUCE_STRUCT::runHipVariantOccGS(VariantID vid)
       hipLaunchKernelGGL((reduce_struct<block_size>),
                          dim3(grid_size), dim3(block_size),
                          shmem, res.get_stream(),
-                   points.x, points.y,
+                         points.x, points.y,
                          mem, mem+1, mem+2,    // xcenter,xmin,xmax
                          mem+3, mem+4, mem+5,  // ycenter,ymin,ymax
                          m_init_sum, m_init_min, m_init_max,
