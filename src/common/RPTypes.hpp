@@ -60,6 +60,8 @@ using Index_type = RAJA::Index_type;
 ///
 using Index_ptr = Index_type*;
 
+using Size_type = size_t;
+
 
 /*!
  ******************************************************************************

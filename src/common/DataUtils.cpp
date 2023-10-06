@@ -123,7 +123,7 @@ void incDataInitCount()
 /*
  * Copy memory len bytes from src to dst.
  */
-void copyHostData(void* dst_ptr, const void* src_ptr, size_t len)
+void copyHostData(void* dst_ptr, const void* src_ptr, Size_type len)
 {
   std::memcpy(dst_ptr, src_ptr, len);
 }
@@ -132,7 +132,7 @@ void copyHostData(void* dst_ptr, const void* src_ptr, size_t len)
 /*
  * Allocate data arrays of given type.
  */
-void* allocHostData(size_t len, size_t align)
+void* allocHostData(Size_type len, size_t align)
 {
   return RAJA::allocate_aligned_type<Int_type>(
       align, len);
@@ -153,7 +153,7 @@ void deallocHostData(void* ptr)
 /*
  * Allocate data arrays of given dataSpace.
  */
-void* allocData(DataSpace dataSpace, int nbytes, int align)
+void* allocData(DataSpace dataSpace, Size_type nbytes, int align)
 {
   void* ptr = nullptr;
 
@@ -257,7 +257,7 @@ void* allocData(DataSpace dataSpace, int nbytes, int align)
  */
 void copyData(DataSpace dst_dataSpace, void* dst_ptr,
               DataSpace src_dataSpace, const void* src_ptr,
-              size_t nbytes)
+              Size_type nbytes)
 {
   if (hostAccessibleDataSpace(dst_dataSpace) == dst_dataSpace &&
       hostAccessibleDataSpace(src_dataSpace) == src_dataSpace) {
@@ -369,23 +369,23 @@ void deallocData(DataSpace dataSpace, void* ptr)
  * \brief Initialize Int_type data array to
  * randomly signed positive and negative values.
  */
-void initData(Int_ptr& ptr, int len)
+void initData(Int_ptr& ptr, Size_type len)
 {
   srand(4793);
 
   Real_type signfact = 0.0;
 
-  for (int i = 0; i < len; ++i) {
+  for (Size_type i = 0; i < len; ++i) {
     signfact = Real_type(rand())/RAND_MAX;
     ptr[i] = ( signfact < 0.5 ? -1 : 1 );
   };
 
   signfact = Real_type(rand())/RAND_MAX;
-  Int_type ilo = len * signfact;
+  Size_type ilo = len * signfact;
   ptr[ilo] = -58;
 
   signfact = Real_type(rand())/RAND_MAX;
-  Int_type ihi = len * signfact;
+  Size_type ihi = len * signfact;
   ptr[ihi] = 19;
 
   incDataInitCount();
@@ -396,11 +396,11 @@ void initData(Int_ptr& ptr, int len)
  * positive values (0.0, 1.0) based on their array position
  * (index) and the order in which this method is called.
  */
-void initData(Real_ptr& ptr, int len)
+void initData(Real_ptr& ptr, Size_type len)
 {
   Real_type factor = ( data_init_count % 2 ? 0.1 : 0.2 );
 
-  for (int i = 0; i < len; ++i) {
+  for (Size_type i = 0; i < len; ++i) {
     ptr[i] = factor*(i + 1.1)/(i + 1.12345);
   }
 
@@ -410,9 +410,9 @@ void initData(Real_ptr& ptr, int len)
 /*
  * Initialize Real_type data array to constant values.
  */
-void initDataConst(Real_ptr& ptr, int len, Real_type val)
+void initDataConst(Real_ptr& ptr, Size_type len, Real_type val)
 {
-  for (int i = 0; i < len; ++i) {
+  for (Size_type i = 0; i < len; ++i) {
     ptr[i] = val;
   };
 
@@ -422,9 +422,9 @@ void initDataConst(Real_ptr& ptr, int len, Real_type val)
 /*
  * Initialize Index_type data array to constant values.
  */
-void initDataConst(Index_type*& ptr, int len, Index_type val)
+void initDataConst(Index_type*& ptr, Size_type len, Index_type val)
 {
-  for (int i = 0; i < len; ++i) {
+  for (Size_type i = 0; i < len; ++i) {
     ptr[i] = val;
   };
 
@@ -434,13 +434,13 @@ void initDataConst(Index_type*& ptr, int len, Index_type val)
 /*
  * Initialize Real_type data array with random sign.
  */
-void initDataRandSign(Real_ptr& ptr, int len)
+void initDataRandSign(Real_ptr& ptr, Size_type len)
 {
   Real_type factor = ( data_init_count % 2 ? 0.1 : 0.2 );
 
   srand(4793);
 
-  for (int i = 0; i < len; ++i) {
+  for (Size_type i = 0; i < len; ++i) {
     Real_type signfact = Real_type(rand())/RAND_MAX;
     signfact = ( signfact < 0.5 ? -1.0 : 1.0 );
     ptr[i] = signfact*factor*(i + 1.1)/(i + 1.12345);
@@ -452,11 +452,11 @@ void initDataRandSign(Real_ptr& ptr, int len)
 /*
  * Initialize Real_type data array with random values.
  */
-void initDataRandValue(Real_ptr& ptr, int len)
+void initDataRandValue(Real_ptr& ptr, Size_type len)
 {
   srand(4793);
 
-  for (int i = 0; i < len; ++i) {
+  for (Size_type i = 0; i < len; ++i) {
     ptr[i] = Real_type(rand())/RAND_MAX;
   };
 
@@ -466,12 +466,12 @@ void initDataRandValue(Real_ptr& ptr, int len)
 /*
  * Initialize Complex_type data array.
  */
-void initData(Complex_ptr& ptr, int len)
+void initData(Complex_ptr& ptr, Size_type len)
 {
   Complex_type factor = ( data_init_count % 2 ?  Complex_type(0.1,0.2) :
                                                  Complex_type(0.2,0.3) );
 
-  for (int i = 0; i < len; ++i) {
+  for (Size_type i = 0; i < len; ++i) {
     ptr[i] = factor*(i + 1.1)/(i + 1.12345);
   }
 
@@ -492,12 +492,12 @@ void initData(Real_type& d)
 /*
  * Calculate and return checksum for data arrays.
  */
-long double calcChecksum(Int_ptr ptr, int len,
+long double calcChecksum(Int_ptr ptr, Size_type len,
                          Real_type scale_factor)
 {
   long double tchk = 0.0;
   long double ckahan = 0.0;
-  for (Index_type j = 0; j < len; ++j) {
+  for (Size_type j = 0; j < len; ++j) {
     long double x = (std::abs(std::sin(j+1.0))+0.5) * ptr[j];
     long double y = x - ckahan;
     volatile long double t = tchk + y;
@@ -514,12 +514,12 @@ long double calcChecksum(Int_ptr ptr, int len,
   return tchk;
 }
 
-long double calcChecksum(Real_ptr ptr, int len,
+long double calcChecksum(Real_ptr ptr, Size_type len,
                          Real_type scale_factor)
 {
   long double tchk = 0.0;
   long double ckahan = 0.0;
-  for (Index_type j = 0; j < len; ++j) {
+  for (Size_type j = 0; j < len; ++j) {
     long double x = (std::abs(std::sin(j+1.0))+0.5) * ptr[j];
     long double y = x - ckahan;
     volatile long double t = tchk + y;
@@ -536,12 +536,12 @@ long double calcChecksum(Real_ptr ptr, int len,
   return tchk;
 }
 
-long double calcChecksum(Complex_ptr ptr, int len,
+long double calcChecksum(Complex_ptr ptr, Size_type len,
                          Real_type scale_factor)
 {
   long double tchk = 0.0;
   long double ckahan = 0.0;
-  for (Index_type j = 0; j < len; ++j) {
+  for (Size_type j = 0; j < len; ++j) {
     long double x = (std::abs(std::sin(j+1.0))+0.5) * (real(ptr[j])+imag(ptr[j]));
     long double y = x - ckahan;
     volatile long double t = tchk + y;
