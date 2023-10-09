@@ -52,6 +52,7 @@ enum GroupID {
   Stream,
   Apps,
   Algorithm,
+  Comm,
 
   NumGroups // Keep this one last and DO NOT remove (!!)
 
@@ -145,12 +146,6 @@ enum KernelID {
   Apps_EDGE3D,
   Apps_ENERGY,
   Apps_FIR,
-  Apps_HALOEXCHANGE,
-  Apps_HALOEXCHANGE_FUSED,
-#if defined(RAJA_PERFSUITE_ENABLE_MPI)
-  Apps_MPI_HALOEXCHANGE,
-  Apps_MPI_HALOEXCHANGE_FUSED,
-#endif
   Apps_LTIMES,
   Apps_LTIMES_NOVIEW,
   Apps_MASS3DEA,
@@ -169,6 +164,16 @@ enum KernelID {
   Algorithm_REDUCE_SUM,
   Algorithm_MEMSET,
   Algorithm_MEMCPY,
+
+//
+// Comm kernels...
+//
+  Comm_HALOEXCHANGE,
+  Comm_HALOEXCHANGE_FUSED,
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+  Comm_MPI_HALOEXCHANGE,
+  Comm_MPI_HALOEXCHANGE_FUSED,
+#endif
 
   NumKernels // Keep this one last and NEVER comment out (!!)
 

@@ -7,7 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 ///
-/// HALOEXCHANGE kernel reference implementation:
+/// HALOEXCHANGE_FUSED kernel reference implementation:
 ///
 /// // pack message for each neighbor
 /// for (Index_type l = 0; l < num_neighbors; ++l) {
@@ -42,13 +42,57 @@
 /// }
 ///
 
-#ifndef RAJAPerf_Apps_HALOEXCHANGE_HPP
-#define RAJAPerf_Apps_HALOEXCHANGE_HPP
+#ifndef RAJAPerf_Comm_HALOEXCHANGE_FUSED_HPP
+#define RAJAPerf_Comm_HALOEXCHANGE_FUSED_HPP
 
-#define HALOEXCHANGE_DATA_SETUP \
+#define HALOEXCHANGE_FUSED_DATA_SETUP \
   HALOEXCHANGE_base_DATA_SETUP \
   \
   std::vector<Real_ptr> buffers = m_buffers;
+
+#define HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP \
+  struct ptr_holder { \
+    Real_ptr buffer; \
+    Int_ptr  list; \
+    Real_ptr var; \
+  }; \
+  ptr_holder* pack_ptr_holders = new ptr_holder[num_neighbors * num_vars]; \
+  Index_type* pack_lens        = new Index_type[num_neighbors * num_vars]; \
+  ptr_holder* unpack_ptr_holders = new ptr_holder[num_neighbors * num_vars]; \
+  Index_type* unpack_lens        = new Index_type[num_neighbors * num_vars];
+
+#define HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN \
+  delete[] pack_ptr_holders; \
+  delete[] pack_lens; \
+  delete[] unpack_ptr_holders; \
+  delete[] unpack_lens;
+
+
+#define HALOEXCHANGE_FUSED_MANUAL_LAMBDA_FUSER_SETUP \
+  auto make_pack_lambda = [](Real_ptr buffer, Int_ptr list, Real_ptr var) { \
+    return [=](Index_type i) { \
+      HALOEXCHANGE_PACK_BODY; \
+    }; \
+  }; \
+  using pack_lambda_type = decltype(make_pack_lambda(Real_ptr(), Int_ptr(), Real_ptr())); \
+  pack_lambda_type* pack_lambdas = reinterpret_cast<pack_lambda_type*>( \
+      malloc(sizeof(pack_lambda_type) * (num_neighbors * num_vars))); \
+  Index_type* pack_lens = new Index_type[num_neighbors * num_vars]; \
+  auto make_unpack_lambda = [](Real_ptr buffer, Int_ptr list, Real_ptr var) { \
+    return [=](Index_type i) { \
+      HALOEXCHANGE_UNPACK_BODY; \
+    }; \
+  }; \
+  using unpack_lambda_type = decltype(make_unpack_lambda(Real_ptr(), Int_ptr(), Real_ptr())); \
+  unpack_lambda_type* unpack_lambdas = reinterpret_cast<unpack_lambda_type*>( \
+      malloc(sizeof(unpack_lambda_type) * (num_neighbors * num_vars))); \
+  Index_type* unpack_lens = new Index_type[num_neighbors * num_vars];
+
+#define HALOEXCHANGE_FUSED_MANUAL_LAMBDA_FUSER_TEARDOWN \
+  free(pack_lambdas); \
+  delete[] pack_lens; \
+  free(unpack_lambdas); \
+  delete[] unpack_lens;
 
 
 #include "HALOEXCHANGE_base.hpp"
@@ -57,16 +101,16 @@
 
 namespace rajaperf
 {
-namespace apps
+namespace comm
 {
 
-class HALOEXCHANGE : public HALOEXCHANGE_base
+class HALOEXCHANGE_FUSED : public HALOEXCHANGE_base
 {
 public:
 
-  HALOEXCHANGE(const RunParams& params);
+  HALOEXCHANGE_FUSED(const RunParams& params);
 
-  ~HALOEXCHANGE();
+  ~HALOEXCHANGE_FUSED();
 
   void setUp(VariantID vid, size_t tune_idx);
   void tearDown(VariantID vid, size_t tune_idx);
@@ -85,13 +129,13 @@ public:
   void runHipVariantImpl(VariantID vid);
 
 private:
-  static const size_t default_gpu_block_size = 256;
+  static const size_t default_gpu_block_size = 1024;
   using gpu_block_sizes_type = gpu_block_size::make_list_type<default_gpu_block_size>;
 
   std::vector<Real_ptr> m_buffers;
 };
 
-} // end namespace apps
+} // end namespace comm
 } // end namespace rajaperf
 
 #endif // closing endif for header file include guard

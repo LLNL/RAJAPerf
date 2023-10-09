@@ -10,15 +10,15 @@
 
 #include "RAJA/RAJA.hpp"
 
-#if defined(RAJA_PERFSUITE_ENABLE_MPI) && defined(RAJA_ENABLE_HIP)
+#if defined(RAJA_PERFSUITE_ENABLE_MPI) && defined(RAJA_ENABLE_CUDA)
 
-#include "common/HipDataUtils.hpp"
+#include "common/CudaDataUtils.hpp"
 
 #include <iostream>
 
 namespace rajaperf
 {
-namespace apps
+namespace comm
 {
 
 template < size_t block_size >
@@ -47,15 +47,15 @@ __global__ void haloexchange_unpack(Real_ptr buffer, Int_ptr list, Real_ptr var,
 
 
 template < size_t block_size >
-void MPI_HALOEXCHANGE::runHipVariantImpl(VariantID vid)
+void MPI_HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
-  auto res{getHipResource()};
+  auto res{getCudaResource()};
 
   MPI_HALOEXCHANGE_DATA_SETUP;
 
-  if ( vid == Base_HIP ) {
+  if ( vid == Base_CUDA ) {
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -75,9 +75,8 @@ void MPI_HALOEXCHANGE::runHipVariantImpl(VariantID vid)
           dim3 nthreads_per_block(block_size);
           dim3 nblocks((len + block_size-1) / block_size);
           constexpr size_t shmem = 0;
-          hipLaunchKernelGGL((haloexchange_pack<block_size>), nblocks, nthreads_per_block, shmem, res.get_stream(),
-              buffer, list, var, len);
-          hipErrchk( hipGetLastError() );
+          haloexchange_pack<block_size><<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(buffer, list, var, len);
+          cudaErrchk( cudaGetLastError() );
           buffer += len;
         }
 
@@ -87,7 +86,7 @@ void MPI_HALOEXCHANGE::runHipVariantImpl(VariantID vid)
                    len*num_vars);
         }
 
-        hipErrchk( hipStreamSynchronize( res.get_stream() ) );
+        cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
         MPI_Isend(send_buffers[l], len*num_vars, Real_MPI_type,
             mpi_ranks[l], send_tags[l], MPI_COMM_WORLD, &pack_mpi_requests[l]);
       }
@@ -110,22 +109,21 @@ void MPI_HALOEXCHANGE::runHipVariantImpl(VariantID vid)
           dim3 nthreads_per_block(block_size);
           dim3 nblocks((len + block_size-1) / block_size);
           constexpr size_t shmem = 0;
-          hipLaunchKernelGGL((haloexchange_unpack<block_size>), nblocks, nthreads_per_block, shmem, res.get_stream(),
-              buffer, list, var, len);
-          hipErrchk( hipGetLastError() );
+          haloexchange_unpack<block_size><<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(buffer, list, var, len);
+          cudaErrchk( cudaGetLastError() );
           buffer += len;
         }
       }
-      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
+      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
 
       MPI_Waitall(num_neighbors, pack_mpi_requests.data(), MPI_STATUSES_IGNORE);
 
     }
     stopTimer();
 
-  } else if ( vid == RAJA_HIP ) {
+  } else if ( vid == RAJA_CUDA ) {
 
-    using EXEC_POL = RAJA::hip_exec<block_size, true /*async*/>;
+    using EXEC_POL = RAJA::cuda_exec<block_size, true /*async*/>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -145,7 +143,7 @@ void MPI_HALOEXCHANGE::runHipVariantImpl(VariantID vid)
           auto haloexchange_pack_base_lam = [=] __device__ (Index_type i) {
                 HALOEXCHANGE_PACK_BODY;
               };
-          RAJA::forall<EXEC_POL>( res,
+          RAJA::forall<EXEC_POL>(res,
               RAJA::TypedRangeSegment<Index_type>(0, len),
               haloexchange_pack_base_lam );
           buffer += len;
@@ -180,7 +178,7 @@ void MPI_HALOEXCHANGE::runHipVariantImpl(VariantID vid)
           auto haloexchange_unpack_base_lam = [=] __device__ (Index_type i) {
                 HALOEXCHANGE_UNPACK_BODY;
               };
-          RAJA::forall<EXEC_POL>( res,
+          RAJA::forall<EXEC_POL>(res,
               RAJA::TypedRangeSegment<Index_type>(0, len),
               haloexchange_unpack_base_lam );
           buffer += len;
@@ -194,13 +192,13 @@ void MPI_HALOEXCHANGE::runHipVariantImpl(VariantID vid)
     stopTimer();
 
   } else {
-     getCout() << "\n MPI_HALOEXCHANGE : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n MPI_HALOEXCHANGE : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(MPI_HALOEXCHANGE, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(MPI_HALOEXCHANGE, Cuda)
 
-} // end namespace apps
+} // end namespace comm
 } // end namespace rajaperf
 
-#endif  // RAJA_ENABLE_HIP
+#endif  // RAJA_ENABLE_CUDA

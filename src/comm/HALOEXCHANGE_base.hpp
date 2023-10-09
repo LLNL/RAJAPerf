@@ -42,8 +42,8 @@
 /// }
 ///
 
-#ifndef RAJAPerf_Apps_HALOEXCHANGE_base_HPP
-#define RAJAPerf_Apps_HALOEXCHANGE_base_HPP
+#ifndef RAJAPerf_Comm_HALOEXCHANGE_base_HPP
+#define RAJAPerf_Comm_HALOEXCHANGE_base_HPP
 
 #define HALOEXCHANGE_base_DATA_SETUP \
   std::vector<Real_ptr> vars = m_vars; \
@@ -74,7 +74,7 @@ namespace rajaperf
 {
 class RunParams;
 
-namespace apps
+namespace comm
 {
 
 class HALOEXCHANGE_base : public KernelBase
@@ -160,7 +160,7 @@ protected:
       VariantID vid);
 };
 
-} // end namespace apps
+} // end namespace comm
 } // end namespace rajaperf
 
 #endif // closing endif for header file include guard

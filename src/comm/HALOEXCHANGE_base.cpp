@@ -16,7 +16,7 @@
 
 namespace rajaperf
 {
-namespace apps
+namespace comm
 {
 
 HALOEXCHANGE_base::HALOEXCHANGE_base(KernelID kid, const RunParams& params)
@@ -345,5 +345,5 @@ void HALOEXCHANGE_base::destroy_lists(
   }
 }
 
-} // end namespace apps
+} // end namespace comm
 } // end namespace rajaperf

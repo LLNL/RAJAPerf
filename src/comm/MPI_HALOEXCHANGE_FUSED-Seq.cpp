@@ -16,7 +16,7 @@
 
 namespace rajaperf
 {
-namespace apps
+namespace comm
 {
 
 
@@ -325,7 +325,7 @@ void MPI_HALOEXCHANGE_FUSED::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED
 
 }
 
-} // end namespace apps
+} // end namespace comm
 } // end namespace rajaperf
 
 #endif

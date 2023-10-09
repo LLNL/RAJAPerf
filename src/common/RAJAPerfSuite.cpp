@@ -86,12 +86,6 @@
 #include "apps/EDGE3D.hpp"
 #include "apps/ENERGY.hpp"
 #include "apps/FIR.hpp"
-#include "apps/HALOEXCHANGE.hpp"
-#include "apps/HALOEXCHANGE_FUSED.hpp"
-#if defined(RAJA_PERFSUITE_ENABLE_MPI)
-#include "apps/MPI_HALOEXCHANGE.hpp"
-#include "apps/MPI_HALOEXCHANGE_FUSED.hpp"
-#endif
 #include "apps/LTIMES.hpp"
 #include "apps/LTIMES_NOVIEW.hpp"
 #include "apps/MASS3DEA.hpp"
@@ -110,6 +104,16 @@
 #include "algorithm/REDUCE_SUM.hpp"
 #include "algorithm/MEMSET.hpp"
 #include "algorithm/MEMCPY.hpp"
+
+//
+// Comm kernels...
+//
+#include "comm/HALOEXCHANGE.hpp"
+#include "comm/HALOEXCHANGE_FUSED.hpp"
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+#include "comm/MPI_HALOEXCHANGE.hpp"
+#include "comm/MPI_HALOEXCHANGE_FUSED.hpp"
+#endif
 
 
 #include <iostream>
@@ -137,6 +141,7 @@ static const std::string GroupNames [] =
   std::string("Stream"),
   std::string("Apps"),
   std::string("Algorithm"),
+  std::string("Comm"),
 
   std::string("Unknown Group")  // Keep this at the end and DO NOT remove....
 
@@ -230,12 +235,6 @@ static const std::string KernelNames [] =
   std::string("Apps_EDGE3D"),
   std::string("Apps_ENERGY"),
   std::string("Apps_FIR"),
-  std::string("Apps_HALOEXCHANGE"),
-  std::string("Apps_HALOEXCHANGE_FUSED"),
-#if defined(RAJA_PERFSUITE_ENABLE_MPI)
-  std::string("Apps_MPI_HALOEXCHANGE"),
-  std::string("Apps_MPI_HALOEXCHANGE_FUSED"),
-#endif
   std::string("Apps_LTIMES"),
   std::string("Apps_LTIMES_NOVIEW"),
   std::string("Apps_MASS3DEA"),
@@ -254,6 +253,16 @@ static const std::string KernelNames [] =
   std::string("Algorithm_REDUCE_SUM"),
   std::string("Algorithm_MEMSET"),
   std::string("Algorithm_MEMCPY"),
+
+//
+// Comm kernels...
+//
+  std::string("Comm_HALOEXCHANGE"),
+  std::string("Comm_HALOEXCHANGE_FUSED"),
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+  std::string("Comm_MPI_HALOEXCHANGE"),
+  std::string("Comm_MPI_HALOEXCHANGE_FUSED"),
+#endif
 
   std::string("Unknown Kernel")  // Keep this at the end and DO NOT remove....
 
@@ -903,24 +912,6 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::FIR(run_params);
        break;
     }
-    case Apps_HALOEXCHANGE : {
-       kernel = new apps::HALOEXCHANGE(run_params);
-       break;
-    }
-    case Apps_HALOEXCHANGE_FUSED : {
-       kernel = new apps::HALOEXCHANGE_FUSED(run_params);
-       break;
-    }
-#if defined(RAJA_PERFSUITE_ENABLE_MPI)
-    case Apps_MPI_HALOEXCHANGE : {
-       kernel = new apps::MPI_HALOEXCHANGE(run_params);
-       break;
-    }
-    case Apps_MPI_HALOEXCHANGE_FUSED : {
-       kernel = new apps::MPI_HALOEXCHANGE_FUSED(run_params);
-       break;
-    }
-#endif
     case Apps_LTIMES : {
        kernel = new apps::LTIMES(run_params);
        break;
@@ -981,6 +972,28 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new algorithm::MEMCPY(run_params);
        break;
     }
+
+//
+// Comm kernels...
+//
+    case Comm_HALOEXCHANGE : {
+       kernel = new comm::HALOEXCHANGE(run_params);
+       break;
+    }
+    case Comm_HALOEXCHANGE_FUSED : {
+       kernel = new comm::HALOEXCHANGE_FUSED(run_params);
+       break;
+    }
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+    case Comm_MPI_HALOEXCHANGE : {
+       kernel = new comm::MPI_HALOEXCHANGE(run_params);
+       break;
+    }
+    case Comm_MPI_HALOEXCHANGE_FUSED : {
+       kernel = new comm::MPI_HALOEXCHANGE_FUSED(run_params);
+       break;
+    }
+#endif
 
     default: {
       getCout() << "\n Unknown Kernel ID = " << kid << std::endl;

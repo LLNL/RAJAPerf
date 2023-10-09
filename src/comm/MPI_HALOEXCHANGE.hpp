@@ -42,8 +42,8 @@
 /// }
 ///
 
-#ifndef RAJAPerf_Apps_MPI_HALOEXCHANGE_HPP
-#define RAJAPerf_Apps_MPI_HALOEXCHANGE_HPP
+#ifndef RAJAPerf_Comm_MPI_HALOEXCHANGE_HPP
+#define RAJAPerf_Comm_MPI_HALOEXCHANGE_HPP
 
 #define MPI_HALOEXCHANGE_DATA_SETUP \
   HALOEXCHANGE_base_DATA_SETUP \
@@ -75,7 +75,7 @@
 
 namespace rajaperf
 {
-namespace apps
+namespace comm
 {
 
 class MPI_HALOEXCHANGE : public HALOEXCHANGE_base
@@ -117,7 +117,7 @@ private:
   std::vector<Real_ptr> m_recv_buffers;
 };
 
-} // end namespace apps
+} // end namespace comm
 } // end namespace rajaperf
 
 #endif

@@ -6,11 +6,11 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "HALOEXCHANGE_FUSED.hpp"
+#include "MPI_HALOEXCHANGE_FUSED.hpp"
 
 #include "RAJA/RAJA.hpp"
 
-#if defined(RAJA_ENABLE_HIP)
+#if defined(RAJA_PERFSUITE_ENABLE_MPI) && defined(RAJA_ENABLE_HIP)
 
 #include "common/HipDataUtils.hpp"
 
@@ -18,10 +18,10 @@
 
 namespace rajaperf
 {
-namespace apps
+namespace comm
 {
 
-#define HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_HIP \
+#define MPI_HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_HIP \
   Real_ptr*   pack_buffer_ptrs; \
   Int_ptr*    pack_list_ptrs; \
   Real_ptr*   pack_var_ptrs; \
@@ -39,7 +39,7 @@ namespace apps
   allocData(DataSpace::HipPinned, unpack_var_ptrs,    num_neighbors * num_vars); \
   allocData(DataSpace::HipPinned, unpack_len_ptrs,    num_neighbors * num_vars);
 
-#define HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN_HIP \
+#define MPI_HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN_HIP \
   deallocData(DataSpace::HipPinned, pack_buffer_ptrs); \
   deallocData(DataSpace::HipPinned, pack_list_ptrs); \
   deallocData(DataSpace::HipPinned, pack_var_ptrs); \
@@ -89,28 +89,34 @@ __global__ void haloexchange_fused_unpack(Real_ptr* unpack_buffer_ptrs, Int_ptr*
 
 
 template < size_t block_size >
-void HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
+void MPI_HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
   auto res{getHipResource()};
 
-  HALOEXCHANGE_FUSED_DATA_SETUP;
+  MPI_HALOEXCHANGE_FUSED_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
 
-    HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_HIP;
+    MPI_HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       constexpr size_t shmem = 0;
 
+      for (Index_type l = 0; l < num_neighbors; ++l) {
+        Index_type len = unpack_index_list_lengths[l];
+        MPI_Irecv(recv_buffers[l], len*num_vars, Real_MPI_type,
+            mpi_ranks[l], recv_tags[l], MPI_COMM_WORLD, &unpack_mpi_requests[l]);
+      }
+
       Index_type pack_index = 0;
       Index_type pack_len_sum = 0;
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
-        Real_ptr buffer = buffers[send_tags[l]];
+        Real_ptr buffer = pack_buffers[l];
         Int_ptr list = pack_index_lists[l];
         Index_type  len  = pack_index_list_lengths[l];
         for (Index_type v = 0; v < num_vars; ++v) {
@@ -131,14 +137,35 @@ void HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
           pack_buffer_ptrs, pack_list_ptrs, pack_var_ptrs, pack_len_ptrs);
       hipErrchk( hipGetLastError() );
       hipErrchk( hipStreamSynchronize( res.get_stream() ) );
+      if (separate_buffers) {
+        for (Index_type l = 0; l < num_neighbors; ++l) {
+          Index_type len = pack_index_list_lengths[l];
+          copyData(DataSpace::Host, send_buffers[l],
+                   dataSpace, pack_buffers[l],
+                   len*num_vars);
+        }
+      }
+      for (Index_type l = 0; l < num_neighbors; ++l) {
+        Index_type len = pack_index_list_lengths[l];
+        MPI_Isend(send_buffers[l], len*num_vars, Real_MPI_type,
+            mpi_ranks[l], send_tags[l], MPI_COMM_WORLD, &pack_mpi_requests[l]);
+      }
+
+      MPI_Waitall(num_neighbors, unpack_mpi_requests.data(), MPI_STATUSES_IGNORE);
 
       Index_type unpack_index = 0;
       Index_type unpack_len_sum = 0;
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
-        Real_ptr buffer = buffers[recv_tags[l]];
+        Real_ptr buffer = unpack_buffers[l];
         Int_ptr list = unpack_index_lists[l];
-        Index_type  len  = unpack_index_list_lengths[l];
+        Index_type len = unpack_index_list_lengths[l];
+        if (separate_buffers) {
+          copyData(dataSpace, unpack_buffers[l],
+                   DataSpace::Host, recv_buffers[l],
+                   len*num_vars);
+        }
+
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
           unpack_buffer_ptrs[unpack_index] = buffer;
@@ -158,10 +185,12 @@ void HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
       hipErrchk( hipGetLastError() );
       hipErrchk( hipStreamSynchronize( res.get_stream() ) );
 
+      MPI_Waitall(num_neighbors, pack_mpi_requests.data(), MPI_STATUSES_IGNORE);
+
     }
     stopTimer();
 
-    HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN_HIP;
+    MPI_HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN_HIP;
 
   } else if ( vid == RAJA_HIP ) {
 
@@ -203,7 +232,13 @@ void HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
-        Real_ptr buffer = buffers[send_tags[l]];
+        Index_type len = unpack_index_list_lengths[l];
+        MPI_Irecv(recv_buffers[l], len*num_vars, Real_MPI_type,
+            mpi_ranks[l], recv_tags[l], MPI_COMM_WORLD, &unpack_mpi_requests[l]);
+      }
+
+      for (Index_type l = 0; l < num_neighbors; ++l) {
+        Real_ptr buffer = pack_buffers[l];
         Int_ptr list = pack_index_lists[l];
         Index_type len = pack_index_list_lengths[l];
         for (Index_type v = 0; v < num_vars; ++v) {
@@ -220,11 +255,32 @@ void HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
       workgroup group_pack = pool_pack.instantiate();
       worksite site_pack = group_pack.run(res);
       res.wait();
+      if (separate_buffers) {
+        for (Index_type l = 0; l < num_neighbors; ++l) {
+          Index_type len = pack_index_list_lengths[l];
+          copyData(DataSpace::Host, send_buffers[l],
+                   dataSpace, pack_buffers[l],
+                   len*num_vars);
+        }
+      }
+      for (Index_type l = 0; l < num_neighbors; ++l) {
+        Index_type len = pack_index_list_lengths[l];
+        MPI_Isend(send_buffers[l], len*num_vars, Real_MPI_type,
+            mpi_ranks[l], send_tags[l], MPI_COMM_WORLD, &pack_mpi_requests[l]);
+      }
+
+      MPI_Waitall(num_neighbors, unpack_mpi_requests.data(), MPI_STATUSES_IGNORE);
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
-        Real_ptr buffer = buffers[recv_tags[l]];
+        Real_ptr buffer = unpack_buffers[l];
         Int_ptr list = unpack_index_lists[l];
         Index_type len = unpack_index_list_lengths[l];
+        if (separate_buffers) {
+          copyData(dataSpace, unpack_buffers[l],
+                   DataSpace::Host, recv_buffers[l],
+                   len*num_vars);
+        }
+
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
           auto haloexchange_fused_unpack_base_lam = [=] __device__ (Index_type i) {
@@ -240,17 +296,19 @@ void HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
       worksite site_unpack = group_unpack.run(res);
       res.wait();
 
+      MPI_Waitall(num_neighbors, pack_mpi_requests.data(), MPI_STATUSES_IGNORE);
+
     }
     stopTimer();
 
   } else {
-     getCout() << "\n HALOEXCHANGE_FUSED : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n MPI_HALOEXCHANGE_FUSED : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(HALOEXCHANGE_FUSED, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(MPI_HALOEXCHANGE_FUSED, Hip)
 
-} // end namespace apps
+} // end namespace comm
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_HIP

@@ -24,7 +24,7 @@
 #include "basic/REDUCE3_INT.hpp"
 #include "basic/INDEXLIST_3LOOP.hpp"
 #include "algorithm/SORT.hpp"
-#include "apps/HALOEXCHANGE_FUSED.hpp"
+#include "comm/HALOEXCHANGE_FUSED.hpp"
 
 #include <list>
 #include <vector>
@@ -674,7 +674,7 @@ void Executor::runWarmupKernels()
         kernel_ids.insert(Basic_INDEXLIST_3LOOP); break;
 
       case Workgroup:
-        kernel_ids.insert(Apps_HALOEXCHANGE_FUSED); break;
+        kernel_ids.insert(Comm_HALOEXCHANGE_FUSED); break;
 
       case Reduction:
         kernel_ids.insert(Basic_REDUCE3_INT); break;

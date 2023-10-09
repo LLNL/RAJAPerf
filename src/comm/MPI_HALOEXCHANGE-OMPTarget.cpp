@@ -18,7 +18,7 @@
 
 namespace rajaperf
 {
-namespace apps
+namespace comm
 {
 
   //
@@ -170,7 +170,7 @@ void MPI_HALOEXCHANGE::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNU
   }
 }
 
-} // end namespace apps
+} // end namespace comm
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_TARGET_OPENMP

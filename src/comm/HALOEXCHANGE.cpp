@@ -14,11 +14,11 @@
 
 namespace rajaperf
 {
-namespace apps
+namespace comm
 {
 
 HALOEXCHANGE::HALOEXCHANGE(const RunParams& params)
-  : HALOEXCHANGE_base(rajaperf::Apps_HALOEXCHANGE, params)
+  : HALOEXCHANGE_base(rajaperf::Comm_HALOEXCHANGE, params)
 {
   setUsesFeature(Forall);
 
@@ -67,5 +67,5 @@ void HALOEXCHANGE::tearDown(VariantID vid, size_t tune_idx)
   tearDown_base(vid, tune_idx);
 }
 
-} // end namespace apps
+} // end namespace comm
 } // end namespace rajaperf

@@ -7,7 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 ///
-/// HALOEXCHANGE_FUSED kernel reference implementation:
+/// MPI_HALOEXCHANGE_FUSED kernel reference implementation:
 ///
 /// // pack message for each neighbor
 /// for (Index_type l = 0; l < num_neighbors; ++l) {
@@ -42,15 +42,28 @@
 /// }
 ///
 
-#ifndef RAJAPerf_Apps_HALOEXCHANGE_FUSED_HPP
-#define RAJAPerf_Apps_HALOEXCHANGE_FUSED_HPP
+#ifndef RAJAPerf_Comm_MPI_HALOEXCHANGE_FUSED_HPP
+#define RAJAPerf_Comm_MPI_HALOEXCHANGE_FUSED_HPP
 
-#define HALOEXCHANGE_FUSED_DATA_SETUP \
+#define MPI_HALOEXCHANGE_FUSED_DATA_SETUP \
   HALOEXCHANGE_base_DATA_SETUP \
   \
-  std::vector<Real_ptr> buffers = m_buffers;
+  std::vector<int> mpi_ranks = m_mpi_ranks; \
+  \
+  std::vector<MPI_Request> pack_mpi_requests(num_neighbors); \
+  std::vector<MPI_Request> unpack_mpi_requests(num_neighbors); \
+  \
+  const DataSpace dataSpace = getDataSpace(vid); \
+  \
+  const bool separate_buffers = (getMPIDataSpace(vid) == DataSpace::Copy); \
+  \
+  std::vector<Real_ptr> pack_buffers = m_pack_buffers; \
+  std::vector<Real_ptr> unpack_buffers = m_unpack_buffers; \
+  \
+  std::vector<Real_ptr> send_buffers = m_send_buffers; \
+  std::vector<Real_ptr> recv_buffers = m_recv_buffers;
 
-#define HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP \
+#define MPI_HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP \
   struct ptr_holder { \
     Real_ptr buffer; \
     Int_ptr  list; \
@@ -61,14 +74,14 @@
   ptr_holder* unpack_ptr_holders = new ptr_holder[num_neighbors * num_vars]; \
   Index_type* unpack_lens        = new Index_type[num_neighbors * num_vars];
 
-#define HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN \
+#define MPI_HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN \
   delete[] pack_ptr_holders; \
   delete[] pack_lens; \
   delete[] unpack_ptr_holders; \
   delete[] unpack_lens;
 
 
-#define HALOEXCHANGE_FUSED_MANUAL_LAMBDA_FUSER_SETUP \
+#define MPI_HALOEXCHANGE_FUSED_MANUAL_LAMBDA_FUSER_SETUP \
   auto make_pack_lambda = [](Real_ptr buffer, Int_ptr list, Real_ptr var) { \
     return [=](Index_type i) { \
       HALOEXCHANGE_PACK_BODY; \
@@ -88,7 +101,7 @@
       malloc(sizeof(unpack_lambda_type) * (num_neighbors * num_vars))); \
   Index_type* unpack_lens = new Index_type[num_neighbors * num_vars];
 
-#define HALOEXCHANGE_FUSED_MANUAL_LAMBDA_FUSER_TEARDOWN \
+#define MPI_HALOEXCHANGE_FUSED_MANUAL_LAMBDA_FUSER_TEARDOWN \
   free(pack_lambdas); \
   delete[] pack_lens; \
   free(unpack_lambdas); \
@@ -99,18 +112,20 @@
 
 #include "RAJA/RAJA.hpp"
 
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+
 namespace rajaperf
 {
-namespace apps
+namespace comm
 {
 
-class HALOEXCHANGE_FUSED : public HALOEXCHANGE_base
+class MPI_HALOEXCHANGE_FUSED : public HALOEXCHANGE_base
 {
 public:
 
-  HALOEXCHANGE_FUSED(const RunParams& params);
+  MPI_HALOEXCHANGE_FUSED(const RunParams& params);
 
-  ~HALOEXCHANGE_FUSED();
+  ~MPI_HALOEXCHANGE_FUSED();
 
   void setUp(VariantID vid, size_t tune_idx);
   void tearDown(VariantID vid, size_t tune_idx);
@@ -132,10 +147,19 @@ private:
   static const size_t default_gpu_block_size = 1024;
   using gpu_block_sizes_type = gpu_block_size::make_list_type<default_gpu_block_size>;
 
-  std::vector<Real_ptr> m_buffers;
+  int m_mpi_size = -1;
+  int m_my_mpi_rank = -1;
+  std::array<int, 3> m_mpi_dims = {-1, -1, -1};
+
+  std::vector<Real_ptr> m_pack_buffers;
+  std::vector<Real_ptr> m_unpack_buffers;
+
+  std::vector<Real_ptr> m_send_buffers;
+  std::vector<Real_ptr> m_recv_buffers;
 };
 
-} // end namespace apps
+} // end namespace comm
 } // end namespace rajaperf
 
+#endif
 #endif // closing endif for header file include guard

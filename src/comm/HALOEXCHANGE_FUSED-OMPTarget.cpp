@@ -6,11 +6,11 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "MPI_HALOEXCHANGE_FUSED.hpp"
+#include "HALOEXCHANGE_FUSED.hpp"
 
 #include "RAJA/RAJA.hpp"
 
-#if defined(RAJA_ENABLE_TARGET_OPENMP) && defined(RAJA_ENABLE_TARGET_OPENMP)
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
 
 #include "common/OpenMPTargetDataUtils.hpp"
 
@@ -18,7 +18,7 @@
 
 namespace rajaperf
 {
-namespace apps
+namespace comm
 {
 
   //
@@ -26,7 +26,7 @@ namespace apps
   //
 //const size_t threads_per_team = 256;
 
-#define MPI_HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_OMP_TARGET \
+#define HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_OMP_TARGET \
   void** pack_ptrs; \
   allocData(DataSpace::OmpTarget, pack_ptrs, 4 * num_neighbors * num_vars); \
   Real_ptr*   pack_buffer_ptrs = reinterpret_cast<Real_ptr*>(pack_ptrs) + 0 * num_neighbors * num_vars; \
@@ -50,43 +50,37 @@ namespace apps
   Real_ptr*   h_unpack_var_ptrs    = reinterpret_cast<Real_ptr*>(h_unpack_ptrs) + 2 * num_neighbors * num_vars; \
   Index_type* h_unpack_len_ptrs    = reinterpret_cast<Index_type*>(h_unpack_ptrs) + 3 * num_neighbors * num_vars;
 
-#define MPI_HALOEXCHANGE_FUSED_MANUAL_FUSER_COPY_PACK_OMP_TARGET \
+#define HALOEXCHANGE_FUSED_MANUAL_FUSER_COPY_PACK_OMP_TARGET \
   initOpenMPDeviceData(pack_ptrs, h_pack_ptrs, 4 * num_neighbors * num_vars);
 
-#define MPI_HALOEXCHANGE_FUSED_MANUAL_FUSER_COPY_UNPACK_OMP_TARGET \
+#define HALOEXCHANGE_FUSED_MANUAL_FUSER_COPY_UNPACK_OMP_TARGET \
   initOpenMPDeviceData(unpack_ptrs, h_unpack_ptrs, 4 * num_neighbors * num_vars);
 
-#define MPI_HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN_OMP_TARGET \
+#define HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN_OMP_TARGET \
   deallocData(DataSpace::OmpTarget, pack_ptrs); \
   delete[] h_pack_ptrs; \
   deallocData(DataSpace::OmpTarget, unpack_ptrs); \
   delete[] h_unpack_ptrs;
 
 
-void MPI_HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+void HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
 
-  MPI_HALOEXCHANGE_FUSED_DATA_SETUP;
+  HALOEXCHANGE_FUSED_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
 
-    MPI_HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_OMP_TARGET;
+    HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      for (Index_type l = 0; l < num_neighbors; ++l) {
-        Index_type len = unpack_index_list_lengths[l];
-        MPI_Irecv(recv_buffers[l], len*num_vars, Real_MPI_type,
-            mpi_ranks[l], recv_tags[l], MPI_COMM_WORLD, &unpack_mpi_requests[l]);
-      }
 
       Index_type pack_index = 0;
       Index_type pack_len_sum = 0;
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
-        Real_ptr buffer = pack_buffers[l];
+        Real_ptr buffer = buffers[send_tags[l]];
         Int_ptr list = pack_index_lists[l];
         Index_type len = pack_index_list_lengths[l];
         for (Index_type v = 0; v < num_vars; ++v) {
@@ -100,7 +94,7 @@ void MPI_HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPE
           buffer += len;
         }
       }
-      MPI_HALOEXCHANGE_FUSED_MANUAL_FUSER_COPY_PACK_OMP_TARGET;
+      HALOEXCHANGE_FUSED_MANUAL_FUSER_COPY_PACK_OMP_TARGET;
       Index_type pack_len_ave = (pack_len_sum + pack_index-1) / pack_index;
       #pragma omp target is_device_ptr(pack_buffer_ptrs, pack_list_ptrs, pack_var_ptrs, pack_len_ptrs) device( did )
       #pragma omp teams distribute parallel for collapse(2) schedule(static, 1)
@@ -117,35 +111,14 @@ void MPI_HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPE
           }
         }
       }
-      if (separate_buffers) {
-        for (Index_type l = 0; l < num_neighbors; ++l) {
-          Index_type len = pack_index_list_lengths[l];
-          copyData(DataSpace::Host, send_buffers[l],
-                   dataSpace, pack_buffers[l],
-                   len*num_vars);
-        }
-      }
-      for (Index_type l = 0; l < num_neighbors; ++l) {
-        Index_type len = pack_index_list_lengths[l];
-        MPI_Isend(send_buffers[l], len*num_vars, Real_MPI_type,
-            mpi_ranks[l], send_tags[l], MPI_COMM_WORLD, &pack_mpi_requests[l]);
-      }
-
-      MPI_Waitall(num_neighbors, unpack_mpi_requests.data(), MPI_STATUSES_IGNORE);
 
       Index_type unpack_index = 0;
       Index_type unpack_len_sum = 0;
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
-        Real_ptr buffer = unpack_buffers[l];
+        Real_ptr buffer = buffers[recv_tags[l]];
         Int_ptr list = unpack_index_lists[l];
         Index_type len = unpack_index_list_lengths[l];
-        if (separate_buffers) {
-          copyData(dataSpace, unpack_buffers[l],
-                   DataSpace::Host, recv_buffers[l],
-                   len*num_vars);
-        }
-
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
           h_unpack_buffer_ptrs[unpack_index] = buffer;
@@ -157,7 +130,7 @@ void MPI_HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPE
           buffer += len;
         }
       }
-      MPI_HALOEXCHANGE_FUSED_MANUAL_FUSER_COPY_UNPACK_OMP_TARGET;
+      HALOEXCHANGE_FUSED_MANUAL_FUSER_COPY_UNPACK_OMP_TARGET;
       Index_type unpack_len_ave = (unpack_len_sum + unpack_index-1) / unpack_index;
       #pragma omp target is_device_ptr(unpack_buffer_ptrs, unpack_list_ptrs, unpack_var_ptrs, unpack_len_ptrs) device( did )
       #pragma omp teams distribute parallel for collapse(2) schedule(static, 1)
@@ -175,12 +148,10 @@ void MPI_HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPE
         }
       }
 
-      MPI_Waitall(num_neighbors, pack_mpi_requests.data(), MPI_STATUSES_IGNORE);
-
     }
     stopTimer();
 
-    MPI_HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN_OMP_TARGET;
+    HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN_OMP_TARGET;
 
   } else if ( vid == RAJA_OpenMPTarget ) {
 
@@ -219,13 +190,7 @@ void MPI_HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPE
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
-        Index_type len = unpack_index_list_lengths[l];
-        MPI_Irecv(recv_buffers[l], len*num_vars, Real_MPI_type,
-            mpi_ranks[l], recv_tags[l], MPI_COMM_WORLD, &unpack_mpi_requests[l]);
-      }
-
-      for (Index_type l = 0; l < num_neighbors; ++l) {
-        Real_ptr buffer = pack_buffers[l];
+        Real_ptr buffer = buffers[send_tags[l]];
         Int_ptr list = pack_index_lists[l];
         Index_type  len  = pack_index_list_lengths[l];
         for (Index_type v = 0; v < num_vars; ++v) {
@@ -241,32 +206,11 @@ void MPI_HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPE
       }
       workgroup group_pack = pool_pack.instantiate();
       worksite site_pack = group_pack.run();
-      if (separate_buffers) {
-        for (Index_type l = 0; l < num_neighbors; ++l) {
-          Index_type len = pack_index_list_lengths[l];
-          copyData(DataSpace::Host, send_buffers[l],
-                   dataSpace, pack_buffers[l],
-                   len*num_vars);
-        }
-      }
-      for (Index_type l = 0; l < num_neighbors; ++l) {
-        Index_type len = pack_index_list_lengths[l];
-        MPI_Isend(send_buffers[l], len*num_vars, Real_MPI_type,
-            mpi_ranks[l], send_tags[l], MPI_COMM_WORLD, &pack_mpi_requests[l]);
-      }
-
-      MPI_Waitall(num_neighbors, unpack_mpi_requests.data(), MPI_STATUSES_IGNORE);
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
         Real_ptr buffer = buffers[recv_tags[l]];
         Int_ptr list = unpack_index_lists[l];
         Index_type  len  = unpack_index_list_lengths[l];
-        if (separate_buffers) {
-          copyData(dataSpace, unpack_buffers[l],
-                   DataSpace::Host, recv_buffers[l],
-                   len*num_vars);
-        }
-
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
           auto haloexchange_fused_unpack_base_lam = [=](Index_type i) {
@@ -281,17 +225,15 @@ void MPI_HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPE
       workgroup group_unpack = pool_unpack.instantiate();
       worksite site_unpack = group_unpack.run();
 
-      MPI_Waitall(num_neighbors, pack_mpi_requests.data(), MPI_STATUSES_IGNORE);
-
     }
     stopTimer();
 
   } else {
-     getCout() << "\n MPI_HALOEXCHANGE_FUSED : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n HALOEXCHANGE_FUSED : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 
-} // end namespace apps
+} // end namespace comm
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_TARGET_OPENMP
