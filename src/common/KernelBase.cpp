@@ -44,6 +44,39 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params)
   running_tuning = getUnknownTuningIdx();
 
   checksum_scale_factor = 1.0;
+
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
+  // Init Caliper column metadata attributes
+  // Aggregatable attributes need to be initialized before manager.start()
+  ProblemSize_attr = cali_create_attribute("ProblemSize", CALI_TYPE_DOUBLE,
+                                           CALI_ATTR_ASVALUE |
+                                           CALI_ATTR_AGGREGATABLE |
+                                           CALI_ATTR_SKIP_EVENTS);
+  Reps_attr = cali_create_attribute("Reps", CALI_TYPE_DOUBLE,
+                                    CALI_ATTR_ASVALUE |
+                                    CALI_ATTR_AGGREGATABLE |
+                                    CALI_ATTR_SKIP_EVENTS);
+  Iters_Rep_attr = cali_create_attribute("Iterations/Rep", CALI_TYPE_DOUBLE,
+                                         CALI_ATTR_ASVALUE |
+                                         CALI_ATTR_AGGREGATABLE |
+                                         CALI_ATTR_SKIP_EVENTS);
+  Kernels_Rep_attr = cali_create_attribute("Kernels/Rep", CALI_TYPE_DOUBLE,
+                                           CALI_ATTR_ASVALUE |
+                                           CALI_ATTR_AGGREGATABLE |
+                                           CALI_ATTR_SKIP_EVENTS);
+  Bytes_Rep_attr = cali_create_attribute("Bytes/Rep", CALI_TYPE_DOUBLE,
+                                         CALI_ATTR_ASVALUE |
+                                         CALI_ATTR_AGGREGATABLE |
+                                         CALI_ATTR_SKIP_EVENTS);
+  Flops_Rep_attr = cali_create_attribute("Flops/Rep", CALI_TYPE_DOUBLE,
+                                         CALI_ATTR_ASVALUE |
+                                         CALI_ATTR_AGGREGATABLE |
+                                         CALI_ATTR_SKIP_EVENTS);
+  BlockSize_attr = cali_create_attribute("BlockSize", CALI_TYPE_DOUBLE,
+                                           CALI_ATTR_ASVALUE |
+                                           CALI_ATTR_AGGREGATABLE |
+                                           CALI_ATTR_SKIP_EVENTS);
+#endif
 }
 
 
@@ -156,6 +189,9 @@ void KernelBase::setVariantDefined(VariantID vid)
   min_time[vid].resize(variant_tuning_names[vid].size(), std::numeric_limits<double>::max());
   max_time[vid].resize(variant_tuning_names[vid].size(), -std::numeric_limits<double>::max());
   tot_time[vid].resize(variant_tuning_names[vid].size(), 0.0);
+  #if defined(RAJA_PERFSUITE_USE_CALIPER)
+    doCaliMetaOnce[vid].resize(variant_tuning_names[vid].size(), true);
+  #endif
 }
 
 int KernelBase::getDataAlignment() const
@@ -278,6 +314,12 @@ void KernelBase::runKernel(VariantID vid, size_t tune_idx)
     return;
   }
 
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
+  if (doCaliperTiming) {
+    KernelBase::setCaliperMgrStart(vid, getVariantTuningName(vid, tune_idx));
+  }
+#endif
+
   switch ( vid ) {
 
     case Base_Seq :
@@ -348,6 +390,11 @@ void KernelBase::runKernel(VariantID vid, size_t tune_idx)
     }
 
   }
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
+  if (doCaliperTiming) {
+    KernelBase::setCaliperMgrStop(vid, getVariantTuningName(vid, tune_idx));
+  }
+#endif
 }
 
 void KernelBase::print(std::ostream& os) const
@@ -418,4 +465,108 @@ void KernelBase::print(std::ostream& os) const
   os << std::endl;
 }
 
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
+void KernelBase::doOnceCaliMetaBegin(VariantID vid, size_t tune_idx)
+{
+  if(doCaliMetaOnce[vid].at(tune_idx)) {
+    // attributes are class variables initialized in ctor
+    cali_set_double(ProblemSize_attr,(double)getActualProblemSize());
+    cali_set_double(Reps_attr,(double)getRunReps());
+    cali_set_double(Iters_Rep_attr,(double)getItsPerRep());
+    cali_set_double(Kernels_Rep_attr,(double)getKernelsPerRep());
+    cali_set_double(Bytes_Rep_attr,(double)getBytesPerRep());
+    cali_set_double(Flops_Rep_attr,(double)getFLOPsPerRep());
+    cali_set_double(BlockSize_attr, getBlockSize());
+  }
+}
+
+void KernelBase::doOnceCaliMetaEnd(VariantID vid, size_t tune_idx)
+{
+  if(doCaliMetaOnce[vid].at(tune_idx)) {
+    doCaliMetaOnce[vid].at(tune_idx) = false;
+  }
+}
+
+void KernelBase::setCaliperMgrVariantTuning(VariantID vid,
+                                  std::string tstr,
+                                  const std::string& outdir,
+                                  const std::string& addToConfig)
+{
+  static bool ran_spot_config_check = false;
+  bool config_ok = true;
+
+  const char* kernel_info_spec = R"json(
+  {
+    "name": "rajaperf_kernel_info",
+    "type": "boolean",
+    "category": "metric",
+    "description": "Record RAJAPerf kernel info attributes",
+    "query":
+    [
+      {
+        "level"  : "local",
+        "select" :
+        [
+          { "expr": "any(max#ProblemSize)", "as": "ProblemSize" },
+          { "expr": "any(max#Reps)", "as": "Reps" },
+          { "expr": "any(max#Iterations/Rep)", "as": "Iterations/Rep" },
+          { "expr": "any(max#Kernels/Rep)", "as": "Kernels/Rep" },
+          { "expr": "any(max#Bytes/Rep)", "as": "Bytes/Rep" },
+          { "expr": "any(max#Flops/Rep)", "as": "Flops/Rep" },
+          { "expr": "any(max#BlockSize)", "as": "BlockSize" }
+        ]
+      },
+      {
+        "level"  : "cross",
+        "select" :
+        [
+          { "expr": "any(any#max#ProblemSize)", "as": "ProblemSize" },
+          { "expr": "any(any#max#Reps)", "as": "Reps" },
+          { "expr": "any(any#max#Iterations/Rep)", "as": "Iterations/Rep" },
+          { "expr": "any(any#max#Kernels/Rep)", "as": "Kernels/Rep" },
+          { "expr": "any(any#max#Bytes/Rep)", "as": "Bytes/Rep" },
+          { "expr": "any(any#max#Flops/Rep)", "as": "Flops/Rep" },
+          { "expr": "any(any#max#BlockSize)", "as": "BlockSize" }
+        ]
+      }
+    ]
+  }
+  )json";
+
+  if(!ran_spot_config_check && (!addToConfig.empty())) {
+    cali::ConfigManager cm;
+    std::string check_profile = "spot()," + addToConfig;
+    std::string msg = cm.check(check_profile.c_str());
+    if(!msg.empty()) {
+      std::cerr << "Problem with Cali Config: " << check_profile << "\n";
+      std::cerr << "Check your command line argument: " << addToConfig << "\n";
+      config_ok = false;
+      exit(-1);
+    }
+    ran_spot_config_check = true;
+    std::cout << "Caliper ran Spot config check\n";
+  }
+
+  if(config_ok) {
+    cali::ConfigManager m;
+    mgr[vid][tstr] = m;
+    std::string od("./");
+    if (outdir.size()) {
+      od = outdir + "/";
+    }
+    std::string vstr = getVariantName(vid);
+    std::string profile = "spot(output=" + od + vstr + "-" + tstr + ".cali)";
+    if(!addToConfig.empty()) {
+      profile += "," + addToConfig;
+    }
+    std::cout << "Profile: " << profile << std::endl;
+    mgr[vid][tstr].add_option_spec(kernel_info_spec);
+    mgr[vid][tstr].set_default_parameter("rajaperf_kernel_info", "true");
+    mgr[vid][tstr].add(profile.c_str());
+  }
+}
+
+// initialize a KernelBase static
+std::map<rajaperf::VariantID, std::map<std::string, cali::ConfigManager>> KernelBase::mgr;
+#endif
 }  // closing brace for rajaperf namespace

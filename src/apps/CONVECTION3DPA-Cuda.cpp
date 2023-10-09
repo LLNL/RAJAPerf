@@ -130,6 +130,8 @@ template < size_t block_size >
 void CONVECTION3DPA::runCudaVariantImpl(VariantID vid) {
   const Index_type run_reps = getRunReps();
 
+  auto res{getCudaResource()};
+
   CONVECTION3DPA_DATA_SETUP;
 
   switch (vid) {
@@ -141,7 +143,8 @@ void CONVECTION3DPA::runCudaVariantImpl(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      Convection3DPA<block_size><<<NE, nthreads_per_block>>>
+      constexpr size_t shmem = 0;
+      Convection3DPA<block_size><<<NE, nthreads_per_block, shmem, res.get_stream()>>>
         (Basis, tBasis, dBasis, D, X, Y);
 
       cudaErrchk(cudaGetLastError());
@@ -162,18 +165,18 @@ void CONVECTION3DPA::runCudaVariantImpl(VariantID vid) {
         RAJA::LoopPolicy<RAJA::cuda_block_x_direct>;
 
     using inner_x =
-        RAJA::LoopPolicy<RAJA::cuda_thread_x_loop>;
+        RAJA::LoopPolicy<RAJA::cuda_thread_size_x_loop<CPA_Q1D>>;
 
     using inner_y =
-        RAJA::LoopPolicy<RAJA::cuda_thread_y_loop>;
+        RAJA::LoopPolicy<RAJA::cuda_thread_size_y_loop<CPA_Q1D>>;
 
     using inner_z =
-        RAJA::LoopPolicy<RAJA::cuda_thread_z_loop>;
+        RAJA::LoopPolicy<RAJA::cuda_thread_size_z_loop<CPA_Q1D>>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::launch<launch_policy>(
+      RAJA::launch<launch_policy>( res,
           RAJA::LaunchParams(RAJA::Teams(NE),
                            RAJA::Threads(CPA_Q1D, CPA_Q1D, CPA_Q1D)),
           [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
@@ -346,7 +349,7 @@ void CONVECTION3DPA::runCudaVariantImpl(VariantID vid) {
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(CONVECTION3DPA, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(CONVECTION3DPA, Cuda)
 
 } // end namespace apps
 } // end namespace rajaperf

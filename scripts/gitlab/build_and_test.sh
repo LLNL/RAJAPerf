@@ -21,16 +21,36 @@ hostname="$(hostname)"
 truehostname=${hostname//[0-9]/}
 project_dir="$(pwd)"
 
-build_root=${BUILD_ROOT:-""}
 hostconfig=${HOST_CONFIG:-""}
 spec=${SPEC:-""}
+module_list=${MODULE_LIST:-""}
 job_unique_id=${CI_JOB_ID:-""}
+use_dev_shm=${USE_DEV_SHM:-true}
+
 raja_version=${UPDATE_RAJA:-""}
 sys_type=${SYS_TYPE:-""}
 
+spack_upstream_path=${SPACK_UPSTREAM_PATH:-"/usr/workspace/umdev/RAJAPerf/upstream"}
+update_spack_upstream=${UPDATE_SPACK_UPSTREAM:-false}
+
+if [[ -n ${module_list} ]]
+then
+    echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    echo "~~~~~ Modules to load: ${module_list}"
+    echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    module load ${module_list}
+fi
+
 prefix=""
 
-if [[ -d /dev/shm ]]
+if [[ ${update_spack_upstream} == true ]]
+then
+    use_dev_shm=false
+    echo "We don't build in shared memory when updating the spack upstream"
+
+    prefix=${spack_upstream_path}
+    mkdir -p ${prefix}
+elif [[ -d /dev/shm && ${use_dev_shm} == true ]]
 then
     prefix="/dev/shm/${hostname}"
     if [[ -z ${job_unique_id} ]]; then
@@ -42,6 +62,10 @@ then
     fi
 
     prefix="${prefix}-${job_unique_id}"
+    mkdir -p ${prefix}
+else
+    # We set the prefix in the parent directory so that spack dependencies are not installed inside the source tree.
+    prefix="$(pwd)/../spack-and-build-root"
     mkdir -p ${prefix}
 fi
 
@@ -62,22 +86,23 @@ then
         exit 1
     fi
 
-    prefix_opt=""
+    prefix_opt="--prefix=${prefix}"
 
-    if [[ -d /dev/shm ]]
+    upstream_opt=""
+    if [[ ${update_spack_upstream} == false && -e ${spack_upstream_path}/.spack-db ]]
     then
-        prefix_opt="--prefix=${prefix}"
-
-        # We force Spack to put all generated files (cache and configuration of
-        # all sorts) in a unique location so that there can be no collision
-        # with existing or concurrent Spack.
-        spack_user_cache="${prefix}/spack-user-cache"
-        export SPACK_DISABLE_LOCAL_CONFIG=""
-        export SPACK_USER_CACHE_PATH="${spack_user_cache}"
-        mkdir -p ${spack_user_cache}
+        upstream_opt="--upstream=${spack_upstream_path}"
     fi
 
-    ./tpl/RAJA/scripts/uberenv/uberenv.py --project-json=".uberenv_config.json" --spec="${spec}" ${prefix_opt}
+    # We force Spack to put all generated files (cache and configuration of
+    # all sorts) in a unique location so that there can be no collision
+    # with existing or concurrent Spack.
+    spack_user_cache="${prefix}/spack-user-cache"
+    export SPACK_DISABLE_LOCAL_CONFIG=""
+    export SPACK_USER_CACHE_PATH="${spack_user_cache}"
+    mkdir -p ${spack_user_cache}
+
+    ./tpl/RAJA/scripts/uberenv/uberenv.py --project-json=".uberenv_config.json" --spec="${spec}" ${prefix_opt} ${upstream_opt}
 
     mv ${project_dir}/tpl/RAJA/*.cmake ${project_dir}/.
 
@@ -116,17 +141,8 @@ fi
 hostconfig=$(basename ${hostconfig_path})
 
 # Build Directory
-if [[ -z ${build_root} ]]
-then
-    if [[ -d /dev/shm ]]
-    then
-        build_root="${prefix}"
-    else
-        build_root="$(pwd)"
-    fi
-else
-    build_root="${build_root}"
-fi
+# When using /dev/shm, we use prefix for both spack builds and source build, unless BUILD_ROOT was defined
+build_root=${BUILD_ROOT:-"${prefix}"}
 
 build_dir="${build_root}/build_${hostconfig//.cmake/}"
 
@@ -172,7 +188,6 @@ then
     mkdir -p ${build_dir} && cd ${build_dir}
 
     date
-
     if [[ "${truehostname}" == "corona"  || "${truehostname}" == "tioga" ]]
     then
         module unload rocm
@@ -185,11 +200,11 @@ then
         echo "ERROR: compilation failed, building with verbose output..."
         $cmake_exe --build . --verbose -j 1
     fi
+    date
 
     echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
     echo "~~~~~ RAJA Perf Suite Built"
     echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-    date
 fi
 
 if [[ ! -d ${build_dir} ]]
@@ -216,12 +231,12 @@ then
         then
             echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
             echo "lrun -n1 ... ctest --output-on-failure -T test"
-            echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
             lrun -n1 --smpiargs="-disable_gpu_hooks" ctest --output-on-failure -T test
         else
             echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
             echo "lrun -n1 ... ctest --output-on-failure -T test"
-            echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
             lrun -n1 --smpiargs="-disable_gpu_hooks" ctest --output-on-failure -T test
         fi
     else
@@ -229,12 +244,12 @@ then
         then
             echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
             echo "ctest --output-on-failure -T test 2>&1 | tee tests_output.txt"
-            echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
             ctest --output-on-failure -T test 2>&1 | tee tests_output.txt
         else
             echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
             echo "ctest --output-on-failure -T test 2>&1 | tee tests_output.txt"
-            echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
             ctest --output-on-failure -T test 2>&1 | tee tests_output.txt
         fi
     fi

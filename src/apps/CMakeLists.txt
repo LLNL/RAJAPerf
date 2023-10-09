@@ -27,6 +27,12 @@ blt_add_library(
           DIFFUSION3DPA-Seq.cpp
           DIFFUSION3DPA-OMP.cpp
           DIFFUSION3DPA-OMPTarget.cpp
+          EDGE3D.cpp
+          EDGE3D-Cuda.cpp
+          EDGE3D-Hip.cpp
+          EDGE3D-Seq.cpp
+          EDGE3D-OMP.cpp
+          EDGE3D-OMPTarget.cpp
           ENERGY.cpp
           ENERGY-Seq.cpp
           ENERGY-Hip.cpp 
@@ -76,6 +82,12 @@ blt_add_library(
           LTIMES_NOVIEW-Cuda.cpp
           LTIMES_NOVIEW-OMP.cpp
           LTIMES_NOVIEW-OMPTarget.cpp
+          MASS3DEA.cpp
+          MASS3DEA-Cuda.cpp
+          MASS3DEA-Hip.cpp
+          MASS3DEA-Seq.cpp
+          MASS3DEA-OMP.cpp
+          MASS3DEA-OMPTarget.cpp          
           MASS3DPA.cpp
           MASS3DPA-Cuda.cpp
           MASS3DPA-Hip.cpp
@@ -100,5 +112,11 @@ blt_add_library(
           VOL3D-Cuda.cpp 
           VOL3D-OMP.cpp 
           VOL3D-OMPTarget.cpp 
+          ZONAL_ACCUMULATION_3D.cpp
+          ZONAL_ACCUMULATION_3D-Seq.cpp
+          ZONAL_ACCUMULATION_3D-Hip.cpp
+          ZONAL_ACCUMULATION_3D-Cuda.cpp
+          ZONAL_ACCUMULATION_3D-OMP.cpp
+          ZONAL_ACCUMULATION_3D-OMPTarget.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

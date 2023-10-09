@@ -19,6 +19,12 @@
 #include <string>
 #include <ostream>
 
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
+#include <caliper/cali.h>
+#include <caliper/cali-manager.h>
+#include <adiak.hpp>
+#endif
+
 namespace rajaperf
 {
 
@@ -33,8 +39,8 @@ class RunParams;
  *
  * IMPORTANT: This is only modified when a group is added or removed.
  *
- *            ENUM VALUES MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE)
- *            WITH ARRAY OF GROUP NAMES IN IMPLEMENTATION FILE!!!
+ *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
+ *            ITEMS IN THE GroupNames ARRAY IN IMPLEMENTATION FILE!!!
  *
  *******************************************************************************
  */
@@ -60,8 +66,8 @@ enum GroupID {
  *
  * IMPORTANT: This is only modified when a kernel is added or removed.
  *
- *            ENUM VALUES MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE)
- *            WITH ARRAY OF KERNEL NAMES IN IMPLEMENTATION FILE!!!
+ *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
+ *            ITEMS IN THE KernelNames ARRAY IN IMPLEMENTATION FILE!!!
  *
  *******************************************************************************
  */
@@ -70,7 +76,9 @@ enum KernelID {
 //
 // Basic kernels...
 //
-  Basic_DAXPY = 0,
+  Basic_ARRAY_OF_PTRS = 0,
+  Basic_COPY8,
+  Basic_DAXPY,
   Basic_DAXPY_ATOMIC,
   Basic_IF_QUAD,
   Basic_INDEXLIST,
@@ -134,6 +142,7 @@ enum KernelID {
   Apps_CONVECTION3DPA,
   Apps_DEL_DOT_VEC_2D,
   Apps_DIFFUSION3DPA,
+  Apps_EDGE3D,
   Apps_ENERGY,
   Apps_FIR,
   Apps_HALOEXCHANGE,
@@ -144,10 +153,12 @@ enum KernelID {
 #endif
   Apps_LTIMES,
   Apps_LTIMES_NOVIEW,
+  Apps_MASS3DEA,
   Apps_MASS3DPA,
   Apps_NODAL_ACCUMULATION_3D,
   Apps_PRESSURE,
   Apps_VOL3D,
+  Apps_ZONAL_ACCUMULATION_3D,
 
 //
 // Algorithm kernels...
@@ -172,7 +183,7 @@ enum KernelID {
  * IMPORTANT: This is only modified when a new variant is added to the suite.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
- *            ARRAY OF VARIANT NAMES IN IMPLEMENTATION FILE!!!
+ *            ITEMS IN THE VariantNames ARRAY IN IMPLEMENTATION FILE!!!
  *
  *******************************************************************************
  */
@@ -212,7 +223,7 @@ enum VariantID {
  * IMPORTANT: This is only modified when a new feature is used in suite.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
- *            ARRAY OF FEATURE NAMES IN IMPLEMENTATION FILE!!!
+ *            ITEMS IN THE FeatureNames ARRAY IN IMPLEMENTATION FILE!!!
  *
  *******************************************************************************
  */
@@ -247,7 +258,7 @@ enum FeatureID {
  * IMPORTANT: This is only modified when a new memory space is used in suite.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
- *            ARRAY OF MEMORY SPACE NAMES IN IMPLEMENTATION FILE!!!
+ *            ITEMS IN THE DataSpaceNames ARRAY IN IMPLEMENTATION FILE!!!
  *
  *******************************************************************************
  */

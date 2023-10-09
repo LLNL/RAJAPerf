@@ -12,6 +12,10 @@
 #include "common/RAJAPerfSuite.hpp"
 #include "common/RunParams.hpp"
 
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
+#include "rajaperf_config.hpp"
+#endif
+
 #include <iosfwd>
 #include <streambuf>
 #include <memory>
@@ -49,6 +53,15 @@ public:
 private:
   Executor() = delete;
 
+  bool haveReferenceVariant() { return reference_vid < NumVariants; }
+
+  template < typename Kernel >
+  KernelBase* makeKernel();
+
+  void runKernel(KernelBase* kern, bool print_kernel_name);
+
+  void runWarmupKernels();
+
   enum CSVRepMode {
     Timing = 0,
     Speedup,
@@ -60,22 +73,17 @@ private:
     std::vector<VariantID> variants;
   };
 
-  template < typename Kernel >
-  KernelBase* makeKernel();
-
-  void runKernel(KernelBase* kern, bool print_kernel_name);
-
   std::unique_ptr<std::ostream> openOutputFile(const std::string& filename) const;
-
-  bool haveReferenceVariant() { return reference_vid < NumVariants; }
 
   void writeKernelInfoSummary(std::ostream& str, bool to_file) const;
 
   void writeCSVReport(std::ostream& file, CSVRepMode mode,
                       RunParams::CombinerOpt combiner, size_t prec);
   std::string getReportTitle(CSVRepMode mode, RunParams::CombinerOpt combiner);
-  long double getReportDataEntry(CSVRepMode mode, RunParams::CombinerOpt combiner,
-                                 KernelBase* kern, VariantID vid, size_t tune_idx);
+  long double getReportDataEntry(CSVRepMode mode, 
+                                 RunParams::CombinerOpt combiner,
+                                 KernelBase* kern, VariantID vid, 
+                                 size_t tune_idx);
 
   void writeChecksumReport(std::ostream& file);
 

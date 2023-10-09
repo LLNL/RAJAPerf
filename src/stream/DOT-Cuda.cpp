@@ -15,6 +15,7 @@
 #include "common/CudaDataUtils.hpp"
 
 #include <iostream>
+#include <utility>
 
 
 namespace rajaperf
@@ -59,11 +60,13 @@ __global__ void dot(Real_ptr a, Real_ptr b,
 
 
 template < size_t block_size >
-void DOT::runCudaVariantImpl(VariantID vid)
+void DOT::runCudaVariantBlock(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
+
+  auto res{getCudaResource()};
 
   DOT_DATA_SETUP;
 
@@ -75,16 +78,19 @@ void DOT::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initCudaDeviceData(dprod, &m_dot_init, 1);
+      cudaErrchk( cudaMemcpyAsync( dprod, &m_dot_init, sizeof(Real_type),
+                                   cudaMemcpyHostToDevice, res.get_stream() ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      dot<block_size><<<grid_size, block_size, sizeof(Real_type)*block_size>>>(
+      constexpr size_t shmem = sizeof(Real_type)*block_size;
+      dot<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(
           a, b, dprod, m_dot_init, iend );
       cudaErrchk( cudaGetLastError() );
 
       Real_type lprod;
-      Real_ptr plprod = &lprod;
-      getCudaDeviceData(plprod, dprod, 1);
+      cudaErrchk( cudaMemcpyAsync( &lprod, dprod, sizeof(Real_type),
+                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
+      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
       m_dot += lprod;
 
     }
@@ -99,7 +105,7 @@ void DOT::runCudaVariantImpl(VariantID vid)
 
        RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> dot(m_dot_init);
 
-       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          DOT_BODY;
        });
@@ -114,7 +120,131 @@ void DOT::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(DOT, Cuda)
+template < size_t block_size >
+void DOT::runCudaVariantOccGS(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  auto res{getCudaResource()};
+
+  DOT_DATA_SETUP;
+
+  if ( vid == Base_CUDA ) {
+
+    Real_ptr dprod;
+    allocData(DataSpace::CudaDevice, dprod, 1);
+
+    constexpr size_t shmem = sizeof(Real_type)*block_size;
+    const size_t max_grid_size = detail::getCudaOccupancyMaxBlocks(
+        (dot<block_size>), block_size, shmem);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      cudaErrchk( cudaMemcpyAsync( dprod, &m_dot_init, sizeof(Real_type),
+                                   cudaMemcpyHostToDevice, res.get_stream() ) );
+
+      const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      const size_t grid_size = std::min(normal_grid_size, max_grid_size);
+      dot<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(
+          a, b, dprod, m_dot_init, iend );
+      cudaErrchk( cudaGetLastError() );
+
+      Real_type lprod;
+      cudaErrchk( cudaMemcpyAsync( &lprod, dprod, sizeof(Real_type),
+                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
+      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
+      m_dot += lprod;
+
+    }
+    stopTimer();
+
+    deallocData(DataSpace::CudaDevice, dprod);
+
+  } else if ( vid == RAJA_CUDA ) {
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+       RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> dot(m_dot_init);
+
+       RAJA::forall< RAJA::cuda_exec_occ_calc<block_size, true /*async*/> >( res,
+         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+         DOT_BODY;
+       });
+
+       m_dot += static_cast<Real_type>(dot.get());
+
+    }
+    stopTimer();
+
+  } else {
+     getCout() << "\n  DOT : Unknown Cuda variant id = " << vid << std::endl;
+  }
+}
+
+void DOT::runCudaVariant(VariantID vid, size_t tune_idx)
+{
+  size_t t = 0;
+
+  if ( vid == Base_CUDA || vid == RAJA_CUDA ) {
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        if (tune_idx == t) {
+
+          setBlockSize(block_size);
+          runCudaVariantBlock<block_size>(vid);
+
+        }
+
+        t += 1;
+
+        if (tune_idx == t) {
+
+          setBlockSize(block_size);
+          runCudaVariantOccGS<block_size>(vid);
+
+        }
+
+        t += 1;
+
+      }
+
+    });
+
+  } else {
+
+    getCout() << "\n  DOT : Unknown Cuda variant id = " << vid << std::endl;
+
+  }
+
+}
+
+void DOT::setCudaTuningDefinitions(VariantID vid)
+{
+  if ( vid == Base_CUDA || vid == RAJA_CUDA ) {
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        addVariantTuningName(vid, "block_"+std::to_string(block_size));
+
+        addVariantTuningName(vid, "occgs_"+std::to_string(block_size));
+
+      }
+
+    });
+
+  }
+}
 
 } // end namespace stream
 } // end namespace rajaperf

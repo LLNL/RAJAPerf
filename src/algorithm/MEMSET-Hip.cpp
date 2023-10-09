@@ -39,6 +39,8 @@ void MEMSET::runHipVariantLibrary(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   MEMSET_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -46,14 +48,12 @@ void MEMSET::runHipVariantLibrary(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipErrchk( hipMemsetAsync(MEMSET_STD_ARGS, 0) );
+      hipErrchk( hipMemsetAsync(MEMSET_STD_ARGS, res.get_stream()) );
 
     }
     stopTimer();
 
   } else if ( vid == RAJA_HIP ) {
-
-    camp::resources::Hip res = camp::resources::Hip::get_default();
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -78,6 +78,8 @@ void MEMSET::runHipVariantBlock(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   MEMSET_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -86,8 +88,9 @@ void MEMSET::runHipVariantBlock(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = 0;
       hipLaunchKernelGGL( (memset<block_size>),
-          dim3(grid_size), dim3(block_size), 0, 0,
+          dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
           x, val, iend );
       hipErrchk( hipGetLastError() );
 
@@ -104,8 +107,9 @@ void MEMSET::runHipVariantBlock(VariantID vid)
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = 0;
       hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(memset_lambda)>),
-          grid_size, block_size, 0, 0,
+          grid_size, block_size, shmem, res.get_stream(),
           ibegin, iend, memset_lambda);
       hipErrchk( hipGetLastError() );
 
@@ -117,7 +121,7 @@ void MEMSET::runHipVariantBlock(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           MEMSET_BODY;
       });
@@ -155,7 +159,7 @@ void MEMSET::runHipVariant(VariantID vid, size_t tune_idx)
         run_params.validGPUBlockSize(block_size)) {
 
       if (tune_idx == t) {
-
+        setBlockSize(block_size);
         runHipVariantBlock<block_size>(vid);
 
       }

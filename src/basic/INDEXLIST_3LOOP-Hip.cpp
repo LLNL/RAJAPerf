@@ -65,6 +65,8 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   INDEXLIST_3LOOP_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -74,7 +76,7 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
     Index_type* len;
     allocData(DataSpace::HipPinned, len, 1);
 
-    hipStream_t stream = RAJA::resources::Hip::get_default().get_stream();
+    hipStream_t stream = res.get_stream();
 
     RAJA::operators::plus<Index_type> binary_op;
     Index_type init_val = 0;
@@ -109,7 +111,8 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((indexlist_conditional<block_size>), grid_size, block_size, 0, stream,
+      constexpr size_t shmem = 0;
+      hipLaunchKernelGGL((indexlist_conditional<block_size>), grid_size, block_size, shmem, stream,
           x, counts, iend );
       hipErrchk( hipGetLastError() );
 
@@ -133,7 +136,7 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
                                                  stream));
 #endif
 
-      hipLaunchKernelGGL((indexlist_make_list<block_size>), grid_size, block_size, 0, stream,
+      hipLaunchKernelGGL((indexlist_make_list<block_size>), grid_size, block_size, shmem, stream,
           list, counts, len, iend );
       hipErrchk( hipGetLastError() );
 
@@ -152,33 +155,39 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
 
     INDEXLIST_3LOOP_DATA_SETUP_HIP;
 
+    Index_type* len;
+    allocData(DataSpace::HipPinned, len, 1);
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::hip_reduce, Index_type> len(0);
-
-      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend),
         [=] __device__ (Index_type i) {
         counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
       });
 
-      RAJA::exclusive_scan_inplace< RAJA::hip_exec<block_size, true /*async*/> >(
+      RAJA::exclusive_scan_inplace< RAJA::hip_exec<block_size, true /*async*/> >( res,
           RAJA::make_span(counts+ibegin, iend+1-ibegin));
 
-      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend),
         [=] __device__ (Index_type i) {
         if (counts[i] != counts[i+1]) {
           list[counts[i]] = i;
-          len += 1;
+        }
+        if (i == iend-1) {
+          *len = counts[i+1];
         }
       });
 
-      m_len = len.get();
+      res.wait();
+      m_len = *len;
 
     }
     stopTimer();
+
+    deallocData(DataSpace::HipPinned, len);
 
     INDEXLIST_3LOOP_DATA_TEARDOWN_HIP;
 
@@ -187,7 +196,7 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(INDEXLIST_3LOOP, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(INDEXLIST_3LOOP, Hip)
 
 } // end namespace basic
 } // end namespace rajaperf

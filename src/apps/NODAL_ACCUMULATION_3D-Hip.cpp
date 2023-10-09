@@ -49,6 +49,8 @@ void NODAL_ACCUMULATION_3D::runHipVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = m_domain->n_real_zones;
 
+  auto res{getHipResource()};
+
   NODAL_ACCUMULATION_3D_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -57,8 +59,9 @@ void NODAL_ACCUMULATION_3D::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = 0;
 
-      hipLaunchKernelGGL((nodal_accumulation_3d<block_size>), dim3(grid_size), dim3(block_size), 0, 0, vol,
+      hipLaunchKernelGGL((nodal_accumulation_3d<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(), vol,
                                        x0, x1, x2, x3, x4, x5, x6, x7,
                                        real_zones,
                                        ibegin, iend);
@@ -69,14 +72,13 @@ void NODAL_ACCUMULATION_3D::runHipVariantImpl(VariantID vid)
 
   } else if ( vid == RAJA_HIP ) {
 
-    camp::resources::Resource working_res{camp::resources::Hip()};
     RAJA::TypedListSegment<Index_type> zones(real_zones, iend,
-                                             working_res, RAJA::Unowned);
+                                             res, RAJA::Unowned);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         zones, [=] __device__ (Index_type i) {
           NODAL_ACCUMULATION_3D_RAJA_ATOMIC_BODY(RAJA::hip_atomic);
       });
@@ -89,7 +91,7 @@ void NODAL_ACCUMULATION_3D::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(NODAL_ACCUMULATION_3D, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(NODAL_ACCUMULATION_3D, Hip)
 
 } // end namespace apps
 } // end namespace rajaperf

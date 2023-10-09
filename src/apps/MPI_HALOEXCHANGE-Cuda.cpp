@@ -51,11 +51,11 @@ void MPI_HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getCudaResource()};
+
   MPI_HALOEXCHANGE_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
-
-    auto stream = camp::resources::Cuda::get_default().get_stream();
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -74,7 +74,8 @@ void MPI_HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
           Real_ptr var = vars[v];
           dim3 nthreads_per_block(block_size);
           dim3 nblocks((len + block_size-1) / block_size);
-          haloexchange_pack<block_size><<<nblocks, nthreads_per_block, 0, stream>>>(buffer, list, var, len);
+          constexpr size_t shmem = 0;
+          haloexchange_pack<block_size><<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(buffer, list, var, len);
           cudaErrchk( cudaGetLastError() );
           buffer += len;
         }
@@ -85,7 +86,7 @@ void MPI_HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
                    len*num_vars);
         }
 
-        synchronize(stream);
+        cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
         MPI_Isend(send_buffers[l], len*num_vars, Real_MPI_type,
             mpi_ranks[l], send_tags[l], MPI_COMM_WORLD, &pack_mpi_requests[l]);
       }
@@ -107,12 +108,13 @@ void MPI_HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
           Real_ptr var = vars[v];
           dim3 nthreads_per_block(block_size);
           dim3 nblocks((len + block_size-1) / block_size);
-          haloexchange_unpack<block_size><<<nblocks, nthreads_per_block, 0, stream>>>(buffer, list, var, len);
+          constexpr size_t shmem = 0;
+          haloexchange_unpack<block_size><<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(buffer, list, var, len);
           cudaErrchk( cudaGetLastError() );
           buffer += len;
         }
       }
-      synchronize(stream);
+      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
 
       MPI_Waitall(num_neighbors, pack_mpi_requests.data(), MPI_STATUSES_IGNORE);
 
@@ -122,7 +124,6 @@ void MPI_HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
   } else if ( vid == RAJA_CUDA ) {
 
     using EXEC_POL = RAJA::cuda_exec<block_size, true /*async*/>;
-    auto res = camp::resources::Cuda::get_default();
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -195,7 +196,7 @@ void MPI_HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(MPI_HALOEXCHANGE, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(MPI_HALOEXCHANGE, Cuda)
 
 } // end namespace apps
 } // end namespace rajaperf

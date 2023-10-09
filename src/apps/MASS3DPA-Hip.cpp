@@ -91,6 +91,8 @@ template < size_t block_size >
 void MASS3DPA::runHipVariantImpl(VariantID vid) {
   const Index_type run_reps = getRunReps();
 
+  auto res{getHipResource()};
+
   MASS3DPA_DATA_SETUP;
 
   switch (vid) {
@@ -99,11 +101,12 @@ void MASS3DPA::runHipVariantImpl(VariantID vid) {
 
     dim3 nblocks(NE);
     dim3 nthreads_per_block(MPA_Q1D, MPA_Q1D, 1);
+    constexpr size_t shmem = 0;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipLaunchKernelGGL((Mass3DPA<block_size>), dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+      hipLaunchKernelGGL((Mass3DPA<block_size>), dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
                          B, Bt, D, X, Y);
 
       hipErrchk( hipGetLastError() );
@@ -122,14 +125,14 @@ void MASS3DPA::runHipVariantImpl(VariantID vid) {
 
     using outer_x = RAJA::LoopPolicy<RAJA::hip_block_x_direct>;
 
-    using inner_x = RAJA::LoopPolicy<RAJA::hip_thread_x_loop>;
+    using inner_x = RAJA::LoopPolicy<RAJA::hip_thread_size_x_loop<MPA_Q1D>>;
 
-    using inner_y = RAJA::LoopPolicy<RAJA::hip_thread_y_loop>;
+    using inner_y = RAJA::LoopPolicy<RAJA::hip_thread_size_y_loop<MPA_Q1D>>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::launch<launch_policy>(
+      RAJA::launch<launch_policy>( res,
         RAJA::LaunchParams(RAJA::Teams(NE),
                          RAJA::Threads(MPA_Q1D, MPA_Q1D, 1)),
         [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
@@ -258,7 +261,7 @@ void MASS3DPA::runHipVariantImpl(VariantID vid) {
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(MASS3DPA, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(MASS3DPA, Hip)
 
 } // end namespace apps
 } // end namespace rajaperf

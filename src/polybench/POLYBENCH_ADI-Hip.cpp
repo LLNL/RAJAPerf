@@ -78,6 +78,8 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getHipResource()};
+
   POLYBENCH_ADI_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -88,16 +90,17 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
       for (Index_type t = 1; t <= tsteps; ++t) {
 
         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(n-2, block_size);
+        constexpr size_t shmem = 0;
 
         hipLaunchKernelGGL((adi1<block_size>),
-                           dim3(grid_size), dim3(block_size), 0, 0,
+                           dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
                            n,
                            a, b, c, d, f,
                            P, Q, U, V);
         hipErrchk( hipGetLastError() );
 
         hipLaunchKernelGGL((adi2<block_size>),
-                           dim3(grid_size), dim3(block_size), 0, 0,
+                           dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
                            n,
                            a, c, d, e, f,
                            P, Q, U, V);
@@ -116,6 +119,7 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
       for (Index_type t = 1; t <= tsteps; ++t) {
 
         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(n-2, block_size);
+        constexpr size_t shmem = 0;
 
         auto adi1_lamda = [=] __device__ (Index_type i) {
           POLYBENCH_ADI_BODY2;
@@ -129,7 +133,7 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
         };
 
         hipLaunchKernelGGL((adi_lam<block_size, decltype(adi1_lamda)>),
-                           dim3(grid_size), dim3(block_size), 0, 0,
+                           dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
                            n, adi1_lamda);
         hipErrchk( hipGetLastError() );
 
@@ -145,7 +149,7 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
         };
 
         hipLaunchKernelGGL((adi_lam<block_size, decltype(adi2_lamda)>),
-                           dim3(grid_size), dim3(block_size), 0, 0,
+                           dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
                            n, adi2_lamda);
         hipErrchk( hipGetLastError() );
 
@@ -161,17 +165,14 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::HipKernelFixedAsync<block_size,
-          RAJA::statement::Tile<0, RAJA::tile_fixed<block_size>,
-                                   RAJA::hip_block_x_direct,
-            RAJA::statement::For<0, RAJA::hip_thread_x_direct,
-              RAJA::statement::Lambda<0, RAJA::Segs<0>>,
-              RAJA::statement::For<1, RAJA::seq_exec,
-                RAJA::statement::Lambda<1, RAJA::Segs<0,1>>
-              >,
-              RAJA::statement::Lambda<2, RAJA::Segs<0>>,
-              RAJA::statement::For<2, RAJA::seq_exec,
-                RAJA::statement::Lambda<3, RAJA::Segs<0,2>>
-              >
+          RAJA::statement::For<0, RAJA::hip_global_size_x_direct<block_size>,
+            RAJA::statement::Lambda<0, RAJA::Segs<0>>,
+            RAJA::statement::For<1, RAJA::seq_exec,
+              RAJA::statement::Lambda<1, RAJA::Segs<0,1>>
+            >,
+            RAJA::statement::Lambda<2, RAJA::Segs<0>>,
+            RAJA::statement::For<2, RAJA::seq_exec,
+              RAJA::statement::Lambda<3, RAJA::Segs<0,2>>
             >
           >
         >
@@ -182,10 +183,11 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
 
       for (Index_type t = 1; t <= tsteps; ++t) {
 
-        RAJA::kernel<EXEC_POL>(
+        RAJA::kernel_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{1, n-1},
                            RAJA::RangeSegment{1, n-1},
                            RAJA::RangeStrideSegment{n-2, 0, -1}),
+          res,
 
           [=] __device__ (Index_type i) {
             POLYBENCH_ADI_BODY2_RAJA;
@@ -201,10 +203,11 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
           }
         );
 
-        RAJA::kernel<EXEC_POL>(
+        RAJA::kernel_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{1, n-1},
                            RAJA::RangeSegment{1, n-1},
                            RAJA::RangeStrideSegment{n-2, 0, -1}),
+          res,
 
           [=] __device__ (Index_type i) {
             POLYBENCH_ADI_BODY6_RAJA;
@@ -230,7 +233,7 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(POLYBENCH_ADI, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(POLYBENCH_ADI, Hip)
 
 } // end namespace polybench
 } // end namespace rajaperf

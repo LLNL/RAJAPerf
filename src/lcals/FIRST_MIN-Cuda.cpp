@@ -15,6 +15,8 @@
 #include "common/CudaDataUtils.hpp"
 
 #include <iostream>
+#include <utility>
+
 
 namespace rajaperf
 {
@@ -57,11 +59,13 @@ __global__ void first_min(Real_ptr x,
 
 
 template < size_t block_size >
-void FIRST_MIN::runCudaVariantImpl(VariantID vid)
+void FIRST_MIN::runCudaVariantBlock(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
+
+  auto res{getCudaResource()};
 
   FIRST_MIN_DATA_SETUP;
 
@@ -79,13 +83,15 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
 
       FIRST_MIN_MINLOC_INIT;
 
+      constexpr size_t shmem = sizeof(MyMinLoc)*block_size;
       first_min<block_size><<<grid_size, block_size,
-                              sizeof(MyMinLoc)*block_size>>>(x, dminloc, mymin, iend);
-
+                              shmem, res.get_stream()>>>(x, dminloc, mymin, iend);
       cudaErrchk( cudaGetLastError() );
-      cudaErrchk( cudaMemcpy( mymin_block, dminloc,
-                              grid_size * sizeof(MyMinLoc),
-                              cudaMemcpyDeviceToHost ) );
+
+      cudaErrchk( cudaMemcpyAsync( mymin_block, dminloc,
+                                   grid_size * sizeof(MyMinLoc),
+                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
+      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
 
       for (Index_type i = 0; i < static_cast<Index_type>(grid_size); i++) {
         if ( mymin_block[i].val < mymin.val ) {
@@ -108,7 +114,7 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
        RAJA::ReduceMinLoc<RAJA::cuda_reduce, Real_type, Index_type> loc(
                                                         m_xmin_init, m_initloc);
 
-       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          FIRST_MIN_BODY_RAJA;
        });
@@ -123,7 +129,142 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(FIRST_MIN, Cuda)
+template < size_t block_size >
+void FIRST_MIN::runCudaVariantOccGS(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  auto res{getCudaResource()};
+
+  FIRST_MIN_DATA_SETUP;
+
+  if ( vid == Base_CUDA ) {
+
+    constexpr size_t shmem = sizeof(MyMinLoc)*block_size;
+    const size_t max_grid_size = detail::getCudaOccupancyMaxBlocks(
+        (first_min<block_size>), block_size, shmem);
+
+    const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+    const size_t grid_size = std::min(normal_grid_size, max_grid_size);
+
+    MyMinLoc* mymin_block = new MyMinLoc[grid_size]; //per-block min value
+
+    MyMinLoc* dminloc;
+    cudaErrchk( cudaMalloc( (void**)&dminloc,
+                            grid_size * sizeof(MyMinLoc) ) );
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      FIRST_MIN_MINLOC_INIT;
+
+      first_min<block_size><<<grid_size, block_size,
+                              shmem, res.get_stream()>>>(x, dminloc, mymin, iend);
+      cudaErrchk( cudaGetLastError() );
+
+      cudaErrchk( cudaMemcpyAsync( mymin_block, dminloc,
+                                   grid_size * sizeof(MyMinLoc),
+                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
+      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
+
+      for (Index_type i = 0; i < static_cast<Index_type>(grid_size); i++) {
+        if ( mymin_block[i].val < mymin.val ) {
+          mymin = mymin_block[i];
+        }
+      }
+      m_minloc = RAJA_MAX(m_minloc, mymin.loc);
+
+    }
+    stopTimer();
+
+    cudaErrchk( cudaFree( dminloc ) );
+    delete[] mymin_block;
+
+  } else if ( vid == RAJA_CUDA ) {
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+       RAJA::ReduceMinLoc<RAJA::cuda_reduce, Real_type, Index_type> loc(
+                                                        m_xmin_init, m_initloc);
+
+       RAJA::forall< RAJA::cuda_exec_occ_calc<block_size, true /*async*/> >( res,
+         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+         FIRST_MIN_BODY_RAJA;
+       });
+
+       m_minloc = loc.getLoc();
+
+    }
+    stopTimer();
+
+  } else {
+     getCout() << "\n  FIRST_MIN : Unknown Cuda variant id = " << vid << std::endl;
+  }
+}
+
+void FIRST_MIN::runCudaVariant(VariantID vid, size_t tune_idx)
+{
+  size_t t = 0;
+
+  if ( vid == Base_CUDA || vid == RAJA_CUDA ) {
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        if (tune_idx == t) {
+
+          setBlockSize(block_size);
+          runCudaVariantBlock<block_size>(vid);
+
+        }
+
+        t += 1;
+
+        if (tune_idx == t) {
+
+          setBlockSize(block_size);
+          runCudaVariantOccGS<block_size>(vid);
+
+        }
+
+        t += 1;
+
+      }
+
+    });
+
+  } else {
+
+    getCout() << "\n  FIRST_MIN : Unknown Cuda variant id = " << vid << std::endl;
+
+  }
+
+}
+
+void FIRST_MIN::setCudaTuningDefinitions(VariantID vid)
+{
+  if ( vid == Base_CUDA || vid == RAJA_CUDA ) {
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        addVariantTuningName(vid, "block_"+std::to_string(block_size));
+
+        addVariantTuningName(vid, "occgs_"+std::to_string(block_size));
+
+      }
+
+    });
+
+  }
+}
 
 } // end namespace lcals
 } // end namespace rajaperf

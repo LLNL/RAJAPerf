@@ -10,6 +10,7 @@
 #define RAJAPerf_RunParams_HPP
 
 #include <string>
+#include <set>
 #include <vector>
 #include <array>
 #include <iosfwd>
@@ -78,6 +79,9 @@ public:
     Direct,   /*!< directly use as kernel iteration space */
   };
 
+  /*!
+   * \brief Translate SizeMeaning enum value to string
+   */
   static std::string SizeMeaningToStr(SizeMeaning sm)
   {
     switch (sm) {
@@ -92,17 +96,10 @@ public:
     }
   }
 
-//@{
-//! @name Methods to get/set input state
-
-  InputOpt getInputState() const { return input_state; }
-
   /*!
-   * \brief Set whether run parameters (from input) are valid.
+   * \brief Return state of input parsed to this point.
    */
-  void setInputState(InputOpt is) { input_state = is; }
-
-//@}
+  InputOpt getInputState() const { return input_state; }
 
 
 //@{
@@ -116,9 +113,6 @@ public:
 
   const std::vector<CombinerOpt>& getNpassesCombinerOpts() const
   { return npasses_combiners; }
-  void setNpassesCombinerOpts( std::vector<CombinerOpt>& cvec )
-  { npasses_combiners = cvec; }
-
 
   SizeMeaning getSizeMeaning() const { return size_meaning; }
 
@@ -128,6 +122,7 @@ public:
 
   size_t getDataAlignment() const { return data_alignment; }
 
+  int getGPUStream() const { return gpu_stream; }
   size_t numValidGPUBlockSize() const { return gpu_block_sizes.size(); }
   bool validGPUBlockSize(size_t block_size) const
   {
@@ -164,59 +159,26 @@ public:
 
   const std::string& getReferenceVariant() const { return reference_variant; }
 
-  const std::vector<std::string>& getKernelInput() const
-                                  { return kernel_input; }
-  void setInvalidKernelInput( std::vector<std::string>& svec )
-                              { invalid_kernel_input = svec; }
-  const std::vector<std::string>& getInvalidKernelInput() const
-                                  { return invalid_kernel_input; }
-
-  const std::vector<std::string>& getExcludeKernelInput() const
-                                  { return exclude_kernel_input; }
-  void setInvalidExcludeKernelInput( std::vector<std::string>& svec )
-                              { invalid_exclude_kernel_input = svec; }
-  const std::vector<std::string>& getInvalidExcludeKernelInput() const
-                                  { return invalid_exclude_kernel_input; }
-
-  const std::vector<std::string>& getVariantInput() const
-                                  { return variant_input; }
-  void setInvalidVariantInput( std::vector<std::string>& svec )
-                               { invalid_variant_input = svec; }
-  const std::vector<std::string>& getInvalidVariantInput() const
-                                  { return invalid_variant_input; }
-
-  const std::vector<std::string>& getExcludeVariantInput() const
-                                  { return exclude_variant_input; }
-  void setInvalidExcludeVariantInput( std::vector<std::string>& svec )
-                               { invalid_exclude_variant_input = svec; }
-  const std::vector<std::string>& getInvalidExcludeVariantInput() const
-                                  { return invalid_exclude_variant_input; }
-
-  const std::vector<std::string>& getFeatureInput() const
-                                  { return feature_input; }
-  void setInvalidFeatureInput( std::vector<std::string>& svec )
-                               { invalid_feature_input = svec; }
-  const std::vector<std::string>& getInvalidFeatureInput() const
-                                  { return invalid_feature_input; }
-
-  const std::vector<std::string>& getExcludeFeatureInput() const
-                                  { return exclude_feature_input; }
-  void setInvalidExcludeFeatureInput( std::vector<std::string>& svec )
-                               { invalid_exclude_feature_input = svec; }
-  const std::vector<std::string>& getInvalidExcludeFeatureInput() const
-                                  { return invalid_exclude_feature_input; }
-
-  const std::vector<std::string>& getNpassesCombinerOptInput() const
-                                  { return npasses_combiner_input; }
-  const std::vector<std::string>& getInvalidNpassesCombinerOptInput() const
-                                  { return invalid_npasses_combiner_input; }
-  void setInvalidNpassesCombinerOptInput( std::vector<std::string>& svec )
-                              { invalid_npasses_combiner_input = svec; }
+  const std::vector<std::string>& getTuningInput() const
+                                  { return tuning_input; }
+  const std::vector<std::string>& getExcludeTuningInput() const
+                                  { return exclude_tuning_input; }
 
   const std::string& getOutputDirName() const { return outdir; }
   const std::string& getOutputFilePrefix() const { return outfile_prefix; }
 
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
+  const std::string& getAddToSpotConfig() const { return add_to_spot_config; }
+#endif
+
   bool getDisableWarmup() const { return disable_warmup; }
+
+  bool getAllowProblematicImplementations() const
+  { return allow_problematic_implementations; }
+
+  const std::set<KernelID>& getKernelIDsToRun() const { return run_kernels; }
+  const std::set<VariantID>& getVariantIDsToRun() const { return run_variants; }
+  VariantID getReferenceVariantID() const { return reference_vid; }
 
 //@}
 
@@ -241,6 +203,11 @@ private:
   void printFeatureNames(std::ostream& str) const;
   void printFeatureKernels(std::ostream& str) const;
   void printKernelFeatures(std::ostream& str) const;
+
+  void processNpassesCombinerInput();
+  void processKernelInput();
+  void processVariantInput();
+  void processTuningInput();
 //@}
 
   InputOpt input_state;  /*!< state of command line input */
@@ -258,6 +225,8 @@ private:
   double size;           /*!< kernel size to run (input option) */
   double size_factor;    /*!< default kernel size multipier (input option) */
   size_t data_alignment;
+
+  int gpu_stream; /*!< 0 -> use stream 0; anything else -> use raja default stream */
   std::vector<size_t> gpu_block_sizes; /*!< Block sizes for gpu tunings to run (input option) */
   int mpi_size;           /*!< Number of MPI ranks */
   int mpi_rank;           /*!< Rank of this MPI process */
@@ -269,7 +238,8 @@ private:
   int checkrun_reps;     /*!< Num reps each kernel is run in check run */
 
   std::string reference_variant;   /*!< Name of reference variant for speedup
-                                        calculations */
+                                        calculations given in input */
+  VariantID reference_vid;  /*!< ID of reference variant */
 
   DataSpace seqDataSpace = DataSpace::Host;
   DataSpace ompDataSpace = DataSpace::Omp;
@@ -297,6 +267,10 @@ private:
   std::vector<std::string> invalid_variant_input;
   std::vector<std::string> exclude_variant_input;
   std::vector<std::string> invalid_exclude_variant_input;
+  std::vector<std::string> tuning_input;
+  std::vector<std::string> invalid_tuning_input;
+  std::vector<std::string> exclude_tuning_input;
+  std::vector<std::string> invalid_exclude_tuning_input;
   std::vector<std::string> feature_input;
   std::vector<std::string> invalid_feature_input;
   std::vector<std::string> exclude_feature_input;
@@ -308,7 +282,16 @@ private:
   std::string outdir;          /*!< Output directory name. */
   std::string outfile_prefix;  /*!< Prefix for output data file names. */
 
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
+  std::string add_to_spot_config;
+#endif
+
   bool disable_warmup;
+
+  bool allow_problematic_implementations;
+
+  std::set<KernelID>  run_kernels;
+  std::set<VariantID> run_variants;
 
 };
 

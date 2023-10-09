@@ -70,6 +70,8 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getHipResource()};
+
   POLYBENCH_FLOYD_WARSHALL_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -81,9 +83,10 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariantImpl(VariantID vid)
 
         POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_HIP;
         POLY_FLOYD_WARSHALL_NBLOCKS_HIP;
+        constexpr size_t shmem = 0;
 
         hipLaunchKernelGGL((poly_floyd_warshall<POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                           dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+                           dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
                            pout, pin,
                            k, N);
         hipErrchk( hipGetLastError() );
@@ -107,10 +110,11 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariantImpl(VariantID vid)
 
         POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_HIP;
         POLY_FLOYD_WARSHALL_NBLOCKS_HIP;
+        constexpr size_t shmem = 0;
 
         hipLaunchKernelGGL(
           (poly_floyd_warshall_lam<POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(poly_floyd_warshall_lambda)>),
-          dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+          dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
           N, poly_floyd_warshall_lambda);
         hipErrchk( hipGetLastError() );
 
@@ -127,15 +131,9 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariantImpl(VariantID vid)
       RAJA::KernelPolicy<
         RAJA::statement::For<0, RAJA::seq_exec,
           RAJA::statement::HipKernelFixedAsync<i_block_sz * j_block_sz,
-            RAJA::statement::Tile<1, RAJA::tile_fixed<i_block_sz>,
-                                     RAJA::hip_block_y_direct,
-              RAJA::statement::Tile<2, RAJA::tile_fixed<j_block_sz>,
-                                       RAJA::hip_block_x_direct,
-                RAJA::statement::For<1, RAJA::hip_thread_y_direct,   // i
-                  RAJA::statement::For<2, RAJA::hip_thread_x_direct, // j
-                    RAJA::statement::Lambda<0>
-                  >
-                >
+            RAJA::statement::For<1, RAJA::hip_global_size_y_direct<i_block_sz>,   // i
+              RAJA::statement::For<2, RAJA::hip_global_size_x_direct<j_block_sz>, // j
+                RAJA::statement::Lambda<0>
               >
             >
           >
@@ -145,9 +143,10 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
+      RAJA::kernel_resource<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
                                                RAJA::RangeSegment{0, N},
                                                RAJA::RangeSegment{0, N}),
+                                       res,
         [=] __device__ (Index_type k, Index_type i, Index_type j) {
           POLYBENCH_FLOYD_WARSHALL_BODY_RAJA;
         }
@@ -161,7 +160,7 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(POLYBENCH_FLOYD_WARSHALL, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(POLYBENCH_FLOYD_WARSHALL, Hip)
 
 } // end namespace polybench
 } // end namespace rajaperf

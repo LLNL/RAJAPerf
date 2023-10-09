@@ -145,6 +145,8 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getHipResource()};
+
   POLYBENCH_3MM_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -153,24 +155,25 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       POLY_3MM_THREADS_PER_BLOCK_HIP;
+      constexpr size_t shmem = 0;
 
       POLY_3MM_1_NBLOCKS_HIP;
       hipLaunchKernelGGL((poly_3mm_1<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                         dim3(nblocks1) , dim3(nthreads_per_block), 0, 0,
+                         dim3(nblocks1) , dim3(nthreads_per_block), shmem, res.get_stream(),
                          E, A, B,
                          ni, nj, nk);
       hipErrchk( hipGetLastError() );
 
       POLY_3MM_2_NBLOCKS_HIP;
       hipLaunchKernelGGL((poly_3mm_2<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                         dim3(nblocks2), dim3(nthreads_per_block), 0, 0,
+                         dim3(nblocks2), dim3(nthreads_per_block), shmem, res.get_stream(),
                          F, C, D,
                          nj, nl, nm);
       hipErrchk( hipGetLastError() );
 
       POLY_3MM_3_NBLOCKS_HIP;
       hipLaunchKernelGGL((poly_3mm_3<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                         dim3(nblocks3), dim3(nthreads_per_block), 0, 0,
+                         dim3(nblocks3), dim3(nthreads_per_block), shmem, res.get_stream(),
                          G, E, F,
                          ni, nl, nj);
       hipErrchk( hipGetLastError() );
@@ -184,6 +187,7 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       POLY_3MM_THREADS_PER_BLOCK_HIP;
+      constexpr size_t shmem = 0;
 
       auto poly_3mm_1_lambda = [=] __device__ (Index_type i, Index_type j) {
         POLYBENCH_3MM_BODY1;
@@ -195,7 +199,7 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
 
       POLY_3MM_1_NBLOCKS_HIP;
       hipLaunchKernelGGL((poly_3mm_1_lam<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(poly_3mm_1_lambda)>),
-                         dim3(nblocks1), dim3(nthreads_per_block), 0, 0,
+                         dim3(nblocks1), dim3(nthreads_per_block), shmem, res.get_stream(),
                          ni, nj, poly_3mm_1_lambda);
       hipErrchk( hipGetLastError() );
 
@@ -209,7 +213,7 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
 
       POLY_3MM_2_NBLOCKS_HIP;
       hipLaunchKernelGGL((poly_3mm_2_lam<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(poly_3mm_2_lambda)>),
-                         dim3(nblocks2), dim3(nthreads_per_block), 0, 0,
+                         dim3(nblocks2), dim3(nthreads_per_block), shmem, res.get_stream(),
                          nj, nl, poly_3mm_2_lambda);
       hipErrchk( hipGetLastError() );
 
@@ -223,7 +227,7 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
 
       POLY_3MM_3_NBLOCKS_HIP;
       hipLaunchKernelGGL((poly_3mm_3_lam<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(poly_3mm_3_lambda)>),
-                         dim3(nblocks3), dim3(nthreads_per_block), 0, 0,
+                         dim3(nblocks3), dim3(nthreads_per_block), shmem, res.get_stream(),
                          ni, nl, poly_3mm_3_lambda);
       hipErrchk( hipGetLastError() );
 
@@ -237,19 +241,13 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::HipKernelFixedAsync<out_block_sz * in_block_sz,
-          RAJA::statement::Tile<0, RAJA::tile_fixed<out_block_sz>,
-                                   RAJA::hip_block_y_direct,
-            RAJA::statement::Tile<1, RAJA::tile_fixed<in_block_sz>,
-                                     RAJA::hip_block_x_direct,
-              RAJA::statement::For<0, RAJA::hip_thread_y_direct,   // outer
-                RAJA::statement::For<1, RAJA::hip_thread_x_direct, // inner
-                  RAJA::statement::Lambda<0, RAJA::Params<0>>,
-                  RAJA::statement::For<2, RAJA::seq_exec,
-                    RAJA::statement::Lambda<1, RAJA::Segs<0,1,2>, RAJA::Params<0>>
-                  >,
-                  RAJA::statement::Lambda<2, RAJA::Segs<0,1>, RAJA::Params<0>>
-                >
-              >
+          RAJA::statement::For<0, RAJA::hip_global_size_y_direct<out_block_sz>,   // outer
+            RAJA::statement::For<1, RAJA::hip_global_size_x_direct<in_block_sz>, // inner
+              RAJA::statement::Lambda<0, RAJA::Params<0>>,
+              RAJA::statement::For<2, RAJA::seq_exec,
+                RAJA::statement::Lambda<1, RAJA::Segs<0,1,2>, RAJA::Params<0>>
+              >,
+              RAJA::statement::Lambda<2, RAJA::Segs<0,1>, RAJA::Params<0>>
             >
           >
         >
@@ -258,11 +256,12 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel_param<EXEC_POL>(
+      RAJA::kernel_param_resource<EXEC_POL>(
         RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                          RAJA::RangeSegment{0, nj},
                          RAJA::RangeSegment{0, nk}),
         RAJA::tuple<Real_type>{0.0},
+        res,
 
         [=] __device__ ( Real_type &dot) {
           POLYBENCH_3MM_BODY1_RAJA;
@@ -278,11 +277,12 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
 
       );
 
-      RAJA::kernel_param<EXEC_POL>(
+      RAJA::kernel_param_resource<EXEC_POL>(
         RAJA::make_tuple(RAJA::RangeSegment{0, nj},
                          RAJA::RangeSegment{0, nl},
                          RAJA::RangeSegment{0, nm}),
         RAJA::tuple<Real_type>{0.0},
+        res,
 
         [=] __device__ ( Real_type &dot) {
           POLYBENCH_3MM_BODY4_RAJA;
@@ -298,11 +298,12 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
 
       );
 
-      RAJA::kernel_param<EXEC_POL>(
+      RAJA::kernel_param_resource<EXEC_POL>(
         RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                          RAJA::RangeSegment{0, nl},
                          RAJA::RangeSegment{0, nj}),
         RAJA::tuple<Real_type>{0.0},
+        res,
 
         [=] __device__ ( Real_type &dot) {
           POLYBENCH_3MM_BODY7_RAJA;
@@ -326,7 +327,7 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(POLYBENCH_3MM, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(POLYBENCH_3MM, Hip)
 
 } // end namespace polybench
 } // end namespace rajaperf

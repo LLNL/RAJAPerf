@@ -25,9 +25,3 @@
 # With GitLab CI, included files cannot be empty.
 variables:
   INCLUDED_FILE_CANNOT_BE_EMPTY: "True"
-
-# INFO: This job is activated in RAJA CI, but we don't use desul atomics here
-#rocmcc_5_1_1_hip_desul_atomics:
-#  variables:
-#    SPEC: "+rocm~openmp +desul amdgpu_target=gfx906 %rocmcc@5.1.1 ^blt@develop ^hip@5.1.1"
-#  extends: .build_and_test_on_corona

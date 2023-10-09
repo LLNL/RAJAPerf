@@ -79,7 +79,7 @@ void PI_REDUCE::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
 
         RAJA::ReduceSum<RAJA::seq_reduce, Real_type> pi(m_pi_init);
 
-        RAJA::forall<RAJA::loop_exec>( RAJA::RangeSegment(ibegin, iend),
+        RAJA::forall<RAJA::seq_exec>( RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
             PI_REDUCE_BODY;
         });

@@ -17,6 +17,8 @@
 //
 // Basic kernels...
 //
+#include "basic/ARRAY_OF_PTRS.hpp"
+#include "basic/COPY8.hpp"
 #include "basic/DAXPY.hpp"
 #include "basic/DAXPY_ATOMIC.hpp"
 #include "basic/IF_QUAD.hpp"
@@ -81,6 +83,7 @@
 #include "apps/CONVECTION3DPA.hpp"
 #include "apps/DEL_DOT_VEC_2D.hpp"
 #include "apps/DIFFUSION3DPA.hpp"
+#include "apps/EDGE3D.hpp"
 #include "apps/ENERGY.hpp"
 #include "apps/FIR.hpp"
 #include "apps/HALOEXCHANGE.hpp"
@@ -91,10 +94,12 @@
 #endif
 #include "apps/LTIMES.hpp"
 #include "apps/LTIMES_NOVIEW.hpp"
+#include "apps/MASS3DEA.hpp"
 #include "apps/MASS3DPA.hpp"
 #include "apps/NODAL_ACCUMULATION_3D.hpp"
 #include "apps/PRESSURE.hpp"
 #include "apps/VOL3D.hpp"
+#include "apps/ZONAL_ACCUMULATION_3D.hpp"
 
 //
 // Algorithm kernels...
@@ -120,7 +125,7 @@ namespace rajaperf
  * IMPORTANT: This is only modified when a group is added or removed.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
- *            ENUM OF GROUP IDS IN HEADER FILE!!!
+ *            ITEMS IN THE GroupID enum IN HEADER FILE!!!
  *
  *******************************************************************************
  */
@@ -146,7 +151,7 @@ static const std::string GroupNames [] =
  * IMPORTANT: This is only modified when a kernel is added or removed.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
- *            ENUM OF KERNEL IDS IN HEADER FILE!!!
+ *            ITEMS IN THE KernelID enum IN HEADER FILE!!! 
  *
  *******************************************************************************
  */
@@ -156,6 +161,8 @@ static const std::string KernelNames [] =
 //
 // Basic kernels...
 //
+  std::string("Basic_ARRAY_OF_PTRS"),
+  std::string("Basic_COPY8"),
   std::string("Basic_DAXPY"),
   std::string("Basic_DAXPY_ATOMIC"),
   std::string("Basic_IF_QUAD"),
@@ -220,6 +227,7 @@ static const std::string KernelNames [] =
   std::string("Apps_CONVECTION3DPA"),
   std::string("Apps_DEL_DOT_VEC_2D"),
   std::string("Apps_DIFFUSION3DPA"),
+  std::string("Apps_EDGE3D"),
   std::string("Apps_ENERGY"),
   std::string("Apps_FIR"),
   std::string("Apps_HALOEXCHANGE"),
@@ -230,10 +238,12 @@ static const std::string KernelNames [] =
 #endif
   std::string("Apps_LTIMES"),
   std::string("Apps_LTIMES_NOVIEW"),
+  std::string("Apps_MASS3DEA"),
   std::string("Apps_MASS3DPA"),
   std::string("Apps_NODAL_ACCUMULATION_3D"),
   std::string("Apps_PRESSURE"),
   std::string("Apps_VOL3D"),
+  std::string("Apps_ZONAL_ACCUMULATION_3D"),
 
 //
 // Algorithm kernels...
@@ -258,7 +268,7 @@ static const std::string KernelNames [] =
  * IMPORTANT: This is only modified when a new variant is added to the suite.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
- *            ENUM OF VARIANT IDS IN HEADER FILE!!!
+ *            ITEMS IN THE VariantID enum IN HEADER FILE!!!
  *
  *******************************************************************************
  */
@@ -299,7 +309,7 @@ static const std::string VariantNames [] =
  * IMPORTANT: This is only modified when a new feature is used in suite.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
- *            ENUM OF FEATURE IDS IN HEADER FILE!!!
+ *            ITEMS IN THE FeatureID enum IN HEADER FILE!!!
  *
  *******************************************************************************
  */
@@ -332,7 +342,7 @@ static const std::string FeatureNames [] =
  * IMPORTANT: This is only modified when a new memory space is added to the suite.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
- *            ENUM OF CUDADATA IDS IN HEADER FILE!!!
+ *            ITEMS IN THE DataSpace enum IN HEADER FILE!!!
  *
  *******************************************************************************
  */
@@ -664,6 +674,14 @@ KernelBase* getKernelObject(KernelID kid,
     //
     // Basic kernels...
     //
+    case Basic_ARRAY_OF_PTRS : {
+       kernel = new basic::ARRAY_OF_PTRS(run_params);
+       break;
+    }
+    case Basic_COPY8 : {
+       kernel = new basic::COPY8(run_params);
+       break;
+    }
     case Basic_DAXPY : {
        kernel = new basic::DAXPY(run_params);
        break;
@@ -873,6 +891,10 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::DIFFUSION3DPA(run_params);
        break;
     }
+    case Apps_EDGE3D : {
+       kernel = new apps::EDGE3D(run_params);
+       break;
+    }
     case Apps_ENERGY : {
        kernel = new apps::ENERGY(run_params);
        break;
@@ -907,6 +929,10 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::LTIMES_NOVIEW(run_params);
        break;
     }
+    case Apps_MASS3DEA : {
+       kernel = new apps::MASS3DEA(run_params);
+       break;
+    }      
     case Apps_MASS3DPA : {
        kernel = new apps::MASS3DPA(run_params);
        break;
@@ -921,6 +947,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Apps_VOL3D : {
        kernel = new apps::VOL3D(run_params);
+       break;
+    }
+    case Apps_ZONAL_ACCUMULATION_3D : {
+       kernel = new apps::ZONAL_ACCUMULATION_3D(run_params);
        break;
     }
 

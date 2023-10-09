@@ -59,9 +59,12 @@ void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
   dim3 blockDim(tile_size, tile_size);
   dim3 gridDim(RAJA_DIVIDE_CEILING_INT(N, blockDim.x),
                RAJA_DIVIDE_CEILING_INT(N, blockDim.y));
+  constexpr size_t shmem = 0;
 
   const Index_type Nx = gridDim.x;
   const Index_type Ny = gridDim.y;
+
+  auto res{getHipResource()};
 
   MAT_MAT_SHARED_DATA_SETUP;
 
@@ -70,7 +73,7 @@ void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipLaunchKernelGGL((mat_mat_shared<tile_size>), dim3(gridDim), dim3(blockDim), 0, 0,
+      hipLaunchKernelGGL((mat_mat_shared<tile_size>), dim3(gridDim), dim3(blockDim), shmem, res.get_stream(),
                          N, C, A, B);
 
       hipErrchk( hipGetLastError() );
@@ -173,7 +176,7 @@ void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
       };
 
       hipLaunchKernelGGL((lambda_hip<tile_size*tile_size, decltype(mat_mat_shared_lam)>),
-        gridDim, blockDim, 0, 0, mat_mat_shared_lam);
+        gridDim, blockDim, shmem, res.get_stream(), mat_mat_shared_lam);
 
       hipErrchk( hipGetLastError() );
     }
@@ -189,14 +192,14 @@ void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
 
     using teams_y = RAJA::LoopPolicy<RAJA::hip_block_y_direct>;
 
-    using threads_x = RAJA::LoopPolicy<RAJA::hip_thread_x_direct>;
+    using threads_x = RAJA::LoopPolicy<RAJA::hip_thread_size_x_direct<tile_size>>;
 
-    using threads_y = RAJA::LoopPolicy<RAJA::hip_thread_y_direct>;
+    using threads_y = RAJA::LoopPolicy<RAJA::hip_thread_size_y_direct<tile_size>>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::launch<launch_policy>(
+      RAJA::launch<launch_policy>( res,
         RAJA::LaunchParams(RAJA::Teams(Nx, Ny),
                          RAJA::Threads(tile_size, tile_size)),
         [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
@@ -273,7 +276,7 @@ void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(MAT_MAT_SHARED, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(MAT_MAT_SHARED, Hip)
 
 } // end namespace basic
 } // end namespace rajaperf

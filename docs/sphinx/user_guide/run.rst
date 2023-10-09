@@ -138,3 +138,120 @@ was not possible for them to co-exist in the same executable as CUDA
 variants, for example. In the future, the build system may be reworked so 
 that the OpenMP target variants can be run from the same executable as the 
 other variants.
+
+============================
+Additional Caliper Use Cases
+============================
+
+If you specified building with Caliper (``-DRAJA_PERFSUITE_USE_CALIPER=On``),
+the generation of Caliper .cali files are automated for the most part.
+
+However, there are a couple of other supported use cases.
+
+Collecting PAPI topdown statistics on Intel Architectures
+---------------------------------------------------------
+
+On Intel systems, you can collect topdown PAPI counter statistics by using
+command line arguments
+
+``--add-to-spot-config, -atsc <string> [Default is none]``
+
+This appends additional parameters to the built-in Caliper spot config.
+
+To include some PAPI counters (Intel arch), add the following to the command 
+line
+
+``-atsc topdown.all``
+
+Caliper's topdown service generates derived metrics from raw PAPI counters; 
+a hierarchy of metrics to identify bottlenecks in out-of-order processors. 
+This is based on an an approach described in Ahmad Yasin's paper 
+*A Top-Down Method for Performance Analysis and Counters Architecture*. The 
+top level of the hierarchy has a reliable set of four derived metrics or 
+starting weights (sum to 1.0) which include:
+
+#. **Frontend Bound.** Stalls attributed to the front end which is responsible for fetching and decoding program code.    
+#. **Bad Speculation.** Fraction of the workload that is affected by incorrect execution paths, i.e. branch misprediction penalties
+#. **Retiring.** Increases in this category reflects overall Instructions Per Cycle (IPC) fraction which is good in general. However, a large retiring fraction for non-vectorized code could also be a hint to the user to vectorize their code (see Yasin's paper) 
+#. **Backend Bound.** Memory Bound where execution stalls are related to the memory subsystem, or Core Bound where execution unit occupancy is sub-optimal lowering IPC (more compiler dependent)
+
+.. note:: Backend Bound = 1 - (Frontend Bound + Bad Speculation + Retiring)
+
+.. note:: Caveats: 
+
+          #. When collecting PAPI data in this way you'll be limited to running              only one variant, since Caliper maintains only one PAPI context.
+          #. Small kernels should be run at large problem sizes to minimize 
+             anomalous readings.
+          #. Measured values are only relevant for the innermost level of the 
+             Caliper tree hierarchy, i.e. Kernel.Tuning under investigation.
+          #. Some lower level derived quantities may appear anomalous 
+             with negative values. Collecting raw counters can help identify 
+             the discrepancy.
+
+``-atsc topdown-counters.all``
+
+.. note:: Other caveats: Raw counter values are often noisy and require a lot 
+          of accommodation to collect accurate data including: 
+ 
+            * Turning off Hyperthreading
+            * Turning off Prefetch as is done in Intel's Memory Latency 
+              Checker (requires root access) 
+            * Adding LFENCE instruction to serialize and bracket code under 
+              test 
+            * Disabling preemption and hard interrupts 
+
+          See Andreas Abel's dissertation `Automatic Generation of Models of 
+          Microarchitectures` for more info on this and for a comprehensive 
+          look at the nanobench machinery.
+
+Some helpful references:
+
+`Yasin's Paper <https://www.researchgate.net/publication/269302126_A_Top-Down_method_for_performance_analysis_and_counters_architecture>`_
+
+`Vtune-cookbook topdown method <https://www.intel.com/content/www/us/en/develop/documentation/vtune-cookbook/top/methodologies/top-down-microarchitecture-analysis-method.html>`_
+
+`Automatic Generation of Models of Microarchitectures <https://uops.info/dissertation.pdf>`_
+
+Generating trace events (time-series) for viewing in chrome://tracing or Perfetto
+---------------------------------------------------------------------------------
+
+`Perfetto <https://ui.perfetto.dev/>`_
+
+Use Caliper's event trace service to collect timestamp info, where kernel 
+timing can be viewed using browser trace profile views. For example,
+
+``CALI_CONFIG=event-trace,event.timestamps ./raja-perf.exe -ek PI_ATOMIC INDEXLIST  -sp``
+
+This will produce a separate .cali file with date prefix which looks something 
+like ``221108-100718_724_ZKrHC68b77Yd.cali``
+
+Then, we need to convert this .cali file to JSON records. But first, we need 
+to make sure Caliper's python reader is available in the ``PYTHONPATH`` 
+environment variable 
+
+``export PYTHONPATH=caliper-source-dir/python/caliper-reader``
+
+then run ``cali2traceevent.py``. For example,
+
+``python3 ~/workspace/Caliper/python/cali2traceevent.py 221108-102406_956_9WkZo6xvetnu.cali RAJAPerf.trace.json``
+
+You can then load the resulting JSON file either in Chrome by going to 
+``chrome://tracing`` or in ``Perfetto``.
+
+For CUDA, assuming you built Caliper with CUDA support, you can collect and 
+combine trace information for memcpy, kernel launch, synchronization, and 
+kernels. For example,
+
+``CALI_CONFIG="event-trace(event.timestamps,trace.cuda=true,cuda.activities)" ./raja-perf.exe -v RAJA_CUDA Base_CUDA -k Algorithm_REDUCE_SUM -sp``
+
+.. warning::
+  When you run cali2traceevent.py you need to add --sort option before the filenames.
+  This is needed because the trace.cuda event records need to be sorted before processing.
+  Failing to do so may result in a Python traceback.
+  New versions of the Caliper Python package have this option built in by default to avoid this issue.
+
+``~/workspace/Caliper/python/cali2traceevent.py --sort file.cali file.json``
+
+For HIP, substitute ``rocm.activities`` for ``cuda.activities``.
+
+.. note:: Currently there is no analog ``trace.rocm``.

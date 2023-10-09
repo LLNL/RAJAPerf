@@ -109,6 +109,8 @@ template < size_t block_size >
 void DIFFUSION3DPA::runHipVariantImpl(VariantID vid) {
   const Index_type run_reps = getRunReps();
 
+  auto res{getHipResource()};
+
   DIFFUSION3DPA_DATA_SETUP;
 
   switch (vid) {
@@ -121,8 +123,9 @@ void DIFFUSION3DPA::runHipVariantImpl(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+      constexpr size_t shmem = 0;
       hipLaunchKernelGGL((Diffusion3DPA<block_size>),
-          dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+          dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
           Basis, dBasis, D, X, Y, symmetric);
 
       hipErrchk(hipGetLastError());
@@ -143,18 +146,18 @@ void DIFFUSION3DPA::runHipVariantImpl(VariantID vid) {
         RAJA::LoopPolicy<RAJA::hip_block_x_direct>;
 
     using inner_x =
-        RAJA::LoopPolicy<RAJA::hip_thread_x_loop>;
+        RAJA::LoopPolicy<RAJA::hip_thread_size_x_loop<DPA_Q1D>>;
 
     using inner_y =
-        RAJA::LoopPolicy<RAJA::hip_thread_y_loop>;
+        RAJA::LoopPolicy<RAJA::hip_thread_size_y_loop<DPA_Q1D>>;
 
     using inner_z =
-        RAJA::LoopPolicy<RAJA::hip_thread_z_loop>;
+        RAJA::LoopPolicy<RAJA::hip_thread_size_z_loop<DPA_Q1D>>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::launch<launch_policy>(
+      RAJA::launch<launch_policy>( res,
           RAJA::LaunchParams(RAJA::Teams(NE),
                            RAJA::Threads(DPA_Q1D, DPA_Q1D, DPA_Q1D)),
           [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
@@ -345,7 +348,7 @@ void DIFFUSION3DPA::runHipVariantImpl(VariantID vid) {
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(DIFFUSION3DPA, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(DIFFUSION3DPA, Hip)
 
 } // end namespace apps
 } // end namespace rajaperf

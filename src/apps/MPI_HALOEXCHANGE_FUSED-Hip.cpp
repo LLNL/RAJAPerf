@@ -93,15 +93,18 @@ void MPI_HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getHipResource()};
+
   MPI_HALOEXCHANGE_FUSED_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
 
     MPI_HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_HIP;
-    auto stream = camp::resources::Hip::get_default().get_stream();
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      constexpr size_t shmem = 0;
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
         Index_type len = unpack_index_list_lengths[l];
@@ -130,10 +133,10 @@ void MPI_HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
       Index_type pack_len_ave = (pack_len_sum + pack_index-1) / pack_index;
       dim3 pack_nthreads_per_block(block_size);
       dim3 pack_nblocks((pack_len_ave + block_size-1) / block_size, pack_index);
-      hipLaunchKernelGGL((haloexchange_fused_pack<block_size>), pack_nblocks, pack_nthreads_per_block, 0, stream,
+      hipLaunchKernelGGL((haloexchange_fused_pack<block_size>), pack_nblocks, pack_nthreads_per_block, shmem, res.get_stream(),
           pack_buffer_ptrs, pack_list_ptrs, pack_var_ptrs, pack_len_ptrs);
       hipErrchk( hipGetLastError() );
-      synchronize(stream);
+      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
       if (separate_buffers) {
         for (Index_type l = 0; l < num_neighbors; ++l) {
           Index_type len = pack_index_list_lengths[l];
@@ -177,10 +180,10 @@ void MPI_HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
       Index_type unpack_len_ave = (unpack_len_sum + unpack_index-1) / unpack_index;
       dim3 unpack_nthreads_per_block(block_size);
       dim3 unpack_nblocks((unpack_len_ave + block_size-1) / block_size, unpack_index);
-      hipLaunchKernelGGL((haloexchange_fused_unpack<block_size>), unpack_nblocks, unpack_nthreads_per_block, 0, stream,
+      hipLaunchKernelGGL((haloexchange_fused_unpack<block_size>), unpack_nblocks, unpack_nthreads_per_block, shmem, res.get_stream(),
           unpack_buffer_ptrs, unpack_list_ptrs, unpack_var_ptrs, unpack_len_ptrs);
       hipErrchk( hipGetLastError() );
-      synchronize(stream);
+      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
 
       MPI_Waitall(num_neighbors, pack_mpi_requests.data(), MPI_STATUSES_IGNORE);
 
@@ -220,7 +223,6 @@ void MPI_HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
                                      RAJA::xargs<>,
                                      Allocator >;
 
-    auto res = camp::resources::Hip::get_default();
     workpool pool_pack  (allocatorHolder.template getAllocator<char>());
     workpool pool_unpack(allocatorHolder.template getAllocator<char>());
     pool_pack.reserve(num_neighbors * num_vars, 1024ull*1024ull);
@@ -304,7 +306,7 @@ void MPI_HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(MPI_HALOEXCHANGE_FUSED, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(MPI_HALOEXCHANGE_FUSED, Hip)
 
 } // end namespace apps
 } // end namespace rajaperf

@@ -45,6 +45,8 @@ void POLYBENCH_GESUMMV::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getCudaResource()};
+
   POLYBENCH_GESUMMV_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
@@ -53,8 +55,8 @@ void POLYBENCH_GESUMMV::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
-
-      poly_gesummv<block_size><<<grid_size, block_size>>>(x, y,
+      constexpr size_t shmem = 0;
+      poly_gesummv<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(x, y,
                                               A, B,
                                               alpha, beta,
                                               N);
@@ -70,15 +72,12 @@ void POLYBENCH_GESUMMV::runCudaVariantImpl(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelFixedAsync<block_size,
-          RAJA::statement::Tile<0, RAJA::tile_fixed<block_size>,
-                                   RAJA::cuda_block_x_direct,
-            RAJA::statement::For<0, RAJA::cuda_thread_x_direct,  // i
-              RAJA::statement::Lambda<0, RAJA::Params<0,1>>,
-              RAJA::statement::For<1, RAJA::seq_exec,            // j
-                RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0,1>>
-              >,
-              RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0,1>>
-            >
+          RAJA::statement::For<0, RAJA::cuda_global_size_x_direct<block_size>,  // i
+            RAJA::statement::Lambda<0, RAJA::Params<0,1>>,
+            RAJA::statement::For<1, RAJA::seq_exec,            // j
+              RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0,1>>
+            >,
+            RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0,1>>
           >
         >
       >;
@@ -86,11 +85,12 @@ void POLYBENCH_GESUMMV::runCudaVariantImpl(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel_param<EXEC_POL>(
+        RAJA::kernel_param_resource<EXEC_POL>(
           RAJA::make_tuple( RAJA::RangeSegment{0, N},
                             RAJA::RangeSegment{0, N} ),
           RAJA::make_tuple(static_cast<Real_type>(0.0),
                            static_cast<Real_type>(0.0)),
+          res,
 
           [=] __device__ (Real_type& tmpdot,
                           Real_type& ydot) {
@@ -114,7 +114,7 @@ void POLYBENCH_GESUMMV::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(POLYBENCH_GESUMMV, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(POLYBENCH_GESUMMV, Cuda)
 
 } // end namespace polybench
 } // end namespace rajaperf

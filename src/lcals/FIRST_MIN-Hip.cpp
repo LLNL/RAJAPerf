@@ -15,6 +15,8 @@
 #include "common/HipDataUtils.hpp"
 
 #include <iostream>
+#include <utility>
+
 
 namespace rajaperf
 {
@@ -57,11 +59,13 @@ __global__ void first_min(Real_ptr x,
 
 
 template < size_t block_size >
-void FIRST_MIN::runHipVariantImpl(VariantID vid)
+void FIRST_MIN::runHipVariantBlock(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
+
+  auto res{getHipResource()};
 
   FIRST_MIN_DATA_SETUP;
 
@@ -77,25 +81,27 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       FIRST_MIN_MINLOC_INIT;
+      FIRST_MIN_MINLOC_INIT;
 
-       hipLaunchKernelGGL( (first_min<block_size>), grid_size, block_size,
-                           sizeof(MyMinLoc)*block_size, 0, x,
+      constexpr size_t shmem = sizeof(MyMinLoc)*block_size;
+      hipLaunchKernelGGL( (first_min<block_size>), grid_size, block_size,
+                           shmem, res.get_stream(), x,
                            dminloc,
                            mymin,
                            iend );
+      hipErrchk( hipGetLastError() );
 
-       hipErrchk( hipGetLastError() );
-       hipErrchk( hipMemcpy( mymin_block, dminloc,
-                             grid_size * sizeof(MyMinLoc),
-                             hipMemcpyDeviceToHost ) );
+      hipErrchk( hipMemcpyAsync( mymin_block, dminloc,
+                                 grid_size * sizeof(MyMinLoc),
+                                 hipMemcpyDeviceToHost, res.get_stream() ) );
+      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
 
-       for (Index_type i = 0; i < static_cast<Index_type>(grid_size); i++) {
-         if ( mymin_block[i].val < mymin.val ) {
-           mymin = mymin_block[i];
-         }
-       }
-       m_minloc = mymin.loc;
+      for (Index_type i = 0; i < static_cast<Index_type>(grid_size); i++) {
+        if ( mymin_block[i].val < mymin.val ) {
+          mymin = mymin_block[i];
+        }
+      }
+      m_minloc = mymin.loc;
 
     }
     stopTimer();
@@ -111,7 +117,7 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
        RAJA::ReduceMinLoc<RAJA::hip_reduce, Real_type, Index_type> loc(
                                                         m_xmin_init, m_initloc);
 
-       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          FIRST_MIN_BODY_RAJA;
        });
@@ -126,7 +132,146 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(FIRST_MIN, Hip)
+template < size_t block_size >
+void FIRST_MIN::runHipVariantOccGS(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  auto res{getHipResource()};
+
+  FIRST_MIN_DATA_SETUP;
+
+  if ( vid == Base_HIP ) {
+
+    constexpr size_t shmem = sizeof(MyMinLoc)*block_size;
+    const size_t max_grid_size = detail::getHipOccupancyMaxBlocks(
+        (first_min<block_size>), block_size, shmem);
+
+    const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+    const size_t grid_size = std::min(normal_grid_size, max_grid_size);
+
+    MyMinLoc* mymin_block = new MyMinLoc[grid_size]; //per-block min value
+
+    MyMinLoc* dminloc;
+    hipErrchk( hipMalloc( (void**)&dminloc,
+                          grid_size * sizeof(MyMinLoc) ) );
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      FIRST_MIN_MINLOC_INIT;
+
+      hipLaunchKernelGGL( (first_min<block_size>), grid_size, block_size,
+                           shmem, res.get_stream(), x,
+                           dminloc,
+                           mymin,
+                           iend );
+      hipErrchk( hipGetLastError() );
+
+      hipErrchk( hipMemcpyAsync( mymin_block, dminloc,
+                                 grid_size * sizeof(MyMinLoc),
+                                 hipMemcpyDeviceToHost, res.get_stream() ) );
+      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
+
+      for (Index_type i = 0; i < static_cast<Index_type>(grid_size); i++) {
+        if ( mymin_block[i].val < mymin.val ) {
+          mymin = mymin_block[i];
+        }
+      }
+      m_minloc = mymin.loc;
+
+    }
+    stopTimer();
+
+    hipErrchk( hipFree( dminloc ) );
+    delete[] mymin_block;
+
+  } else if ( vid == RAJA_HIP ) {
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+       RAJA::ReduceMinLoc<RAJA::hip_reduce, Real_type, Index_type> loc(
+                                                        m_xmin_init, m_initloc);
+
+       RAJA::forall< RAJA::hip_exec_occ_calc<block_size, true /*async*/> >( res,
+         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+         FIRST_MIN_BODY_RAJA;
+       });
+
+       m_minloc = loc.getLoc();
+
+    }
+    stopTimer();
+
+  } else {
+     getCout() << "\n  FIRST_MIN : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+void FIRST_MIN::runHipVariant(VariantID vid, size_t tune_idx)
+{
+  size_t t = 0;
+
+  if ( vid == Base_HIP || vid == RAJA_HIP ) {
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        if (tune_idx == t) {
+
+          setBlockSize(block_size);
+          runHipVariantBlock<block_size>(vid);
+
+        }
+
+        t += 1;
+
+        if (tune_idx == t) {
+
+          setBlockSize(block_size);
+          runHipVariantOccGS<block_size>(vid);
+
+        }
+
+        t += 1;
+
+      }
+
+    });
+
+  } else {
+
+    getCout() << "\n  FIRST_MIN : Unknown Hip variant id = " << vid << std::endl;
+
+  }
+
+}
+
+void FIRST_MIN::setHipTuningDefinitions(VariantID vid)
+{
+  if ( vid == Base_HIP || vid == RAJA_HIP ) {
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        addVariantTuningName(vid, "block_"+std::to_string(block_size));
+
+        addVariantTuningName(vid, "occgs_"+std::to_string(block_size));
+
+      }
+
+    });
+
+  }
+
+}
 
 } // end namespace lcals
 } // end namespace rajaperf

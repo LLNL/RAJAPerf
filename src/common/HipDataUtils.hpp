@@ -67,38 +67,6 @@ __global__ void lambda_hip(Lambda body)
   body();
 }
 
-/*!
- * \brief Getters for hip kernel indices.
- */
-template < typename Index >
-__device__ inline Index_type lambda_hip_get_index();
-
-template < >
-__device__ inline Index_type lambda_hip_get_index<RAJA::hip_thread_x_direct>() {
-  return threadIdx.x;
-}
-template < >
-__device__ inline Index_type lambda_hip_get_index<RAJA::hip_thread_y_direct>() {
-  return threadIdx.y;
-}
-template < >
-__device__ inline Index_type lambda_hip_get_index<RAJA::hip_thread_z_direct>() {
-  return threadIdx.z;
-}
-
-template < >
-__device__ inline Index_type lambda_hip_get_index<RAJA::hip_block_x_direct>() {
-  return blockIdx.x;
-}
-template < >
-__device__ inline Index_type lambda_hip_get_index<RAJA::hip_block_y_direct>() {
-  return blockIdx.y;
-}
-template < >
-__device__ inline Index_type lambda_hip_get_index<RAJA::hip_block_z_direct>() {
-  return blockIdx.z;
-}
-
 
 namespace detail
 {
@@ -111,6 +79,33 @@ inline int getHipDevice()
   int device = hipInvalidDeviceId;
   hipErrchk( hipGetDevice( &device ) );
   return device;
+}
+
+/*!
+ * \brief Get properties of the current hip device.
+ */
+inline hipDeviceProp_t getHipDeviceProp()
+{
+  hipDeviceProp_t prop;
+  hipErrchk(hipGetDeviceProperties(&prop, getHipDevice()));
+  return prop;
+}
+
+/*!
+ * \brief Get max occupancy in blocks for the given kernel for the current
+ *        hip device.
+ */
+template < typename Func >
+RAJA_INLINE
+int getHipOccupancyMaxBlocks(Func&& func, int num_threads, size_t shmem_size)
+{
+  int max_blocks = -1;
+  hipErrchk(hipOccupancyMaxActiveBlocksPerMultiprocessor(
+      &max_blocks, func, num_threads, shmem_size));
+
+  size_t multiProcessorCount = getHipDeviceProp().multiProcessorCount;
+
+  return max_blocks * multiProcessorCount;
 }
 
 /*
@@ -233,30 +228,6 @@ inline void deallocHipPinnedData(void* pptr)
 }
 
 }  // closing brace for detail namespace
-
-
-/*!
- * \brief Copy given hptr (host) data to HIP device (dptr).
- *
- * Method assumes both host and device data arrays are allocated
- * and of propoer size for copy operation to succeed.
- */
-template <typename T>
-void initHipDeviceData(T* dptr, const T* hptr, int len)
-{
-  hipErrchk( hipMemcpy( dptr, hptr, len * sizeof(T), hipMemcpyHostToDevice ) );
-}
-/*!
- * \brief Copy given dptr (HIP device) data to host (hptr).
- *
- * Method assumes both host and device data arrays are allocated
- * and of propoer size for copy operation to succeed.
- */
-template <typename T>
-void getHipDeviceData(T* hptr, const T* dptr, int len)
-{
-  hipErrchk( hipMemcpy( hptr, dptr, len * sizeof(T), hipMemcpyDeviceToHost ) );
-}
 
 }  // closing brace for rajaperf namespace
 
