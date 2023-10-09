@@ -247,7 +247,9 @@ enum FeatureID {
 
   View,
 
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
   MPI,
+#endif
 
   NumFeatures // Keep this one last and NEVER comment out (!!)
 

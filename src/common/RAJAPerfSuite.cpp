@@ -338,6 +338,10 @@ static const std::string FeatureNames [] =
 
   std::string("View"),
 
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+  std::string("MPI"),
+#endif
+
   std::string("Unknown Feature")  // Keep this at the end and DO NOT remove....
 
 }; // END FeatureNames
