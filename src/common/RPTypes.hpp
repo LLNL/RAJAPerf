@@ -60,6 +60,14 @@ using Index_type = RAJA::Index_type;
 ///
 using Index_ptr = Index_type*;
 
+
+/*!
+ ******************************************************************************
+ *
+ * \brief Type used for sizing allocations.
+ *
+ ******************************************************************************
+ */
 using Size_type = size_t;
 
 

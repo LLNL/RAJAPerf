@@ -49,7 +49,7 @@ void copyHostData(void* dst_ptr, const void* src_ptr, Size_type len);
 /*!
  * \brief Allocate data arrays.
  */
-void* allocHostData(Size_type len, size_t align);
+void* allocHostData(Size_type len, Size_type align);
 
 /*!
  * \brief Free data arrays.
@@ -60,7 +60,7 @@ void deallocHostData(void* ptr);
 /*!
  * \brief Allocate data array in dataSpace.
  */
-void* allocData(DataSpace dataSpace, Size_type nbytes, int align);
+void* allocData(DataSpace dataSpace, Size_type nbytes, Size_type align);
 
 /*!
  * \brief Copy data from one dataSpace to another.
@@ -171,7 +171,7 @@ DataSpace hostAccessibleDataSpace(DataSpace dataSpace);
  * \brief Allocate data array (ptr).
  */
 template <typename T>
-inline void allocData(DataSpace dataSpace, T*& ptr_ref, Size_type len, int align)
+inline void allocData(DataSpace dataSpace, T*& ptr_ref, Size_type len, Size_type align)
 {
   Size_type nbytes = len*sizeof(T);
   T* ptr = static_cast<T*>(detail::allocData(dataSpace, nbytes, align));
@@ -216,7 +216,7 @@ inline void copyData(DataSpace dst_dataSpace, T* dst_ptr,
  */
 template <typename T>
 inline void moveData(DataSpace new_dataSpace, DataSpace old_dataSpace,
-                     T*& ptr, Size_type len, int align)
+                     T*& ptr, Size_type len, Size_type align)
 {
   if (new_dataSpace != old_dataSpace) {
 
@@ -237,7 +237,7 @@ template <typename T>
 struct AutoDataMover
 {
   AutoDataMover(DataSpace new_dataSpace, DataSpace old_dataSpace,
-                T*& ptr, Size_type len, int align)
+                T*& ptr, Size_type len, Size_type align)
     : m_ptr(&ptr)
     , m_new_dataSpace(new_dataSpace)
     , m_old_dataSpace(old_dataSpace)
@@ -285,14 +285,14 @@ private:
   DataSpace m_new_dataSpace;
   DataSpace m_old_dataSpace;
   Size_type m_len;
-  int m_align;
+  Size_type m_align;
 };
 
 /*!
  * \brief Allocate and initialize data array.
  */
 template <typename T>
-inline void allocAndInitData(DataSpace dataSpace, T*& ptr, Size_type len, int align)
+inline void allocAndInitData(DataSpace dataSpace, T*& ptr, Size_type len, Size_type align)
 {
   DataSpace init_dataSpace = hostAccessibleDataSpace(dataSpace);
 
@@ -310,7 +310,7 @@ inline void allocAndInitData(DataSpace dataSpace, T*& ptr, Size_type len, int al
  * Array entries are initialized using the method initDataConst.
  */
 template <typename T>
-inline void allocAndInitDataConst(DataSpace dataSpace, T*& ptr, Size_type len, int align,
+inline void allocAndInitDataConst(DataSpace dataSpace, T*& ptr, Size_type len, Size_type align,
                                   T val)
 {
   DataSpace init_dataSpace = hostAccessibleDataSpace(dataSpace);
@@ -328,7 +328,7 @@ inline void allocAndInitDataConst(DataSpace dataSpace, T*& ptr, Size_type len, i
  * Array is initialized using method initDataRandSign.
  */
 template <typename T>
-inline void allocAndInitDataRandSign(DataSpace dataSpace, T*& ptr, Size_type len, int align)
+inline void allocAndInitDataRandSign(DataSpace dataSpace, T*& ptr, Size_type len, Size_type align)
 {
   DataSpace init_dataSpace = hostAccessibleDataSpace(dataSpace);
 
@@ -346,7 +346,7 @@ inline void allocAndInitDataRandSign(DataSpace dataSpace, T*& ptr, Size_type len
  * Array is initialized using method initDataRandValue.
  */
 template <typename T>
-inline void allocAndInitDataRandValue(DataSpace dataSpace, T*& ptr, Size_type len, int align)
+inline void allocAndInitDataRandValue(DataSpace dataSpace, T*& ptr, Size_type len, Size_type align)
 {
   DataSpace init_dataSpace = hostAccessibleDataSpace(dataSpace);
 
@@ -361,7 +361,7 @@ inline void allocAndInitDataRandValue(DataSpace dataSpace, T*& ptr, Size_type le
  * Calculate and return checksum for arrays.
  */
 template <typename T>
-inline long double calcChecksum(DataSpace dataSpace, T* ptr, Size_type len, int align,
+inline long double calcChecksum(DataSpace dataSpace, T* ptr, Size_type len, Size_type align,
                                 Real_type scale_factor)
 {
   T* check_ptr = ptr;

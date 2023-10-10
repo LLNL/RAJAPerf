@@ -258,7 +258,7 @@ public:
 #endif
   }
 
-  int getDataAlignment() const;
+  Size_type getDataAlignment() const;
 
   DataSpace getDataSpace(VariantID vid) const;
   DataSpace getHostAccessibleDataSpace(VariantID vid) const;

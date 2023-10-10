@@ -132,7 +132,7 @@ void copyHostData(void* dst_ptr, const void* src_ptr, Size_type len)
 /*
  * Allocate data arrays of given type.
  */
-void* allocHostData(Size_type len, size_t align)
+void* allocHostData(Size_type len, Size_type align)
 {
   return RAJA::allocate_aligned_type<Int_type>(
       align, len);
@@ -153,7 +153,7 @@ void deallocHostData(void* ptr)
 /*
  * Allocate data arrays of given dataSpace.
  */
-void* allocData(DataSpace dataSpace, Size_type nbytes, int align)
+void* allocData(DataSpace dataSpace, Size_type nbytes, Size_type align)
 {
   void* ptr = nullptr;
 
