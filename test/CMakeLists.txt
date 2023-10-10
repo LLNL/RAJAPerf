@@ -13,7 +13,8 @@ set(RAJA_PERFSUITE_TEST_EXECUTABLE_DEPENDS
     lcals
     polybench
     stream
-    algorithm)
+    algorithm
+    comm)
 list(APPEND RAJA_PERFSUITE_TEST_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_DEPENDS})
  
 raja_add_test(
