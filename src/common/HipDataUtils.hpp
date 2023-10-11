@@ -111,7 +111,7 @@ int getHipOccupancyMaxBlocks(Func&& func, int num_threads, size_t shmem_size)
 /*
  * Copy memory len bytes from src to dst.
  */
-inline void copyHipData(void* dst_ptr, const void* src_ptr, size_t len)
+inline void copyHipData(void* dst_ptr, const void* src_ptr, Size_type len)
 {
   hipErrchk( hipMemcpy( dst_ptr, src_ptr, len,
              hipMemcpyDefault ) );
@@ -120,7 +120,7 @@ inline void copyHipData(void* dst_ptr, const void* src_ptr, size_t len)
 /*!
  * \brief Allocate HIP device data array (dptr).
  */
-inline void* allocHipDeviceData(size_t len)
+inline void* allocHipDeviceData(Size_type len)
 {
   void* dptr = nullptr;
   hipErrchk( hipMalloc( &dptr, len ) );
@@ -130,7 +130,7 @@ inline void* allocHipDeviceData(size_t len)
 /*!
  * \brief Allocate HIP fine-grained device data array (dfptr).
  */
-inline void* allocHipDeviceFineData(size_t len)
+inline void* allocHipDeviceFineData(Size_type len)
 {
   void* dfptr = nullptr;
   hipErrchk( hipExtMallocWithFlags( &dfptr, len,
@@ -141,7 +141,7 @@ inline void* allocHipDeviceFineData(size_t len)
 /*!
  * \brief Allocate HIP managed data array (mptr).
  */
-inline void* allocHipManagedData(size_t len)
+inline void* allocHipManagedData(Size_type len)
 {
   void* mptr = nullptr;
   hipErrchk( hipMallocManaged( &mptr, len,
@@ -152,7 +152,7 @@ inline void* allocHipManagedData(size_t len)
 /*!
  * \brief Allocate HIP pinned data array (pptr).
  */
-inline void* allocHipPinnedData(size_t len)
+inline void* allocHipPinnedData(Size_type len)
 {
   void* pptr = nullptr;
   hipErrchk( hipHostMalloc( &pptr, len,
@@ -163,7 +163,7 @@ inline void* allocHipPinnedData(size_t len)
 /*!
  * \brief Allocate HIP fine-grained pinned data array (pfptr).
  */
-inline void* allocHipPinnedFineData(size_t len)
+inline void* allocHipPinnedFineData(Size_type len)
 {
   void* pfptr = nullptr;
   hipErrchk( hipHostMalloc( &pfptr, len,
@@ -174,7 +174,7 @@ inline void* allocHipPinnedFineData(size_t len)
 /*!
  * \brief Allocate HIP coarse-grained pinned data array (pcptr).
  */
-inline void* allocHipPinnedCoarseData(size_t len)
+inline void* allocHipPinnedCoarseData(Size_type len)
 {
   void* pcptr = nullptr;
   hipErrchk( hipHostMalloc( &pcptr, len,
@@ -185,7 +185,7 @@ inline void* allocHipPinnedCoarseData(size_t len)
 /*!
  * \brief Apply mem advice to HIP data array (ptr).
  */
-inline void adviseHipData(void* ptr, int len, hipMemoryAdvise advice, int device)
+inline void adviseHipData(void* ptr, size_t len, hipMemoryAdvise advice, int device)
 {
   hipErrchk( hipMemAdvise( ptr, len, advice, device ) );
 }
