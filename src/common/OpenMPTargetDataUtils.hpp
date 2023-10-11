@@ -47,7 +47,7 @@ namespace detail
 /*
  * Copy memory len bytes from src to dst.
  */
-inline void copyOpenMPTargetData(void* dst_ptr, const void* src_ptr, size_t len,
+inline void copyOpenMPTargetData(void* dst_ptr, const void* src_ptr, Size_type len,
                           int dst_did, int src_did)
 {
   omp_target_memcpy( dst_ptr, const_cast<void*>(src_ptr), len,
@@ -58,7 +58,7 @@ inline void copyOpenMPTargetData(void* dst_ptr, const void* src_ptr, size_t len,
  * \brief Allocate device data array (dptr) and copy given hptr (host)
  * data to device array.
  */
-inline void* allocOpenMPDeviceData(size_t len,
+inline void* allocOpenMPDeviceData(Size_type len,
                            int did = getOpenMPTargetDevice())
 {
   return omp_target_alloc( len, did);
@@ -83,7 +83,7 @@ inline void deallocOpenMPDeviceData(void* dptr,
  * and of propoer size for copy operation to succeed.
  */
 template <typename T>
-void initOpenMPDeviceData(T* dptr, const T* hptr, int len,
+void initOpenMPDeviceData(T* dptr, const T* hptr, Size_type len,
                           int did = getOpenMPTargetDevice(),
                           int hid = getOpenMPTargetHost())
 {
@@ -97,7 +97,7 @@ void initOpenMPDeviceData(T* dptr, const T* hptr, int len,
  * and of propoer size for copy operation to succeed.
  */
 template <typename T>
-void getOpenMPDeviceData(T* hptr, const T* dptr, int len,
+void getOpenMPDeviceData(T* hptr, const T* dptr, Size_type len,
                          int hid = getOpenMPTargetHost(),
                          int did = getOpenMPTargetDevice())
 {

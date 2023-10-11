@@ -194,7 +194,7 @@ void KernelBase::setVariantDefined(VariantID vid)
   #endif
 }
 
-int KernelBase::getDataAlignment() const
+Size_type KernelBase::getDataAlignment() const
 {
   return run_params.getDataAlignment();
 }
