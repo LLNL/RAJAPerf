@@ -258,7 +258,7 @@ void MPI_HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPE
       MPI_Waitall(num_neighbors, unpack_mpi_requests.data(), MPI_STATUSES_IGNORE);
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
-        Real_ptr buffer = buffers[recv_tags[l]];
+        Real_ptr buffer = unpack_buffers[l];
         Int_ptr list = unpack_index_lists[l];
         Index_type  len  = unpack_index_list_lengths[l];
         if (separate_buffers) {

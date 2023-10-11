@@ -11,7 +11,7 @@
 ///
 /// // pack message for each neighbor
 /// for (Index_type l = 0; l < num_neighbors; ++l) {
-///   Real_ptr buffer = buffers[l];
+///   Real_ptr buffer = pack_buffers[l];
 ///   Int_ptr list = pack_index_lists[l];
 ///   Index_type  len  = pack_index_list_lengths[l];
 ///   // pack part of each variable
@@ -28,7 +28,7 @@
 /// // unpack messages for each neighbor
 /// for (Index_type l = 0; l < num_neighbors; ++l) {
 ///   // receive message from neighbor
-///   Real_ptr buffer = buffers[l];
+///   Real_ptr buffer = unpack_buffers[l];
 ///   Int_ptr list = unpack_index_lists[l];
 ///   Index_type  len  = unpack_index_list_lengths[l];
 ///   // unpack part of each variable
