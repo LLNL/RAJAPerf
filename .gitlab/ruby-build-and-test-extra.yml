@@ -37,6 +37,12 @@ intel_2022_1_0:
   allow_failure: true
   extends: .build_and_test_on_ruby
 
+intel_2022_1_0_mpi:
+  variables:
+    SPEC: "${PROJECT_RUBY_VARIANTS} +mpi %intel@2022.1.0 ${PROJECT_RUBY_DEPS} ^mvapich2"
+  allow_failure: true
+  extends: .build_and_test_on_ruby
+
 ############
 # Extra jobs
 ############
