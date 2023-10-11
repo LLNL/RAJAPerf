@@ -124,7 +124,7 @@ int getCudaOccupancyMaxBlocks(Func&& func, int num_threads, size_t shmem_size)
 /*
  * Copy memory len bytes from src to dst.
  */
-inline void copyCudaData(void* dst_ptr, const void* src_ptr, size_t len)
+inline void copyCudaData(void* dst_ptr, const void* src_ptr, Size_type len)
 {
   cudaErrchk( cudaMemcpy( dst_ptr, src_ptr, len,
               cudaMemcpyDefault ) );
@@ -133,7 +133,7 @@ inline void copyCudaData(void* dst_ptr, const void* src_ptr, size_t len)
 /*!
  * \brief Allocate CUDA device data array (dptr).
  */
-inline void* allocCudaDeviceData(size_t len)
+inline void* allocCudaDeviceData(Size_type len)
 {
   void* dptr = nullptr;
   cudaErrchk( cudaMalloc( &dptr, len ) );
@@ -143,7 +143,7 @@ inline void* allocCudaDeviceData(size_t len)
 /*!
  * \brief Allocate CUDA managed data array (dptr).
  */
-inline void* allocCudaManagedData(size_t len)
+inline void* allocCudaManagedData(Size_type len)
 {
   void* mptr = nullptr;
   cudaErrchk( cudaMallocManaged( &mptr, len, cudaMemAttachGlobal ) );
@@ -153,7 +153,7 @@ inline void* allocCudaManagedData(size_t len)
 /*!
  * \brief Allocate CUDA pinned data array (pptr).
  */
-inline void* allocCudaPinnedData(size_t len)
+inline void* allocCudaPinnedData(Size_type len)
 {
   void* pptr = nullptr;
   cudaErrchk( cudaHostAlloc( &pptr, len, cudaHostAllocMapped ) );

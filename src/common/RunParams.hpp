@@ -16,6 +16,7 @@
 #include <iosfwd>
 
 #include "RAJAPerfSuite.hpp"
+#include "RPTypes.hpp"
 
 namespace rajaperf
 {
@@ -120,7 +121,7 @@ public:
 
   double getSizeFactor() const { return size_factor; }
 
-  size_t getDataAlignment() const { return data_alignment; }
+  Size_type getDataAlignment() const { return data_alignment; }
 
   int getGPUStream() const { return gpu_stream; }
   size_t numValidGPUBlockSize() const { return gpu_block_sizes.size(); }
@@ -224,7 +225,7 @@ private:
   SizeMeaning size_meaning; /*!< meaning of size value */
   double size;           /*!< kernel size to run (input option) */
   double size_factor;    /*!< default kernel size multipier (input option) */
-  size_t data_alignment;
+  Size_type data_alignment;
 
   int gpu_stream; /*!< 0 -> use stream 0; anything else -> use raja default stream */
   std::vector<size_t> gpu_block_sizes; /*!< Block sizes for gpu tunings to run (input option) */
