@@ -20,6 +20,15 @@ namespace comm
 HALOEXCHANGE::HALOEXCHANGE(const RunParams& params)
   : HALOEXCHANGE_base(rajaperf::Comm_HALOEXCHANGE, params)
 {
+  setDefaultReps(200);
+
+  setKernelsPerRep( 2 * s_num_neighbors * m_num_vars );
+  setBytesPerRep( (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * getItsPerRep() +  // pack
+                  (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() +  // pack
+                  (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * getItsPerRep() +  // unpack
+                  (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() ); // unpack
+  setFLOPsPerRep(0);
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );

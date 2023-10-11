@@ -26,7 +26,16 @@ MPI_HALOEXCHANGE_FUSED::MPI_HALOEXCHANGE_FUSED(const RunParams& params)
   m_my_mpi_rank = params.getMPIRank();
   m_mpi_dims = params.getMPI3DDivision();
 
-  // TODO: Figure out how to count MPI data movement in BytesPerRep
+  setDefaultReps(50);
+
+  setKernelsPerRep( 2 );
+  setBytesPerRep( (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * getItsPerRep() +  // pack
+                  (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() +  // pack
+                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() +  // send
+                  (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getItsPerRep() +  // recv
+                  (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * getItsPerRep() +  // unpack
+                  (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() ); // unpack
+  setFLOPsPerRep(0);
 
   setUsesFeature(Workgroup);
   setUsesFeature(MPI);
