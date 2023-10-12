@@ -90,9 +90,13 @@ public:
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
   template < size_t block_size >
-  void runCudaVariantImpl(VariantID vid);
+  void runCudaVariantBlock(VariantID vid);
   template < size_t block_size >
-  void runHipVariantImpl(VariantID vid);
+  void runCudaVariantOccGS(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantBlock(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantOccGS(VariantID vid);
 
   struct PointsType {
     Int_type N;

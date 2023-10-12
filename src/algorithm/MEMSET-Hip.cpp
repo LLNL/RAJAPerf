@@ -21,13 +21,6 @@ namespace rajaperf
 namespace algorithm
 {
 
-#define MEMSET_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, iend);
-
-#define MEMSET_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_x, x, iend); \
-  deallocHipDeviceData(x);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void memset(Real_ptr x, Real_type val,
@@ -46,27 +39,21 @@ void MEMSET::runHipVariantLibrary(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   MEMSET_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
 
-    MEMSET_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipErrchk( hipMemsetAsync(MEMSET_STD_ARGS, 0) );
+      hipErrchk( hipMemsetAsync(MEMSET_STD_ARGS, res.get_stream()) );
 
     }
     stopTimer();
 
-    MEMSET_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    MEMSET_DATA_SETUP_HIP;
-
-    camp::resources::Hip res = camp::resources::Hip::get_default();
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -75,8 +62,6 @@ void MEMSET::runHipVariantLibrary(VariantID vid)
 
     }
     stopTimer();
-
-    MEMSET_DATA_TEARDOWN_HIP;
 
   } else {
 
@@ -93,29 +78,26 @@ void MEMSET::runHipVariantBlock(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   MEMSET_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
-
-    MEMSET_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = 0;
       hipLaunchKernelGGL( (memset<block_size>),
-          dim3(grid_size), dim3(block_size), 0, 0,
+          dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
           x, val, iend );
       hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
 
-    MEMSET_DATA_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    MEMSET_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -125,32 +107,27 @@ void MEMSET::runHipVariantBlock(VariantID vid)
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = 0;
       hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(memset_lambda)>),
-          grid_size, block_size, 0, 0,
+          grid_size, block_size, shmem, res.get_stream(),
           ibegin, iend, memset_lambda);
       hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
 
-    MEMSET_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    MEMSET_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           MEMSET_BODY;
       });
 
     }
     stopTimer();
-
-    MEMSET_DATA_TEARDOWN_HIP;
 
   } else {
 
@@ -182,7 +159,7 @@ void MEMSET::runHipVariant(VariantID vid, size_t tune_idx)
         run_params.validGPUBlockSize(block_size)) {
 
       if (tune_idx == t) {
-
+        setBlockSize(block_size);
         runHipVariantBlock<block_size>(vid);
 
       }

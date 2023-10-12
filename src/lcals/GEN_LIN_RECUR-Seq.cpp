@@ -24,12 +24,14 @@ void GEN_LIN_RECUR::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
 
   GEN_LIN_RECUR_DATA_SETUP;
 
+#if defined(RUN_RAJA_SEQ)
   auto genlinrecur_lam1 = [=](Index_type k) {
                             GEN_LIN_RECUR_BODY1;
                           };
   auto genlinrecur_lam2 = [=](Index_type i) {
                             GEN_LIN_RECUR_BODY2;
                           };
+#endif
 
   switch ( vid ) {
 
@@ -77,10 +79,10 @@ void GEN_LIN_RECUR::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::loop_exec>(
+        RAJA::forall<RAJA::seq_exec>(
           RAJA::RangeSegment(0, N), genlinrecur_lam1);
 
-        RAJA::forall<RAJA::loop_exec>(
+        RAJA::forall<RAJA::seq_exec>(
           RAJA::RangeSegment(1, N+1), genlinrecur_lam2);
 
       }

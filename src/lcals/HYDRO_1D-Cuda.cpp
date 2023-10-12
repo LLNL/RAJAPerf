@@ -21,17 +21,6 @@ namespace rajaperf
 namespace lcals
 {
 
-#define HYDRO_1D_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, m_array_length); \
-  allocAndInitCudaDeviceData(y, m_y, m_array_length); \
-  allocAndInitCudaDeviceData(z, m_z, m_array_length);
-
-#define HYDRO_1D_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_x, x, m_array_length); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(y); \
-  deallocCudaDeviceData(z); \
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void hydro_1d(Real_ptr x, Real_ptr y, Real_ptr z,
@@ -52,17 +41,18 @@ void HYDRO_1D::runCudaVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   HYDRO_1D_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
-
-    HYDRO_1D_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       hydro_1d<block_size><<<grid_size, block_size>>>( x, y, z,
+       constexpr size_t shmem = 0;
+       hydro_1d<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( x, y, z,
                                             q, r, t,
                                             iend );
        cudaErrchk( cudaGetLastError() );
@@ -70,16 +60,12 @@ void HYDRO_1D::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    HYDRO_1D_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    HYDRO_1D_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          HYDRO_1D_BODY;
        });
@@ -87,14 +73,12 @@ void HYDRO_1D::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    HYDRO_1D_DATA_TEARDOWN_CUDA;
-
   } else {
      getCout() << "\n  HYDRO_1D : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(HYDRO_1D, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(HYDRO_1D, Cuda)
 
 } // end namespace lcals
 } // end namespace rajaperf

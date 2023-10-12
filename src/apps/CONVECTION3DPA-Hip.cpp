@@ -19,23 +19,6 @@
 namespace rajaperf {
 namespace apps {
 
-#define CONVECTION3DPA_DATA_SETUP_HIP                                         \
-  allocAndInitHipDeviceData(Basis, m_B, CPA_Q1D *CPA_D1D);                    \
-  allocAndInitHipDeviceData(tBasis, m_Bt, CPA_Q1D *CPA_D1D);                  \
-  allocAndInitHipDeviceData(dBasis, m_G, CPA_Q1D *CPA_D1D);                   \
-  allocAndInitHipDeviceData(D, m_D, CPA_Q1D *CPA_Q1D *CPA_Q1D *CPA_VDIM *m_NE); \
-  allocAndInitHipDeviceData(X, m_X, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);         \
-  allocAndInitHipDeviceData(Y, m_Y, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);
-
-#define CONVECTION3DPA_DATA_TEARDOWN_HIP                                       \
-  getHipDeviceData(m_Y, Y, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);                  \
-  deallocHipDeviceData(Basis);                                                \
-  deallocHipDeviceData(tBasis);                                               \
-  deallocHipDeviceData(dBasis);                                               \
-  deallocHipDeviceData(D);                                                    \
-  deallocHipDeviceData(X);                                                    \
-  deallocHipDeviceData(Y);
-
 template < size_t block_size >
   __launch_bounds__(block_size)
 __global__ void Convection3DPA(const Real_ptr Basis, const Real_ptr tBasis,
@@ -147,13 +130,13 @@ template < size_t block_size >
 void CONVECTION3DPA::runHipVariantImpl(VariantID vid) {
   const Index_type run_reps = getRunReps();
 
+  auto res{getHipResource()};
+
   CONVECTION3DPA_DATA_SETUP;
 
   switch (vid) {
 
   case Base_HIP: {
-
-    CONVECTION3DPA_DATA_SETUP_HIP;
 
     dim3 nblocks(NE);
     dim3 nthreads_per_block(CPA_Q1D, CPA_Q1D, CPA_Q1D);
@@ -161,22 +144,19 @@ void CONVECTION3DPA::runHipVariantImpl(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+      constexpr size_t shmem = 0;
       hipLaunchKernelGGL((Convection3DPA<block_size>),
-                         dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+                         dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
                          Basis, tBasis, dBasis, D, X, Y);
 
       hipErrchk(hipGetLastError());
     }
     stopTimer();
 
-    CONVECTION3DPA_DATA_TEARDOWN_HIP;
-
     break;
   }
 
   case RAJA_HIP: {
-
-    CONVECTION3DPA_DATA_SETUP_HIP;
 
     constexpr bool async = true;
 
@@ -187,18 +167,18 @@ void CONVECTION3DPA::runHipVariantImpl(VariantID vid) {
         RAJA::LoopPolicy<RAJA::hip_block_x_direct>;
 
     using inner_x =
-        RAJA::LoopPolicy<RAJA::hip_thread_x_loop>;
+        RAJA::LoopPolicy<RAJA::hip_thread_size_x_loop<CPA_Q1D>>;
 
     using inner_y =
-        RAJA::LoopPolicy<RAJA::hip_thread_y_loop>;
+        RAJA::LoopPolicy<RAJA::hip_thread_size_y_loop<CPA_Q1D>>;
 
     using inner_z =
-        RAJA::LoopPolicy<RAJA::hip_thread_z_loop>;
+        RAJA::LoopPolicy<RAJA::hip_thread_size_z_loop<CPA_Q1D>>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::launch<launch_policy>(
+      RAJA::launch<launch_policy>( res,
           RAJA::LaunchParams(RAJA::Teams(NE),
                            RAJA::Threads(CPA_Q1D, CPA_Q1D, CPA_Q1D)),
           [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
@@ -359,8 +339,6 @@ void CONVECTION3DPA::runHipVariantImpl(VariantID vid) {
     } // loop over kernel reps
     stopTimer();
 
-    CONVECTION3DPA_DATA_TEARDOWN_HIP;
-
     break;
   }
 
@@ -373,7 +351,7 @@ void CONVECTION3DPA::runHipVariantImpl(VariantID vid) {
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(CONVECTION3DPA, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(CONVECTION3DPA, Hip)
 
 } // end namespace apps
 } // end namespace rajaperf

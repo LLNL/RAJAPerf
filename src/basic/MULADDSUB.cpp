@@ -73,19 +73,19 @@ void MULADDSUB::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void MULADDSUB::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_out1, getActualProblemSize());
-  checksum[vid][tune_idx] += calcChecksum(m_out2, getActualProblemSize());
-  checksum[vid][tune_idx] += calcChecksum(m_out3, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_out1, getActualProblemSize(), vid);
+  checksum[vid][tune_idx] += calcChecksum(m_out2, getActualProblemSize(), vid);
+  checksum[vid][tune_idx] += calcChecksum(m_out3, getActualProblemSize(), vid);
 }
 
 void MULADDSUB::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_out1);
-  deallocData(m_out2);
-  deallocData(m_out3);
-  deallocData(m_in1);
-  deallocData(m_in2);
+  deallocData(m_out1, vid);
+  deallocData(m_out2, vid);
+  deallocData(m_out3, vid);
+  deallocData(m_in1, vid);
+  deallocData(m_in2, vid);
 }
 
 } // end namespace basic

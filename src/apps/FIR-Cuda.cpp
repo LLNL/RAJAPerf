@@ -30,15 +30,12 @@ namespace apps
 __constant__ Real_type coeff[FIR_COEFFLEN];
 
 #define FIR_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(in, m_in, getActualProblemSize()); \
-  allocAndInitCudaDeviceData(out, m_out, getActualProblemSize()); \
-  cudaMemcpyToSymbol(coeff, coeff_array, FIR_COEFFLEN * sizeof(Real_type));
+  Real_type *dcoeff_addr; \
+  cudaErrchk( cudaGetSymbolAddress((void**)&dcoeff_addr, coeff) ); \
+  cudaErrchk( cudaMemcpyAsync(dcoeff_addr, coeff_array, FIR_COEFFLEN * sizeof(Real_type), cudaMemcpyHostToDevice, res.get_stream()) );
 
 
-#define FIR_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_out, out, getActualProblemSize()); \
-  deallocCudaDeviceData(in); \
-  deallocCudaDeviceData(out);
+#define FIR_DATA_TEARDOWN_CUDA
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -52,22 +49,18 @@ __global__ void fir(Real_ptr out, Real_ptr in,
    }
 }
 
-#else  // use global memry for coefficients
+#else  // use global memory for coefficients
 
 #define FIR_DATA_SETUP_CUDA \
   Real_ptr coeff; \
-\
-  allocAndInitCudaDeviceData(in, m_in, getActualProblemSize()); \
-  allocAndInitCudaDeviceData(out, m_out, getActualProblemSize()); \
+  \
   Real_ptr tcoeff = &coeff_array[0]; \
-  allocAndInitCudaDeviceData(coeff, tcoeff, FIR_COEFFLEN);
+  allocData(DataSpace::CudaDevice, coeff, FIR_COEFFLEN); \
+  copyData(DataSpace::CudaDevice, coeff, DataSpace::Host, tcoeff, FIR_COEFFLEN);
 
 
 #define FIR_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_out, out, getActualProblemSize()); \
-  deallocCudaDeviceData(in); \
-  deallocCudaDeviceData(out); \
-  deallocCudaDeviceData(coeff);
+  deallocData(DataSpace::CudaDevice, coeff);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -92,6 +85,8 @@ void FIR::runCudaVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize() - m_coefflen;
 
+  auto res{getCudaResource()};
+
   FIR_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
@@ -104,14 +99,15 @@ void FIR::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+       constexpr size_t shmem = 0;
 
 #if defined(USE_CUDA_CONSTANT_MEMORY)
-       fir<block_size><<<grid_size, block_size>>>( out, in,
+       fir<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( out, in,
                                        coefflen,
                                        iend );
        cudaErrchk( cudaGetLastError() );
 #else
-       fir<block_size><<<grid_size, block_size>>>( out, in,
+       fir<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( out, in,
                                        coeff,
                                        coefflen,
                                        iend );
@@ -132,7 +128,7 @@ void FIR::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          FIR_BODY;
        });
@@ -147,7 +143,7 @@ void FIR::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(FIR, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(FIR, Cuda)
 
 } // end namespace apps
 } // end namespace rajaperf

@@ -28,31 +28,68 @@
 #cmakedefine RAJA_PERFSUITE_ENABLE_MPI
 #cmakedefine RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN
 
+#if defined(RAJA_ENABLE_HIP)
+#include <hip/hip_version.h>
+#if (HIP_VERSION_MAJOR > 5) || \
+    (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR >= 2)
+// enable memadvise coarse with rocm version >= 4.3
+#define RAJAPERF_USE_MEMADVISE_COARSE
+#endif
+#endif
+
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
+#include <adiak.hpp>
+#include <algorithm>
+#endif
+
 namespace rajaperf {
 
 struct configuration {
-#if 0
-// Version of RAJA Perf Suite (ex: 0.1.0)
-static const std::string perfsuite_version =
-"@RAJA_PERFSUITE_VERSION_MAJOR@" + std::string(".") +
-"@RAJA_PERFSUITE_VERSION_MINOR@" + std::string(".") +
-"@RAJA_PERFSUITE_VERSION_PATCHLEVEL@";
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
 
-// Version of RAJA used to build (ex: 0.2.4)
-static const std::string raja_version =
-std::to_string(RAJA::RAJA_VERSION_MAJOR) + std::string(".") +
-std::to_string(RAJA::RAJA_VERSION_MINOR) + std::string(".") +
-std::to_string(RAJA::RAJA_VERSION_PATCH_LEVEL);
+template <typename T>
+std::vector<T> str_to_list(const std::string& str) {
+    /*Remove beginning and trailing spaces as well as replace spaces with commas.*/
+    // Remove beginning and trailing spaces
+    size_t start = str.find_first_not_of(' ');
+    size_t end = str.find_last_not_of(' ');
 
-// Systype and machine code was built on (ex: chaos_5_x64_64, rzhasgpu18)
-static const std::string systype_build = "@RAJAPERF_BUILD_SYSTYPE@";
-static const std::string machine_build = "@RAJAPERF_BUILD_HOST@";
+    std::vector<T> vec = {};
 
-// Compiler used to build (ex: gcc-4.9.3)
-static const std::string compiler = "@RAJAPERF_COMPILER@";
+    // Handle the case when the str contains only spaces
+    if (start == std::string::npos || end == std::string::npos)
+        return vec;
 
-// Command options used to build (ex: -Ofast -mavx)
-static const std::string compiler_options = "@RAJAPERF_COMPILER_OPTIONS@";
+    std::string trimmed_str = str.substr(start, end - start + 1);
+
+    // Replace consecutive spaces in-between with a single space
+    auto end_unique = std::unique(trimmed_str.begin(), trimmed_str.end(),
+                                  [](char a, char b) { return a == ' ' && b == ' '; });
+    trimmed_str.erase(end_unique, trimmed_str.end());
+
+    // Replace spaces with commas
+    std::replace(trimmed_str.begin(), trimmed_str.end(), ' ', ',');
+
+    vec = {trimmed_str};
+    return vec;
+}
+
+const adiak::version adiak_perfsuite_version = std::string("@CMAKE_PROJECT_VERSION@");
+const adiak::version adiak_raja_version = std::string("@RAJA_LOADED@");
+const adiak::catstring adiak_cmake_build_type = std::string("@CMAKE_BUILD_TYPE@");
+const std::vector<adiak::catstring> adiak_cmake_cxx_flags = str_to_list<adiak::catstring>(std::string("@CMAKE_CXX_FLAGS@"));
+const std::vector<adiak::catstring> adiak_cmake_exe_linker_flags = str_to_list<adiak::catstring>(std::string("@CMAKE_EXE_LINKER_FLAGS@"));
+const adiak::path adiak_rajaperf_compiler = std::string("@RAJAPERF_COMPILER@");
+const std::vector<adiak::catstring> adiak_rajaperf_compiler_options = str_to_list<adiak::catstring>(std::string("@RAJAPERF_COMPILER_OPTIONS@"));
+const adiak::version adiak_compiler_version = std::string("@CMAKE_CXX_COMPILER_VERSION@");
+const adiak::version adiak_cuda_compiler_version = std::string("@CMAKE_CUDA_COMPILER_VERSION@");
+constexpr static const char* adiak_gpu_targets = "@GPU_TARGETS@";
+constexpr static const char* adiak_cmake_hip_architectures = "@CMAKE_HIP_ARCHIECTURES@";
+const std::vector<int> adiak_gpu_targets_block_sizes = {@RAJA_PERFSUITE_GPU_BLOCKSIZES@};
+const std::vector<adiak::catstring> adiak_raja_hipcc_flags = str_to_list<adiak::catstring>(std::string("@RAJA_HIPCC_FLAGS@"));
+const adiak::catstring adiak_mpi_cxx_compiler = std::string("@MPI_CXX_COMPILER@");
+const adiak::catstring adiak_systype_build = std::string("@RAJAPERF_BUILD_SYSTYPE@");
+const adiak::catstring adiak_machine_build = std::string("@RAJAPERF_BUILD_HOST@");
 #endif
 
 // helper alias to void trailing comma in no-arg case

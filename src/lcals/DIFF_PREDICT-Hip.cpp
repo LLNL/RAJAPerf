@@ -21,14 +21,6 @@ namespace rajaperf
 namespace lcals
 {
 
-#define DIFF_PREDICT_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(px, m_px, m_array_length); \
-  allocAndInitHipDeviceData(cx, m_cx, m_array_length);
-
-#define DIFF_PREDICT_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_px, px, m_array_length); \
-  deallocHipDeviceData(px); \
-  deallocHipDeviceData(cx);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -50,17 +42,18 @@ void DIFF_PREDICT::runHipVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   DIFF_PREDICT_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
-
-    DIFF_PREDICT_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       hipLaunchKernelGGL((diff_predict<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  px, cx,
+       constexpr size_t shmem = 0;
+       hipLaunchKernelGGL((diff_predict<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  px, cx,
                                                 offset,
                                                 iend );
        hipErrchk( hipGetLastError() );
@@ -68,16 +61,12 @@ void DIFF_PREDICT::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    DIFF_PREDICT_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    DIFF_PREDICT_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          DIFF_PREDICT_BODY;
        });
@@ -85,14 +74,12 @@ void DIFF_PREDICT::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    DIFF_PREDICT_DATA_TEARDOWN_HIP;
-
   } else {
      getCout() << "\n  DIFF_PREDICT : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(DIFF_PREDICT, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(DIFF_PREDICT, Hip)
 
 } // end namespace lcals
 } // end namespace rajaperf

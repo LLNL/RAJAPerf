@@ -23,19 +23,6 @@ namespace rajaperf
 namespace apps
 {
 
-#define VOL3D_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, m_array_length); \
-  allocAndInitCudaDeviceData(y, m_y, m_array_length); \
-  allocAndInitCudaDeviceData(z, m_z, m_array_length); \
-  allocAndInitCudaDeviceData(vol, m_vol, m_array_length);
-
-#define VOL3D_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_vol, vol, m_array_length); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(y); \
-  deallocCudaDeviceData(z); \
-  deallocCudaDeviceData(vol);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void vol3d(Real_ptr vol,
@@ -69,22 +56,19 @@ void VOL3D::runCudaVariantImpl(VariantID vid)
   const Index_type ibegin = m_domain->fpz;
   const Index_type iend = m_domain->lpz+1;
 
+  auto res{getCudaResource()};
+
   VOL3D_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
-
-    VOL3D_DATA_SETUP_CUDA;
-
-    NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
-    NDPTRSET(m_domain->jp, m_domain->kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ;
-    NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = 0;
 
-      vol3d<block_size><<<grid_size, block_size>>>(vol,
+      vol3d<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(vol,
                                        x0, x1, x2, x3, x4, x5, x6, x7,
                                        y0, y1, y2, y3, y4, y5, y6, y7,
                                        z0, z1, z2, z3, z4, z5, z6, z7,
@@ -95,20 +79,12 @@ void VOL3D::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    VOL3D_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    VOL3D_DATA_SETUP_CUDA;
-
-    NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
-    NDPTRSET(m_domain->jp, m_domain->kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ;
-    NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
         VOL3D_BODY;
       });
@@ -116,14 +92,12 @@ void VOL3D::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    VOL3D_DATA_TEARDOWN_CUDA;
-
   } else {
      getCout() << "\n  VOL3D : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(VOL3D, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(VOL3D, Cuda)
 
 } // end namespace apps
 } // end namespace rajaperf

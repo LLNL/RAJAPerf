@@ -26,26 +26,6 @@ namespace basic
   //
   const size_t threads_per_team = 256;
 
-#define INIT3_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(out1, m_out1, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(out2, m_out2, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(out3, m_out3, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(in1, m_in1, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(in2, m_in2, iend, did, hid);
-
-#define INIT3_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_out1, out1, iend, hid, did); \
-  getOpenMPDeviceData(m_out2, out2, iend, hid, did); \
-  getOpenMPDeviceData(m_out3, out3, iend, hid, did); \
-  deallocOpenMPDeviceData(out1, did); \
-  deallocOpenMPDeviceData(out2, did); \
-  deallocOpenMPDeviceData(out3, did); \
-  deallocOpenMPDeviceData(in1, did); \
-  deallocOpenMPDeviceData(in2, did);
-
 
 void INIT3::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
@@ -56,8 +36,6 @@ void INIT3::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
   INIT3_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    INIT3_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -71,11 +49,7 @@ void INIT3::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
     }
     stopTimer();
 
-    INIT3_DATA_TEARDOWN_OMP_TARGET;
-
   } else if ( vid == RAJA_OpenMPTarget ) {
-
-    INIT3_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -87,8 +61,6 @@ void INIT3::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
 
     }
     stopTimer();
-
-    INIT3_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
      getCout() << "\n  INIT3 : Unknown OMP Target variant id = " << vid << std::endl;

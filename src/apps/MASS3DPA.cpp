@@ -47,7 +47,7 @@ MASS3DPA::MASS3DPA(const RunParams& params)
                          2 * MPA_Q1D * MPA_Q1D * MPA_Q1D * MPA_D1D +
                          2 * MPA_Q1D * MPA_Q1D * MPA_D1D * MPA_D1D +
                          2 * MPA_Q1D * MPA_D1D * MPA_D1D * MPA_D1D + MPA_D1D * MPA_D1D * MPA_D1D));
-  setUsesFeature(Teams);
+  setUsesFeature(Launch);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( RAJA_Seq );
@@ -79,18 +79,18 @@ void MASS3DPA::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void MASS3DPA::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_Y, MPA_D1D*MPA_D1D*MPA_D1D*m_NE);
+  checksum[vid][tune_idx] += calcChecksum(m_Y, MPA_D1D*MPA_D1D*MPA_D1D*m_NE, vid);
 }
 
 void MASS3DPA::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
 
-  deallocData(m_B);
-  deallocData(m_Bt);
-  deallocData(m_D);
-  deallocData(m_X);
-  deallocData(m_Y);
+  deallocData(m_B, vid);
+  deallocData(m_Bt, vid);
+  deallocData(m_D, vid);
+  deallocData(m_X, vid);
+  deallocData(m_Y, vid);
 }
 
 } // end namespace apps

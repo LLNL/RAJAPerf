@@ -25,19 +25,9 @@ namespace algorithm
   //
   // Define threads per team for target execution
   //
+#if _OPENMP >= 201811 && defined(RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN)
   const size_t threads_per_team = 256;
-
-#define SCAN_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-  \
-  allocAndInitOpenMPDeviceData(x, m_x, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(y, m_y, iend, did, hid);
-
-#define SCAN_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_y, y, iend, hid, did); \
-  deallocOpenMPDeviceData(x, did); \
-  deallocOpenMPDeviceData(y, did);
+#endif
 
 
 void SCAN::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
@@ -53,8 +43,6 @@ void SCAN::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
   switch ( vid ) {
 
     case Base_OpenMPTarget : {
-
-      SCAN_DATA_SETUP_OMP_TARGET;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -72,8 +60,6 @@ void SCAN::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
 
       }
       stopTimer();
-
-      SCAN_DATA_TEARDOWN_OMP_TARGET;
 
       break;
     }

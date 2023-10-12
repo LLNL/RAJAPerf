@@ -79,16 +79,16 @@ void EOS::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void EOS::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_x, getActualProblemSize(), checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_x, getActualProblemSize(), checksum_scale_factor , vid);
 }
 
 void EOS::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_x);
-  deallocData(m_y);
-  deallocData(m_z);
-  deallocData(m_u);
+  deallocData(m_x, vid);
+  deallocData(m_y, vid);
+  deallocData(m_z, vid);
+  deallocData(m_u, vid);
 }
 
 } // end namespace lcals

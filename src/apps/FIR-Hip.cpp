@@ -30,15 +30,10 @@ namespace apps
 __constant__ Real_type coeff[FIR_COEFFLEN];
 
 #define FIR_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(in, m_in, getActualProblemSize()); \
-  allocAndInitHipDeviceData(out, m_out, getActualProblemSize()); \
-  hipMemcpyToSymbol(HIP_SYMBOL(coeff), coeff_array, FIR_COEFFLEN * sizeof(Real_type), 0, hipMemcpyHostToDevice);
+  hipErrchk( hipMemcpyToSymbolAsync(HIP_SYMBOL(coeff), coeff_array, FIR_COEFFLEN * sizeof(Real_type), 0, hipMemcpyHostToDevice, res.get_stream()) );
 
 
-#define FIR_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_out, out, getActualProblemSize()); \
-  deallocHipDeviceData(in); \
-  deallocHipDeviceData(out);
+#define FIR_DATA_TEARDOWN_HIP
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -56,18 +51,14 @@ __global__ void fir(Real_ptr out, Real_ptr in,
 
 #define FIR_DATA_SETUP_HIP \
   Real_ptr coeff; \
-\
-  allocAndInitHipDeviceData(in, m_in, getActualProblemSize()); \
-  allocAndInitHipDeviceData(out, m_out, getActualProblemSize()); \
+  \
   Real_ptr tcoeff = &coeff_array[0]; \
-  allocAndInitHipDeviceData(coeff, tcoeff, FIR_COEFFLEN);
+  allocData(DataSpace::HipDevice, coeff, FIR_COEFFLEN); \
+  copyData(DataSpace::HipDevice, coeff, DataSpace::Host, tcoeff, FIR_COEFFLEN);
 
 
 #define FIR_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_out, out, getActualProblemSize()); \
-  deallocHipDeviceData(in); \
-  deallocHipDeviceData(out); \
-  deallocHipDeviceData(coeff);
+  deallocData(DataSpace::HipDevice, coeff);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -92,6 +83,8 @@ void FIR::runHipVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize() - m_coefflen;
 
+  auto res{getHipResource()};
+
   FIR_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -104,14 +97,15 @@ void FIR::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+       constexpr size_t shmem = 0;
 
 #if defined(USE_HIP_CONSTANT_MEMORY)
-       hipLaunchKernelGGL((fir<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  out, in,
+       hipLaunchKernelGGL((fir<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  out, in,
                                        coefflen,
                                        iend );
        hipErrchk( hipGetLastError() );
 #else
-       hipLaunchKernelGGL((fir<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  out, in,
+       hipLaunchKernelGGL((fir<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  out, in,
                                        coeff,
                                        coefflen,
                                        iend );
@@ -132,7 +126,7 @@ void FIR::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          FIR_BODY;
        });
@@ -147,7 +141,7 @@ void FIR::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(FIR, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(FIR, Hip)
 
 } // end namespace apps
 } // end namespace rajaperf

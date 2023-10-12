@@ -26,30 +26,6 @@ namespace apps
   //
   const size_t threads_per_team = 256;
 
-#define HALOEXCHANGE_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  for (Index_type v = 0; v < m_num_vars; ++v) { \
-    allocAndInitOpenMPDeviceData(vars[v], m_vars[v], m_var_size, did, hid); \
-  } \
-  for (Index_type l = 0; l < num_neighbors; ++l) { \
-    allocAndInitOpenMPDeviceData(buffers[l], m_buffers[l], m_num_vars*m_pack_index_list_lengths[l], did, hid); \
-    allocAndInitOpenMPDeviceData(pack_index_lists[l], m_pack_index_lists[l], m_pack_index_list_lengths[l], did, hid); \
-    allocAndInitOpenMPDeviceData(unpack_index_lists[l], m_unpack_index_lists[l], m_unpack_index_list_lengths[l], did, hid); \
-  }
-
-#define HALOEXCHANGE_DATA_TEARDOWN_OMP_TARGET \
-  for (Index_type l = 0; l < num_neighbors; ++l) { \
-    deallocOpenMPDeviceData(unpack_index_lists[l], did); \
-    deallocOpenMPDeviceData(pack_index_lists[l], did); \
-    deallocOpenMPDeviceData(buffers[l], did); \
-  } \
-  for (Index_type v = 0; v < m_num_vars; ++v) { \
-    getOpenMPDeviceData(m_vars[v], vars[v], m_var_size, hid, did); \
-    deallocOpenMPDeviceData(vars[v], did); \
-  }
-
 
 void HALOEXCHANGE::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
@@ -58,8 +34,6 @@ void HALOEXCHANGE::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_
   HALOEXCHANGE_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    HALOEXCHANGE_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -97,11 +71,7 @@ void HALOEXCHANGE::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_
     }
     stopTimer();
 
-    HALOEXCHANGE_DATA_TEARDOWN_OMP_TARGET;
-
   } else if ( vid == RAJA_OpenMPTarget ) {
-
-    HALOEXCHANGE_DATA_SETUP_OMP_TARGET;
 
     using EXEC_POL = RAJA::omp_target_parallel_for_exec<threads_per_team>;
 
@@ -142,8 +112,6 @@ void HALOEXCHANGE::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_
 
     }
     stopTimer();
-
-    HALOEXCHANGE_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
      getCout() << "\n HALOEXCHANGE : Unknown OMP Target variant id = " << vid << std::endl;

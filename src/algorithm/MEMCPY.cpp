@@ -65,14 +65,14 @@ void MEMCPY::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void MEMCPY::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid].at(tune_idx) += calcChecksum(m_y, getActualProblemSize());
+  checksum[vid].at(tune_idx) += calcChecksum(m_y, getActualProblemSize(), vid);
 }
 
 void MEMCPY::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_x);
-  deallocData(m_y);
+  deallocData(m_x, vid);
+  deallocData(m_y, vid);
 }
 
 } // end namespace algorithm

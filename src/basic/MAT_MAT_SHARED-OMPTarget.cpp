@@ -19,19 +19,16 @@
 namespace rajaperf {
 namespace basic {
 
+void MAT_MAT_SHARED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) 
+{
+  if ( vid == Base_OpenMPTarget ) {
 
-  void MAT_MAT_SHARED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
-    const Index_type run_reps = getRunReps();
+  } else if ( vid == RAJA_OpenMPTarget ) {
 
-    switch (vid) {
-
-    default: {
-
-      getCout() << "\n MAT_MAT_SHARED : Unknown OpenMPTarget variant id = " << vid << std::endl;
-      break;
-    }
-    }
+  } else {
+     getCout() << "\n MAT_MAT_SHARED : Unknown OpenMPTarget variant id = " << vid << std::endl;
   }
+}
 
 } // end namespace basic
 } // end namespace rajaperf

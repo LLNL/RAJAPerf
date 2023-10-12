@@ -21,21 +21,6 @@ namespace rajaperf
 namespace polybench
 {
 
-#define POLYBENCH_GESUMMV_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, N); \
-  allocAndInitHipDeviceData(y, m_y, N); \
-  allocAndInitHipDeviceData(A, m_A, N*N); \
-  allocAndInitHipDeviceData(B, m_B, N*N);
-
-
-#define POLYBENCH_GESUMMV_TEARDOWN_HIP \
-  getHipDeviceData(m_y, y, N); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(y); \
-  deallocHipDeviceData(A); \
-  deallocHipDeviceData(B);
-
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void poly_gesummv(Real_ptr x, Real_ptr y,
@@ -60,19 +45,19 @@ void POLYBENCH_GESUMMV::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getHipResource()};
+
   POLYBENCH_GESUMMV_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
-
-    POLYBENCH_GESUMMV_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
-
+      constexpr size_t shmem = 0;
       hipLaunchKernelGGL((poly_gesummv<block_size>),
-                         dim3(grid_size), dim3(block_size),0,0,
+                         dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
                          x, y,
                          A, B,
                          alpha, beta,
@@ -82,26 +67,19 @@ void POLYBENCH_GESUMMV::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_GESUMMV_TEARDOWN_HIP;
-
   } else if (vid == RAJA_HIP) {
-
-    POLYBENCH_GESUMMV_DATA_SETUP_HIP;
 
     POLYBENCH_GESUMMV_VIEWS_RAJA;
 
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::HipKernelFixedAsync<block_size,
-          RAJA::statement::Tile<0, RAJA::tile_fixed<block_size>,
-                                   RAJA::hip_block_x_direct,
-            RAJA::statement::For<0, RAJA::hip_thread_x_direct,
-              RAJA::statement::Lambda<0, RAJA::Params<0,1>>,
-              RAJA::statement::For<1, RAJA::seq_exec,
-                RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0,1>>
-              >,
-              RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0,1>>
-            >
+          RAJA::statement::For<0, RAJA::hip_global_size_x_direct<block_size>,
+            RAJA::statement::Lambda<0, RAJA::Params<0,1>>,
+            RAJA::statement::For<1, RAJA::seq_exec,
+              RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0,1>>
+            >,
+            RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0,1>>
           >
         >
       >;
@@ -109,11 +87,12 @@ void POLYBENCH_GESUMMV::runHipVariantImpl(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel_param<EXEC_POL>(
+        RAJA::kernel_param_resource<EXEC_POL>(
           RAJA::make_tuple( RAJA::RangeSegment{0, N},
                             RAJA::RangeSegment{0, N} ),
           RAJA::make_tuple(static_cast<Real_type>(0.0),
                            static_cast<Real_type>(0.0)),
+          res,
 
           [=] __device__ (Real_type& tmpdot,
                           Real_type& ydot) {
@@ -132,14 +111,12 @@ void POLYBENCH_GESUMMV::runHipVariantImpl(VariantID vid)
       }
       stopTimer();
 
-    POLYBENCH_GESUMMV_TEARDOWN_HIP;
-
   } else {
       getCout() << "\n  POLYBENCH_GESUMMV : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(POLYBENCH_GESUMMV, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(POLYBENCH_GESUMMV, Hip)
 
 } // end namespace polybench
 } // end namespace rajaperf

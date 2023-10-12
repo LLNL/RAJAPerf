@@ -15,6 +15,8 @@
 #include "common/HipDataUtils.hpp"
 
 #include <iostream>
+#include <utility>
+
 
 namespace rajaperf
 {
@@ -35,11 +37,6 @@ Real_type trap_int_func(Real_type x,
    denom = 1.0/sqrt(denom);
    return denom;
 }
-
-
-#define TRAP_INT_DATA_SETUP_HIP // nothing to do here...
-
-#define TRAP_INT_DATA_TEARDOWN_HIP // nothing to do here...
 
 
 template < size_t block_size >
@@ -84,28 +81,30 @@ __global__ void trapint(Real_type x0, Real_type xp,
 
 
 template < size_t block_size >
-void TRAP_INT::runHipVariantImpl(VariantID vid)
+void TRAP_INT::runHipVariantBlock(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   TRAP_INT_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
 
-    TRAP_INT_DATA_SETUP_HIP;
-
     Real_ptr sumx;
-    allocAndInitHipDeviceData(sumx, &m_sumx_init, 1);
+    allocData(DataSpace::HipDevice, sumx, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initHipDeviceData(sumx, &m_sumx_init, 1);
+      hipErrchk( hipMemcpyAsync( sumx, &m_sumx_init, sizeof(Real_type),
+                                 hipMemcpyHostToDevice, res.get_stream() ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((trapint<block_size>), dim3(grid_size), dim3(block_size), sizeof(Real_type)*block_size, 0, x0, xp,
+      constexpr size_t shmem = sizeof(Real_type)*block_size;
+      hipLaunchKernelGGL((trapint<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(), x0, xp,
                                                 y, yp,
                                                 h,
                                                 sumx,
@@ -113,27 +112,24 @@ void TRAP_INT::runHipVariantImpl(VariantID vid)
       hipErrchk( hipGetLastError() );
 
       Real_type lsumx;
-      Real_ptr plsumx = &lsumx;
-      getHipDeviceData(plsumx, sumx, 1);
+      hipErrchk( hipMemcpyAsync( &lsumx, sumx, sizeof(Real_type),
+                                 hipMemcpyDeviceToHost, res.get_stream() ) );
+      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
       m_sumx += lsumx * h;
 
     }
     stopTimer();
 
-    deallocHipDeviceData(sumx);
-
-    TRAP_INT_DATA_TEARDOWN_HIP;
+    deallocData(DataSpace::HipDevice, sumx);
 
   } else if ( vid == RAJA_HIP ) {
-
-    TRAP_INT_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::ReduceSum<RAJA::hip_reduce, Real_type> sumx(m_sumx_init);
 
-      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
         TRAP_INT_BODY;
       });
@@ -143,14 +139,141 @@ void TRAP_INT::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    TRAP_INT_DATA_TEARDOWN_HIP;
+  } else {
+     getCout() << "\n  TRAP_INT : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+template < size_t block_size >
+void TRAP_INT::runHipVariantOccGS(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  auto res{getHipResource()};
+
+  TRAP_INT_DATA_SETUP;
+
+  if ( vid == Base_HIP ) {
+
+    Real_ptr sumx;
+    allocData(DataSpace::HipDevice, sumx, 1);
+
+    constexpr size_t shmem = sizeof(Real_type)*block_size;
+    const size_t max_grid_size = detail::getHipOccupancyMaxBlocks(
+        (trapint<block_size>), block_size, shmem);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      hipErrchk( hipMemcpyAsync( sumx, &m_sumx_init, sizeof(Real_type),
+                                 hipMemcpyHostToDevice, res.get_stream() ) );
+
+      const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      const size_t grid_size = std::min(normal_grid_size, max_grid_size);
+      hipLaunchKernelGGL((trapint<block_size>), dim3(grid_size), dim3(block_size),
+                                                shmem, res.get_stream(), x0, xp,
+                                                y, yp,
+                                                h,
+                                                sumx,
+                                                iend);
+      hipErrchk( hipGetLastError() );
+
+      Real_type lsumx;
+      hipErrchk( hipMemcpyAsync( &lsumx, sumx, sizeof(Real_type),
+                                 hipMemcpyDeviceToHost, res.get_stream() ) );
+      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
+      m_sumx += lsumx * h;
+
+    }
+    stopTimer();
+
+    deallocData(DataSpace::HipDevice, sumx);
+
+  } else if ( vid == RAJA_HIP ) {
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      RAJA::ReduceSum<RAJA::hip_reduce, Real_type> sumx(m_sumx_init);
+
+      RAJA::forall< RAJA::hip_exec_occ_calc<block_size, true /*async*/> >( res,
+        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+        TRAP_INT_BODY;
+      });
+
+      m_sumx += static_cast<Real_type>(sumx.get()) * h;
+
+    }
+    stopTimer();
 
   } else {
      getCout() << "\n  TRAP_INT : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(TRAP_INT, Hip)
+void TRAP_INT::runHipVariant(VariantID vid, size_t tune_idx)
+{
+  size_t t = 0;
+
+  if ( vid == Base_HIP || vid == RAJA_HIP ) {
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        if (tune_idx == t) {
+
+          setBlockSize(block_size);
+          runHipVariantBlock<block_size>(vid);
+
+        }
+
+        t += 1;
+
+        if (tune_idx == t) {
+
+          setBlockSize(block_size);
+          runHipVariantOccGS<block_size>(vid);
+
+        }
+
+        t += 1;
+
+      }
+
+    });
+
+  } else {
+
+    getCout() << "\n  TRAP_INT : Unknown Hip variant id = " << vid << std::endl;
+
+  }
+
+}
+
+void TRAP_INT::setHipTuningDefinitions(VariantID vid)
+{
+  if ( vid == Base_HIP || vid == RAJA_HIP ) {
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        addVariantTuningName(vid, "block_"+std::to_string(block_size));
+
+        addVariantTuningName(vid, "occgs_"+std::to_string(block_size));
+
+      }
+
+    });
+
+  }
+
+}
 
 } // end namespace basic
 } // end namespace rajaperf

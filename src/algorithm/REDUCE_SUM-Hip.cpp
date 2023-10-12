@@ -23,17 +23,13 @@
 #include "common/HipDataUtils.hpp"
 
 #include <iostream>
+#include <utility>
+
 
 namespace rajaperf
 {
 namespace algorithm
 {
-
-#define REDUCE_SUM_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, iend);
-
-#define REDUCE_SUM_DATA_TEARDOWN_HIP \
-  deallocHipDeviceData(x);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -75,18 +71,18 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   REDUCE_SUM_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
 
-    REDUCE_SUM_DATA_SETUP_HIP;
-
-    hipStream_t stream = 0;
+    hipStream_t stream = res.get_stream();
 
     int len = iend - ibegin;
 
     Real_type* sum_storage;
-    allocHipPinnedData(sum_storage, 1);
+    allocData(DataSpace::HipPinned, sum_storage, 1);
 
     // Determine temporary device storage requirements
     void* d_temp_storage = nullptr;
@@ -113,7 +109,7 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
 
     // Allocate temporary storage
     unsigned char* temp_storage;
-    allocHipDeviceData(temp_storage, temp_storage_bytes);
+    allocData(DataSpace::HipDevice, temp_storage, temp_storage_bytes);
     d_temp_storage = temp_storage;
 
 
@@ -148,10 +144,8 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
     stopTimer();
 
     // Free temporary storage
-    deallocHipDeviceData(temp_storage);
-    deallocHipPinnedData(sum_storage);
-
-    REDUCE_SUM_DATA_TEARDOWN_HIP;
+    deallocData(DataSpace::HipDevice, temp_storage);
+    deallocData(DataSpace::HipPinned, sum_storage);
 
   } else {
 
@@ -168,49 +162,45 @@ void REDUCE_SUM::runHipVariantBlock(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   REDUCE_SUM_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
 
-    REDUCE_SUM_DATA_SETUP_HIP;
-
     Real_ptr dsum;
-    allocHipDeviceData(dsum, 1);
+    allocData(DataSpace::HipDevice, dsum, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initHipDeviceData(dsum, &m_sum_init, 1);
+      hipErrchk( hipMemcpyAsync( dsum, &m_sum_init, sizeof(Real_type),
+                                 hipMemcpyHostToDevice, res.get_stream() ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = sizeof(Real_type)*block_size;
       hipLaunchKernelGGL( (reduce_sum<block_size>), dim3(grid_size), dim3(block_size),
-                          sizeof(Real_type)*block_size, 0,
+                          shmem, res.get_stream(),
                           x, dsum, m_sum_init, iend );
       hipErrchk( hipGetLastError() );
 
-      Real_type lsum;
-      Real_ptr plsum = &lsum;
-      getHipDeviceData(plsum, dsum, 1);
-
-      m_sum = lsum;
+      hipErrchk( hipMemcpyAsync( &m_sum, dsum, sizeof(Real_type),
+                                 hipMemcpyDeviceToHost, res.get_stream() ) );
+      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
 
     }
     stopTimer();
 
-    deallocHipDeviceData(dsum);
-
-    REDUCE_SUM_DATA_TEARDOWN_HIP;
+    deallocData(DataSpace::HipDevice, dsum);
 
   } else if ( vid == RAJA_HIP ) {
-
-    REDUCE_SUM_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::ReduceSum<RAJA::hip_reduce, Real_type> sum(m_sum_init);
 
-      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           REDUCE_SUM_BODY;
       });
@@ -220,7 +210,72 @@ void REDUCE_SUM::runHipVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    REDUCE_SUM_DATA_TEARDOWN_HIP;
+  } else {
+
+    getCout() << "\n  REDUCE_SUM : Unknown Hip variant id = " << vid << std::endl;
+
+  }
+
+}
+
+template < size_t block_size >
+void REDUCE_SUM::runHipVariantOccGS(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  auto res{getHipResource()};
+
+  REDUCE_SUM_DATA_SETUP;
+
+  if ( vid == Base_HIP ) {
+
+    Real_ptr dsum;
+    allocData(DataSpace::HipDevice, dsum, 1);
+
+    constexpr size_t shmem = sizeof(Real_type)*block_size;
+    const size_t max_grid_size = detail::getHipOccupancyMaxBlocks(
+        (reduce_sum<block_size>), block_size, shmem);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      hipErrchk( hipMemcpyAsync( dsum, &m_sum_init, sizeof(Real_type),
+                                 hipMemcpyHostToDevice, res.get_stream() ) );
+
+      const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      const size_t grid_size = std::min(normal_grid_size, max_grid_size);
+      hipLaunchKernelGGL( (reduce_sum<block_size>), dim3(grid_size), dim3(block_size),
+                          shmem, res.get_stream(),
+                          x, dsum, m_sum_init, iend );
+      hipErrchk( hipGetLastError() );
+
+      hipErrchk( hipMemcpyAsync( &m_sum, dsum, sizeof(Real_type),
+                                 hipMemcpyDeviceToHost, res.get_stream() ) );
+      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
+
+    }
+    stopTimer();
+
+    deallocData(DataSpace::HipDevice, dsum);
+
+  } else if ( vid == RAJA_HIP ) {
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      RAJA::ReduceSum<RAJA::hip_reduce, Real_type> sum(m_sum_init);
+
+      RAJA::forall< RAJA::hip_exec_occ_calc<block_size, true /*async*/> >( res,
+        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+          REDUCE_SUM_BODY;
+      });
+
+      m_sum = sum.get();
+
+    }
+    stopTimer();
 
   } else {
 
@@ -232,9 +287,9 @@ void REDUCE_SUM::runHipVariantBlock(VariantID vid)
 
 void REDUCE_SUM::runHipVariant(VariantID vid, size_t tune_idx)
 {
-  if ( vid == Base_HIP ) {
+  size_t t = 0;
 
-    size_t t = 0;
+  if ( vid == Base_HIP ) {
 
     if (tune_idx == t) {
 
@@ -244,6 +299,10 @@ void REDUCE_SUM::runHipVariant(VariantID vid, size_t tune_idx)
 
     t += 1;
 
+  }
+
+  if ( vid == Base_HIP || vid == RAJA_HIP ) {
+
     seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
 
       if (run_params.numValidGPUBlockSize() == 0u ||
@@ -251,28 +310,17 @@ void REDUCE_SUM::runHipVariant(VariantID vid, size_t tune_idx)
 
         if (tune_idx == t) {
 
+          setBlockSize(block_size);
           runHipVariantBlock<block_size>(vid);
 
         }
 
         t += 1;
 
-      }
-
-    });
-
-  } else if ( vid == RAJA_HIP ) {
-
-    size_t t = 0;
-
-    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
-
-      if (run_params.numValidGPUBlockSize() == 0u ||
-          run_params.validGPUBlockSize(block_size)) {
-
         if (tune_idx == t) {
 
-          runHipVariantBlock<block_size>(vid);
+          setBlockSize(block_size);
+          runHipVariantOccGS<block_size>(vid);
 
         }
 
@@ -300,18 +348,9 @@ void REDUCE_SUM::setHipTuningDefinitions(VariantID vid)
     addVariantTuningName(vid, "cub");
 #endif
 
-    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+  }
 
-      if (run_params.numValidGPUBlockSize() == 0u ||
-          run_params.validGPUBlockSize(block_size)) {
-
-        addVariantTuningName(vid, "block_"+std::to_string(block_size));
-
-      }
-
-    });
-
-  } else if ( vid == RAJA_HIP ) {
+  if ( vid == Base_HIP || vid == RAJA_HIP ) {
 
     seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
 
@@ -319,6 +358,8 @@ void REDUCE_SUM::setHipTuningDefinitions(VariantID vid)
           run_params.validGPUBlockSize(block_size)) {
 
         addVariantTuningName(vid, "block_"+std::to_string(block_size));
+
+        addVariantTuningName(vid, "occgs_"+std::to_string(block_size));
 
       }
 

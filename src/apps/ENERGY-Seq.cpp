@@ -26,6 +26,7 @@ void ENERGY::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
   ENERGY_DATA_SETUP;
 
+#if defined(RUN_RAJA_SEQ)
   auto energy_lam1 = [=](Index_type i) {
                        ENERGY_BODY1;
                      };
@@ -44,6 +45,7 @@ void ENERGY::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
   auto energy_lam6 = [=](Index_type i) {
                        ENERGY_BODY6;
                      };
+#endif
 
   switch ( vid ) {
 
@@ -125,22 +127,22 @@ void ENERGY::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
         RAJA::region<RAJA::seq_region>( [=]() {
 
-          RAJA::forall<RAJA::loop_exec>(
+          RAJA::forall<RAJA::seq_exec>(
             RAJA::RangeSegment(ibegin, iend), energy_lam1);
 
-          RAJA::forall<RAJA::loop_exec>(
+          RAJA::forall<RAJA::seq_exec>(
             RAJA::RangeSegment(ibegin, iend), energy_lam2);
 
-          RAJA::forall<RAJA::loop_exec>(
+          RAJA::forall<RAJA::seq_exec>(
             RAJA::RangeSegment(ibegin, iend), energy_lam3);
 
-          RAJA::forall<RAJA::loop_exec>(
+          RAJA::forall<RAJA::seq_exec>(
             RAJA::RangeSegment(ibegin, iend), energy_lam4);
 
-          RAJA::forall<RAJA::loop_exec>(
+          RAJA::forall<RAJA::seq_exec>(
             RAJA::RangeSegment(ibegin, iend), energy_lam5);
 
-          RAJA::forall<RAJA::loop_exec>(
+          RAJA::forall<RAJA::seq_exec>(
             RAJA::RangeSegment(ibegin, iend), energy_lam6);
 
         }); // end sequential region (for single-source code)

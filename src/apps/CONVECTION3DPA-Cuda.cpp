@@ -19,23 +19,6 @@
 namespace rajaperf {
 namespace apps {
 
-#define CONVECTION3DPA_DATA_SETUP_CUDA                                         \
-  allocAndInitCudaDeviceData(Basis, m_B, CPA_Q1D *CPA_D1D);                    \
-  allocAndInitCudaDeviceData(tBasis, m_Bt, CPA_Q1D *CPA_D1D);                  \
-  allocAndInitCudaDeviceData(dBasis, m_G, CPA_Q1D *CPA_D1D);                   \
-  allocAndInitCudaDeviceData(D, m_D, CPA_Q1D *CPA_Q1D *CPA_Q1D *CPA_VDIM *m_NE); \
-  allocAndInitCudaDeviceData(X, m_X, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);         \
-  allocAndInitCudaDeviceData(Y, m_Y, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);
-
-#define CONVECTION3DPA_DATA_TEARDOWN_CUDA                                       \
-  getCudaDeviceData(m_Y, Y, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);                  \
-  deallocCudaDeviceData(Basis);                                                \
-  deallocCudaDeviceData(tBasis);                                               \
-  deallocCudaDeviceData(dBasis);                                               \
-  deallocCudaDeviceData(D);                                                    \
-  deallocCudaDeviceData(X);                                                    \
-  deallocCudaDeviceData(Y);
-
 template < size_t block_size >
   __launch_bounds__(block_size)
 __global__ void Convection3DPA(const Real_ptr Basis, const Real_ptr tBasis,
@@ -147,34 +130,31 @@ template < size_t block_size >
 void CONVECTION3DPA::runCudaVariantImpl(VariantID vid) {
   const Index_type run_reps = getRunReps();
 
+  auto res{getCudaResource()};
+
   CONVECTION3DPA_DATA_SETUP;
 
   switch (vid) {
 
   case Base_CUDA: {
 
-    CONVECTION3DPA_DATA_SETUP_CUDA;
-
     dim3 nthreads_per_block(CPA_Q1D, CPA_Q1D, CPA_Q1D);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      Convection3DPA<block_size><<<NE, nthreads_per_block>>>
+      constexpr size_t shmem = 0;
+      Convection3DPA<block_size><<<NE, nthreads_per_block, shmem, res.get_stream()>>>
         (Basis, tBasis, dBasis, D, X, Y);
 
       cudaErrchk(cudaGetLastError());
     }
     stopTimer();
 
-    CONVECTION3DPA_DATA_TEARDOWN_CUDA;
-
     break;
   }
 
   case RAJA_CUDA: {
-
-    CONVECTION3DPA_DATA_SETUP_CUDA;
 
     constexpr bool async = true;
 
@@ -185,18 +165,18 @@ void CONVECTION3DPA::runCudaVariantImpl(VariantID vid) {
         RAJA::LoopPolicy<RAJA::cuda_block_x_direct>;
 
     using inner_x =
-        RAJA::LoopPolicy<RAJA::cuda_thread_x_loop>;
+        RAJA::LoopPolicy<RAJA::cuda_thread_size_x_loop<CPA_Q1D>>;
 
     using inner_y =
-        RAJA::LoopPolicy<RAJA::cuda_thread_y_loop>;
+        RAJA::LoopPolicy<RAJA::cuda_thread_size_y_loop<CPA_Q1D>>;
 
     using inner_z =
-        RAJA::LoopPolicy<RAJA::cuda_thread_z_loop>;
+        RAJA::LoopPolicy<RAJA::cuda_thread_size_z_loop<CPA_Q1D>>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::launch<launch_policy>(
+      RAJA::launch<launch_policy>( res,
           RAJA::LaunchParams(RAJA::Teams(NE),
                            RAJA::Threads(CPA_Q1D, CPA_Q1D, CPA_Q1D)),
           [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
@@ -357,8 +337,6 @@ void CONVECTION3DPA::runCudaVariantImpl(VariantID vid) {
     } // loop over kernel reps
     stopTimer();
 
-    CONVECTION3DPA_DATA_TEARDOWN_CUDA;
-
     break;
   }
 
@@ -371,7 +349,7 @@ void CONVECTION3DPA::runCudaVariantImpl(VariantID vid) {
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(CONVECTION3DPA, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(CONVECTION3DPA, Cuda)
 
 } // end namespace apps
 } // end namespace rajaperf

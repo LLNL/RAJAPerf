@@ -21,54 +21,33 @@ namespace rajaperf
 namespace apps
 {
 
-#define HALOEXCHANGE_FUSED_DATA_SETUP_HIP \
-  for (Index_type v = 0; v < m_num_vars; ++v) { \
-    allocAndInitHipDeviceData(vars[v], m_vars[v], m_var_size); \
-  } \
-  for (Index_type l = 0; l < num_neighbors; ++l) { \
-    allocAndInitHipDeviceData(buffers[l], m_buffers[l], m_num_vars*m_pack_index_list_lengths[l]); \
-    allocAndInitHipDeviceData(pack_index_lists[l], m_pack_index_lists[l], m_pack_index_list_lengths[l]); \
-    allocAndInitHipDeviceData(unpack_index_lists[l], m_unpack_index_lists[l], m_unpack_index_list_lengths[l]); \
-  }
-
-#define HALOEXCHANGE_FUSED_DATA_TEARDOWN_HIP \
-  for (Index_type l = 0; l < num_neighbors; ++l) { \
-    deallocHipDeviceData(unpack_index_lists[l]); \
-    deallocHipDeviceData(pack_index_lists[l]); \
-    deallocHipDeviceData(buffers[l]); \
-  } \
-  for (Index_type v = 0; v < m_num_vars; ++v) { \
-    getHipDeviceData(m_vars[v], vars[v], m_var_size); \
-    deallocHipDeviceData(vars[v]); \
-  }
-
 #define HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_HIP \
   Real_ptr*   pack_buffer_ptrs; \
   Int_ptr*    pack_list_ptrs; \
   Real_ptr*   pack_var_ptrs; \
   Index_type* pack_len_ptrs; \
-  allocHipPinnedData(pack_buffer_ptrs, num_neighbors * num_vars); \
-  allocHipPinnedData(pack_list_ptrs,   num_neighbors * num_vars); \
-  allocHipPinnedData(pack_var_ptrs,    num_neighbors * num_vars); \
-  allocHipPinnedData(pack_len_ptrs,    num_neighbors * num_vars); \
+  allocData(DataSpace::HipPinned, pack_buffer_ptrs, num_neighbors * num_vars); \
+  allocData(DataSpace::HipPinned, pack_list_ptrs,   num_neighbors * num_vars); \
+  allocData(DataSpace::HipPinned, pack_var_ptrs,    num_neighbors * num_vars); \
+  allocData(DataSpace::HipPinned, pack_len_ptrs,    num_neighbors * num_vars); \
   Real_ptr*   unpack_buffer_ptrs; \
   Int_ptr*    unpack_list_ptrs; \
   Real_ptr*   unpack_var_ptrs; \
   Index_type* unpack_len_ptrs; \
-  allocHipPinnedData(unpack_buffer_ptrs, num_neighbors * num_vars); \
-  allocHipPinnedData(unpack_list_ptrs,   num_neighbors * num_vars); \
-  allocHipPinnedData(unpack_var_ptrs,    num_neighbors * num_vars); \
-  allocHipPinnedData(unpack_len_ptrs,    num_neighbors * num_vars);
+  allocData(DataSpace::HipPinned, unpack_buffer_ptrs, num_neighbors * num_vars); \
+  allocData(DataSpace::HipPinned, unpack_list_ptrs,   num_neighbors * num_vars); \
+  allocData(DataSpace::HipPinned, unpack_var_ptrs,    num_neighbors * num_vars); \
+  allocData(DataSpace::HipPinned, unpack_len_ptrs,    num_neighbors * num_vars);
 
 #define HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN_HIP \
-  deallocHipPinnedData(pack_buffer_ptrs); \
-  deallocHipPinnedData(pack_list_ptrs); \
-  deallocHipPinnedData(pack_var_ptrs); \
-  deallocHipPinnedData(pack_len_ptrs); \
-  deallocHipPinnedData(unpack_buffer_ptrs); \
-  deallocHipPinnedData(unpack_list_ptrs); \
-  deallocHipPinnedData(unpack_var_ptrs); \
-  deallocHipPinnedData(unpack_len_ptrs);
+  deallocData(DataSpace::HipPinned, pack_buffer_ptrs); \
+  deallocData(DataSpace::HipPinned, pack_list_ptrs); \
+  deallocData(DataSpace::HipPinned, pack_var_ptrs); \
+  deallocData(DataSpace::HipPinned, pack_len_ptrs); \
+  deallocData(DataSpace::HipPinned, unpack_buffer_ptrs); \
+  deallocData(DataSpace::HipPinned, unpack_list_ptrs); \
+  deallocData(DataSpace::HipPinned, unpack_var_ptrs); \
+  deallocData(DataSpace::HipPinned, unpack_len_ptrs);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -114,16 +93,18 @@ void HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getHipResource()};
+
   HALOEXCHANGE_FUSED_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
-
-    HALOEXCHANGE_FUSED_DATA_SETUP_HIP;
 
     HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      constexpr size_t shmem = 0;
 
       Index_type pack_index = 0;
       Index_type pack_len_sum = 0;
@@ -146,10 +127,10 @@ void HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
       Index_type pack_len_ave = (pack_len_sum + pack_index-1) / pack_index;
       dim3 pack_nthreads_per_block(block_size);
       dim3 pack_nblocks((pack_len_ave + block_size-1) / block_size, pack_index);
-      hipLaunchKernelGGL((haloexchange_fused_pack<block_size>), pack_nblocks, pack_nthreads_per_block, 0, 0,
+      hipLaunchKernelGGL((haloexchange_fused_pack<block_size>), pack_nblocks, pack_nthreads_per_block, shmem, res.get_stream(),
           pack_buffer_ptrs, pack_list_ptrs, pack_var_ptrs, pack_len_ptrs);
       hipErrchk( hipGetLastError() );
-      synchronize();
+      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
 
       Index_type unpack_index = 0;
       Index_type unpack_len_sum = 0;
@@ -172,21 +153,17 @@ void HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
       Index_type unpack_len_ave = (unpack_len_sum + unpack_index-1) / unpack_index;
       dim3 unpack_nthreads_per_block(block_size);
       dim3 unpack_nblocks((unpack_len_ave + block_size-1) / block_size, unpack_index);
-      hipLaunchKernelGGL((haloexchange_fused_unpack<block_size>), unpack_nblocks, unpack_nthreads_per_block, 0, 0,
+      hipLaunchKernelGGL((haloexchange_fused_unpack<block_size>), unpack_nblocks, unpack_nthreads_per_block, shmem, res.get_stream(),
           unpack_buffer_ptrs, unpack_list_ptrs, unpack_var_ptrs, unpack_len_ptrs);
       hipErrchk( hipGetLastError() );
-      synchronize();
+      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
 
     }
     stopTimer();
 
     HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN_HIP;
 
-    HALOEXCHANGE_FUSED_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    HALOEXCHANGE_FUSED_DATA_SETUP_HIP;
 
     using AllocatorHolder = RAJAPoolAllocatorHolder<RAJA::hip::pinned_mempool_type>;
     using Allocator = AllocatorHolder::Allocator<char>;
@@ -195,7 +172,7 @@ void HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
 
     using workgroup_policy = RAJA::WorkGroupPolicy <
                                  RAJA::hip_work_async<block_size>,
-#ifdef RAJA_ENABLE_HIP_INDIRECT_FUNCTION_CALL
+#if defined(RAJA_ENABLE_HIP_INDIRECT_FUNCTION_CALL)
                                  RAJA::unordered_hip_loop_y_block_iter_x_threadblock_average,
 #else
                                  RAJA::ordered,
@@ -241,8 +218,8 @@ void HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
         }
       }
       workgroup group_pack = pool_pack.instantiate();
-      worksite site_pack = group_pack.run();
-      synchronize();
+      worksite site_pack = group_pack.run(res);
+      res.wait();
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
         Real_ptr buffer = buffers[l];
@@ -260,20 +237,18 @@ void HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
         }
       }
       workgroup group_unpack = pool_unpack.instantiate();
-      worksite site_unpack = group_unpack.run();
-      synchronize();
+      worksite site_unpack = group_unpack.run(res);
+      res.wait();
 
     }
     stopTimer();
-
-    HALOEXCHANGE_FUSED_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n HALOEXCHANGE_FUSED : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(HALOEXCHANGE_FUSED, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(HALOEXCHANGE_FUSED, Hip)
 
 } // end namespace apps
 } // end namespace rajaperf

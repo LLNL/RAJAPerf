@@ -28,20 +28,6 @@ namespace apps
   //
   const size_t threads_per_team = 256;
 
-#define NODAL_ACCUMULATION_3D_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(x, m_x, m_nodal_array_length, did, hid); \
-  allocAndInitOpenMPDeviceData(vol, m_vol, m_zonal_array_length, did, hid); \
-  allocAndInitOpenMPDeviceData(real_zones, m_domain->real_zones, iend, did, hid);
-
-#define NODAL_ACCUMULATION_3D_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_x, x, m_nodal_array_length, hid, did); \
-  deallocOpenMPDeviceData(x, did); \
-  deallocOpenMPDeviceData(vol, did); \
-  deallocOpenMPDeviceData(real_zones, did);
-
 
 void NODAL_ACCUMULATION_3D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
@@ -52,10 +38,6 @@ void NODAL_ACCUMULATION_3D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPER
   NODAL_ACCUMULATION_3D_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    NODAL_ACCUMULATION_3D_DATA_SETUP_OMP_TARGET;
-
-    NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -89,18 +71,11 @@ void NODAL_ACCUMULATION_3D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPER
     }
     stopTimer();
 
-    NODAL_ACCUMULATION_3D_DATA_TEARDOWN_OMP_TARGET;
-
   } else if ( vid == RAJA_OpenMPTarget ) {
 
-    NODAL_ACCUMULATION_3D_DATA_SETUP_OMP_TARGET;
-
-    NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
-
-    camp::resources::Resource working_res{camp::resources::Omp()};
-    RAJA::TypedListSegment<Index_type> zones(m_domain->real_zones,
-                                             m_domain->n_real_zones,
-                                             working_res);
+    camp::resources::Resource working_res{camp::resources::Omp::get_default()};
+    RAJA::TypedListSegment<Index_type> zones(real_zones, iend,
+                                             working_res, RAJA::Unowned);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -112,8 +87,6 @@ void NODAL_ACCUMULATION_3D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPER
 
     }
     stopTimer();
-
-    NODAL_ACCUMULATION_3D_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
     getCout() << "\n  NODAL_ACCUMULATION_3D : Unknown OMP Target variant id = " << vid << std::endl;

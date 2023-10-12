@@ -21,19 +21,6 @@ namespace rajaperf
 namespace lcals
 {
 
-#define GEN_LIN_RECUR_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(b5, m_b5, m_N); \
-  allocAndInitHipDeviceData(stb5, m_stb5, m_N); \
-  allocAndInitHipDeviceData(sa, m_sa, m_N); \
-  allocAndInitHipDeviceData(sb, m_sb, m_N);
-
-#define GEN_LIN_RECUR_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_b5, b5, m_N); \
-  deallocHipDeviceData(b5); \
-  deallocHipDeviceData(stb5); \
-  deallocHipDeviceData(sa); \
-  deallocHipDeviceData(sb);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void genlinrecur1(Real_ptr b5, Real_ptr stb5,
@@ -66,24 +53,26 @@ void GEN_LIN_RECUR::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getHipResource()};
+
   GEN_LIN_RECUR_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
 
-    GEN_LIN_RECUR_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+       constexpr size_t shmem = 0;
+
        const size_t grid_size1 = RAJA_DIVIDE_CEILING_INT(N, block_size);
-       hipLaunchKernelGGL((genlinrecur1<block_size>), grid_size1, block_size, 0, 0,
+       hipLaunchKernelGGL((genlinrecur1<block_size>), grid_size1, block_size, shmem, res.get_stream(),
                                                  b5, stb5, sa, sb,
                                                  kb5i,
                                                  N );
        hipErrchk( hipGetLastError() );
 
        const size_t grid_size2 = RAJA_DIVIDE_CEILING_INT(N+1, block_size);
-       hipLaunchKernelGGL((genlinrecur2<block_size>), grid_size2, block_size, 0, 0,
+       hipLaunchKernelGGL((genlinrecur2<block_size>), grid_size2, block_size, shmem, res.get_stream(),
                                                  b5, stb5, sa, sb,
                                                  kb5i,
                                                  N );
@@ -92,21 +81,17 @@ void GEN_LIN_RECUR::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    GEN_LIN_RECUR_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    GEN_LIN_RECUR_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(0, N), [=] __device__ (Index_type k) {
          GEN_LIN_RECUR_BODY1;
        });
 
-       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(1, N+1), [=] __device__ (Index_type i) {
          GEN_LIN_RECUR_BODY2;
        });
@@ -114,14 +99,12 @@ void GEN_LIN_RECUR::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    GEN_LIN_RECUR_DATA_TEARDOWN_HIP;
-
   } else {
      getCout() << "\n  GEN_LIN_RECUR : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(GEN_LIN_RECUR, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(GEN_LIN_RECUR, Hip)
 
 } // end namespace lcals
 } // end namespace rajaperf
