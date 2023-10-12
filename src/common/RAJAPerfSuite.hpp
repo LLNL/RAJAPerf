@@ -52,6 +52,7 @@ enum GroupID {
   Stream,
   Apps,
   Algorithm,
+  Comm,
 
   NumGroups // Keep this one last and DO NOT remove (!!)
 
@@ -145,8 +146,6 @@ enum KernelID {
   Apps_EDGE3D,
   Apps_ENERGY,
   Apps_FIR,
-  Apps_HALOEXCHANGE,
-  Apps_HALOEXCHANGE_FUSED,
   Apps_LTIMES,
   Apps_LTIMES_NOVIEW,
   Apps_MASS3DEA,
@@ -165,6 +164,16 @@ enum KernelID {
   Algorithm_REDUCE_SUM,
   Algorithm_MEMSET,
   Algorithm_MEMCPY,
+
+//
+// Comm kernels...
+//
+  Comm_HALOEXCHANGE,
+  Comm_HALOEXCHANGE_FUSED,
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+  Comm_MPI_HALOEXCHANGE,
+  Comm_MPI_HALOEXCHANGE_FUSED,
+#endif
 
   NumKernels // Keep this one last and NEVER comment out (!!)
 
@@ -238,6 +247,10 @@ enum FeatureID {
 
   View,
 
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+  MPI,
+#endif
+
   NumFeatures // Keep this one last and NEVER comment out (!!)
 
 };
@@ -279,7 +292,11 @@ enum struct DataSpace {
   HipDevice,
   HipDeviceFine,
 
-  NumSpaces // Keep this one last and NEVER comment out (!!)
+  NumSpaces, // Keep this one here and NEVER comment out (!!)
+
+  Copy,
+
+  EndPseudoSpaces // Keep this one last and NEVER comment out (!!)
 
 };
 
@@ -365,11 +382,20 @@ const std::string& getDataSpaceName(DataSpace cd);
 /*!
  *******************************************************************************
  *
- * Return true if the allocate associated with DataSpace enum value is available.
+ * Return true if the allocator associated with DataSpace enum value is available.
  *
  *******************************************************************************
  */
 bool isDataSpaceAvailable(DataSpace dataSpace);
+
+/*!
+ *******************************************************************************
+ *
+ * Return true if the DataSpace enum value is a pseudo DataSpace.
+ *
+ *******************************************************************************
+ */
+bool isPseudoDataSpace(DataSpace dataSpace);
 
 /*!
  *******************************************************************************

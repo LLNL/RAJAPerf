@@ -17,7 +17,7 @@ variables:
 # Arguments for top level allocation
   RUBY_SHARED_ALLOC: "--exclusive --reservation=ci --qos=ci_ruby --time=45 --nodes=1"
 # Arguments for job level allocation
-  RUBY_JOB_ALLOC: "--reservation=ci --qos=ci_ruby --time=30 --nodes=1"
+  RUBY_JOB_ALLOC: "--overlap --reservation=ci --qos=ci_ruby --time=30 --nodes=1"
 # Project specific variants for ruby
   PROJECT_RUBY_VARIANTS: "~shared +openmp"
 # Project specific deps for ruby

@@ -18,7 +18,7 @@
 
 namespace rajaperf
 {
-namespace apps
+namespace comm
 {
 
   //
@@ -39,7 +39,7 @@ void HALOEXCHANGE::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
-        Real_ptr buffer = buffers[l];
+        Real_ptr buffer = buffers[send_tags[l]];
         Int_ptr list = pack_index_lists[l];
         Index_type  len  = pack_index_list_lengths[l];
         for (Index_type v = 0; v < num_vars; ++v) {
@@ -54,7 +54,7 @@ void HALOEXCHANGE::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_
       }
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
-        Real_ptr buffer = buffers[l];
+        Real_ptr buffer = buffers[recv_tags[l]];
         Int_ptr list = unpack_index_lists[l];
         Index_type  len  = unpack_index_list_lengths[l];
         for (Index_type v = 0; v < num_vars; ++v) {
@@ -79,7 +79,7 @@ void HALOEXCHANGE::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
-        Real_ptr buffer = buffers[l];
+        Real_ptr buffer = buffers[send_tags[l]];
         Int_ptr list = pack_index_lists[l];
         Index_type  len  = pack_index_list_lengths[l];
         for (Index_type v = 0; v < num_vars; ++v) {
@@ -95,7 +95,7 @@ void HALOEXCHANGE::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_
       }
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
-        Real_ptr buffer = buffers[l];
+        Real_ptr buffer = buffers[recv_tags[l]];
         Int_ptr list = unpack_index_lists[l];
         Index_type  len  = unpack_index_list_lengths[l];
         for (Index_type v = 0; v < num_vars; ++v) {
@@ -118,7 +118,7 @@ void HALOEXCHANGE::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_
   }
 }
 
-} // end namespace apps
+} // end namespace comm
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_TARGET_OPENMP

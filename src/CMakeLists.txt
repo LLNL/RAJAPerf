@@ -18,6 +18,7 @@ add_subdirectory(polybench)
 add_subdirectory(stream)
 add_subdirectory(stream-kokkos)
 add_subdirectory(algorithm)
+add_subdirectory(comm)
 
 set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     common
@@ -29,7 +30,8 @@ set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     polybench
     stream
     stream-kokkos
-    algorithm)
+    algorithm
+    comm)
 list(APPEND RAJA_PERFSUITE_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_DEPENDS})
 
 if(RAJA_ENABLE_TARGET_OPENMP)
@@ -57,12 +59,6 @@ blt_add_executable(
   apps/PRESSURE.cpp
   apps/PRESSURE-Seq.cpp
   apps/PRESSURE-OMPTarget.cpp
-  apps/HALOEXCHANGE.cpp
-  apps/HALOEXCHANGE-Seq.cpp
-  apps/HALOEXCHANGE-OMPTarget.cpp
-  apps/HALOEXCHANGE_FUSED.cpp
-  apps/HALOEXCHANGE_FUSED-Seq.cpp
-  apps/HALOEXCHANGE_FUSED-OMPTarget.cpp
   apps/LTIMES.cpp
   apps/LTIMES-Seq.cpp
   apps/LTIMES-OMPTarget.cpp
@@ -248,6 +244,19 @@ blt_add_executable(
   algorithm/MEMCPY.cpp
   algorithm/MEMCPY-Seq.cpp
   algorithm/MEMCPY-OMPTarget.cpp
+  comm/HALOEXCHANGE_base.cpp
+  comm/HALOEXCHANGE.cpp
+  comm/HALOEXCHANGE-Seq.cpp
+  comm/HALOEXCHANGE-OMPTarget.cpp
+  comm/HALOEXCHANGE_FUSED.cpp
+  comm/HALOEXCHANGE_FUSED-Seq.cpp
+  comm/HALOEXCHANGE_FUSED-OMPTarget.cpp
+  comm/MPI_HALOEXCHANGE.cpp
+  comm/MPI_HALOEXCHANGE-Seq.cpp
+  comm/MPI_HALOEXCHANGE-OMPTarget.cpp
+  comm/MPI_HALOEXCHANGE_FUSED.cpp
+  comm/MPI_HALOEXCHANGE_FUSED-Seq.cpp
+  comm/MPI_HALOEXCHANGE_FUSED-OMPTarget.cpp
   DEPENDS_ON ${RAJA_PERFSUITE_EXECUTABLE_DEPENDS}
 )
 install( TARGETS raja-perf-omptarget.exe

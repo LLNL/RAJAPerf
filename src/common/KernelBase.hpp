@@ -262,11 +262,19 @@ public:
 
   DataSpace getDataSpace(VariantID vid) const;
   DataSpace getHostAccessibleDataSpace(VariantID vid) const;
+  DataSpace getMPIDataSpace(VariantID vid) const;
 
   template <typename T>
   void allocData(DataSpace dataSpace, T& ptr, Size_type len)
   {
     rajaperf::allocData(dataSpace,
+        ptr, len, getDataAlignment());
+  }
+
+  template <typename T>
+  void allocAndInitData(DataSpace dataSpace, T*& ptr, Size_type len)
+  {
+    rajaperf::allocAndInitData(dataSpace,
         ptr, len, getDataAlignment());
   }
 

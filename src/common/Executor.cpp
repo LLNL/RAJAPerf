@@ -24,7 +24,10 @@
 #include "basic/REDUCE3_INT.hpp"
 #include "basic/INDEXLIST_3LOOP.hpp"
 #include "algorithm/SORT.hpp"
-#include "apps/HALOEXCHANGE_FUSED.hpp"
+#include "comm/HALOEXCHANGE_FUSED.hpp"
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+#include "comm/MPI_HALOEXCHANGE_FUSED.hpp"
+#endif
 
 #include <list>
 #include <vector>
@@ -392,6 +395,13 @@ void Executor::reportRunSummary(ostream& str) const
     str << "\t Kernel rep factor = " << run_params.getRepFactor() << endl;
     str << "\t Output files will be named " << ofiles << endl;
 
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+    str << "\nRunning with " << run_params.getMPISize() << " MPI procs" << endl;
+    auto div3d = run_params.getMPI3DDivision();
+    const char* valid3d = run_params.validMPI3DDivision() ? "" : "invalid";
+    str << "\t 3D division = " << div3d[0] << " x " << div3d[1] << " x " << div3d[2] << " " << valid3d << endl;
+#endif
+
     str << "\nThe following kernels and variants (when available for a kernel) will be run:" << endl;
 
     str << "\nData Spaces"
@@ -667,7 +677,7 @@ void Executor::runWarmupKernels()
         kernel_ids.insert(Basic_INDEXLIST_3LOOP); break;
 
       case Workgroup:
-        kernel_ids.insert(Apps_HALOEXCHANGE_FUSED); break;
+        kernel_ids.insert(Comm_HALOEXCHANGE_FUSED); break;
 
       case Reduction:
         kernel_ids.insert(Basic_REDUCE3_INT); break;
@@ -677,7 +687,12 @@ void Executor::runWarmupKernels()
 
       case View:
         break;
-  
+
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+      case MPI:
+        kernel_ids.insert(Comm_MPI_HALOEXCHANGE_FUSED); break;
+#endif
+
       default:
         break;
 

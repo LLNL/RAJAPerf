@@ -18,7 +18,7 @@
 
 namespace rajaperf
 {
-namespace apps
+namespace comm
 {
 
   //
@@ -80,7 +80,7 @@ void HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_U
       Index_type pack_len_sum = 0;
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
-        Real_ptr buffer = buffers[l];
+        Real_ptr buffer = buffers[send_tags[l]];
         Int_ptr list = pack_index_lists[l];
         Index_type len = pack_index_list_lengths[l];
         for (Index_type v = 0; v < num_vars; ++v) {
@@ -107,7 +107,7 @@ void HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_U
           Index_type len    = pack_len_ptrs[j];
 
           for (Index_type i = ii; i < len; i += pack_len_ave) {
-            HALOEXCHANGE_FUSED_PACK_BODY;
+            HALOEXCHANGE_PACK_BODY;
           }
         }
       }
@@ -116,7 +116,7 @@ void HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_U
       Index_type unpack_len_sum = 0;
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
-        Real_ptr buffer = buffers[l];
+        Real_ptr buffer = buffers[recv_tags[l]];
         Int_ptr list = unpack_index_lists[l];
         Index_type len = unpack_index_list_lengths[l];
         for (Index_type v = 0; v < num_vars; ++v) {
@@ -143,7 +143,7 @@ void HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_U
           Index_type len    = unpack_len_ptrs[j];
 
           for (Index_type i = ii; i < len; i += unpack_len_ave) {
-            HALOEXCHANGE_FUSED_UNPACK_BODY;
+            HALOEXCHANGE_UNPACK_BODY;
           }
         }
       }
@@ -190,13 +190,13 @@ void HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_U
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
-        Real_ptr buffer = buffers[l];
+        Real_ptr buffer = buffers[send_tags[l]];
         Int_ptr list = pack_index_lists[l];
         Index_type  len  = pack_index_list_lengths[l];
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
           auto haloexchange_fused_pack_base_lam = [=](Index_type i) {
-                HALOEXCHANGE_FUSED_PACK_BODY;
+                HALOEXCHANGE_PACK_BODY;
               };
           pool_pack.enqueue(
               RAJA::TypedRangeSegment<Index_type>(0, len),
@@ -208,13 +208,13 @@ void HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_U
       worksite site_pack = group_pack.run();
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
-        Real_ptr buffer = buffers[l];
+        Real_ptr buffer = buffers[recv_tags[l]];
         Int_ptr list = unpack_index_lists[l];
         Index_type  len  = unpack_index_list_lengths[l];
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
           auto haloexchange_fused_unpack_base_lam = [=](Index_type i) {
-                HALOEXCHANGE_FUSED_UNPACK_BODY;
+                HALOEXCHANGE_UNPACK_BODY;
               };
           pool_unpack.enqueue(
               RAJA::TypedRangeSegment<Index_type>(0, len),
@@ -233,7 +233,7 @@ void HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_U
   }
 }
 
-} // end namespace apps
+} // end namespace comm
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_TARGET_OPENMP

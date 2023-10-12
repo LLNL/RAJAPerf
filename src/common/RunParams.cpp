@@ -40,6 +40,9 @@ RunParams::RunParams(int argc, char** argv)
    data_alignment(RAJA::DATA_ALIGN),
    gpu_stream(1),
    gpu_block_sizes(),
+   mpi_size(1),
+   mpi_rank(0),
+   mpi_3d_division({-1, -1, -1}),
    pf_tol(0.1),
    checkrun_reps(1),
    reference_variant(),
@@ -120,6 +123,11 @@ void RunParams::print(std::ostream& str) const
   str << "\n gpu_block_sizes = ";
   for (size_t j = 0; j < gpu_block_sizes.size(); ++j) {
     str << "\n\t" << gpu_block_sizes[j];
+  }
+  str << "\n mpi_size = " << mpi_size;
+  str << "\n mpi_3d_division = ";
+  for (size_t j = 0; j < 3; ++j) {
+    str << "\n\t" << mpi_3d_division[j];
   }
   str << "\n pf_tol = " << pf_tol;
   str << "\n checkrun_reps = " << checkrun_reps;
@@ -234,6 +242,11 @@ void RunParams::print(std::ostream& str) const
 void RunParams::parseCommandLineOptions(int argc, char** argv)
 {
   getCout() << "\n\nReading command line input..." << std::endl;
+
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+  MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+  MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+#endif
 
   for (int i = 1; i < argc; ++i) {
 
@@ -441,6 +454,37 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         input_state = BadInput;
       }
 
+    } else if ( opt == std::string("--mpi_3d_division") ) {
+
+      int num_got = 0;
+      bool done = false;
+      i++;
+      while ( i < argc && !done ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+          done = true;
+        } else {
+          num_got += 1;
+          int number = ::atoi( opt.c_str() );
+          if ( number <= 0 ) {
+            getCout() << "\nBad input:"
+                      << " must give --mpi_3d_division POSITIVE values (int)"
+                      << std::endl;
+            input_state = BadInput;
+          } else if (num_got <= 3) {
+            mpi_3d_division[num_got-1] = number;
+          }
+          ++i;
+        }
+      }
+      if (num_got != 3) {
+        getCout() << "\nBad input:"
+                  << " must give --mpi_3d_division three values (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
     } else if ( opt == std::string("--pass-fail-tol") ||
                 opt == std::string("-pftol") ) {
 
@@ -529,10 +573,23 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
                 opt == std::string("--hip-data-space") ||
                 opt == std::string("-hds") ||
                 opt == std::string("--kokkos-data-space") ||
-                opt == std::string("-kds") ) {
+                opt == std::string("-kds") ||
+                opt == std::string("--seq-mpi-data-space") ||
+                opt == std::string("-smpids") ||
+                opt == std::string("--omp-mpi-data-space") ||
+                opt == std::string("-ompids") ||
+                opt == std::string("--omptarget-mpi-data-space") ||
+                opt == std::string("-ompitds") ||
+                opt == std::string("--cuda-mpi-data-space") ||
+                opt == std::string("-cmpids") ||
+                opt == std::string("--hip-mpi-data-space") ||
+                opt == std::string("-hmpids") ||
+                opt == std::string("--kokkos-mpi-data-space") ||
+                opt == std::string("-kmpids") ) {
 
       bool got_someting = false;
       bool got_something_available = false;
+      bool got_something_pseudo = false;
       i++;
       if ( i < argc ) {
         auto opt_name = std::move(opt);
@@ -540,11 +597,12 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         if ( opt.at(0) == '-' ) {
           i--;
         } else {
-          for (int ids = 0; ids < static_cast<int>(DataSpace::NumSpaces); ++ids) {
+          for (int ids = 0; ids < static_cast<int>(DataSpace::EndPseudoSpaces); ++ids) {
             DataSpace ds = static_cast<DataSpace>(ids);
             if (getDataSpaceName(ds) == opt) {
               got_someting = true;
               got_something_available = isDataSpaceAvailable(ds);
+              got_something_pseudo = isPseudoDataSpace(ds);
               if (        opt_name == std::string("--seq-data-space") ||
                           opt_name == std::string("-sds") ) {
                 seqDataSpace = ds;
@@ -563,6 +621,30 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
               } else if ( opt_name == std::string("--kokkos-data-space") ||
                           opt_name == std::string("-kds") ) {
                 kokkosDataSpace = ds;
+              } else if ( opt_name == std::string("--seq-mpi-data-space") ||
+                          opt_name == std::string("-smpids") ) {
+                seqMPIDataSpace = ds;
+                got_something_available = got_something_available || got_something_pseudo;
+              } else if ( opt_name == std::string("--omp-mpi-data-space") ||
+                          opt_name == std::string("-ompids") ) {
+                ompMPIDataSpace = ds;
+                got_something_available = got_something_available || got_something_pseudo;
+              } else if ( opt_name == std::string("--omptarget-mpi-data-space") ||
+                          opt_name == std::string("-otmpids") ) {
+                ompTargetMPIDataSpace = ds;
+                got_something_available = got_something_available || got_something_pseudo;
+              } else if ( opt_name == std::string("--cuda-mpi-data-space") ||
+                          opt_name == std::string("-cmpids") ) {
+                cudaMPIDataSpace = ds;
+                got_something_available = got_something_available || got_something_pseudo;
+              } else if ( opt_name == std::string("--hip-mpi-data-space") ||
+                          opt_name == std::string("-hmpids") ) {
+                hipMPIDataSpace = ds;
+                got_something_available = got_something_available || got_something_pseudo;
+              } else if ( opt_name == std::string("--kokkos-mpi-data-space") ||
+                          opt_name == std::string("-kmpids") ) {
+                kokkosMPIDataSpace = ds;
+                got_something_available = got_something_available || got_something_pseudo;
               } else {
                 got_someting = false;
               }
@@ -755,6 +837,55 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
     size_factor = 1.0;
   }
 
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+
+  // assumes number is >= 0
+  // returns {0} if number is 0
+  //         {1} if number is 1
+  //         {prime factors in non-decreasing order} otherwise
+  auto factorize = [](int number) {
+    std::vector<int> prime_factors;
+    int factor = 2;
+    while (factor <= std::sqrt(number)) {
+      int quotient = number / factor;
+      if (quotient * factor == number) {
+        prime_factors.emplace_back(factor);
+        number = quotient;
+      } else {
+        factor++;
+      }
+    }
+    prime_factors.emplace_back(number);
+    return prime_factors;
+  };
+
+  // Uses prime factors to set division
+  // to a relatively square grid
+  auto set_division = [](int* division, const int dims,
+                          std::vector<int> const& prime_factors) {
+    for (int d = 0; d < dims; ++d) {
+      division[d] = 1;
+    }
+
+    for (int factor : prime_factors) {
+
+      int min_d = 0;
+      for (int d = 1; d < dims; ++d) {
+        if (division[d] < division[min_d]) {
+          min_d = d;
+        }
+      }
+
+      division[min_d] *= factor;
+    }
+  };
+
+  if (mpi_3d_division[0] == -1) {
+    std::vector<int> prime_factors = factorize(mpi_size);
+    set_division(mpi_3d_division.data(), 3, prime_factors);
+  }
+#endif
+
   processNpassesCombinerInput();
 
   processKernelInput();
@@ -768,7 +899,6 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
        input_state != CheckRun ) {
     input_state = PerfRun;
   }
-
 }
 
 
@@ -932,6 +1062,12 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t\t Example...\n"
       << "\t\t --gpu_block_size 128 256 512 (runs kernels with gpu_block_size 128, 256, and 512)\n\n";
 
+  str << "\t --mpi_3d_division <space-separated ints> [no default]\n"
+      << "\t      (number of mpi ranks in each dimension in a 3d grid)\n"
+      << "\t      (3D MPI kernels will be skipped if the product of mpi_3d_division is not equal to the number of ranks)\n";
+  str << "\t\t Example...\n"
+      << "\t\t --mpi_3d_division 2 3 5 (runs 3d MPI kernels on a 2 by 3 by 5 grid)\n\n";
+
   str << "\t --tunings, -t <space-separated strings> [Default is run all]\n"
       << "\t      (names of tunings to run)\n"
       << "\t      Note: knowing which tunings are available requires knowledge about the variants,\n"
@@ -997,6 +1133,42 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t --kokkos-data-space Host (run KOKKOS variants with Host memory)\n"
       << "\t\t -kds HipPinned (run KOKKOS variants with Hip Pinned memory)\n\n";
 
+  str << "\t --seq-mpi-data-space, -smpids <string> [Default is Host]\n"
+      << "\t      (name of data space to use with MPI and sequential execution)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --seq-mpi-data-space Host (run sequential variants with Host memory for MPI buffers)\n"
+      << "\t\t -smpids Copy (run sequential variants and copy to Host memory for MPI buffers)\n\n";
+
+  str << "\t --omp-mpi-data-space, -ompids <string> [Default is Omp]\n"
+      << "\t      (name of data space to use with MPI and OpenMP execution)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --omp-mpi-data-space Omp (run Omp variants with Omp memory for MPI buffers)\n"
+      << "\t\t -ompids Host (run Omp variants with Host memory for MPI buffers)\n\n";
+
+  str << "\t --omptarget-mpi-data-space, -otmpids <string> [Default is Copy]\n"
+      << "\t      (name of data space to use with MPI and OpenMP target execution)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --omptarget-mpi-data-space Copy (run Omp Target variants and copy to Host memory for MPI buffers)\n"
+      << "\t\t -otmpids OmpTarget (run Omp Target variants with OmpTarget memory for MPI buffers (assumes MPI can access OmpTarget memory))\n\n";
+
+  str << "\t --cuda-mpi-data-space, -cmpids <string> [Default is CudaPinned]\n"
+      << "\t      (name of data space to use with MPI and cuda execution)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --cuda-mpi-data-space CudaPinned (run CUDA variants with Cuda Pinned memory for MPI buffers)\n"
+      << "\t\t -cmpids CudaDevice (run CUDA variants with Cuda Device memory for MPI buffers (assumes MPI is cuda/gpu aware))\n\n";
+
+  str << "\t --hip-mpi-data-space, -hmpids <string> [Default is HipPinned]\n"
+      << "\t      (name of data space to use with MPI and hip execution)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --hip-mpi-data-space Copy (run HIP variants and copy to Host memory for MPI buffers)\n"
+      << "\t\t -hmpids hipDevice (run HIP variants with Hip Device memory for MPI buffers (assumes MPI is hip/gpu aware))\n\n";
+
+  str << "\t --kokkos-mpi-data-space, -kmpids <string> [Default is Copy]\n"
+      << "\t      (name of data space to use with MPI and kokkos execution)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --kokkos-mpi-data-space Copy (run KOKKOS variants and copy to Host memory for MPI buffers)\n"
+      << "\t\t -kmpids HipPinned (run KOKKOS variants with Hip Pinned memory for MPI buffers)\n\n";
+
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
   str << "\t --add-to-spot-config, -atsc <string> [Default is none]\n"
       << "\t\t appends additional parameters to the built-in Caliper spot config\n";
@@ -1059,6 +1231,12 @@ void RunParams::printDataSpaceNames(std::ostream& str) const
     if (!isDataSpaceAvailable(ds)) {
       str << getDataSpaceName(ds) << std::endl;
     }
+  }
+  str << "\nPseudo data spaces:";
+  str << "\n-------------------\n";
+  for (int ids = static_cast<int>(DataSpace::NumSpaces)+1; ids < static_cast<int>(DataSpace::EndPseudoSpaces); ++ids) {
+    DataSpace ds = static_cast<DataSpace>(ids);
+    str << getDataSpaceName(ds) << std::endl;
   }
   str.flush();
 }
