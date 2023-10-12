@@ -189,12 +189,6 @@ __device__ void grid_scan(const int block_id,
       exclusive[ti] = prev_grid_count + exclusive[ti];
       inclusive[ti] = prev_grid_count + inclusive[ti];
     }
-
-    if (last_block) {
-      for (unsigned i = threadIdx.x; i < gridDim.x-1; i += block_size) {
-        while (atomicCAS(&block_readys[i], 2u, 0u) != 2u);
-      }
-    }
   }
 }
 
@@ -270,12 +264,11 @@ void INDEXLIST::runHipVariantImpl(VariantID vid)
     allocData(DataSpace::HipDevice, grid_counts, grid_size);
     unsigned* block_readys;
     allocData(DataSpace::HipDevice, block_readys, grid_size);
-    hipErrchk( hipMemsetAsync(block_readys, 0, sizeof(unsigned)*grid_size, res.get_stream()) );
-    hipErrchk( hipStreamSynchronize( res.get_stream() ) );
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+      hipErrchk( hipMemsetAsync(block_readys, 0, sizeof(unsigned)*grid_size, res.get_stream()) );
       indexlist<block_size, items_per_thread>
           <<<grid_size, block_size, shmem_size, res.get_stream()>>>(
           x+ibegin, list+ibegin,
