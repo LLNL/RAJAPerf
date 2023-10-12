@@ -35,7 +35,7 @@ generate-job-lists:
   stage: prerequisites
   tags: [shell, oslic]
   variables:
-    RADIUSS_JOBS_PATH: "scripts/radiuss-spack-configs/gitlab/radiuss-jobs"
+    RADIUSS_JOBS_PATH: "tpl/RAJA/scripts/radiuss-spack-configs/gitlab/radiuss-jobs"
     LOCAL_JOBS_PATH: ".gitlab/jobs"
   script:
     - cat ${RADIUSS_JOBS_PATH}/ruby.yml ${LOCAL_JOBS_PATH}/ruby.yml > ruby-jobs.yml
