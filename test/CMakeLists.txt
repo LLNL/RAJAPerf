@@ -15,12 +15,22 @@ set(RAJA_PERFSUITE_TEST_EXECUTABLE_DEPENDS
     stream
     algorithm
     comm)
-list(APPEND RAJA_PERFSUITE_TEST_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_DEPENDS})
- 
-raja_add_test(
-  NAME test-raja-perf-suite
-  SOURCES test-raja-perf-suite.cpp
+
+list(APPEND RAJA_PERFSUITE_TEST_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_DEPENDS} gtest ${CMAKE_THREAD_LIBS_INIT})
+
+set(test_name test-raja-perf-suite)
+
+raja_add_executable(
+  NAME ${test_name}.exe
+  SOURCES ${test_name}.cpp
   DEPENDS_ON ${RAJA_PERFSUITE_TEST_EXECUTABLE_DEPENDS}
-  )
+  TEST On)
+
+blt_add_test(
+  NAME ${test_name}
+  NUM_MPI_TASKS 2
+  COMMAND ${TEST_DRIVER} ${test_name})
+
+raja_set_failtest(${test_name})
 
 target_include_directories(test-raja-perf-suite.exe PRIVATE ${PROJECT_SOURCE_DIR}/src)
