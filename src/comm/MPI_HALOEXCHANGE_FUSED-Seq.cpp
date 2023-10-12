@@ -218,7 +218,7 @@ void MPI_HALOEXCHANGE_FUSED::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED
       AllocatorHolder allocatorHolder;
 
       using workgroup_policy = RAJA::WorkGroupPolicy <
-                                   RAJA::loop_work,
+                                   RAJA::seq_work,
                                    RAJA::ordered,
                                    RAJA::constant_stride_array_of_objects >;
 
