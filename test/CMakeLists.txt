@@ -29,7 +29,7 @@ raja_add_executable(
 blt_add_test(
   NAME ${test_name}
   NUM_MPI_TASKS 2
-  COMMAND ${TEST_DRIVER} ${test_name}.exe)
+  COMMAND ${TEST_DRIVER} ${test_name})
 
 raja_set_failtest(${test_name})
 
