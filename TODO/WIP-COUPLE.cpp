@@ -110,7 +110,7 @@ void COUPLE::runKernel(VariantID vid, size_t tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::loop_exec>(
+        RAJA::forall<RAJA::seq_exec>(
           RAJA::RangeSegment(kmin, kmax), [=](Index_type k) {
           COUPLE_BODY;
         });
