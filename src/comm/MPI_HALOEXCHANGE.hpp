@@ -9,7 +9,7 @@
 ///
 /// MPI_HALOEXCHANGE kernel reference implementation:
 ///
-/// // pack message for each neighbor
+/// // pack a buffer for each neighbor
 /// for (Index_type l = 0; l < num_neighbors; ++l) {
 ///   Real_ptr buffer = pack_buffers[l];
 ///   Int_ptr list = pack_index_lists[l];
@@ -18,16 +18,16 @@
 ///   for (Index_type v = 0; v < num_vars; ++v) {
 ///     Real_ptr var = vars[v];
 ///     for (Index_type i = 0; i < len; i++) {
-///       HALOEXCHANGE_PACK_BODY;
+///       buffer[i] = var[list[i]];
 ///     }
 ///     buffer += len;
 ///   }
-///   // send message to neighbor
+///   // send buffer to neighbor
 /// }
 ///
-/// // unpack messages for each neighbor
+/// // unpack a buffer for each neighbor
 /// for (Index_type l = 0; l < num_neighbors; ++l) {
-///   // receive message from neighbor
+///   // receive buffer from neighbor
 ///   Real_ptr buffer = unpack_buffers[l];
 ///   Int_ptr list = unpack_index_lists[l];
 ///   Index_type  len  = unpack_index_list_lengths[l];
@@ -35,7 +35,7 @@
 ///   for (Index_type v = 0; v < num_vars; ++v) {
 ///     Real_ptr var = vars[v];
 ///     for (Index_type i = 0; i < len; i++) {
-///       HALOEXCHANGE_UNPACK_BODY;
+///       var[list[i]] = buffer[i];
 ///     }
 ///     buffer += len;
 ///   }
