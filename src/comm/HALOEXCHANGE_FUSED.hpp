@@ -9,7 +9,9 @@
 ///
 /// HALOEXCHANGE_FUSED kernel reference implementation:
 ///
-/// // pack a buffer for each neighbor
+/// // post a recv for each neighbor
+///
+/// // pack buffers for neighbors
 /// for (Index_type l = 0; l < num_neighbors; ++l) {
 ///   Real_ptr buffer = buffers[l];
 ///   Int_ptr list = pack_index_lists[l];
@@ -22,12 +24,14 @@
 ///     }
 ///     buffer += len;
 ///   }
-///   // send buffer to neighbor
 /// }
 ///
-/// // unpack a buffer for each neighbor
+/// // send buffers to neighbors
+///
+/// // receive buffers from neighbors
+///
+/// // unpack buffers for neighbors
 /// for (Index_type l = 0; l < num_neighbors; ++l) {
-///   // receive buffer from neighbor
 ///   Real_ptr buffer = buffers[l];
 ///   Int_ptr list = unpack_index_lists[l];
 ///   Index_type  len  = unpack_index_list_lengths[l];
@@ -40,6 +44,8 @@
 ///     buffer += len;
 ///   }
 /// }
+///
+/// // wait for all sends to complete
 ///
 
 #ifndef RAJAPerf_Comm_HALOEXCHANGE_FUSED_HPP

@@ -9,6 +9,8 @@
 ///
 /// HALOEXCHANGE kernel reference implementation:
 ///
+/// // post a recv for each neighbor
+///
 /// // pack a buffer for each neighbor
 /// for (Index_type l = 0; l < num_neighbors; ++l) {
 ///   Real_ptr buffer = buffers[l];
@@ -40,6 +42,8 @@
 ///     buffer += len;
 ///   }
 /// }
+///
+/// // wait for all sends to complete
 ///
 
 #ifndef RAJAPerf_Comm_HALOEXCHANGE_HPP

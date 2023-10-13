@@ -9,7 +9,14 @@
 ///
 /// MPI_HALOEXCHANGE_FUSED kernel reference implementation:
 ///
-/// // pack a buffer for each neighbor
+/// // post a recv for each neighbor
+/// for (Index_type l = 0; l < num_neighbors; ++l) {
+///   Index_type len = unpack_index_list_lengths[l];
+///   MPI_Irecv(recv_buffers[l], len*num_vars, Real_MPI_type,
+///       mpi_ranks[l], recv_tags[l], MPI_COMM_WORLD, &unpack_mpi_requests[l]);
+/// }
+///
+/// // pack buffers for neighbors
 /// for (Index_type l = 0; l < num_neighbors; ++l) {
 ///   Real_ptr buffer = pack_buffers[l];
 ///   Int_ptr list = pack_index_lists[l];
@@ -22,12 +29,19 @@
 ///     }
 ///     buffer += len;
 ///   }
-///   // send buffer to neighbor
 /// }
 ///
-/// // unpack a buffer for each neighbor
+/// // send buffers to neighbors
 /// for (Index_type l = 0; l < num_neighbors; ++l) {
-///   // receive buffer from neighbor
+///   MPI_Isend(send_buffers[l], len*num_vars, Real_MPI_type,
+///       mpi_ranks[l], send_tags[l], MPI_COMM_WORLD, &pack_mpi_requests[l]);
+/// }
+///
+/// // wait for all recvs to complete
+/// MPI_Waitall(num_neighbors, unpack_mpi_requests.data(), MPI_STATUSES_IGNORE);
+///
+/// // unpack buffers for neighbors
+/// for (Index_type l = 0; l < num_neighbors; ++l) {
 ///   Real_ptr buffer = unpack_buffers[l];
 ///   Int_ptr list = unpack_index_lists[l];
 ///   Index_type  len  = unpack_index_list_lengths[l];
@@ -40,6 +54,9 @@
 ///     buffer += len;
 ///   }
 /// }
+///
+/// // wait for all sends to complete
+/// MPI_Waitall(num_neighbors, pack_mpi_requests.data(), MPI_STATUSES_IGNORE);
 ///
 
 #ifndef RAJAPerf_Comm_MPI_HALOEXCHANGE_FUSED_HPP
