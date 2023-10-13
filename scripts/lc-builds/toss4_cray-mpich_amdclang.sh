@@ -98,10 +98,11 @@ echo
 echo "    module unload rocm"
 echo "    srun -n1 make"
 echo
-echo "  Please note that cray-mpich requires libmodules.so.1 from cce to run."
+echo "  Please note that cray-mpich requires libmodules.so from cce and "
+echo "  libpgmath.so from llvm to run."
 echo "  Until this is handled transparently in the build system you may add "
 echo "  cce to your LD_LIBRARY_PATH."
 echo
-echo "    export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/usr/tce/packages/cce-tce/cce-13.0.2/cce/x86_64/lib/"
+echo "    export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/usr/tce/packages/cce-tce/cce-13.0.2/cce/x86_64/lib/:/usr/tce/packages/rocmcc-tce/rocmcc-5.1.0/llvm/lib/"
 echo
 echo "***********************************************************************"
