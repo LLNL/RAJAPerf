@@ -25,4 +25,4 @@
 rocmcc_5_4_3_hip_openmp:
   variables:
     SPEC: "~shared +rocm +openmp amdgpu_target=gfx90a %rocmcc@5.6.0 ^hip@5.6.0 ^blt@develop"
-  extends: .build_and_test_on_tioga
+  extends: .job_on_tioga
