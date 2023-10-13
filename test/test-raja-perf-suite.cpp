@@ -8,6 +8,10 @@
 
 #include "gtest/gtest.h"
 
+#if defined(RUN_KOKKOS)
+#include <Kokkos_Core.hpp>
+#endif
+
 #include "common/Executor.hpp"
 #include "common/KernelBase.hpp"
 
@@ -15,6 +19,33 @@
 #include <string>
 #include <iostream>
 #include <cmath>
+
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+#include <mpi.h>
+#endif
+
+int main( int argc, char** argv )
+{
+  testing::InitGoogleTest(&argc, argv);
+
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+  MPI_Init(&argc, &argv);
+#endif
+#if defined(RUN_KOKKOS)
+  Kokkos::initialize(argc, argv);
+#endif
+
+  int res = RUN_ALL_TESTS();
+
+#if defined(RUN_KOKKOS)
+  Kokkos::finalize();
+#endif
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+  MPI_Finalize();
+#endif
+
+  return res;
+}
 
 TEST(ShortSuiteTest, Basic)
 {
