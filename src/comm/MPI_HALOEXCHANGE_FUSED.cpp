@@ -26,7 +26,7 @@ MPI_HALOEXCHANGE_FUSED::MPI_HALOEXCHANGE_FUSED(const RunParams& params)
   m_my_mpi_rank = params.getMPIRank();
   m_mpi_dims = params.getMPI3DDivision();
 
-  setDefaultReps(50);
+  setDefaultReps(200);
 
   m_num_vars = s_num_vars_default;
   m_var_size = m_grid_plus_halo_size ;
