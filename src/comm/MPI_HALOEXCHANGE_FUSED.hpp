@@ -65,6 +65,9 @@
 #define MPI_HALOEXCHANGE_FUSED_DATA_SETUP \
   HALOEXCHANGE_base_DATA_SETUP \
   \
+  Index_type num_vars = m_num_vars; \
+  std::vector<Real_ptr> vars = m_vars; \
+  \
   std::vector<int> mpi_ranks = m_mpi_ranks; \
   \
   std::vector<MPI_Request> pack_mpi_requests(num_neighbors); \
@@ -145,6 +148,7 @@ public:
   ~MPI_HALOEXCHANGE_FUSED();
 
   void setUp(VariantID vid, size_t tune_idx);
+  void updateChecksum(VariantID vid, size_t tune_idx);
   void tearDown(VariantID vid, size_t tune_idx);
 
   void runSeqVariant(VariantID vid, size_t tune_idx);
@@ -167,6 +171,11 @@ private:
   int m_mpi_size = -1;
   int m_my_mpi_rank = -1;
   std::array<int, 3> m_mpi_dims = {-1, -1, -1};
+
+  Index_type m_num_vars;
+  Index_type m_var_size;
+
+  std::vector<Real_ptr> m_vars;
 
   std::vector<Real_ptr> m_pack_buffers;
   std::vector<Real_ptr> m_unpack_buffers;

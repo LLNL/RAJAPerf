@@ -46,10 +46,7 @@
 #define RAJAPerf_Comm_HALOEXCHANGE_base_HPP
 
 #define HALOEXCHANGE_base_DATA_SETUP \
-  std::vector<Real_ptr> vars = m_vars; \
-  \
   Index_type num_neighbors = s_num_neighbors; \
-  Index_type num_vars = m_num_vars; \
   std::vector<int> send_tags = m_send_tags; \
   std::vector<Int_ptr> pack_index_lists = m_pack_index_lists; \
   std::vector<Index_type> pack_index_list_lengths = m_pack_index_list_lengths; \
@@ -87,7 +84,6 @@ public:
 
   void setUp_base(const int my_mpi_rank, const int* mpi_dims,
              VariantID vid, size_t tune_idx);
-  void updateChecksum(VariantID vid, size_t tune_idx);
   void tearDown_base(VariantID vid, size_t tune_idx);
 
 protected:
@@ -108,21 +104,17 @@ protected:
   };
 
   static const int s_num_neighbors = 26;
-  static const int boundary_offsets[s_num_neighbors][3];
+  static const int s_boundary_offsets[s_num_neighbors][3];
+
+  static Index_type s_grid_dims_default[3];
+  static Index_type s_halo_width_default;
+  static Index_type s_num_vars_default;
 
   Index_type m_grid_dims[3];
   Index_type m_halo_width;
-  Index_type m_num_vars;
-
-  Index_type m_grid_dims_default[3];
-  Index_type m_halo_width_default;
-  Index_type m_num_vars_default;
 
   Index_type m_grid_plus_halo_dims[3];
-  Index_type m_var_size;
-  Index_type m_var_halo_size;
-
-  std::vector<Real_ptr> m_vars;
+  Index_type m_grid_plus_halo_size;
 
   std::vector<int> m_mpi_ranks;
 

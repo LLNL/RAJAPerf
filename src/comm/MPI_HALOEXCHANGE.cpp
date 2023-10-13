@@ -28,6 +28,10 @@ MPI_HALOEXCHANGE::MPI_HALOEXCHANGE(const RunParams& params)
 
   setDefaultReps(50);
 
+  m_num_vars = s_num_vars_default;
+  m_var_size = m_grid_plus_halo_size ;
+
+  setItsPerRep( m_num_vars * (m_var_size - getActualProblemSize()) );
   setKernelsPerRep( 2 * s_num_neighbors * m_num_vars );
   setBytesPerRep( (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * getItsPerRep() +  // pack
                   (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() +  // pack
@@ -68,6 +72,18 @@ void MPI_HALOEXCHANGE::setUp(VariantID vid, size_t tune_idx)
 {
   setUp_base(m_my_mpi_rank, m_mpi_dims.data(), vid, tune_idx);
 
+  m_vars.resize(m_num_vars, nullptr);
+  for (Index_type v = 0; v < m_num_vars; ++v) {
+    allocAndInitData(m_vars[v], m_var_size, vid);
+    auto reset_var = scopedMoveData(m_vars[v], m_var_size, vid);
+
+    Real_ptr var = m_vars[v];
+
+    for (Index_type i = 0; i < m_var_size; i++) {
+      var[i] = i + v;
+    }
+  }
+
   const bool separate_buffers = (getMPIDataSpace(vid) == DataSpace::Copy);
 
   m_pack_buffers.resize(s_num_neighbors, nullptr);
@@ -97,6 +113,13 @@ void MPI_HALOEXCHANGE::setUp(VariantID vid, size_t tune_idx)
   }
 }
 
+void MPI_HALOEXCHANGE::updateChecksum(VariantID vid, size_t tune_idx)
+{
+  for (Real_ptr var : m_vars) {
+    checksum[vid][tune_idx] += calcChecksum(var, m_var_size, vid);
+  }
+}
+
 void MPI_HALOEXCHANGE::tearDown(VariantID vid, size_t tune_idx)
 {
   const bool separate_buffers = (getMPIDataSpace(vid) == DataSpace::Copy);
@@ -122,6 +145,11 @@ void MPI_HALOEXCHANGE::tearDown(VariantID vid, size_t tune_idx)
   }
   m_send_buffers.clear();
   m_pack_buffers.clear();
+
+  for (int v = 0; v < m_num_vars; ++v) {
+    deallocData(m_vars[v], vid);
+  }
+  m_vars.clear();
 
   tearDown_base(vid, tune_idx);
 }

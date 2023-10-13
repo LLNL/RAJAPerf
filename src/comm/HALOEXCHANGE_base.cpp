@@ -19,37 +19,32 @@ namespace rajaperf
 namespace comm
 {
 
+Index_type HALOEXCHANGE_base::s_grid_dims_default[3] {100, 100, 100};
+Index_type HALOEXCHANGE_base::s_halo_width_default = 1;
+Index_type HALOEXCHANGE_base::s_num_vars_default = 3;
+
 HALOEXCHANGE_base::HALOEXCHANGE_base(KernelID kid, const RunParams& params)
   : KernelBase(kid, params)
 {
-  m_grid_dims_default[0] = 100;
-  m_grid_dims_default[1] = 100;
-  m_grid_dims_default[2] = 100;
-  m_halo_width_default   = 1;
-  m_num_vars_default     = 3;
-
-  setDefaultProblemSize( m_grid_dims_default[0] *
-                         m_grid_dims_default[1] *
-                         m_grid_dims_default[2] );
+  setDefaultProblemSize( s_grid_dims_default[0] *
+                         s_grid_dims_default[1] *
+                         s_grid_dims_default[2] );
 
   double cbrt_run_size = std::cbrt(getTargetProblemSize());
 
   m_grid_dims[0] = cbrt_run_size;
   m_grid_dims[1] = cbrt_run_size;
   m_grid_dims[2] = cbrt_run_size;
-  m_halo_width = m_halo_width_default;
-  m_num_vars   = m_num_vars_default;
+  m_halo_width = s_halo_width_default;
 
   m_grid_plus_halo_dims[0] = m_grid_dims[0] + 2*m_halo_width;
   m_grid_plus_halo_dims[1] = m_grid_dims[1] + 2*m_halo_width;
   m_grid_plus_halo_dims[2] = m_grid_dims[2] + 2*m_halo_width;
-  m_var_size = m_grid_plus_halo_dims[0] *
-               m_grid_plus_halo_dims[1] *
-               m_grid_plus_halo_dims[2] ;
+  m_grid_plus_halo_size = m_grid_plus_halo_dims[0] *
+                          m_grid_plus_halo_dims[1] *
+                          m_grid_plus_halo_dims[2] ;
 
   setActualProblemSize( m_grid_dims[0] * m_grid_dims[1] * m_grid_dims[1] );
-
-  setItsPerRep( m_num_vars * (m_var_size - getActualProblemSize()) );
 }
 
 HALOEXCHANGE_base::~HALOEXCHANGE_base()
@@ -59,18 +54,6 @@ HALOEXCHANGE_base::~HALOEXCHANGE_base()
 void HALOEXCHANGE_base::setUp_base(const int my_mpi_rank, const int* mpi_dims,
                                    VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
-  m_vars.resize(m_num_vars, nullptr);
-  for (Index_type v = 0; v < m_num_vars; ++v) {
-    allocAndInitData(m_vars[v], m_var_size, vid);
-    auto reset_var = scopedMoveData(m_vars[v], m_var_size, vid);
-
-    Real_ptr var = m_vars[v];
-
-    for (Index_type i = 0; i < m_var_size; i++) {
-      var[i] = i + v;
-    }
-  }
-
   m_mpi_ranks.resize(s_num_neighbors, -1);
   m_send_tags.resize(s_num_neighbors, -1);
   m_pack_index_lists.resize(s_num_neighbors, nullptr);
@@ -85,13 +68,6 @@ void HALOEXCHANGE_base::setUp_base(const int my_mpi_rank, const int* mpi_dims,
       s_num_neighbors, vid);
 }
 
-void HALOEXCHANGE_base::updateChecksum(VariantID vid, size_t tune_idx)
-{
-  for (Real_ptr var : m_vars) {
-    checksum[vid][tune_idx] += calcChecksum(var, m_var_size, vid);
-  }
-}
-
 void HALOEXCHANGE_base::tearDown_base(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   destroy_lists(m_pack_index_lists, m_unpack_index_lists, s_num_neighbors, vid);
@@ -102,15 +78,10 @@ void HALOEXCHANGE_base::tearDown_base(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
   m_pack_index_lists.clear();
   m_send_tags.clear();
   m_mpi_ranks.clear();
-
-  for (int v = 0; v < m_num_vars; ++v) {
-    deallocData(m_vars[v], vid);
-  }
-  m_vars.clear();
 }
 
 
-const int HALOEXCHANGE_base::boundary_offsets[HALOEXCHANGE_base::s_num_neighbors][3]{
+const int HALOEXCHANGE_base::s_boundary_offsets[HALOEXCHANGE_base::s_num_neighbors][3]{
 
   // faces
   {-1,  0,  0},
@@ -222,7 +193,7 @@ void HALOEXCHANGE_base::create_lists(
 
   std::map<int, int> boundary_idx_to_tag;
   for (Index_type l = 0; l < num_neighbors; ++l) {
-    boundary_idx_to_tag[get_boundary_idx(boundary_offsets[l])] = l;
+    boundary_idx_to_tag[get_boundary_idx(s_boundary_offsets[l])] = l;
   }
 
   const Index_type grid_i_stride = 1;
@@ -231,7 +202,7 @@ void HALOEXCHANGE_base::create_lists(
 
   for (Index_type l = 0; l < num_neighbors; ++l) {
 
-    const int (&boundary_offset)[3] = boundary_offsets[l];
+    const int (&boundary_offset)[3] = s_boundary_offsets[l];
 
     int neighbor_boundary_offset[3]{-1, -1, -1};
     for (int dim = 0; dim < 3; ++dim) {

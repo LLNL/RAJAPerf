@@ -52,6 +52,9 @@
 #define HALOEXCHANGE_DATA_SETUP \
   HALOEXCHANGE_base_DATA_SETUP \
   \
+  Index_type num_vars = m_num_vars; \
+  std::vector<Real_ptr> vars = m_vars; \
+  \
   std::vector<Real_ptr> buffers = m_buffers;
 
 
@@ -73,6 +76,7 @@ public:
   ~HALOEXCHANGE();
 
   void setUp(VariantID vid, size_t tune_idx);
+  void updateChecksum(VariantID vid, size_t tune_idx);
   void tearDown(VariantID vid, size_t tune_idx);
 
   void runSeqVariant(VariantID vid, size_t tune_idx);
@@ -91,6 +95,11 @@ public:
 private:
   static const size_t default_gpu_block_size = 256;
   using gpu_block_sizes_type = gpu_block_size::make_list_type<default_gpu_block_size>;
+
+  Index_type m_num_vars;
+  Index_type m_var_size;
+
+  std::vector<Real_ptr> m_vars;
 
   std::vector<Real_ptr> m_buffers;
 };
