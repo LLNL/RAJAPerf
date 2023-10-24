@@ -38,5 +38,11 @@ blt_add_library(
           TRIAD-Cuda.cpp 
           TRIAD-OMPTarget.cpp 
           TRIAD-OMP.cpp 
+          TRIAD_PARTED.cpp
+          TRIAD_PARTED-Seq.cpp
+          TRIAD_PARTED-Hip.cpp
+          TRIAD_PARTED-Cuda.cpp
+          TRIAD_PARTED-OMPTarget.cpp
+          TRIAD_PARTED-OMP.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

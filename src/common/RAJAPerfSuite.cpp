@@ -75,6 +75,7 @@
 #include "stream/MUL.hpp"
 #include "stream/ADD.hpp"
 #include "stream/TRIAD.hpp"
+#include "stream/TRIAD_PARTED.hpp"
 #include "stream/DOT.hpp"
 
 //
@@ -226,6 +227,7 @@ static const std::string KernelNames [] =
   std::string("Stream_DOT"),
   std::string("Stream_MUL"),
   std::string("Stream_TRIAD"),
+  std::string("Stream_TRIAD_PARTED"),
 
 //
 // Apps kernels...
@@ -895,6 +897,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Stream_TRIAD : {
        kernel = new stream::TRIAD(run_params);
+       break;
+    }
+    case Stream_TRIAD_PARTED : {
+       kernel = new stream::TRIAD_PARTED(run_params);
        break;
     }
 

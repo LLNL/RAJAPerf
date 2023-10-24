@@ -123,6 +123,8 @@ public:
 
   Size_type getDataAlignment() const { return data_alignment; }
 
+  Index_type getNumParts() const { return num_parts; }
+
   int getGPUStream() const { return gpu_stream; }
   size_t numValidGPUBlockSize() const { return gpu_block_sizes.size(); }
   bool validGPUBlockSize(size_t block_size) const
@@ -233,6 +235,8 @@ private:
   double size;           /*!< kernel size to run (input option) */
   double size_factor;    /*!< default kernel size multipier (input option) */
   Size_type data_alignment;
+
+  Index_type num_parts;   /*!< number of parts used in parted kernels (input option) */
 
   int gpu_stream; /*!< 0 -> use stream 0; anything else -> use raja default stream */
   std::vector<size_t> gpu_block_sizes; /*!< Block sizes for gpu tunings to run (input option) */

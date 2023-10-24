@@ -38,6 +38,7 @@ RunParams::RunParams(int argc, char** argv)
    size(0.0),
    size_factor(0.0),
    data_alignment(RAJA::DATA_ALIGN),
+   num_parts(10),
    gpu_stream(1),
    gpu_block_sizes(),
    mpi_size(1),
@@ -119,6 +120,7 @@ void RunParams::print(std::ostream& str) const
   str << "\n size = " << size;
   str << "\n size_factor = " << size_factor;
   str << "\n data_alignment = " << data_alignment;
+  str << "\n num_parts = " << num_parts;
   str << "\n gpu stream = " << ((gpu_stream == 0) ? "0" : "RAJA default");
   str << "\n gpu_block_sizes = ";
   for (size_t j = 0; j < gpu_block_sizes.size(); ++j) {
@@ -425,6 +427,26 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
           input_state = BadInput;
         } else {
           data_alignment = align;
+        }
+      } else {
+        getCout() << "\nBad input:"
+                  << " must give " << opt << " a value (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--num_parts") ) {
+
+      i++;
+      if ( i < argc ) {
+        long long num_parts_arg = ::atoll( argv[i] );
+        if ( num_parts_arg < 1 ) {
+          getCout() << "\nBad input:"
+                << " must give " << opt << " a value of at least " << 1
+                << std::endl;
+          input_state = BadInput;
+        } else {
+          num_parts = num_parts_arg;
         }
       } else {
         getCout() << "\nBad input:"
@@ -1110,13 +1132,19 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t -et default library (exclude default and library tunings)\n\n";
 
   str << "\t Options for selecting kernel data used in kernels....\n"
-      << "\t ======================================================\n\n";;
+      << "\t ======================================================\n\n";
 
   str << "\t --data_alignment, -align <int> [default is RAJA::DATA_ALIGN]\n"
       << "\t      (minimum memory alignment for host allocations)\n"
       << "\t      Must be a power of 2 at least as large as default alignment.\n";
   str << "\t\t Example...\n"
       << "\t\t -align 4096 (allocates memory aligned to 4KiB boundaries)\n\n";
+
+  str << "\t --num_parts <int> [default is 10]\n"
+      << "\t      (number of parts for *_PARTED kernels)\n"
+      << "\t      Must be at least 1.\n";
+  str << "\t\t Example...\n"
+      << "\t\t --num_parts 100 (breaks *_PARTED kernels into 100 loops)\n\n";
 
   str << "\t --seq-data-space, -sds <string> [Default is Host]\n"
       << "\t      (name of data space to use for sequential variants)\n"

@@ -221,6 +221,9 @@ blt_add_executable(
   stream/TRIAD.cpp
   stream/TRIAD-Seq.cpp
   stream/TRIAD-OMPTarget.cpp
+  stream/TRIAD_PARTED.cpp
+  stream/TRIAD_PARTED-Seq.cpp
+  stream/TRIAD_PARTED-OMPTarget.cpp
   common/DataUtils.cpp
   common/Executor.cpp
   common/KernelBase.cpp
