@@ -7,7 +7,7 @@
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
 
-if [[ $# -ne 5 ]]; then
+if [[ $# -lt 5 ]]; then
   echo
   echo "You must pass 5 arguments to the script (in this order): "
   echo "   1) compiler version number for nvcc"
