@@ -28,20 +28,20 @@ namespace stream
   Real_type*  alpha_ptrs; \
   Index_type* ibegin_ptrs; \
   Index_type* len_ptrs; \
-  allocData(DataSpace::HipPinned, a_ptrs, parts.size()-1); \
-  allocData(DataSpace::HipPinned, b_ptrs, parts.size()-1); \
-  allocData(DataSpace::HipPinned, c_ptrs, parts.size()-1); \
-  allocData(DataSpace::HipPinned, alpha_ptrs, parts.size()-1); \
-  allocData(DataSpace::HipPinned, ibegin_ptrs, parts.size()-1); \
-  allocData(DataSpace::HipPinned, len_ptrs, parts.size()-1);
+  allocData(DataSpace::HipPinnedCoarse, a_ptrs, parts.size()-1); \
+  allocData(DataSpace::HipPinnedCoarse, b_ptrs, parts.size()-1); \
+  allocData(DataSpace::HipPinnedCoarse, c_ptrs, parts.size()-1); \
+  allocData(DataSpace::HipPinnedCoarse, alpha_ptrs, parts.size()-1); \
+  allocData(DataSpace::HipPinnedCoarse, ibegin_ptrs, parts.size()-1); \
+  allocData(DataSpace::HipPinnedCoarse, len_ptrs, parts.size()-1);
 
 #define TRIAD_PARTED_FUSED_MANUAL_FUSER_TEARDOWN_HIP \
-  deallocData(DataSpace::HipPinned, a_ptrs); \
-  deallocData(DataSpace::HipPinned, b_ptrs); \
-  deallocData(DataSpace::HipPinned, c_ptrs); \
-  deallocData(DataSpace::HipPinned, alpha_ptrs); \
-  deallocData(DataSpace::HipPinned, ibegin_ptrs); \
-  deallocData(DataSpace::HipPinned, len_ptrs);
+  deallocData(DataSpace::HipPinnedCoarse, a_ptrs); \
+  deallocData(DataSpace::HipPinnedCoarse, b_ptrs); \
+  deallocData(DataSpace::HipPinnedCoarse, c_ptrs); \
+  deallocData(DataSpace::HipPinnedCoarse, alpha_ptrs); \
+  deallocData(DataSpace::HipPinnedCoarse, ibegin_ptrs); \
+  deallocData(DataSpace::HipPinnedCoarse, len_ptrs);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -114,6 +114,10 @@ void TRIAD_PARTED_FUSED::runHipVariantImpl(VariantID vid)
 
   } else if ( vid == RAJA_HIP ) {
 
+    auto triad_parted_fused_lam = [=] __device__ (Index_type i) {
+          TRIAD_PARTED_FUSED_BODY;
+        };
+
     using AllocatorHolder = RAJAPoolAllocatorHolder<RAJA::hip::pinned_mempool_type>;
     using Allocator = AllocatorHolder::Allocator<char>;
 
@@ -122,7 +126,11 @@ void TRIAD_PARTED_FUSED::runHipVariantImpl(VariantID vid)
     using workgroup_policy = RAJA::WorkGroupPolicy <
                                  RAJA::hip_work_async<block_size>,
                                  RAJA::unordered_hip_loop_y_block_iter_x_threadblock_average,
-                                 RAJA::constant_stride_array_of_objects >;
+                                 RAJA::constant_stride_array_of_objects,
+                                 // RAJA::indirect_function_call_dispatch
+                                 // RAJA::indirect_virtual_function_dispatch
+                                 RAJA::direct_dispatch<camp::list<RAJA::TypedRangeSegment<Index_type>, decltype(triad_parted_fused_lam)>>
+                                >;
 
     using workpool = RAJA::WorkPool< workgroup_policy,
                                      Index_type,
@@ -148,10 +156,6 @@ void TRIAD_PARTED_FUSED::runHipVariantImpl(VariantID vid)
       for (size_t p = 1; p < parts.size(); ++p ) {
         const Index_type ibegin = parts[p-1];
         const Index_type iend = parts[p];
-
-        auto triad_parted_fused_lam = [=] __device__ (Index_type i) {
-              TRIAD_PARTED_FUSED_BODY;
-            };
 
         pool.enqueue(
             RAJA::TypedRangeSegment<Index_type>(ibegin, iend),

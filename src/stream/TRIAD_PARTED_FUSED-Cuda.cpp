@@ -114,6 +114,10 @@ void TRIAD_PARTED_FUSED::runCudaVariantImpl(VariantID vid)
 
   } else if ( vid == RAJA_CUDA ) {
 
+    auto triad_parted_fused_lam = [=] __device__ (Index_type i) {
+          TRIAD_PARTED_FUSED_BODY;
+        };
+
     using AllocatorHolder = RAJAPoolAllocatorHolder<RAJA::cuda::pinned_mempool_type>;
     using Allocator = AllocatorHolder::Allocator<char>;
 
@@ -122,7 +126,11 @@ void TRIAD_PARTED_FUSED::runCudaVariantImpl(VariantID vid)
     using workgroup_policy = RAJA::WorkGroupPolicy <
                                  RAJA::cuda_work_async<block_size>,
                                  RAJA::unordered_cuda_loop_y_block_iter_x_threadblock_average,
-                                 RAJA::constant_stride_array_of_objects >;
+                                 RAJA::constant_stride_array_of_objects,
+                                 // RAJA::indirect_function_call_dispatch
+                                 // RAJA::indirect_virtual_function_dispatch
+                                 RAJA::direct_dispatch<camp::list<RAJA::TypedRangeSegment<Index_type>, decltype(triad_parted_fused_lam)>>
+                                >;
 
     using workpool = RAJA::WorkPool< workgroup_policy,
                                      Index_type,
@@ -148,10 +156,6 @@ void TRIAD_PARTED_FUSED::runCudaVariantImpl(VariantID vid)
       for (size_t p = 1; p < parts.size(); ++p ) {
         const Index_type ibegin = parts[p-1];
         const Index_type iend = parts[p];
-
-        auto triad_parted_fused_lam = [=] __device__ (Index_type i) {
-              TRIAD_PARTED_FUSED_BODY;
-            };
 
         pool.enqueue(
             RAJA::TypedRangeSegment<Index_type>(ibegin, iend),
