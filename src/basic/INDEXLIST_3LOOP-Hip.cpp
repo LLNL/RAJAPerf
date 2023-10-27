@@ -74,7 +74,7 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
     INDEXLIST_3LOOP_DATA_SETUP_HIP;
 
     Index_type* len;
-    allocData(DataSpace::HipPinned, len, 1);
+    allocData(DataSpace::HipPinnedCoarse, len, 1);
 
     hipStream_t stream = res.get_stream();
 
@@ -147,7 +147,7 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
     stopTimer();
 
     deallocData(DataSpace::HipDevice, temp_storage);
-    deallocData(DataSpace::HipPinned, len);
+    deallocData(DataSpace::HipPinnedCoarse, len);
 
     INDEXLIST_3LOOP_DATA_TEARDOWN_HIP;
 
@@ -156,7 +156,7 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
     INDEXLIST_3LOOP_DATA_SETUP_HIP;
 
     Index_type* len;
-    allocData(DataSpace::HipPinned, len, 1);
+    allocData(DataSpace::HipPinnedCoarse, len, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -187,7 +187,7 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    deallocData(DataSpace::HipPinned, len);
+    deallocData(DataSpace::HipPinnedCoarse, len);
 
     INDEXLIST_3LOOP_DATA_TEARDOWN_HIP;
 

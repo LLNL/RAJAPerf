@@ -82,7 +82,7 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
     int len = iend - ibegin;
 
     Real_type* sum_storage;
-    allocData(DataSpace::HipPinned, sum_storage, 1);
+    allocData(DataSpace::HipPinnedCoarse, sum_storage, 1);
 
     // Determine temporary device storage requirements
     void* d_temp_storage = nullptr;
@@ -145,7 +145,7 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
 
     // Free temporary storage
     deallocData(DataSpace::HipDevice, temp_storage);
-    deallocData(DataSpace::HipPinned, sum_storage);
+    deallocData(DataSpace::HipPinnedCoarse, sum_storage);
 
   } else {
 
