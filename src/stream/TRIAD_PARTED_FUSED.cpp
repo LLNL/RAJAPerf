@@ -40,14 +40,7 @@ TRIAD_PARTED_FUSED::TRIAD_PARTED_FUSED(const RunParams& params)
               ( static_cast<Checksum_type>(getDefaultProblemSize()) /
                                            getActualProblemSize() );
 
-  m_parts.reserve(num_parts+1);
-  m_parts.emplace_back(0);
-  for (Index_type p = 1; p < num_parts; ++p) {
-    // use evenly spaced parts for now
-    m_parts.emplace_back((getActualProblemSize()/num_parts)*p +
-                         (getActualProblemSize()%num_parts)*p / num_parts);
-  }
-  m_parts.emplace_back(getActualProblemSize());
+  m_parts = params.getPartition(getActualProblemSize(), num_parts);
 
   setUsesFeature( Workgroup );
 

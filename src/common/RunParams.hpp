@@ -98,6 +98,38 @@ public:
   }
 
   /*!
+   * \brief Enumeration indicating how to separate partitions
+   */
+  enum PartType {
+    Even,      /*!< indicates value is unset */
+    Geometric, /*!< multiplier on default kernel iteration space */
+
+    NumPartTypes
+  };
+
+  /*!
+   * \brief Translate PartType enum value to string
+   */
+  static std::string PartTypeToStr(PartType pt)
+  {
+    switch (pt) {
+      case PartType::Even:
+        return "Even";
+      case PartType::Geometric:
+        return "Geometric";
+      case PartType::NumPartTypes:
+      default:
+        return "Unknown";
+    }
+  }
+
+  /*!
+   * \brief Get a partition from a length, number of partitions, and PartType enum value
+   * Note that the vector will be of length (num_part+1)
+   */
+  std::vector<Index_type> getPartition(Index_type len, Index_type num_parts) const;
+
+  /*!
    * \brief Return state of input parsed to this point.
    */
   InputOpt getInputState() const { return input_state; }
@@ -237,6 +269,7 @@ private:
   Size_type data_alignment;
 
   Index_type num_parts;   /*!< number of parts used in parted kernels (input option) */
+  PartType part_type;     /*!< how the partition sizes are generated (input option) */
 
   int gpu_stream; /*!< 0 -> use stream 0; anything else -> use raja default stream */
   std::vector<size_t> gpu_block_sizes; /*!< Block sizes for gpu tunings to run (input option) */

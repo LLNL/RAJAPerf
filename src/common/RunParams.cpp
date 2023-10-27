@@ -12,6 +12,7 @@
 
 #include <cstdlib>
 #include <cstdio>
+#include <cmath>
 #include <iostream>
 
 #include <list>
@@ -39,6 +40,7 @@ RunParams::RunParams(int argc, char** argv)
    size_factor(0.0),
    data_alignment(RAJA::DATA_ALIGN),
    num_parts(10),
+   part_type(PartType::Even),
    gpu_stream(1),
    gpu_block_sizes(),
    mpi_size(1),
@@ -99,6 +101,97 @@ RunParams::~RunParams()
  *
  *******************************************************************************
  */
+std::vector<Index_type> RunParams::getPartition(Index_type len, Index_type num_parts) const
+{
+  std::vector<Index_type> parts;
+
+  parts.reserve(num_parts+1);
+
+  parts.emplace_back(0);
+
+  switch ( (len > num_parts && num_parts > 1)
+           ? part_type : PartType::Even ) {
+    case PartType::Even:
+    {
+      for (Index_type p = 1; p < num_parts; ++p) {
+
+        parts.emplace_back((len/num_parts)*p +
+                           (len%num_parts)*p / num_parts);
+      }
+    } break;
+
+    case PartType::Geometric:
+    {
+      auto geo_sum = [](double a, double r, double n) {
+        // sum of geometric series
+        // for i in [0, n), a*pow(r, i)
+        return a * (1.0 - std::pow(r, n)) / (1.0 - r);
+      };
+
+      auto geo_solve_for_r = [&](double sum, double a, double n)
+      {
+        double max_r = std::pow(sum/a, 1.0 / (n-1.0));
+        double min_r = 1.0;
+
+        double r = (max_r + min_r) / 2.0;
+        double diff = geo_sum(a, r, n) - sum;
+
+        constexpr double tolerance = 1.0;
+        constexpr size_t max_iter = 1000;
+
+        // use bisection to find r
+        for (size_t iter = 0;
+             iter < max_iter && (diff < 0.0 || diff > tolerance);
+             ++iter) {
+
+          if (diff > 0.0) {
+            max_r = r;
+          } else {
+            min_r = r;
+          }
+
+          r = (max_r + min_r) / 2.0;
+          diff = geo_sum(a, r, n) - sum;
+        }
+
+        return r;
+      };
+
+      constexpr double a = 1.0;
+      double r = geo_solve_for_r(len, a, num_parts);
+
+      for (Index_type p = 1; p < num_parts; ++p) {
+
+        Index_type val = static_cast<Index_type>(std::floor(geo_sum(a, r, p)));
+
+        if (val > 0 && val < len) {
+          parts.emplace_back(val);
+        } else {
+          getCout() << "RunParams::getPartition: Geometric failed to generate partition" << std::endl;
+          break;
+        }
+      }
+
+    } break;
+    default:
+    {
+      getCout() << "RunParams::getPartition: unknown part_type" << std::endl;
+    } break;
+  }
+
+  parts.emplace_back(len);
+
+  return parts;
+}
+
+
+/*
+ *******************************************************************************
+ *
+ * Print all run params data to given output stream.
+ *
+ *******************************************************************************
+ */
 void RunParams::print(std::ostream& str) const
 {
   str << "\n show_progress = " << show_progress;
@@ -121,6 +214,7 @@ void RunParams::print(std::ostream& str) const
   str << "\n size_factor = " << size_factor;
   str << "\n data_alignment = " << data_alignment;
   str << "\n num_parts = " << num_parts;
+  str << "\n part_type = " << PartTypeToStr(part_type);
   str << "\n gpu stream = " << ((gpu_stream == 0) ? "0" : "RAJA default");
   str << "\n gpu_block_sizes = ";
   for (size_t j = 0; j < gpu_block_sizes.size(); ++j) {
@@ -453,6 +547,32 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
                   << " must give " << opt << " a value (int)"
                   << std::endl;
         input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--part_type") ) {
+
+      bool got_someting = false;
+      i++;
+      if ( i < argc ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+        } else {
+          for (int ipt = 0; ipt < static_cast<int>(PartType::NumPartTypes); ++ipt) {
+            PartType pt = static_cast<PartType>(ipt);
+            if (PartTypeToStr(pt) == opt) {
+              got_someting = true;
+              part_type = pt;
+              break;
+            }
+          }
+          if (!got_someting) {
+            getCout() << "\nBad input:"
+                      << " must give a valid partition type"
+                      << std::endl;
+            input_state = BadInput;
+          }
+        }
       }
 
     } else if ( opt == std::string("--gpu_stream_0") ) {
@@ -1145,6 +1265,12 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t      Must be at least 1.\n";
   str << "\t\t Example...\n"
       << "\t\t --num_parts 100 (breaks *_PARTED kernels into 100 loops)\n\n";
+
+  str << "\t --part_type <int> [default is Even]\n"
+      << "\t      (distribution for parts in *_PARTED kernels).\n"
+      << "\t      Must be a name of a member of the PartType enum.\n";
+  str << "\t\t Example...\n"
+      << "\t\t --part_type Geometric (makes partitions with a fixed ratio of sizes)\n\n";
 
   str << "\t --seq-data-space, -sds <string> [Default is Host]\n"
       << "\t      (name of data space to use for sequential variants)\n"
