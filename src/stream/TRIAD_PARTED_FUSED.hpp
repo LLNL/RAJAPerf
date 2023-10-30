@@ -97,7 +97,15 @@ public:
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
   template < size_t block_size >
+  void runCudaVariantReal(VariantID vid);
+  template < size_t block_size >
+  void runCudaVariantReuse(VariantID vid);
+  template < size_t block_size >
   void runCudaVariantImpl(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantReal(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantReuse(VariantID vid);
   template < size_t block_size >
   void runHipVariantImpl(VariantID vid);
 

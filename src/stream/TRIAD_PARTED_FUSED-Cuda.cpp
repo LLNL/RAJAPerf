@@ -67,7 +67,7 @@ __global__ void triad_parted_fused(Real_ptr* a_ptrs, Real_ptr* b_ptrs,
 
 
 template < size_t block_size >
-void TRIAD_PARTED_FUSED::runCudaVariantImpl(VariantID vid)
+void TRIAD_PARTED_FUSED::runCudaVariantReal(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -173,7 +173,174 @@ void TRIAD_PARTED_FUSED::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(TRIAD_PARTED_FUSED, Cuda)
+template < size_t block_size >
+void TRIAD_PARTED_FUSED::runCudaVariantReuse(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+
+  auto res{getCudaResource()};
+
+  TRIAD_PARTED_FUSED_DATA_SETUP;
+
+  if ( vid == Base_CUDA ) {
+
+    TRIAD_PARTED_FUSED_MANUAL_FUSER_SETUP_CUDA
+
+    Index_type index = 0;
+    Index_type len_sum = 0;
+
+    for (size_t p = 1; p < parts.size(); ++p ) {
+      const Index_type ibegin = parts[p-1];
+      const Index_type iend = parts[p];
+
+      a_ptrs[index] = a;
+      b_ptrs[index] = b;
+      c_ptrs[index] = c;
+      alpha_ptrs[index] = alpha;
+      ibegin_ptrs[index] = ibegin;
+      len_ptrs[index] = iend-ibegin;
+      len_sum += iend-ibegin;
+      index += 1;
+    }
+    Index_type len_ave = (len_sum + index-1) / index;
+    dim3 nthreads_per_block(block_size);
+    dim3 nblocks((len_ave + block_size-1) / block_size, index);
+    constexpr size_t shmem = 0;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      triad_parted_fused<block_size><<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(
+          a_ptrs, b_ptrs, c_ptrs, alpha_ptrs, ibegin_ptrs, len_ptrs);
+      cudaErrchk( cudaGetLastError() );
+
+    }
+    stopTimer();
+
+    TRIAD_PARTED_FUSED_MANUAL_FUSER_TEARDOWN_CUDA
+
+  } else if ( vid == RAJA_CUDA ) {
+
+    auto triad_parted_fused_lam = [=] __device__ (Index_type i) {
+          TRIAD_PARTED_FUSED_BODY;
+        };
+
+    using AllocatorHolder = RAJAPoolAllocatorHolder<RAJA::cuda::pinned_mempool_type>;
+    using Allocator = AllocatorHolder::Allocator<char>;
+
+    AllocatorHolder allocatorHolder;
+
+    using workgroup_policy = RAJA::WorkGroupPolicy <
+                                 RAJA::cuda_work_async<block_size>,
+                                 RAJA::unordered_cuda_loop_y_block_iter_x_threadblock_average,
+                                 RAJA::constant_stride_array_of_objects,
+                                 // RAJA::indirect_function_call_dispatch
+                                 // RAJA::indirect_virtual_function_dispatch
+                                 RAJA::direct_dispatch<camp::list<RAJA::TypedRangeSegment<Index_type>, decltype(triad_parted_fused_lam)>>
+                                >;
+
+    using workpool = RAJA::WorkPool< workgroup_policy,
+                                     Index_type,
+                                     RAJA::xargs<>,
+                                     Allocator >;
+
+    using workgroup = RAJA::WorkGroup< workgroup_policy,
+                                       Index_type,
+                                       RAJA::xargs<>,
+                                       Allocator >;
+
+    using worksite = RAJA::WorkSite< workgroup_policy,
+                                     Index_type,
+                                     RAJA::xargs<>,
+                                     Allocator >;
+
+    workpool pool(allocatorHolder.template getAllocator<char>());
+    pool.reserve(parts.size()-1, 1024ull*1024ull);
+
+    for (size_t p = 1; p < parts.size(); ++p ) {
+      const Index_type ibegin = parts[p-1];
+      const Index_type iend = parts[p];
+
+      pool.enqueue(
+          RAJA::TypedRangeSegment<Index_type>(ibegin, iend),
+          triad_parted_fused_lam );
+    }
+    workgroup group = pool.instantiate();
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      worksite site = group.run(res);
+
+    }
+    stopTimer();
+
+  } else {
+      getCout() << "\n  TRIAD_PARTED_FUSED : Unknown Cuda variant id = " << vid << std::endl;
+  }
+}
+
+void TRIAD_PARTED_FUSED::runCudaVariant(VariantID vid, size_t tune_idx)
+{
+  size_t t = 0;
+
+  if ( vid == Base_CUDA || vid == RAJA_CUDA ) {
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        if (tune_idx == t) {
+
+          setBlockSize(block_size);
+          runCudaVariantReal<block_size>(vid);
+
+        }
+
+        t += 1;
+
+        if (tune_idx == t) {
+
+          setBlockSize(block_size);
+          runCudaVariantReuse<block_size>(vid);
+
+        }
+
+        t += 1;
+
+      }
+
+    });
+
+  } else {
+
+    getCout() << "\n  TRIAD_PARTED_FUSED : Unknown Cuda variant id = " << vid << std::endl;
+
+  }
+
+}
+
+void TRIAD_PARTED_FUSED::setCudaTuningDefinitions(VariantID vid)
+{
+  if ( vid == Base_CUDA || vid == RAJA_CUDA ) {
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        addVariantTuningName(vid, "real_"+std::to_string(block_size));
+
+        addVariantTuningName(vid, "reuse_"+std::to_string(block_size));
+
+      }
+
+    });
+
+  }
+}
+
 
 } // end namespace stream
 } // end namespace rajaperf
