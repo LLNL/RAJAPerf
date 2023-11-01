@@ -1343,7 +1343,7 @@ void RunParams::printHelpMessage(std::ostream& str) const
 
   str << "\t --part_type <string> [default is Even]\n"
       << "\t      (distribution for parts in *_PARTED kernels).\n"
-      << "\t      Must be a name of a member of the PartType enum.\n";
+      << "\t      Valid partition types are 'Even' and 'Geometric'\n";
   str << "\t\t Example...\n"
       << "\t\t --part_type Geometric (makes partitions with a fixed ratio of sizes)\n\n";
 
