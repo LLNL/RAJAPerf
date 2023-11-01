@@ -96,18 +96,24 @@ public:
 
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
+
   template < size_t block_size >
   void runCudaVariantSOASync(VariantID vid);
   template < size_t block_size >
   void runCudaVariantAOSSync(VariantID vid);
   template < size_t block_size >
+  void runCudaVariantAOSPoolSync(VariantID vid);
+  template < size_t block_size >
   void runCudaVariantAOSReuse(VariantID vid);
   template < size_t block_size >
   void runCudaVariantImpl(VariantID vid);
+
   template < size_t block_size >
   void runHipVariantSOASync(VariantID vid);
   template < size_t block_size >
   void runHipVariantAOSSync(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantAOSPoolSync(VariantID vid);
   template < size_t block_size >
   void runHipVariantAOSReuse(VariantID vid);
   template < size_t block_size >

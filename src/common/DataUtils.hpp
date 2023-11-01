@@ -497,6 +497,11 @@ struct RAJAPoolAllocatorHolder
     { }
   };
 
+  template < typename ... Ts >
+  RAJAPoolAllocatorHolder(Ts&&... args)
+    : m_pool(std::forward<Ts>(args)...)
+  { }
+
   template < typename T >
   Allocator<T> getAllocator()
   {
