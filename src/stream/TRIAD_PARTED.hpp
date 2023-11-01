@@ -64,7 +64,15 @@ public:
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
   template < size_t block_size >
+  void runCudaVariantBlock(VariantID vid);
+  template < size_t block_size >
+  void runCudaVariantOpenmp(VariantID vid);
+  template < size_t block_size >
   void runCudaVariantImpl(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantBlock(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantOpenmp(VariantID vid);
   template < size_t block_size >
   void runHipVariantImpl(VariantID vid);
 

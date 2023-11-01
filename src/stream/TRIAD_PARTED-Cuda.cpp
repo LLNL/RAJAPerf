@@ -34,7 +34,7 @@ __global__ void triad_parted(Real_ptr a, Real_ptr b, Real_ptr c, Real_type alpha
 
 
 template < size_t block_size >
-void TRIAD_PARTED::runCudaVariantImpl(VariantID vid)
+void TRIAD_PARTED::runCudaVariantBlock(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -105,7 +105,136 @@ void TRIAD_PARTED::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(TRIAD_PARTED, Cuda)
+template < size_t block_size >
+void TRIAD_PARTED::runCudaVariantOpenmp(VariantID vid)
+{
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+  const Index_type run_reps = getRunReps();
+
+  TRIAD_PARTED_DATA_SETUP;
+
+  std::vector<camp::resources::Cuda> res;
+  res.reserve(parts.size()-1);
+  for (size_t p = 1; p < parts.size(); ++p ) {
+    res.emplace_back(p-1);
+  }
+
+  if ( vid == Base_CUDA ) {
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      #pragma omp parallel for default(shared)
+      for (size_t p = 1; p < parts.size(); ++p ) {
+        const Index_type ibegin = parts[p-1];
+        const Index_type iend = parts[p];
+
+        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend-ibegin, block_size);
+        constexpr size_t shmem = 0;
+        triad_parted<block_size><<<grid_size, block_size, shmem, res[p-1].get_stream()>>>( a, b, c, alpha,
+                                          ibegin, iend );
+        cudaErrchk( cudaGetLastError() );
+      }
+
+    }
+    stopTimer();
+
+  } else if ( vid == Lambda_CUDA ) {
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      #pragma omp parallel for default(shared)
+      for (size_t p = 1; p < parts.size(); ++p ) {
+        const Index_type ibegin = parts[p-1];
+        const Index_type iend = parts[p];
+
+        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend-ibegin, block_size);
+        constexpr size_t shmem = 0;
+        lambda_cuda_forall<block_size><<<grid_size, block_size, shmem, res[p-1].get_stream()>>>(
+          ibegin, iend, [=] __device__ (Index_type i) {
+          TRIAD_PARTED_BODY;
+        });
+        cudaErrchk( cudaGetLastError() );
+      }
+
+    }
+    stopTimer();
+
+  } else if ( vid == RAJA_CUDA ) {
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      #pragma omp parallel for default(shared)
+      for (size_t p = 1; p < parts.size(); ++p ) {
+        const Index_type ibegin = parts[p-1];
+        const Index_type iend = parts[p];
+
+        RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res[p-1],
+          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+          TRIAD_PARTED_BODY;
+        });
+      }
+
+    }
+    stopTimer();
+
+  } else {
+      getCout() << "\n  TRIAD_PARTED : Unknown Cuda variant id = " << vid << std::endl;
+  }
+#else
+  RAJA_UNUSED_VAR(vid);
+#endif
+}
+
+void TRIAD_PARTED::runCudaVariant(VariantID vid, size_t tune_idx)
+{
+  size_t t = 0;
+
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
+
+      if (tune_idx == t) {
+
+        setBlockSize(block_size);
+        runCudaVariantBlock<block_size>(vid);
+
+      }
+
+      t += 1;
+
+      if (tune_idx == t) {
+
+        setBlockSize(block_size);
+        runCudaVariantOpenmp<block_size>(vid);
+
+      }
+
+      t += 1;
+
+    }
+
+  });
+}
+
+void TRIAD_PARTED::setCudaTuningDefinitions(VariantID vid)
+{
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
+
+      addVariantTuningName(vid, "block_"+std::to_string(block_size));
+
+      addVariantTuningName(vid, "omp_"+std::to_string(block_size));
+
+    }
+
+  });
+}
 
 } // end namespace stream
 } // end namespace rajaperf
