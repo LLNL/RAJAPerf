@@ -1349,7 +1349,6 @@ void RunParams::printHelpMessage(std::ostream& str) const
 
   str << "\t --part_size_order <string> [default is Random]\n"
       << "\t      (way to order partition sizes).\n"
-      << "\t      Must be a name of a member of the PartSizeOrder enum.\n";
       << "\t      Valid partition size orders are 'Random', 'Ascending', and 'Descending'\n";
   str << "\t\t Example...\n"
       << "\t\t --part_size_order Ascending (sort partition sizes in ascending order)\n\n";
