@@ -149,6 +149,57 @@ void TRIAD_PARTED_FUSED::runHipVariantSOASync(VariantID vid)
 }
 
 template < size_t block_size >
+void TRIAD_PARTED_FUSED::runHipVariantSOAReuse(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+
+  auto res{getHipResource()};
+
+  TRIAD_PARTED_FUSED_DATA_SETUP;
+
+  if ( vid == Base_HIP ) {
+
+    TRIAD_PARTED_FUSED_MANUAL_FUSER_SOA_SETUP_HIP
+
+    Index_type index = 0;
+    Index_type len_sum = 0;
+
+    for (size_t p = 1; p < parts.size(); ++p ) {
+      const Index_type ibegin = parts[p-1];
+      const Index_type iend = parts[p];
+
+      len_ptrs[index] = iend-ibegin;
+      a_ptrs[index] = a;
+      b_ptrs[index] = b;
+      c_ptrs[index] = c;
+      alpha_ptrs[index] = alpha;
+      ibegin_ptrs[index] = ibegin;
+      len_sum += iend-ibegin;
+      index += 1;
+    }
+    Index_type len_ave = (len_sum + index-1) / index;
+    dim3 nthreads_per_block(block_size);
+    dim3 nblocks((len_ave + block_size-1) / block_size, index);
+    constexpr size_t shmem = 0;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      triad_parted_fused_soa<block_size><<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(
+          len_ptrs, a_ptrs, b_ptrs, c_ptrs, alpha_ptrs, ibegin_ptrs);
+      hipErrchk( hipGetLastError() );
+
+    }
+    stopTimer();
+
+    TRIAD_PARTED_FUSED_MANUAL_FUSER_SOA_TEARDOWN_HIP
+
+  } else {
+      getCout() << "\n  TRIAD_PARTED_FUSED : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+template < size_t block_size >
 void TRIAD_PARTED_FUSED::runHipVariantAOSSync(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
@@ -365,7 +416,6 @@ void TRIAD_PARTED_FUSED::runHipVariantAOSPoolSync(VariantID vid)
   }
 }
 
-
 template < size_t block_size >
 void TRIAD_PARTED_FUSED::runHipVariantAOSReuse(VariantID vid)
 {
@@ -490,6 +540,15 @@ void TRIAD_PARTED_FUSED::runHipVariant(VariantID vid, size_t tune_idx)
           }
 
           t += 1;
+
+          if (tune_idx == t) {
+
+            setBlockSize(block_size);
+            runHipVariantSOAReuse<block_size>(vid);
+
+          }
+
+          t += 1;
         }
 
         if (tune_idx == t) {
@@ -542,6 +601,8 @@ void TRIAD_PARTED_FUSED::setHipTuningDefinitions(VariantID vid)
 
         if ( vid == Base_HIP ) {
           addVariantTuningName(vid, "SOAsync_"+std::to_string(block_size));
+
+          addVariantTuningName(vid, "SOAreuse_"+std::to_string(block_size));
         }
 
         addVariantTuningName(vid, "AOSsync_"+std::to_string(block_size));
