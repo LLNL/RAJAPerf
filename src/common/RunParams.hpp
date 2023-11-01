@@ -270,6 +270,7 @@ private:
 
   Index_type num_parts;   /*!< number of parts used in parted kernels (input option) */
   PartType part_type;     /*!< how the partition sizes are generated (input option) */
+  bool shuffle_partition_sizes; /*!< Whether the partition sizes are in a random order (input option) */
 
   int gpu_stream; /*!< 0 -> use stream 0; anything else -> use raja default stream */
   std::vector<size_t> gpu_block_sizes; /*!< Block sizes for gpu tunings to run (input option) */

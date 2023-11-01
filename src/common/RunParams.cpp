@@ -14,6 +14,7 @@
 #include <cstdio>
 #include <cmath>
 #include <iostream>
+#include <random>
 
 #include <list>
 #include <set>
@@ -41,6 +42,7 @@ RunParams::RunParams(int argc, char** argv)
    data_alignment(RAJA::DATA_ALIGN),
    num_parts(10),
    part_type(PartType::Even),
+   shuffle_partition_sizes(true),
    gpu_stream(1),
    gpu_block_sizes(),
    mpi_size(1),
@@ -181,6 +183,24 @@ std::vector<Index_type> RunParams::getPartition(Index_type len, Index_type num_p
 
   parts.emplace_back(len);
 
+  if (shuffle_partition_sizes) {
+
+    std::vector<Index_type> size_of_parts;
+
+    size_of_parts.reserve(num_parts);
+
+    for (size_t p = 1; p < parts.size(); ++p) {
+      size_of_parts.emplace_back(parts[p] - parts[p-1]);
+    }
+
+    std::mt19937 rng(parts.size()); // seed consistently
+    std::shuffle(size_of_parts.begin(), size_of_parts.end(), rng);
+
+    for (size_t p = 1; p < parts.size(); ++p) {
+      parts[p] = parts[p-1] + size_of_parts[p-1];
+    }
+  }
+
   return parts;
 }
 
@@ -215,6 +235,7 @@ void RunParams::print(std::ostream& str) const
   str << "\n data_alignment = " << data_alignment;
   str << "\n num_parts = " << num_parts;
   str << "\n part_type = " << PartTypeToStr(part_type);
+  str << "\n shuffle_partition_sizes = " << shuffle_partition_sizes;
   str << "\n gpu stream = " << ((gpu_stream == 0) ? "0" : "RAJA default");
   str << "\n gpu_block_sizes = ";
   for (size_t j = 0; j < gpu_block_sizes.size(); ++j) {
@@ -574,6 +595,14 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
           }
         }
       }
+
+    } else if ( opt == std::string("--shuffle_partition_sizes") ) {
+
+      shuffle_partition_sizes = true;
+
+    } else if ( opt == std::string("--disable-shuffle_partition_sizes") ) {
+
+      shuffle_partition_sizes = false;
 
     } else if ( opt == std::string("--gpu_stream_0") ) {
 
@@ -1271,6 +1300,11 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t      Must be a name of a member of the PartType enum.\n";
   str << "\t\t Example...\n"
       << "\t\t --part_type Geometric (makes partitions with a fixed ratio of sizes)\n\n";
+
+  str << "\t --shuffle_partition_sizes [default is to shuffle partition sizes in a random order]\n"
+      << "\t      (when this option is given, shuffle partition sizes in a random order)\n"
+      << "\t --disable-shuffle_partition_sizes \n"
+      << "\t      (when this option is given, partition sizes are in non-decreasing order)\n\n";
 
   str << "\t --seq-data-space, -sds <string> [Default is Host]\n"
       << "\t      (name of data space to use for sequential variants)\n"
