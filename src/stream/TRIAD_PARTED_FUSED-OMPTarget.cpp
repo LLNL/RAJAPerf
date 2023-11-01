@@ -27,28 +27,16 @@ namespace stream
   const size_t threads_per_team = 256;
 
 #define TRIAD_PARTED_FUSED_MANUAL_FUSER_SETUP_OMP_TARGET \
-  void** ptrs; \
-  allocData(DataSpace::OmpTarget, ptrs, 6 * (parts.size()-1)); \
-  Real_ptr*   a_ptrs      = reinterpret_cast<Real_ptr*>(ptrs) + 0 * (parts.size()-1); \
-  Real_ptr*   b_ptrs      = reinterpret_cast<Real_ptr*>(ptrs) + 1 * (parts.size()-1); \
-  Real_ptr*   c_ptrs      = reinterpret_cast<Real_ptr*>(ptrs) + 2 * (parts.size()-1); \
-  Real_type*  alpha_ptrs  = reinterpret_cast<Real_type*>(ptrs) + 3 * (parts.size()-1); \
-  Index_type* ibegin_ptrs = reinterpret_cast<Index_type*>(ptrs) + 4 * (parts.size()-1); \
-  Index_type* len_ptrs    = reinterpret_cast<Index_type*>(ptrs) + 5 * (parts.size()-1); \
-  void** h_ptrs = new void*[6 * (parts.size()-1)]; \
-  Real_ptr*   h_a_ptrs      = reinterpret_cast<Real_ptr*>(h_ptrs) + 0 * (parts.size()-1); \
-  Real_ptr*   h_b_ptrs      = reinterpret_cast<Real_ptr*>(h_ptrs) + 1 * (parts.size()-1); \
-  Real_ptr*   h_c_ptrs      = reinterpret_cast<Real_ptr*>(h_ptrs) + 2 * (parts.size()-1); \
-  Real_type*  h_alpha_ptrs  = reinterpret_cast<Real_type*>(h_ptrs) + 3 * (parts.size()-1); \
-  Index_type* h_ibegin_ptrs = reinterpret_cast<Index_type*>(h_ptrs) + 4 * (parts.size()-1); \
-  Index_type* h_len_ptrs    = reinterpret_cast<Index_type*>(h_ptrs) + 5 * (parts.size()-1);
+  TRIAD_PARTED_FUSED_MANUAL_FUSER_SETUP \
+  triad_holder* triad_holders; \
+  allocData(DataSpace::OmpTarget, triad_holders, (parts.size()-1));
 
 #define TRIAD_PARTED_FUSED_MANUAL_FUSER_COPY_OMP_TARGET \
-  initOpenMPDeviceData(ptrs, h_ptrs, 4 * num_neighbors * num_vars);
+  initOpenMPDeviceData(omp_triad_holders, triad_holders, index*sizeof(triad_holder));
 
 #define TRIAD_PARTED_FUSED_MANUAL_FUSER_TEARDOWN_OMP_TARGET \
-  deallocData(DataSpace::OmpTarget, ptrs); \
-  delete[] h_ptrs;
+  deallocData(DataSpace::OmpTarget, triad_holders); \
+  TRIAD_PARTED_FUSED_MANUAL_FUSER_TEARDOWN
 
 void TRIAD_PARTED_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
@@ -70,21 +58,11 @@ void TRIAD_PARTED_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_U
         const Index_type ibegin = parts[p-1];
         const Index_type iend = parts[p];
 
-        h_a_ptrs[index] = a;
-        h_b_ptrs[index] = b;
-        h_c_ptrs[index] = c;
-        h_alpha_ptrs[index] = alpha;
-        h_ibegin_ptrs[index] = ibegin;
-        h_len_ptrs[index] = len;
-        len_sum += len;
+        triad_holders[index] = triad_holder{iend-ibegin, a, b, c, alpha, ibegin};
+        len_sum += iend-ibegin;
         index += 1;
-
-        #pragma omp target is_device_ptr(a, b, c) device( did )
-        #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          TRIAD_PARTED_FUSED_BODY;
-        }
       }
+
       TRIAD_PARTED_FUSED_MANUAL_FUSER_COPY_OMP_TARGET;
       Index_type len_ave = (len_sum + index-1) / index;
       #pragma omp target is_device_ptr(a_ptrs, b_ptrs, c_ptrs, alpha_ptrs, ibegin_ptrs, len_ptrs) device( did )
@@ -92,12 +70,12 @@ void TRIAD_PARTED_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_U
       for (Index_type j = 0; j < index; j++) {
         for (Index_type iii = 0; iii < len_ave; iii++) {
 
-          Real_ptr   c      = a_ptrs[j];
-          Real_ptr   b      = b_ptrs[j];
-          Real_ptr   c      = c_ptrs[j];
-          Real_type  alpha  = alpha_ptrs[j];
-          Index_type ibegin = ibegin_ptrs[j];
-          Index_type len    = len_ptrs[j];
+          Index_type len    = omp_triad_holders[j].len;
+          Real_ptr   a      = omp_triad_holders[j].a;
+          Real_ptr   b      = omp_triad_holders[j].b;
+          Real_ptr   c      = omp_triad_holders[j].c;
+          Real_type  alpha  = omp_triad_holders[j].alpha;
+          Index_type ibegin = omp_triad_holders[j].ibegin;
 
           for (Index_type ii = iii; ii < len; ii += len_ave) {
             Index_type i = ii + ibegin;

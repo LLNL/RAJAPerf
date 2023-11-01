@@ -30,19 +30,10 @@
   Real_type alpha = m_alpha;
 
 #define TRIAD_PARTED_FUSED_MANUAL_FUSER_SETUP \
-  struct triad_holder { \
-    Real_ptr a; \
-    Real_ptr b; \
-    Real_ptr c; \
-    Real_type alpha; \
-    Index_type ibegin; \
-  }; \
-  triad_holder* triad_holders = new triad_holder[parts.size()-1]; \
-  Index_type*   lens          = new Index_type[parts.size()-1];
+  triad_holder* triad_holders = new triad_holder[parts.size()-1];
 
 #define TRIAD_PARTED_FUSED_MANUAL_FUSER_TEARDOWN \
-  delete[] triad_holders; \
-  delete[] lens;
+  delete[] triad_holders;
 
 
 #define TRIAD_PARTED_FUSED_BODY  \
@@ -75,6 +66,15 @@ class RunParams;
 namespace stream
 {
 
+struct triad_holder {
+  Index_type len;
+  Real_ptr a;
+  Real_ptr b;
+  Real_ptr c;
+  Real_type alpha;
+  Index_type ibegin;
+};
+
 class TRIAD_PARTED_FUSED : public KernelBase
 {
 public:
@@ -97,15 +97,19 @@ public:
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
   template < size_t block_size >
-  void runCudaVariantReal(VariantID vid);
+  void runCudaVariantSOASync(VariantID vid);
   template < size_t block_size >
-  void runCudaVariantReuse(VariantID vid);
+  void runCudaVariantAOSSync(VariantID vid);
+  template < size_t block_size >
+  void runCudaVariantAOSReuse(VariantID vid);
   template < size_t block_size >
   void runCudaVariantImpl(VariantID vid);
   template < size_t block_size >
-  void runHipVariantReal(VariantID vid);
+  void runHipVariantSOASync(VariantID vid);
   template < size_t block_size >
-  void runHipVariantReuse(VariantID vid);
+  void runHipVariantAOSSync(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantAOSReuse(VariantID vid);
   template < size_t block_size >
   void runHipVariantImpl(VariantID vid);
 

@@ -39,18 +39,17 @@ void TRIAD_PARTED_FUSED::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
           const Index_type ibegin = parts[p-1];
           const Index_type iend = parts[p];
 
-          triad_holders[index] = triad_holder{a, b, c, alpha, ibegin};
-          lens[index]          = iend-ibegin;
+          triad_holders[index] = triad_holder{iend-ibegin, a, b, c, alpha, ibegin};
           index += 1;
         }
 
         for (Index_type j = 0; j < index; j++) {
+          Index_type len    = triad_holders[j].len;
           Real_ptr   a      = triad_holders[j].a;
           Real_ptr   b      = triad_holders[j].b;
           Real_ptr   c      = triad_holders[j].c;
           Real_type  alpha  = triad_holders[j].alpha;
           Index_type ibegin = triad_holders[j].ibegin;
-          Index_type len    = lens[j];
           for (Index_type ii = 0; ii < len; ++ii ) {
             Index_type i = ii + ibegin;
             TRIAD_PARTED_FUSED_BODY;
