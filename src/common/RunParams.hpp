@@ -101,8 +101,8 @@ public:
    * \brief Enumeration indicating how to separate partitions
    */
   enum PartType {
-    Even,      /*!< indicates value is unset */
-    Geometric, /*!< multiplier on default kernel iteration space */
+    Even,      /*!< all parts use same size */
+    Geometric, /*!< part sizes are multiples of a single factor */
 
     NumPartTypes
   };

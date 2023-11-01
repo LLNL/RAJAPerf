@@ -99,7 +99,7 @@ RunParams::~RunParams()
 /*
  *******************************************************************************
  *
- * Print all run params data to given output stream.
+ * Reorder partition boundaries based on params while preserving sizes.
  *
  *******************************************************************************
  */
@@ -1295,7 +1295,7 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t\t Example...\n"
       << "\t\t --num_parts 100 (breaks *_PARTED kernels into 100 loops)\n\n";
 
-  str << "\t --part_type <int> [default is Even]\n"
+  str << "\t --part_type <string> [default is Even]\n"
       << "\t      (distribution for parts in *_PARTED kernels).\n"
       << "\t      Must be a name of a member of the PartType enum.\n";
   str << "\t\t Example...\n"
