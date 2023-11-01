@@ -124,6 +124,35 @@ public:
   }
 
   /*!
+   * \brief Enumeration indicating how to separate partitions
+   */
+  enum PartSizeOrder {
+    Random,     /*!< part sizes are ordered randomly (but consistently) */
+    Ascending,  /*!< part sizes are in ascending order */
+    Descending, /*!< part sizes are in descending order */
+
+    NumPartSizeOrders
+  };
+
+  /*!
+   * \brief Translate PartSizeOrder enum value to string
+   */
+  static std::string PartSizeOrderToStr(PartSizeOrder pt)
+  {
+    switch (pt) {
+      case PartSizeOrder::Random:
+        return "Random";
+      case PartSizeOrder::Ascending:
+        return "Ascending";
+      case PartSizeOrder::Descending:
+        return "Descending";
+      case PartSizeOrder::NumPartSizeOrders:
+      default:
+        return "Unknown";
+    }
+  }
+
+  /*!
    * \brief Get a partition from a length, number of partitions, and PartType enum value
    * Note that the vector will be of length (num_part+1)
    */
@@ -233,6 +262,11 @@ public:
 private:
   RunParams() = delete;
 
+  /*!
+   * \brief Reorder partition sizes, used in getPartition.
+   */
+  void reorderPartitionSizes(std::vector<Index_type>& parts) const;
+
 //@{
 //! @name Routines used in command line parsing and printing option output
   void parseCommandLineOptions(int argc, char** argv);
@@ -265,12 +299,12 @@ private:
 
   SizeMeaning size_meaning; /*!< meaning of size value */
   double size;           /*!< kernel size to run (input option) */
-  double size_factor;    /*!< default kernel size multipier (input option) */
+  double size_factor;    /*!< default kernel size multiplier (input option) */
   Size_type data_alignment;
 
   Index_type num_parts;   /*!< number of parts used in parted kernels (input option) */
   PartType part_type;     /*!< how the partition sizes are generated (input option) */
-  bool shuffle_partition_sizes; /*!< Whether the partition sizes are in a random order (input option) */
+  PartSizeOrder part_size_order; /*!< how the partition sizes are ordered (input option) */
 
   int gpu_stream; /*!< 0 -> use stream 0; anything else -> use raja default stream */
   std::vector<size_t> gpu_block_sizes; /*!< Block sizes for gpu tunings to run (input option) */

@@ -15,6 +15,7 @@
 #include <cmath>
 #include <iostream>
 #include <random>
+#include <functional>
 
 #include <list>
 #include <set>
@@ -42,7 +43,7 @@ RunParams::RunParams(int argc, char** argv)
    data_alignment(RAJA::DATA_ALIGN),
    num_parts(10),
    part_type(PartType::Even),
-   shuffle_partition_sizes(true),
+   part_size_order(PartSizeOrder::Random),
    gpu_stream(1),
    gpu_block_sizes(),
    mpi_size(1),
@@ -96,10 +97,53 @@ RunParams::~RunParams()
 }
 
 
+
 /*
  *******************************************************************************
  *
  * Reorder partition boundaries based on params while preserving sizes.
+ *
+ *******************************************************************************
+ */
+void RunParams::reorderPartitionSizes(std::vector<Index_type>& parts) const
+{
+  std::vector<Index_type> size_of_parts;
+
+  size_of_parts.reserve(num_parts);
+
+  for (size_t p = 1; p < parts.size(); ++p) {
+    size_of_parts.emplace_back(parts[p] - parts[p-1]);
+  }
+
+  switch ( part_size_order ) {
+    case PartSizeOrder::Random:
+    {
+      std::mt19937 rng(parts.size()); // seed consistently
+      std::shuffle(size_of_parts.begin(), size_of_parts.end(), rng);
+    } break;
+    case PartSizeOrder::Ascending:
+    {
+      std::sort(size_of_parts.begin(), size_of_parts.end(), std::less<Index_type>{});
+    } break;
+    case PartSizeOrder::Descending:
+    {
+      std::sort(size_of_parts.begin(), size_of_parts.end(), std::greater<Index_type>{});
+    } break;
+    default:
+    {
+      getCout() << "RunParams::reorderPartitionSizes: unknown part_size_order" << std::endl;
+    } break;
+  }
+
+  for (size_t p = 1; p < parts.size(); ++p) {
+    parts[p] = parts[p-1] + size_of_parts[p-1];
+  }
+}
+
+/*
+ *******************************************************************************
+ *
+ * Get a partition boundaries based on params.
  *
  *******************************************************************************
  */
@@ -183,23 +227,7 @@ std::vector<Index_type> RunParams::getPartition(Index_type len, Index_type num_p
 
   parts.emplace_back(len);
 
-  if (shuffle_partition_sizes) {
-
-    std::vector<Index_type> size_of_parts;
-
-    size_of_parts.reserve(num_parts);
-
-    for (size_t p = 1; p < parts.size(); ++p) {
-      size_of_parts.emplace_back(parts[p] - parts[p-1]);
-    }
-
-    std::mt19937 rng(parts.size()); // seed consistently
-    std::shuffle(size_of_parts.begin(), size_of_parts.end(), rng);
-
-    for (size_t p = 1; p < parts.size(); ++p) {
-      parts[p] = parts[p-1] + size_of_parts[p-1];
-    }
-  }
+  reorderPartitionSizes(parts);
 
   return parts;
 }
@@ -235,7 +263,7 @@ void RunParams::print(std::ostream& str) const
   str << "\n data_alignment = " << data_alignment;
   str << "\n num_parts = " << num_parts;
   str << "\n part_type = " << PartTypeToStr(part_type);
-  str << "\n shuffle_partition_sizes = " << shuffle_partition_sizes;
+  str << "\n part_size_order = " << PartSizeOrderToStr(part_size_order);
   str << "\n gpu stream = " << ((gpu_stream == 0) ? "0" : "RAJA default");
   str << "\n gpu_block_sizes = ";
   for (size_t j = 0; j < gpu_block_sizes.size(); ++j) {
@@ -596,13 +624,31 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         }
       }
 
-    } else if ( opt == std::string("--shuffle_partition_sizes") ) {
+    } else if ( opt == std::string("--part_size_order") ) {
 
-      shuffle_partition_sizes = true;
-
-    } else if ( opt == std::string("--disable-shuffle_partition_sizes") ) {
-
-      shuffle_partition_sizes = false;
+      bool got_someting = false;
+      i++;
+      if ( i < argc ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+        } else {
+          for (int ipso = 0; ipso < static_cast<int>(PartSizeOrder::NumPartSizeOrders); ++ipso) {
+            PartSizeOrder pso = static_cast<PartSizeOrder>(ipso);
+            if (PartSizeOrderToStr(pso) == opt) {
+              got_someting = true;
+              part_size_order = pso;
+              break;
+            }
+          }
+          if (!got_someting) {
+            getCout() << "\nBad input:"
+                      << " must give a valid partition size order"
+                      << std::endl;
+            input_state = BadInput;
+          }
+        }
+      }
 
     } else if ( opt == std::string("--gpu_stream_0") ) {
 
@@ -1301,10 +1347,12 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t\t Example...\n"
       << "\t\t --part_type Geometric (makes partitions with a fixed ratio of sizes)\n\n";
 
-  str << "\t --shuffle_partition_sizes [default is to shuffle partition sizes in a random order]\n"
-      << "\t      (when this option is given, shuffle partition sizes in a random order)\n"
-      << "\t --disable-shuffle_partition_sizes \n"
-      << "\t      (when this option is given, partition sizes are in non-decreasing order)\n\n";
+  str << "\t --part_size_order <string> [default is Random]\n"
+      << "\t      (way to order partition sizes).\n"
+      << "\t      Must be a name of a member of the PartSizeOrder enum.\n";
+      << "\t      Valid partition size orders are 'Random', 'Ascending', and 'Descending'\n";
+  str << "\t\t Example...\n"
+      << "\t\t --part_size_order Ascending (sort partition sizes in ascending order)\n\n";
 
   str << "\t --seq-data-space, -sds <string> [Default is Host]\n"
       << "\t      (name of data space to use for sequential variants)\n"
