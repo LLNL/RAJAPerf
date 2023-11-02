@@ -96,6 +96,40 @@ __global__ void triad_parted_fused_aos(triad_holder* triad_holders)
   }
 }
 
+using scan_index_type = RAJA::cuda_dim_member_t;
+
+template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void triad_parted_fused_scan_aos(scan_index_type* first_blocks, scan_index_type num_fused, triad_holder* triad_holders)
+{
+  scan_index_type min_j = 0;
+  scan_index_type max_j = num_fused-1;
+  scan_index_type j = (min_j + max_j + 1) / 2;
+  scan_index_type first_block = first_blocks[j];
+  while (min_j != max_j) {
+    if (first_block > blockIdx.x) {
+      max_j = j-1;
+    } else {
+      min_j = j;
+    }
+    j = (min_j + max_j + 1) / 2;
+    first_block = first_blocks[j];
+  }
+
+  Index_type len    = triad_holders[j].len;
+  Real_ptr   a      = triad_holders[j].a;
+  Real_ptr   b      = triad_holders[j].b;
+  Real_ptr   c      = triad_holders[j].c;
+  Real_type  alpha  = triad_holders[j].alpha;
+  Index_type ibegin = triad_holders[j].ibegin;
+
+  Index_type ii = threadIdx.x + (blockIdx.x - first_block) * block_size;
+  if (ii < len) {
+    Index_type i = ii + ibegin;
+    TRIAD_PARTED_FUSED_BODY;
+  }
+}
+
 
 template < size_t block_size >
 void TRIAD_PARTED_FUSED::runCudaVariantSOASync(VariantID vid)
@@ -519,6 +553,58 @@ void TRIAD_PARTED_FUSED::runCudaVariantAOSReuse(VariantID vid)
   }
 }
 
+template < size_t block_size >
+void TRIAD_PARTED_FUSED::runCudaVariantScanAOSReuse(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+
+  auto res{getCudaResource()};
+
+  TRIAD_PARTED_FUSED_DATA_SETUP;
+
+  if ( vid == Base_CUDA ) {
+
+    const size_t num_holders = parts.size()-1;
+    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_SETUP_CUDA(num_holders)
+    scan_index_type* first_blocks;
+    allocData(DataSpace::CudaPinned, first_blocks, (num_holders));
+
+    Index_type num_fused = 0;
+    scan_index_type num_blocks = 0;
+
+    for (size_t p = 1; p < parts.size(); ++p ) {
+      const Index_type ibegin = parts[p-1];
+      const Index_type iend = parts[p];
+
+      triad_holders[num_fused] = triad_holder{iend-ibegin, a, b, c, alpha, ibegin};
+      first_blocks[num_fused] = num_blocks;
+      num_blocks += (static_cast<scan_index_type>(iend-ibegin) +
+                     static_cast<scan_index_type>(block_size)-1) /
+                    static_cast<scan_index_type>(block_size);
+      num_fused += 1;
+    }
+    dim3 nthreads_per_block(block_size);
+    dim3 nblocks(num_blocks);
+    constexpr size_t shmem = 0;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      triad_parted_fused_scan_aos<block_size><<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(
+          first_blocks, num_fused, triad_holders);
+      cudaErrchk( cudaGetLastError() );
+
+    }
+    stopTimer();
+
+    deallocData(DataSpace::CudaPinned, first_blocks);
+    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_TEARDOWN_CUDA
+
+  } else {
+      getCout() << "\n  TRIAD_PARTED_FUSED : Unknown Cuda variant id = " << vid << std::endl;
+  }
+}
+
 void TRIAD_PARTED_FUSED::runCudaVariant(VariantID vid, size_t tune_idx)
 {
   size_t t = 0;
@@ -545,6 +631,15 @@ void TRIAD_PARTED_FUSED::runCudaVariant(VariantID vid, size_t tune_idx)
 
             setBlockSize(block_size);
             runCudaVariantSOAReuse<block_size>(vid);
+
+          }
+
+          t += 1;
+
+          if (tune_idx == t) {
+
+            setBlockSize(block_size);
+            runCudaVariantScanAOSReuse<block_size>(vid);
 
           }
 
@@ -603,6 +698,8 @@ void TRIAD_PARTED_FUSED::setCudaTuningDefinitions(VariantID vid)
           addVariantTuningName(vid, "SOAsync_"+std::to_string(block_size));
 
           addVariantTuningName(vid, "SOAreuse_"+std::to_string(block_size));
+
+          addVariantTuningName(vid, "scanAOSreuse_"+std::to_string(block_size));
         }
 
         addVariantTuningName(vid, "AOSsync_"+std::to_string(block_size));

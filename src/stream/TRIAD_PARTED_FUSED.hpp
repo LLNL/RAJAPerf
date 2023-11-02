@@ -108,6 +108,8 @@ public:
   template < size_t block_size >
   void runCudaVariantAOSReuse(VariantID vid);
   template < size_t block_size >
+  void runCudaVariantScanAOSReuse(VariantID vid);
+  template < size_t block_size >
   void runCudaVariantImpl(VariantID vid);
 
   template < size_t block_size >
@@ -120,6 +122,8 @@ public:
   void runHipVariantAOSPoolSync(VariantID vid);
   template < size_t block_size >
   void runHipVariantAOSReuse(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantScanAOSReuse(VariantID vid);
   template < size_t block_size >
   void runHipVariantImpl(VariantID vid);
 
