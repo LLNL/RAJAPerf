@@ -7,7 +7,7 @@
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
 
-if [[ $# -ne 3 ]]; then
+if [[ $# -lt 3 ]]; then
   echo
   echo "You must pass 3 arguments to the script (in this order): "
   echo "   1) compiler version number for nvcc"
@@ -45,6 +45,7 @@ cmake \
   -C ${RAJA_HOSTCONFIG} \
   -DENABLE_OPENMP=On \
   -DENABLE_CUDA=On \
+  -DCUDA_SEPARABLE_COMPILATION=On \
   -DCUDA_TOOLKIT_ROOT_DIR=/usr/tce/packages/cuda/cuda-${COMP_NVCC_VER} \
   -DCMAKE_CUDA_COMPILER=/usr/tce/packages/cuda/cuda-${COMP_NVCC_VER}/bin/nvcc \
   -DCMAKE_CUDA_ARCHITECTURES=${COMP_ARCH} \
