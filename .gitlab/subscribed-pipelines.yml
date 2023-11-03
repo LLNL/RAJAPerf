@@ -9,7 +9,7 @@
 # The template job to test whether a machine is up.
 # Expects CI_MACHINE defined to machine name.
 .machine-check:
-  stage: machine-checks
+  stage: prerequisites
   tags: [shell, oslic]
   variables:
     GIT_STRATEGY: none
