@@ -4,7 +4,7 @@
 # See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
-##############################################################################
+#############################################################################
 
 ########################
 # Overridden shared jobs
@@ -13,29 +13,10 @@
 # We keep ${PROJECT_<MACHINE>_VARIANTS} and ${PROJECT_<MACHINE>_DEPS} So that
 # the comparison with the original job is easier.
 
-# Overriding shared config for longer run and algorithm variants
-clang_14_0_6:
+rocmcc_5_6_0_hip:
   variables:
-    SPEC: " ~shared +openmp +omptask %clang@14.0.6"
-  extends: .build_and_test_on_ruby
-
-gcc_10_3_1:
-  variables:
-    SPEC: " ~shared +openmp +omptask %gcc@10.3.1"
-    RUBY_BUILD_AND_TEST_JOB_ALLOC: "--time=60 --nodes=1"
-  extends: .build_and_test_on_ruby
-
-intel_19_1_2_gcc_10_3_1:
-  variables:
-    SPEC: " +openmp %intel@19.1.2.gcc.10.3.1"
-    RUBY_BUILD_AND_TEST_JOB_ALLOC: "--time=40 --nodes=1"
-  extends: .build_and_test_on_ruby
-
-intel_2022_1_0:
-  variables:
-    SPEC: "${PROJECT_RUBY_VARIANTS} %intel@2022.1.0 ${PROJECT_RUBY_DEPS}"
-  allow_failure: true
-  extends: .build_and_test_on_ruby
+    SPEC: " ~shared +rocm +openmp amdgpu_target=gfx906 %rocmcc@5.6.0 ^hip@5.6.0 ^blt@git.a7f0a6ecc4fdfa1724399b1454c3909b9ee02e81=develop"
+  extends: .job_on_corona
 
 ############
 # Extra jobs
@@ -43,3 +24,7 @@ intel_2022_1_0:
 # We do not recommend using ${PROJECT_<MACHINE>_VARIANTS} and
 # ${PROJECT_<MACHINE>_DEPS} in the extra jobs. There is no reason not to fully
 # describe the spec here.
+
+# With GitLab CI, included files cannot be empty.
+#variables:
+#  INCLUDED_FILE_CANNOT_BE_EMPTY: "True"
