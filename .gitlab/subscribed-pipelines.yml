@@ -35,6 +35,9 @@ generate-job-lists:
   stage: prerequisites
   tags: [shell, oslic]
   variables:
+    GIT_SUBMODULE_DEPTH: 2
+    GIT_SUBMODULE_STRATEGY: recursive
+    GIT_SUBMODULE_PATHS: tpl/RAJA
     RADIUSS_JOBS_PATH: "tpl/RAJA/scripts/radiuss-spack-configs/gitlab/radiuss-jobs"
     LOCAL_JOBS_PATH: ".gitlab/jobs"
   script:
