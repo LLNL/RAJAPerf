@@ -32,7 +32,7 @@ intel_19_1_2_gcc_10_3_1:
 
 intel_2022_1_0:
   variables:
-    SPEC: "${PROJECT_POODLE_VARIANTS} %intel@2022.1.0 ${PROJECT_POODLE_DEPS} ${PROJECT_POODLE_DEPS}"
+    SPEC: "${PROJECT_POODLE_VARIANTS} %intel@2022.1.0 ${PROJECT_POODLE_DEPS}"
   allow_failure: true
   extends: .job_on_poodle
 
