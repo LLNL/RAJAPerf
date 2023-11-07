@@ -15,9 +15,9 @@ variables:
 
 # Ruby
 # Arguments for top level allocation
-  RUBY_SHARED_ALLOC: "--exclusive --reservation=ci --qos=ci_ruby --time=45 --nodes=1"
+  RUBY_SHARED_ALLOC: "--exclusive --reservation=ci --qos=ci_ruby --time=14 --nodes=2"
 # Arguments for job level allocation
-  RUBY_JOB_ALLOC: "--reservation=ci --qos=ci_ruby --time=30 --nodes=1"
+  RUBY_JOB_ALLOC: "--reservation=ci --qos=ci_ruby --time=6 --nodes=1"
 # Project specific variants for ruby
   PROJECT_RUBY_VARIANTS: "~shared +openmp"
 # Project specific deps for ruby
@@ -25,9 +25,12 @@ variables:
 
 # Poodle
 # Arguments for top level allocation
-  POODLE_SHARED_ALLOC: "--exclusive --partition=pdebug --time=30 --nodes=1"
+# Optimization notes: We have 4 jobs lasting at max 5 minutes and using 28
+# cores out of 112 available (see -j in scripts/gitlab/build_and_test.sh).
+# We allow allocation overlapping.
+  POODLE_SHARED_ALLOC: "--exclusive --partition=pdebug --time=12 --nodes=1"
 # Arguments for job level allocation
-  POODLE_JOB_ALLOC: "--overlap --time=28 --nodes=1"
+  POODLE_JOB_ALLOC: "--overlap --time=5 --nodes=1"
 # Project specific variants for poodle
   PROJECT_POODLE_VARIANTS: "~shared +openmp"
 # Project specific deps for poodle
@@ -35,9 +38,9 @@ variables:
 
 # Corona
 # Arguments for top level allocation
-  CORONA_SHARED_ALLOC: "--exclusive --time-limit=60m --nodes=1"
+  CORONA_SHARED_ALLOC: "--exclusive --time-limit=10m --nodes=1"
 # Arguments for job level allocation
-  CORONA_JOB_ALLOC: "--time-limit=30m --nodes=1 --begin-time=+5s"
+  CORONA_JOB_ALLOC: "--time-limit=8m --nodes=1 --begin-time=+5s"
 # Project specific variants for corona
   PROJECT_CORONA_VARIANTS: "~shared ~openmp"
 # Project specific deps for corona
@@ -45,9 +48,9 @@ variables:
 
 # Tioga
 # Arguments for top level allocation
-  TIOGA_SHARED_ALLOC: "--exclusive --time-limit=60m --nodes=1"
+  TIOGA_SHARED_ALLOC: "--exclusive --time-limit=26m --nodes=1"
 # Arguments for job level allocation
-  TIOGA_JOB_ALLOC: "--time-limit=45m --nodes=1 --begin-time=+5s"
+  TIOGA_JOB_ALLOC: "--time-limit=8m --nodes=1 --begin-time=+5s"
 # Project specific variants for tioga
   PROJECT_TIOGA_VARIANTS: "~shared ~openmp"
 # Project specific deps for tioga
@@ -56,7 +59,7 @@ variables:
 # Lassen and Butte use a different job scheduler (spectrum lsf) that does not
 # allow pre-allocation the same way slurm does.
 # Arguments for job level allocation
-  LASSEN_JOB_ALLOC: "1 -W 30"
+  LASSEN_JOB_ALLOC: "1 -W 15"
 # Project specific variants for lassen
   PROJECT_LASSEN_VARIANTS: "~shared +openmp cuda_arch=70"
 # Project specific deps for lassen
