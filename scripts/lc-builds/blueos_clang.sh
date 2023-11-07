@@ -7,11 +7,11 @@
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
 
-if [ "$1" == "" ]; then
+if [[ $# -lt 1 ]]; then
   echo
   echo "You must pass a compiler version number to script. For example,"
   echo "    blueos_clang.sh 11.0.1"
-  echo "  -or - "
+  echo "  - or - "
   echo "    blueos_clang.sh ibm-10.0.1-gcc-8.3.1"
   exit
 fi
