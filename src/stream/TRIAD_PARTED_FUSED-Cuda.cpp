@@ -97,11 +97,15 @@ __global__ void triad_parted_fused_aos(triad_holder* triad_holders)
 }
 
 using scan_index_type = RAJA::cuda_dim_member_t;
+#define WARP_SIZE 32
+#define warp_shfl(...) __shfl_sync(0xffffffff, __VA_ARGS__)
 
 template < size_t block_size >
 __launch_bounds__(block_size)
-__global__ void triad_parted_fused_scan_aos(scan_index_type* first_blocks, scan_index_type num_fused, triad_holder* triad_holders)
+__global__ void triad_parted_fused_scan_aos(scan_index_type* first_blocks, scan_index_type num_fused,
+                                            triad_holder* triad_holders)
 {
+#if 0
   scan_index_type min_j = 0;
   scan_index_type max_j = num_fused-1;
   scan_index_type j = (min_j + max_j + 1) / 2;
@@ -115,6 +119,24 @@ __global__ void triad_parted_fused_scan_aos(scan_index_type* first_blocks, scan_
     j = (min_j + max_j + 1) / 2;
     first_block = first_blocks[j];
   }
+#elif 1
+  __shared__ scan_index_type s_j;
+  __shared__ scan_index_type s_first_block;
+  for (scan_index_type j = threadIdx.x; j < num_fused; j += block_size) {
+    scan_index_type first_block = first_blocks[j];
+    if (first_block <= blockIdx.x) {
+      if (j+1 == num_fused || first_blocks[j+1] > blockIdx.x) {
+        s_j = j;
+        s_first_block = first_block;
+      }
+    } else {
+      break;
+    }
+  }
+  __syncthreads();
+  scan_index_type j = s_j;
+  scan_index_type first_block = s_first_block;
+#endif
 
   Index_type len    = triad_holders[j].len;
   Real_ptr   a      = triad_holders[j].a;
