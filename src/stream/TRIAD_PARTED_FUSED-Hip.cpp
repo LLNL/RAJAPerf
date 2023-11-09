@@ -29,20 +29,20 @@ namespace stream
   Real_ptr*   c_ptrs; \
   Real_type*  alpha_ptrs; \
   Index_type* ibegin_ptrs; \
-  allocData(DataSpace::HipPinnedCoarse, len_ptrs, parts.size()-1); \
-  allocData(DataSpace::HipPinnedCoarse, a_ptrs, parts.size()-1); \
-  allocData(DataSpace::HipPinnedCoarse, b_ptrs, parts.size()-1); \
-  allocData(DataSpace::HipPinnedCoarse, c_ptrs, parts.size()-1); \
-  allocData(DataSpace::HipPinnedCoarse, alpha_ptrs, parts.size()-1); \
-  allocData(DataSpace::HipPinnedCoarse, ibegin_ptrs, parts.size()-1);
+  allocData(DataSpace::HipDevice, len_ptrs, parts.size()-1); \
+  allocData(DataSpace::HipDevice, a_ptrs, parts.size()-1); \
+  allocData(DataSpace::HipDevice, b_ptrs, parts.size()-1); \
+  allocData(DataSpace::HipDevice, c_ptrs, parts.size()-1); \
+  allocData(DataSpace::HipDevice, alpha_ptrs, parts.size()-1); \
+  allocData(DataSpace::HipDevice, ibegin_ptrs, parts.size()-1);
 
 #define TRIAD_PARTED_FUSED_MANUAL_FUSER_SOA_TEARDOWN_HIP \
-  deallocData(DataSpace::HipPinnedCoarse, len_ptrs); \
-  deallocData(DataSpace::HipPinnedCoarse, a_ptrs); \
-  deallocData(DataSpace::HipPinnedCoarse, b_ptrs); \
-  deallocData(DataSpace::HipPinnedCoarse, c_ptrs); \
-  deallocData(DataSpace::HipPinnedCoarse, alpha_ptrs); \
-  deallocData(DataSpace::HipPinnedCoarse, ibegin_ptrs);
+  deallocData(DataSpace::HipDevice, len_ptrs); \
+  deallocData(DataSpace::HipDevice, a_ptrs); \
+  deallocData(DataSpace::HipDevice, b_ptrs); \
+  deallocData(DataSpace::HipDevice, c_ptrs); \
+  deallocData(DataSpace::HipDevice, alpha_ptrs); \
+  deallocData(DataSpace::HipDevice, ibegin_ptrs);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -70,10 +70,10 @@ __global__ void triad_parted_fused_soa(Index_type* len_ptrs, Real_ptr* a_ptrs,
 
 #define TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_SETUP_HIP(num_holders) \
   triad_holder* triad_holders; \
-  allocData(DataSpace::HipPinnedCoarse, triad_holders, (num_holders));
+  allocData(DataSpace::HipDevice, triad_holders, (num_holders));
 
 #define TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_TEARDOWN_HIP \
-  deallocData(DataSpace::HipPinnedCoarse, triad_holders);
+  deallocData(DataSpace::HipDevice, triad_holders);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -589,7 +589,7 @@ void TRIAD_PARTED_FUSED::runHipVariantScanAOSReuse(VariantID vid)
     const size_t num_holders = parts.size()-1;
     TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_SETUP_HIP(num_holders)
     scan_index_type* first_blocks;
-    allocData(DataSpace::HipPinnedCoarse, first_blocks, (num_holders));
+    allocData(DataSpace::HipDevice, first_blocks, (num_holders));
 
     Index_type num_fused = 0;
     scan_index_type num_blocks = 0;
@@ -619,7 +619,7 @@ void TRIAD_PARTED_FUSED::runHipVariantScanAOSReuse(VariantID vid)
     }
     stopTimer();
 
-    deallocData(DataSpace::HipPinnedCoarse, first_blocks);
+    deallocData(DataSpace::HipDevice, first_blocks);
     TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_TEARDOWN_HIP
 
   } else {
