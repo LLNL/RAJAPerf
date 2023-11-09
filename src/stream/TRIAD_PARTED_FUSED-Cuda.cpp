@@ -29,20 +29,20 @@ namespace stream
   Real_ptr*   c_ptrs; \
   Real_type*  alpha_ptrs; \
   Index_type* ibegin_ptrs; \
-  allocData(DataSpace::CudaPinned, len_ptrs, parts.size()-1); \
-  allocData(DataSpace::CudaPinned, a_ptrs, parts.size()-1); \
-  allocData(DataSpace::CudaPinned, b_ptrs, parts.size()-1); \
-  allocData(DataSpace::CudaPinned, c_ptrs, parts.size()-1); \
-  allocData(DataSpace::CudaPinned, alpha_ptrs, parts.size()-1); \
-  allocData(DataSpace::CudaPinned, ibegin_ptrs, parts.size()-1);
+  allocData(DataSpace::CudaManagedDevicePreferredHostAccessed, len_ptrs, parts.size()-1); \
+  allocData(DataSpace::CudaManagedDevicePreferredHostAccessed, a_ptrs, parts.size()-1); \
+  allocData(DataSpace::CudaManagedDevicePreferredHostAccessed, b_ptrs, parts.size()-1); \
+  allocData(DataSpace::CudaManagedDevicePreferredHostAccessed, c_ptrs, parts.size()-1); \
+  allocData(DataSpace::CudaManagedDevicePreferredHostAccessed, alpha_ptrs, parts.size()-1); \
+  allocData(DataSpace::CudaManagedDevicePreferredHostAccessed, ibegin_ptrs, parts.size()-1);
 
 #define TRIAD_PARTED_FUSED_MANUAL_FUSER_SOA_TEARDOWN_CUDA \
-  deallocData(DataSpace::CudaPinned, len_ptrs); \
-  deallocData(DataSpace::CudaPinned, a_ptrs); \
-  deallocData(DataSpace::CudaPinned, b_ptrs); \
-  deallocData(DataSpace::CudaPinned, c_ptrs); \
-  deallocData(DataSpace::CudaPinned, alpha_ptrs); \
-  deallocData(DataSpace::CudaPinned, ibegin_ptrs);
+  deallocData(DataSpace::CudaManagedDevicePreferredHostAccessed, len_ptrs); \
+  deallocData(DataSpace::CudaManagedDevicePreferredHostAccessed, a_ptrs); \
+  deallocData(DataSpace::CudaManagedDevicePreferredHostAccessed, b_ptrs); \
+  deallocData(DataSpace::CudaManagedDevicePreferredHostAccessed, c_ptrs); \
+  deallocData(DataSpace::CudaManagedDevicePreferredHostAccessed, alpha_ptrs); \
+  deallocData(DataSpace::CudaManagedDevicePreferredHostAccessed, ibegin_ptrs);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -70,10 +70,10 @@ __global__ void triad_parted_fused_soa(Index_type* len_ptrs, Real_ptr* a_ptrs,
 
 #define TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_SETUP_CUDA(num_holders) \
   triad_holder* triad_holders; \
-  allocData(DataSpace::CudaPinned, triad_holders, (num_holders));
+  allocData(DataSpace::CudaManagedDevicePreferredHostAccessed, triad_holders, (num_holders));
 
 #define TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_TEARDOWN_CUDA \
-  deallocData(DataSpace::CudaPinned, triad_holders);
+  deallocData(DataSpace::CudaManagedDevicePreferredHostAccessed, triad_holders);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -589,7 +589,7 @@ void TRIAD_PARTED_FUSED::runCudaVariantScanAOSReuse(VariantID vid)
     const size_t num_holders = parts.size()-1;
     TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_SETUP_CUDA(num_holders)
     scan_index_type* first_blocks;
-    allocData(DataSpace::CudaPinned, first_blocks, (num_holders));
+    allocData(DataSpace::CudaManagedDevicePreferredHostAccessed, first_blocks, (num_holders));
 
     Index_type num_fused = 0;
     scan_index_type num_blocks = 0;
@@ -619,7 +619,7 @@ void TRIAD_PARTED_FUSED::runCudaVariantScanAOSReuse(VariantID vid)
     }
     stopTimer();
 
-    deallocData(DataSpace::CudaPinned, first_blocks);
+    deallocData(DataSpace::CudaManagedDevicePreferredHostAccessed, first_blocks);
     TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_TEARDOWN_CUDA
 
   } else {
