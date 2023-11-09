@@ -66,7 +66,7 @@ class RunParams;
 namespace stream
 {
 
-struct triad_holder {
+struct alignas(2*alignof(void*)) triad_holder {
   Index_type len;
   Real_ptr a;
   Real_ptr b;
