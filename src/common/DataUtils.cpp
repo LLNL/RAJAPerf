@@ -72,6 +72,10 @@ bool isCudaDataSpace(DataSpace dataSpace)
   switch (dataSpace) {
     case DataSpace::CudaPinned:
     case DataSpace::CudaManaged:
+    case DataSpace::CudaManagedHostPreferred:
+    case DataSpace::CudaManagedDevicePreferred:
+    case DataSpace::CudaManagedHostPreferredDeviceAccessed:
+    case DataSpace::CudaManagedDevicePreferredHostAccessed:
     case DataSpace::CudaDevice:
       return true;
     default:
@@ -185,6 +189,22 @@ void* allocData(DataSpace dataSpace, Size_type nbytes, Size_type align)
     case DataSpace::CudaManaged:
     {
       ptr = detail::allocCudaManagedData(nbytes);
+    } break;
+    case DataSpace::CudaManagedHostPreferred:
+    {
+      ptr = detail::allocCudaManagedHostPreferredData(nbytes);
+    } break;
+    case DataSpace::CudaManagedDevicePreferred:
+    {
+      ptr = detail::allocCudaManagedDevicePreferredData(nbytes);
+    } break;
+    case DataSpace::CudaManagedHostPreferredDeviceAccessed:
+    {
+      ptr = detail::allocCudaManagedHostPreferredDeviceAccessedData(nbytes);
+    } break;
+    case DataSpace::CudaManagedDevicePreferredHostAccessed:
+    {
+      ptr = detail::allocCudaManagedDevicePreferredHostAccessedData(nbytes);
     } break;
     case DataSpace::CudaDevice:
     {
@@ -328,6 +348,22 @@ void deallocData(DataSpace dataSpace, void* ptr)
     case DataSpace::CudaManaged:
     {
       detail::deallocCudaManagedData(ptr);
+    } break;
+    case DataSpace::CudaManagedHostPreferred:
+    {
+      detail::deallocCudaManagedHostPreferredData(ptr);
+    } break;
+    case DataSpace::CudaManagedDevicePreferred:
+    {
+      detail::deallocCudaManagedDevicePreferredData(ptr);
+    } break;
+    case DataSpace::CudaManagedHostPreferredDeviceAccessed:
+    {
+      detail::deallocCudaManagedHostPreferredDeviceAccessedData(ptr);
+    } break;
+    case DataSpace::CudaManagedDevicePreferredHostAccessed:
+    {
+      detail::deallocCudaManagedDevicePreferredHostAccessedData(ptr);
     } break;
     case DataSpace::CudaDevice:
     {
@@ -581,9 +617,13 @@ DataSpace hostAccessibleDataSpace(DataSpace dataSpace)
       return DataSpace::Host;
 
     case DataSpace::CudaManaged:
+    case DataSpace::CudaManagedDevicePreferred:
+    case DataSpace::CudaManagedDevicePreferredHostAccessed:
     case DataSpace::CudaDevice:
       return DataSpace::CudaPinned;
 
+    case DataSpace::CudaManagedHostPreferred:
+    case DataSpace::CudaManagedHostPreferredDeviceAccessed:
     case DataSpace::HipManaged:
     case DataSpace::HipManagedAdviseFine:
     case DataSpace::HipManagedAdviseCoarse:
