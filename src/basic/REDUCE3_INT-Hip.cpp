@@ -89,7 +89,7 @@ void REDUCE3_INT::runHipVariantBlock(VariantID vid)
   if ( vid == Base_HIP ) {
 
     Int_ptr vmem_init;
-    allocData(DataSpace::HipPinned, vmem_init, 3);
+    allocData(DataSpace::HipPinnedCoarse, vmem_init, 3);
 
     Int_ptr vmem;
     allocData(DataSpace::HipDevice, vmem, 3);
@@ -125,7 +125,7 @@ void REDUCE3_INT::runHipVariantBlock(VariantID vid)
     stopTimer();
 
     deallocData(DataSpace::HipDevice, vmem);
-    deallocData(DataSpace::HipPinned, vmem_init);
+    deallocData(DataSpace::HipPinnedCoarse, vmem_init);
 
   } else if ( vid == RAJA_HIP ) {
 
@@ -167,7 +167,7 @@ void REDUCE3_INT::runHipVariantOccGS(VariantID vid)
   if ( vid == Base_HIP ) {
 
     Int_ptr vmem_init;
-    allocData(DataSpace::HipPinned, vmem_init, 3);
+    allocData(DataSpace::HipPinnedCoarse, vmem_init, 3);
 
     Int_ptr vmem;
     allocData(DataSpace::HipDevice, vmem, 3);
@@ -208,7 +208,7 @@ void REDUCE3_INT::runHipVariantOccGS(VariantID vid)
     stopTimer();
 
     deallocData(DataSpace::HipDevice, vmem);
-    deallocData(DataSpace::HipPinned, vmem_init);
+    deallocData(DataSpace::HipPinnedCoarse, vmem_init);
 
   } else if ( vid == RAJA_HIP ) {
 
