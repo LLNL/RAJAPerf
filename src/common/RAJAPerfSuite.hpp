@@ -269,6 +269,10 @@ enum struct DataSpace {
 
   CudaPinned,
   CudaManaged,
+  CudaManagedHostPreferred,
+  CudaManagedDevicePreferred,
+  CudaManagedHostPreferredDeviceAccessed,
+  CudaManagedDevicePreferredHostAccessed,
   CudaDevice,
 
   HipHostAdviseFine,
