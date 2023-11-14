@@ -111,12 +111,12 @@ RUN . /opt/spack/share/spack/setup-env.sh && \
 ##    make -j 6 && \
 ##    cd .. && rm -rf build
 
-FROM ghcr.io/rse-ops/intel-ubuntu-22.04:intel-2023.2.1 AS sycl
+FROM ghcr.io/rse-ops/intel-ubuntu-23.04:intel-2023.2.1 AS sycl
 ENV GTEST_COLOR=1
 COPY . /home/raja/workspace
 WORKDIR /home/raja/workspace/build
 RUN /bin/bash -c "source /opt/view/setvars.sh && \
-    cmake -DCMAKE_CXX_COMPILER=icpx -DCMAKE_CXX_FLAGS="-fsycl" -DRAJA_ENABLE_SYCL=On -DENABLE_OPENMP=Off -DENABLE_ALL_WARNINGS=Off -DBLT_CXX_STD=c++17 .. && \
+    cmake -DCMAKE_CXX_COMPILER=dpcpp -DRAJA_ENABLE_SYCL=On -DENABLE_OPENMP=Off -DENABLE_ALL_WARNINGS=Off -DBLT_CXX_STD=c++17 -DENABLE_TESTS .. && \
     make -j 6 &&\
     ctest -T test --output-on-failure" && \
     cd .. && rm -rf build
