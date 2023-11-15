@@ -369,6 +369,10 @@ static const std::string DataSpaceNames [] =
 
   std::string("CudaPinned"),
   std::string("CudaManaged"),
+  std::string("CudaManagedHostPreferred"),
+  std::string("CudaManagedDevicePreferred"),
+  std::string("CudaManagedHostPreferredDeviceAccessed"),
+  std::string("CudaManagedDevicePreferredHostAccessed"),
   std::string("CudaDevice"),
 
   std::string("HipHostAdviseFine"),
@@ -620,6 +624,10 @@ bool isDataSpaceAvailable(DataSpace dataSpace)
 #if defined(RAJA_ENABLE_CUDA)
     case DataSpace::CudaPinned:
     case DataSpace::CudaManaged:
+    case DataSpace::CudaManagedHostPreferred:
+    case DataSpace::CudaManagedDevicePreferred:
+    case DataSpace::CudaManagedHostPreferredDeviceAccessed:
+    case DataSpace::CudaManagedDevicePreferredHostAccessed:
     case DataSpace::CudaDevice:
       ret_val = true; break;
 #endif

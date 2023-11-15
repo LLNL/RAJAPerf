@@ -131,7 +131,7 @@ inline void copyCudaData(void* dst_ptr, const void* src_ptr, Size_type len)
 }
 
 /*!
- * \brief Allocate CUDA device data array (dptr).
+ * \brief Allocate CUDA device data array.
  */
 inline void* allocCudaDeviceData(Size_type len)
 {
@@ -141,7 +141,7 @@ inline void* allocCudaDeviceData(Size_type len)
 }
 
 /*!
- * \brief Allocate CUDA managed data array (dptr).
+ * \brief Allocate CUDA managed data array.
  */
 inline void* allocCudaManagedData(Size_type len)
 {
@@ -151,7 +151,53 @@ inline void* allocCudaManagedData(Size_type len)
 }
 
 /*!
- * \brief Allocate CUDA pinned data array (pptr).
+ * \brief Allocate CUDA managed host preferred data array.
+ */
+inline void* allocCudaManagedHostPreferredData(Size_type len)
+{
+  void* mptr = nullptr;
+  cudaErrchk( cudaMallocManaged( &mptr, len, cudaMemAttachGlobal ) );
+  cudaErrchk( cudaMemAdvise( mptr, len, cudaMemAdviseSetPreferredLocation, cudaCpuDeviceId ) );
+  return mptr;
+}
+
+/*!
+ * \brief Allocate CUDA managed device preferred data array.
+ */
+inline void* allocCudaManagedDevicePreferredData(Size_type len)
+{
+  void* mptr = nullptr;
+  cudaErrchk( cudaMallocManaged( &mptr, len, cudaMemAttachGlobal ) );
+  cudaErrchk( cudaMemAdvise( mptr, len, cudaMemAdviseSetPreferredLocation, getCudaDevice() ) );
+  return mptr;
+}
+
+/*!
+ * \brief Allocate CUDA managed host preferred host accessed data array.
+ */
+inline void* allocCudaManagedHostPreferredDeviceAccessedData(Size_type len)
+{
+  void* mptr = nullptr;
+  cudaErrchk( cudaMallocManaged( &mptr, len, cudaMemAttachGlobal ) );
+  cudaErrchk( cudaMemAdvise( mptr, len, cudaMemAdviseSetPreferredLocation, cudaCpuDeviceId ) );
+  cudaErrchk( cudaMemAdvise( mptr, len, cudaMemAdviseSetAccessedBy, getCudaDevice() ) );
+  return mptr;
+}
+
+/*!
+ * \brief Allocate CUDA managed device preferred host accessed data array.
+ */
+inline void* allocCudaManagedDevicePreferredHostAccessedData(Size_type len)
+{
+  void* mptr = nullptr;
+  cudaErrchk( cudaMallocManaged( &mptr, len, cudaMemAttachGlobal ) );
+  cudaErrchk( cudaMemAdvise( mptr, len, cudaMemAdviseSetPreferredLocation, getCudaDevice() ) );
+  cudaErrchk( cudaMemAdvise( mptr, len, cudaMemAdviseSetAccessedBy, cudaCpuDeviceId ) );
+  return mptr;
+}
+
+/*!
+ * \brief Allocate CUDA pinned data array.
  */
 inline void* allocCudaPinnedData(Size_type len)
 {
@@ -162,7 +208,7 @@ inline void* allocCudaPinnedData(Size_type len)
 
 
 /*!
- * \brief Free device data array.
+ * \brief Free CUDA device data array.
  */
 inline void deallocCudaDeviceData(void* dptr)
 {
@@ -170,7 +216,7 @@ inline void deallocCudaDeviceData(void* dptr)
 }
 
 /*!
- * \brief Free managed data array.
+ * \brief Free CUDA managed data array.
  */
 inline void deallocCudaManagedData(void* mptr)
 {
@@ -178,7 +224,39 @@ inline void deallocCudaManagedData(void* mptr)
 }
 
 /*!
- * \brief Free pinned data array.
+ * \brief Free CUDA managed host preferred data array.
+ */
+inline void deallocCudaManagedHostPreferredData(void* mptr)
+{
+  cudaErrchk( cudaFree( mptr ) );
+}
+
+/*!
+ * \brief Free CUDA managed device preferred data array.
+ */
+inline void deallocCudaManagedDevicePreferredData(void* mptr)
+{
+  cudaErrchk( cudaFree( mptr ) );
+}
+
+/*!
+ * \brief Free CUDA managed host preferred host accessed data array.
+ */
+inline void deallocCudaManagedHostPreferredDeviceAccessedData(void* mptr)
+{
+  cudaErrchk( cudaFree( mptr ) );
+}
+
+/*!
+ * \brief Free CUDA managed device preferred host accessed data array.
+ */
+inline void deallocCudaManagedDevicePreferredHostAccessedData(void* mptr)
+{
+  cudaErrchk( cudaFree( mptr ) );
+}
+
+/*!
+ * \brief Free CUDA pinned data array.
  */
 inline void deallocCudaPinnedData(void* pptr)
 {

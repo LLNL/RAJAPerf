@@ -257,7 +257,7 @@ void INDEXLIST::runHipVariantImpl(VariantID vid)
     const size_t shmem_size = 0;
 
     Index_type* len;
-    allocData(DataSpace::HipPinned, len, 1);
+    allocData(DataSpace::HipPinnedCoarse, len, 1);
     Index_type* block_counts;
     allocData(DataSpace::HipDevice, block_counts, grid_size);
     Index_type* grid_counts;
@@ -282,7 +282,7 @@ void INDEXLIST::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    deallocData(DataSpace::HipPinned, len);
+    deallocData(DataSpace::HipPinnedCoarse, len);
     deallocData(DataSpace::HipDevice, block_counts);
     deallocData(DataSpace::HipDevice, grid_counts);
     deallocData(DataSpace::HipDevice, block_readys);

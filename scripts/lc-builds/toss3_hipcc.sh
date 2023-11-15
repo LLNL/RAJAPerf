@@ -7,7 +7,7 @@
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
 
-if [[ $# -ne 2 ]]; then
+if [[ $# -lt 2 ]]; then
   echo
   echo "You must pass 2 arguments to the script (in this order): "
   echo "   1) compiler version number"

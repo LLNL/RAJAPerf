@@ -29,10 +29,15 @@ xl_2022_08_19_gcc_8_3_1_cuda_11_2_0:
 # ${PROJECT_<MACHINE>_DEPS} in the extra jobs. There is no reason not to fully
 # describe the spec here.
 
+gcc_8_3_1:
+  variables:
+    SPEC: " ~shared +openmp %gcc@8.3.1 ^blt@git.a7f0a6ecc4fdfa1724399b1454c3909b9ee02e81=develop"
+  extends: .job_on_lassen
+
 gcc_8_3_1_cuda_11_5_0_ats_disabled:
   extends: .job_on_lassen
   variables:
-    SPEC: " +openmp +cuda %gcc@8.3.1 cuda_arch=70 ^cuda@11.5.0+allow-unsupported-compilers"
+    SPEC: " ~shared +openmp +cuda %gcc@8.3.1 cuda_arch=70 ^cuda@11.5.0+allow-unsupported-compilers ^blt@git.a7f0a6ecc4fdfa1724399b1454c3909b9ee02e81=develop"
     MODULE_LIST: "cuda/11.5.0"
     LASSEN_JOB_ALLOC: "1 --atsdisable -W 30"
 
@@ -42,7 +47,7 @@ gcc_8_3_1_cuda_11_5_0_ats_disabled:
 
 clang_13_0_1_libcpp:
   variables:
-    SPEC: " ~shared +openmp %clang@13.0.1 cflags==\"-DGTEST_HAS_CXXABI_H_=0\" cxxflags==\"-stdlib=libc++ -DGTEST_HAS_CXXABI_H_=0\""
+    SPEC: " ~shared +openmp %clang@13.0.1 cflags==\"-DGTEST_HAS_CXXABI_H_=0\" cxxflags==\"-stdlib=libc++ -DGTEST_HAS_CXXABI_H_=0\" ^blt@git.a7f0a6ecc4fdfa1724399b1454c3909b9ee02e81=develop"
   extends: .job_on_lassen
 
 #clang_14_0_5_asan:
