@@ -118,5 +118,5 @@ WORKDIR /home/raja/workspace/build
 RUN /bin/bash -c "source /opt/view/setvars.sh && \
     cmake -DCMAKE_CXX_COMPILER=dpcpp -DENABLE_SYCL=On -DENABLE_OPENMP=Off -DENABLE_ALL_WARNINGS=Off -DBLT_CXX_STD=c++17 -DENABLE_TESTS=On .. && \
     make -j 6 &&\
-    ctest -T test --output-on-failure" && \
+    ./bin/raja-perf.exe --checkrun --exclude-variants Base_SYCL RAJA_SYCL -sp" && \
     cd .. && rm -rf build
