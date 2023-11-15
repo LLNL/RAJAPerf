@@ -10,7 +10,9 @@
 #include "CudaDataUtils.hpp"
 #include "HipDataUtils.hpp"
 #include "OpenMPTargetDataUtils.hpp"
+#include "SyclDataUtils.hpp"
 
+#include "KernelBase.hpp"
 
 #include "RAJA/internal/MemUtils_CPU.hpp"
 
@@ -99,6 +101,21 @@ bool isHipDataSpace(DataSpace dataSpace)
     case DataSpace::HipManagedAdviseCoarse:
     case DataSpace::HipDevice:
     case DataSpace::HipDeviceFine:
+      return true;
+    default:
+      return false;
+  }
+}
+
+/*!
+ * \brief Get if the data space is a sycl DataSpace.
+ */
+bool isSyclDataSpace(DataSpace dataSpace)
+{
+  switch (dataSpace) {
+//    case DataSpace::SyclPinned:
+    case DataSpace::SyclManaged:
+    case DataSpace::SyclDevice:
       return true;
     default:
       return false;
@@ -262,6 +279,23 @@ void* allocData(DataSpace dataSpace, Size_type nbytes, Size_type align)
       ptr = detail::allocHipDeviceFineData(nbytes);
     } break;
 #endif
+#if defined(RAJA_ENABLE_SYCL)
+//    case DataSpace::SyclPinned:
+//    {
+//      ptr = detail::allocSyclPinnedData(nbytes);
+//    } break;
+    case DataSpace::SyclManaged:
+    {
+      auto qu = camp::resources::Sycl::get_default().get_queue();
+      ptr = detail::allocSyclManagedData(nbytes, qu);
+    } break;
+    case DataSpace::SyclDevice:
+    {
+      auto qu = camp::resources::Sycl::get_default().get_queue();
+      ptr = detail::allocSyclDeviceData(nbytes, qu);
+    } break;
+#endif
+
 
     default:
     {

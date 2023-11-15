@@ -133,7 +133,7 @@ void IF_QUAD::runSyclVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(IF_QUAD, Sycl)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(IF_QUAD, Sycl)
 
 } // end namespace basic
 } // end namespace rajaperf

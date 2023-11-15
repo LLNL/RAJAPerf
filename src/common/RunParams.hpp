@@ -140,6 +140,7 @@ public:
   DataSpace getCudaDataSpace() const { return cudaDataSpace; }
   DataSpace getHipDataSpace() const { return hipDataSpace; }
   DataSpace getKokkosDataSpace() const { return kokkosDataSpace; }
+  DataSpace getSyclDataSpace() const { return syclDataSpace; }
 
   double getPFTolerance() const { return pf_tol; }
 
@@ -232,6 +233,7 @@ private:
   DataSpace cudaDataSpace = DataSpace::CudaDevice;
   DataSpace hipDataSpace = DataSpace::HipDevice;
   DataSpace kokkosDataSpace = DataSpace::Host;
+  DataSpace syclDataSpace = DataSpace::SyclDevice;
 
   //
   // Arrays to hold input strings for valid/invalid input. Helpful for

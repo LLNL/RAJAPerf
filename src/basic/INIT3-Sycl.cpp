@@ -131,7 +131,7 @@ void INIT3::runSyclVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(INIT3, Sycl)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(INIT3, Sycl)
 
 } // end namespace basic
 } // end namespace rajaperf

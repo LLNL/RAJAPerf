@@ -131,7 +131,7 @@ void MULADDSUB::runSyclVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(MULADDSUB, Sycl)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(MULADDSUB, Sycl)
 
 } // end namespace basic
 } // end namespace rajaperf

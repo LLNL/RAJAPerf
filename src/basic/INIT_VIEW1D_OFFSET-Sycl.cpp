@@ -121,7 +121,7 @@ void INIT_VIEW1D_OFFSET::runSyclVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(INIT_VIEW1D_OFFSET, Sycl)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(INIT_VIEW1D_OFFSET, Sycl)
 
 } // end namespace basic
 } // end namespace rajaperf

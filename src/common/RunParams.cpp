@@ -143,6 +143,7 @@ void RunParams::print(std::ostream& str) const
   str << "\n cuda data space = " << getDataSpaceName(cudaDataSpace);
   str << "\n hip data space = " << getDataSpaceName(hipDataSpace);
   str << "\n kokkos data space = " << getDataSpaceName(kokkosDataSpace);
+  str << "\n sycl data space = " << getDataSpaceName(syclDataSpace);
 
   str << "\n kernel_input = ";
   for (size_t j = 0; j < kernel_input.size(); ++j) {
@@ -529,7 +530,9 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
                 opt == std::string("--hip-data-space") ||
                 opt == std::string("-hds") ||
                 opt == std::string("--kokkos-data-space") ||
-                opt == std::string("-kds") ) {
+                opt == std::string("-kds") ||
+		opt == std::string("--sycl-data-space") ||
+                opt == std::string("-syds")) {
 
       bool got_someting = false;
       bool got_something_available = false;
@@ -563,6 +566,9 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
               } else if ( opt_name == std::string("--kokkos-data-space") ||
                           opt_name == std::string("-kds") ) {
                 kokkosDataSpace = ds;
+              } else if ( opt_name == std::string("--sycl-data-space") ||
+                          opt_name == std::string("-syds") ) {
+                cudaDataSpace = ds;
               } else {
                 got_someting = false;
               }

@@ -368,6 +368,9 @@ static const std::string DataSpaceNames [] =
   std::string("HipDevice"),
   std::string("HipDeviceFine"),
 
+  std::string("SyclManaged"),
+  std::string("SyclDevice"),
+
   std::string("Unknown Memory")  // Keep this at the end and DO NOT remove....
 
 }; // END VariantNames
@@ -639,6 +642,13 @@ bool isDataSpaceAvailable(DataSpace dataSpace)
 #endif
     case DataSpace::HipDevice:
     case DataSpace::HipDeviceFine:
+      ret_val = true; break;
+#endif
+
+#if defined(RAJA_ENABLE_SYCL)
+//    case DataSpace::CudaPinned:
+    case DataSpace::SyclManaged:
+    case DataSpace::SyclDevice:
       ret_val = true; break;
 #endif
 

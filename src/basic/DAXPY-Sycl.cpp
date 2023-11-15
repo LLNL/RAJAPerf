@@ -28,11 +28,11 @@ namespace rajaperf
 namespace basic
 {
 
-#define DAXPY_DATA_SETUP_SYCL \
+//#define DAXPY_DATA_SETUP_SYCL \
   allocAndInitSyclDeviceData(x, m_x, iend, qu); \
   allocAndInitSyclDeviceData(y, m_y, iend, qu);
 
-#define DAXPY_DATA_TEARDOWN_SYCL \
+//#define DAXPY_DATA_TEARDOWN_SYCL \
   getSyclDeviceData(m_y, y, iend, qu); \
   deallocSyclDeviceData(x, qu); \
   deallocSyclDeviceData(y, qu);
@@ -44,12 +44,14 @@ void DAXPY::runSyclVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getSyclResource()};
+
   DAXPY_DATA_SETUP;
 
   if ( vid == Base_SYCL ) {
     if (work_group_size > 0) {
 
-      DAXPY_DATA_SETUP_SYCL;
+//      DAXPY_DATA_SETUP_SYCL;
   
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -72,10 +74,10 @@ void DAXPY::runSyclVariantImpl(VariantID vid)
 
       stopTimer();
 
-      DAXPY_DATA_TEARDOWN_SYCL;
+//      DAXPY_DATA_TEARDOWN_SYCL;
     } else {
 
-      DAXPY_DATA_SETUP_SYCL;
+//      DAXPY_DATA_SETUP_SYCL;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -94,7 +96,7 @@ void DAXPY::runSyclVariantImpl(VariantID vid)
 
       stopTimer();
 
-      DAXPY_DATA_TEARDOWN_SYCL;
+//      DAXPY_DATA_TEARDOWN_SYCL;
     }
 
   } else if ( vid == RAJA_SYCL ) {
@@ -104,7 +106,7 @@ void DAXPY::runSyclVariantImpl(VariantID vid)
       return;
     }
 
-    DAXPY_DATA_SETUP_SYCL;
+//    DAXPY_DATA_SETUP_SYCL;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -118,17 +120,17 @@ void DAXPY::runSyclVariantImpl(VariantID vid)
     qu->wait();
     stopTimer();
 
-    DAXPY_DATA_TEARDOWN_SYCL;
+//    DAXPY_DATA_TEARDOWN_SYCL;
 
   } else {
      std::cout << "\n  DAXPY : Unknown Sycl variant id = " << vid << std::endl;
   }
 
 }
-
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(DAXPY, Sycl)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(DAXPY, Sycl)
 
 } // end namespace basic
 } // end namespace rajaperf
+
 
 #endif  // RAJA_ENABLE_SYCL

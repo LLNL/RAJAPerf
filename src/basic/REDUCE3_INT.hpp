@@ -84,6 +84,8 @@ public:
   void runHipVariantBlock(VariantID vid);
   template < size_t block_size >
   void runHipVariantOccGS(VariantID vid);
+  template < size_t block_size > 
+  void runSyclVariantImpl(VariantID vid);
 
 private:
   static const size_t default_gpu_block_size = 256;

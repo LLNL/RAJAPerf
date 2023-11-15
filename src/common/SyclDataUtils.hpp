@@ -39,7 +39,7 @@ void initSyclDeviceData(T& dptr, const T hptr, int len, sycl::queue* qu)
                        len * sizeof(typename std::remove_pointer<T>::type));
   e.wait();
 
-  incDataInitCount();
+  detail::incDataInitCount();
 }
 
 /*!
@@ -78,6 +78,66 @@ void deallocSyclDeviceData(T& dptr, sycl::queue *qu)
   dptr = 0;
 }
 
+namespace detail
+{
+/*
+ * Copy memory len bytes from src to dst.
+ */
+inline void copySyclData(void* dst_ptr, const void* src_ptr, Size_type len, sycl::queue *qu)
+{
+  auto e = qu->memcpy( dst_ptr, src_ptr, len);
+}
+
+/*!
+ * \brief Allocate SYCL device data array (dptr).
+ */
+inline void* allocSyclDeviceData(Size_type len, sycl::queue *qu)
+{
+  void* dptr = nullptr;
+  dptr = sycl::malloc_device(len, *qu);
+  return dptr;
+}
+
+/*!
+ * \brief Allocate SYCL managed data array (dptr).
+ */
+inline void* allocSyclManagedData(Size_type len, sycl::queue *qu)
+{
+  void* mptr = nullptr;
+  mptr = sycl::malloc_shared(len, *qu);
+  return mptr;
+}
+
+/*!
+ * \brief Allocate SYCL pinned data array (pptr).
+ *//*
+inline void* allocSyclPinnedData(Size_type len)
+{
+  void* pptr = nullptr;
+  cudaErrchk( cudaHostAlloc( &pptr, len, cudaHostAllocMapped ) );
+  return pptr;
+}
+*/
+
+/*!
+ * \brief Free device data array.
+ */
+inline void deallocSyclDeviceData(void* dptr, sycl::queue *qu)
+{
+  sycl::free(dptr, *qu);
+  dptr = 0;
+}
+
+/*!
+ * \brief Free managed data array.
+ */
+inline void deallocSyclManagedData(void* dptr, sycl::queue *qu)
+{
+  sycl::free(dptr, *qu);
+  dptr = 0;
+}
+
+}  // closing brace for detail namespac
 
 }  // closing brace for rajaperf namespace
 

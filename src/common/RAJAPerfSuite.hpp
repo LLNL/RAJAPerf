@@ -286,6 +286,9 @@ enum struct DataSpace {
   HipDevice,
   HipDeviceFine,
 
+  SyclManaged,
+  SyclDevice,
+
   NumSpaces // Keep this one last and NEVER comment out (!!)
 
 };

@@ -142,7 +142,7 @@ void NESTED_INIT::runSyclVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(NESTED_INIT, Sycl)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(NESTED_INIT, Sycl)
 
 } // end namespace basic
 } // end namespace rajaperf

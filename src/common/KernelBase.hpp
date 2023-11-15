@@ -249,6 +249,15 @@ public:
     return camp::resources::Hip::get_default();
   }
 #endif
+#if defined(RAJA_ENABLE_SYCL)
+  camp::resources::Sycl getSyclResource()
+  {
+/*    if (run_params.getGPUStream() == 0) {
+      return camp::resources::Cuda::CudaFromStream(0);
+    }*/
+    return camp::resources::Sycl::get_default();
+  }
+#endif
 
   void synchronize()
   {
@@ -266,6 +275,13 @@ public:
       hipErrchk( hipDeviceSynchronize() );
     }
 #endif
+#if defined(RAJA_ENABLE_SYCL)
+    if ( running_variant == Base_SYCL ||
+         running_variant == RAJA_SYCL ) {
+      getSyclResource().wait();
+    }
+#endif
+
   }
 
   Size_type getDataAlignment() const;
