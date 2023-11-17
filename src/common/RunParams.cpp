@@ -568,7 +568,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
                 kokkosDataSpace = ds;
               } else if ( opt_name == std::string("--sycl-data-space") ||
                           opt_name == std::string("-syds") ) {
-                cudaDataSpace = ds;
+                syclDataSpace = ds;
               } else {
                 got_someting = false;
               }
