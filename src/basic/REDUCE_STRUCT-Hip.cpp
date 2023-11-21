@@ -85,7 +85,6 @@ __global__ void reduce_struct(Real_ptr x, Real_ptr y,
      __syncthreads();
   }
 
-// serialized access to shared data;
   if ( threadIdx.x == 0 ) {
     RAJA::atomicAdd<RAJA::hip_atomic>( xsum, pxsum[ 0 ] );
     RAJA::atomicMin<RAJA::hip_atomic>( xmin, pxmin[ 0 ] );

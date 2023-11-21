@@ -58,19 +58,11 @@ __global__ void reduce3int(Int_ptr vec,
      __syncthreads();
   }
 
-#if 1 // serialized access to shared data;
   if ( threadIdx.x == 0 ) {
     RAJA::atomicAdd<RAJA::hip_atomic>( vsum, psum[ 0 ] );
     RAJA::atomicMin<RAJA::hip_atomic>( vmin, pmin[ 0 ] );
     RAJA::atomicMax<RAJA::hip_atomic>( vmax, pmax[ 0 ] );
   }
-#else // this doesn't work due to data races
-  if ( threadIdx.x == 0 ) {
-    *vsum += psum[ 0 ];
-    *vmin = RAJA_MIN( *vmin, pmin[ 0 ] );
-    *vmax = RAJA_MAX( *vmax, pmax[ 0 ] );
-  }
-#endif
 }
 
 

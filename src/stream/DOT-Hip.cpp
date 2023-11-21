@@ -46,17 +46,9 @@ __global__ void dot(Real_ptr a, Real_ptr b,
      __syncthreads();
   }
 
-#if 1 // serialized access to shared data;
   if ( threadIdx.x == 0 ) {
-    //atomicAdd(dprod, pdot[ 0 ] );
-    RAJA::atomicAdd(RAJA::hip_atomic{}, dprod, pdot[ 0 ] );
+    RAJA::atomicAdd<RAJA::hip_atomic>( dprod, pdot[ 0 ] );
   }
-#else // this doesn't work due to data races
-  if ( threadIdx.x == 0 ) {
-    *dprod += pdot[ 0 ];
-  }
-#endif
-
 }
 
 

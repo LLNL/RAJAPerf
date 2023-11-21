@@ -47,15 +47,9 @@ __global__ void pi_reduce(Real_type dx,
      __syncthreads();
   }
 
-#if 1 // serialized access to shared data;
   if ( threadIdx.x == 0 ) {
     RAJA::atomicAdd<RAJA::cuda_atomic>( dpi, ppi[ 0 ] );
   }
-#else // this doesn't work due to data races
-  if ( threadIdx.x == 0 ) {
-    *dpi += ppi[ 0 ];
-  }
-#endif
 }
 
 
