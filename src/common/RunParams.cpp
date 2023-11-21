@@ -15,8 +15,10 @@
 #include <cmath>
 #include <iostream>
 #include <random>
+#include <algorithm>
 #include <functional>
 
+#include <vector>
 #include <list>
 #include <set>
 
