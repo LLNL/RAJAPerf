@@ -1003,6 +1003,13 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t --kokkos-data-space Host (run KOKKOS variants with Host memory)\n"
       << "\t\t -kds HipPinned (run KOKKOS variants with Hip Pinned memory)\n\n";
 
+  str << "\t --sycl-data-space, -syds <string> [Default is SyclDevice]\n"
+      << "\t      (names of data space to use for SYCL variants)\n"
+      << "\t      Valid data space names are 'SyclDevice', 'SyclPinned', or 'SyclManaged'\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --sycl-data-space SyclManaged (run SYCL variants with Sycl Managed memory)\n"
+      << "\t\t -syds SyclPinned (run SYCL variants with Sycl Pinned memory)\n\n";
+
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
   str << "\t --add-to-spot-config, -atsc <string> [Default is none]\n"
       << "\t\t appends additional parameters to the built-in Caliper spot config\n";
