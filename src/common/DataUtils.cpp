@@ -279,8 +279,8 @@ void copyData(DataSpace dst_dataSpace, void* dst_ptr,
               DataSpace src_dataSpace, const void* src_ptr,
               Size_type nbytes)
 {
-  if (hostAccessibleDataSpace(dst_dataSpace) == dst_dataSpace &&
-      hostAccessibleDataSpace(src_dataSpace) == src_dataSpace) {
+  if (hostBasedDataSpace(dst_dataSpace) == dst_dataSpace &&
+      hostBasedDataSpace(src_dataSpace) == src_dataSpace) {
     detail::copyHostData(dst_ptr, src_ptr, nbytes);
   }
 
@@ -598,19 +598,30 @@ long double calcChecksum(Complex_ptr ptr, Size_type len,
 
 
 /*!
- * \brief Get an host accessible data space for this dataSpace.
+ * \brief Get an host based data space for the given dataSpace.
+ *
+ * A host based data space is one that is always stored on the host.
+ *
+ * The intention is to check if the performance (bandwidth) of the given data
+ * space is good on the host. If not then fall back on a space that performs
+ * well on the host and in explicit copy operations with the given space.
  */
-DataSpace hostAccessibleDataSpace(DataSpace dataSpace)
+DataSpace hostBasedDataSpace(DataSpace dataSpace)
 {
   switch (dataSpace) {
     case DataSpace::Host:
     case DataSpace::Omp:
     case DataSpace::CudaPinned:
+    case DataSpace::CudaManagedHostPreferred:
+    case DataSpace::CudaManagedHostPreferredDeviceAccessed:
     case DataSpace::HipHostAdviseFine:
     case DataSpace::HipHostAdviseCoarse:
     case DataSpace::HipPinned:
     case DataSpace::HipPinnedFine:
     case DataSpace::HipPinnedCoarse:
+    case DataSpace::HipManaged:
+    case DataSpace::HipManagedAdviseFine:
+    case DataSpace::HipManagedAdviseCoarse:
       return dataSpace;
 
     case DataSpace::OmpTarget:
@@ -622,16 +633,54 @@ DataSpace hostAccessibleDataSpace(DataSpace dataSpace)
     case DataSpace::CudaDevice:
       return DataSpace::CudaPinned;
 
-    case DataSpace::CudaManagedHostPreferred:
-    case DataSpace::CudaManagedHostPreferredDeviceAccessed:
-    case DataSpace::HipManaged:
-    case DataSpace::HipManagedAdviseFine:
-    case DataSpace::HipManagedAdviseCoarse:
-      return dataSpace;
-
     case DataSpace::HipDevice:
     case DataSpace::HipDeviceFine:
       return DataSpace::HipPinned;
+
+    default:
+    {
+      throw std::invalid_argument("hostBasedDataSpace : Unknown data space");
+    } break;
+  }
+}
+
+/*!
+ * \brief Get an host accessible data space for the given dataSpace.
+ *
+ * A host accessible data space is one that can be accessed on the host.
+ *
+ * The intention is to check if the given memory space is accessible on the
+ * host. If not then fall back on a space that is host accessible and can be
+ * used with explicit copy operations with the given space.
+ */
+DataSpace hostAccessibleDataSpace(DataSpace dataSpace)
+{
+  switch (dataSpace) {
+    case DataSpace::Host:
+    case DataSpace::Omp:
+    case DataSpace::CudaPinned:
+    case DataSpace::CudaManaged:
+    case DataSpace::CudaManagedHostPreferred:
+    case DataSpace::CudaManagedHostPreferredDeviceAccessed:
+    case DataSpace::CudaManagedDevicePreferred:
+    case DataSpace::CudaManagedDevicePreferredHostAccessed:
+    case DataSpace::HipHostAdviseFine:
+    case DataSpace::HipHostAdviseCoarse:
+    case DataSpace::HipPinned:
+    case DataSpace::HipPinnedFine:
+    case DataSpace::HipPinnedCoarse:
+    case DataSpace::HipManaged:
+    case DataSpace::HipManagedAdviseFine:
+    case DataSpace::HipManagedAdviseCoarse:
+    case DataSpace::HipDevice:
+    case DataSpace::HipDeviceFine:
+      return dataSpace;
+
+    case DataSpace::OmpTarget:
+      return DataSpace::Host;
+
+    case DataSpace::CudaDevice:
+      return DataSpace::CudaPinned;
 
     default:
     {

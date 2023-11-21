@@ -160,10 +160,24 @@ long double calcChecksum(Complex_ptr d, Size_type len,
 
 
 /*!
- * \brief Get an host accessible data space for this dataSpace.
+ * \brief Get an host based data space for the given dataSpace.
  *
- * Intended to be a space that is quick to copy to from the given space if
- * the given space is not accessible on the Host.
+ * A host based data space is one that is always stored on the host.
+ *
+ * The intention is to check if the performance (bandwidth) of the given data
+ * space is good on the host. If not then fall back on a space that performs
+ * well on the host and in explicit copy operations with the given space.
+ */
+DataSpace hostBasedDataSpace(DataSpace dataSpace);
+
+/*!
+ * \brief Get an host accessible data space for the given dataSpace.
+ *
+ * A host accessible data space is one that can be accessed on the host.
+ *
+ * The intention is to check if the given memory space is accessible on the
+ * host. If not then fall back on a space that is host accessible and can be
+ * used with explicit copy operations with the given space.
  */
 DataSpace hostAccessibleDataSpace(DataSpace dataSpace);
 
@@ -294,7 +308,7 @@ private:
 template <typename T>
 inline void allocAndInitData(DataSpace dataSpace, T*& ptr, Size_type len, Size_type align)
 {
-  DataSpace init_dataSpace = hostAccessibleDataSpace(dataSpace);
+  DataSpace init_dataSpace = hostBasedDataSpace(dataSpace);
 
   allocData(init_dataSpace, ptr, len, align);
 
@@ -313,7 +327,7 @@ template <typename T>
 inline void allocAndInitDataConst(DataSpace dataSpace, T*& ptr, Size_type len, Size_type align,
                                   T val)
 {
-  DataSpace init_dataSpace = hostAccessibleDataSpace(dataSpace);
+  DataSpace init_dataSpace = hostBasedDataSpace(dataSpace);
 
   allocData(init_dataSpace, ptr, len, align);
 
@@ -330,7 +344,7 @@ inline void allocAndInitDataConst(DataSpace dataSpace, T*& ptr, Size_type len, S
 template <typename T>
 inline void allocAndInitDataRandSign(DataSpace dataSpace, T*& ptr, Size_type len, Size_type align)
 {
-  DataSpace init_dataSpace = hostAccessibleDataSpace(dataSpace);
+  DataSpace init_dataSpace = hostBasedDataSpace(dataSpace);
 
   allocData(init_dataSpace, ptr, len, align);
 
@@ -348,7 +362,7 @@ inline void allocAndInitDataRandSign(DataSpace dataSpace, T*& ptr, Size_type len
 template <typename T>
 inline void allocAndInitDataRandValue(DataSpace dataSpace, T*& ptr, Size_type len, Size_type align)
 {
-  DataSpace init_dataSpace = hostAccessibleDataSpace(dataSpace);
+  DataSpace init_dataSpace = hostBasedDataSpace(dataSpace);
 
   allocData(init_dataSpace, ptr, len, align);
 
@@ -367,7 +381,7 @@ inline long double calcChecksum(DataSpace dataSpace, T* ptr, Size_type len, Size
   T* check_ptr = ptr;
   T* copied_ptr = nullptr;
 
-  DataSpace check_dataSpace = hostAccessibleDataSpace(dataSpace);
+  DataSpace check_dataSpace = hostBasedDataSpace(dataSpace);
   if (check_dataSpace != dataSpace) {
     allocData(check_dataSpace, copied_ptr, len, align);
 

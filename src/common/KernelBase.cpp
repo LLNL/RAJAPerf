@@ -235,11 +235,6 @@ DataSpace KernelBase::getDataSpace(VariantID vid) const
   }
 }
 
-DataSpace KernelBase::getHostAccessibleDataSpace(VariantID vid) const
-{
-  return hostAccessibleDataSpace(getDataSpace(vid));
-}
-
 void KernelBase::execute(VariantID vid, size_t tune_idx)
 {
   running_variant = vid;
