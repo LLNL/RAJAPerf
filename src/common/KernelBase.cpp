@@ -235,6 +235,42 @@ DataSpace KernelBase::getDataSpace(VariantID vid) const
   }
 }
 
+DataSpace KernelBase::getReductionDataSpace(VariantID vid) const
+{
+  switch ( vid ) {
+
+    case Base_Seq :
+    case Lambda_Seq :
+    case RAJA_Seq :
+      return run_params.getSeqReductionDataSpace();
+
+    case Base_OpenMP :
+    case Lambda_OpenMP :
+    case RAJA_OpenMP :
+      return run_params.getOmpReductionDataSpace();
+
+    case Base_OpenMPTarget :
+    case RAJA_OpenMPTarget :
+      return run_params.getOmpTargetReductionDataSpace();
+
+    case Base_CUDA :
+    case Lambda_CUDA :
+    case RAJA_CUDA :
+      return run_params.getCudaReductionDataSpace();
+
+    case Base_HIP :
+    case Lambda_HIP :
+    case RAJA_HIP :
+      return run_params.getHipReductionDataSpace();
+
+    case Kokkos_Lambda :
+      return run_params.getKokkosReductionDataSpace();
+
+    default:
+      throw std::invalid_argument("getReductionDataSpace : Unknown variant id");
+  }
+}
+
 void KernelBase::execute(VariantID vid, size_t tune_idx)
 {
   running_variant = vid;

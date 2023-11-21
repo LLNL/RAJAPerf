@@ -261,6 +261,7 @@ public:
   Size_type getDataAlignment() const;
 
   DataSpace getDataSpace(VariantID vid) const;
+  DataSpace getReductionDataSpace(VariantID vid) const;
 
   template <typename T>
   void allocData(DataSpace dataSpace, T& ptr, Size_type len)

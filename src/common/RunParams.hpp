@@ -141,6 +141,13 @@ public:
   DataSpace getHipDataSpace() const { return hipDataSpace; }
   DataSpace getKokkosDataSpace() const { return kokkosDataSpace; }
 
+  DataSpace getSeqReductionDataSpace() const { return seqReductionDataSpace; }
+  DataSpace getOmpReductionDataSpace() const { return ompReductionDataSpace; }
+  DataSpace getOmpTargetReductionDataSpace() const { return ompTargetReductionDataSpace; }
+  DataSpace getCudaReductionDataSpace() const { return cudaReductionDataSpace; }
+  DataSpace getHipReductionDataSpace() const { return hipReductionDataSpace; }
+  DataSpace getKokkosReductionDataSpace() const { return kokkosReductionDataSpace; }
+
   double getPFTolerance() const { return pf_tol; }
 
   int getCheckRunReps() const { return checkrun_reps; }
@@ -232,6 +239,13 @@ private:
   DataSpace cudaDataSpace = DataSpace::CudaDevice;
   DataSpace hipDataSpace = DataSpace::HipDevice;
   DataSpace kokkosDataSpace = DataSpace::Host;
+
+  DataSpace seqReductionDataSpace = DataSpace::Host;
+  DataSpace ompReductionDataSpace = DataSpace::Omp;
+  DataSpace ompTargetReductionDataSpace = DataSpace::OmpTarget;
+  DataSpace cudaReductionDataSpace = DataSpace::CudaManagedDevicePreferredHostAccessed;
+  DataSpace hipReductionDataSpace = DataSpace::HipDevice;
+  DataSpace kokkosReductionDataSpace = DataSpace::Host;
 
   //
   // Arrays to hold input strings for valid/invalid input. Helpful for

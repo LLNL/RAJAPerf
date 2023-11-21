@@ -414,6 +414,27 @@ void Executor::reportRunSummary(ostream& str) const
     }
     str << endl;
 
+    str << "\nReduction Data Spaces"
+        << "\n--------";
+    str << "\nSeq - " << getDataSpaceName(run_params.getSeqReductionDataSpace());
+    if (isVariantAvailable(VariantID::Base_OpenMP)) {
+      str << "\nOpenMP - " << getDataSpaceName(run_params.getOmpReductionDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Base_OpenMPTarget)) {
+      str << "\nOpenMP Target - " << getDataSpaceName(run_params.getOmpTargetReductionDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Base_CUDA)) {
+      str << "\nCuda - " << getDataSpaceName(run_params.getCudaReductionDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Base_HIP)) {
+      str << "\nHip - " << getDataSpaceName(run_params.getHipReductionDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Kokkos_Lambda)) {
+      str << "\nKokkos - " << getDataSpaceName(run_params.getKokkosReductionDataSpace());
+    }
+    str << endl;
+
+
     str << "\nVariants and Tunings"
         << "\n--------\n";
     for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
