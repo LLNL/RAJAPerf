@@ -86,6 +86,7 @@ namespace detail
 inline void copySyclData(void* dst_ptr, const void* src_ptr, Size_type len, sycl::queue *qu)
 {
   auto e = qu->memcpy( dst_ptr, src_ptr, len);
+  e.wait();
 }
 
 /*!
@@ -110,14 +111,14 @@ inline void* allocSyclManagedData(Size_type len, sycl::queue *qu)
 
 /*!
  * \brief Allocate SYCL pinned data array (pptr).
- *//*
-inline void* allocSyclPinnedData(Size_type len)
+ */
+inline void* allocSyclPinnedData(Size_type len, sycl::queue *qu)
 {
   void* pptr = nullptr;
-  cudaErrchk( cudaHostAlloc( &pptr, len, cudaHostAllocMapped ) );
+  pptr = sycl::malloc_host(len, *qu);
   return pptr;
 }
-*/
+
 
 /*!
  * \brief Free device data array.
@@ -132,6 +133,15 @@ inline void deallocSyclDeviceData(void* dptr, sycl::queue *qu)
  * \brief Free managed data array.
  */
 inline void deallocSyclManagedData(void* dptr, sycl::queue *qu)
+{
+  sycl::free(dptr, *qu);
+  dptr = 0;
+}
+
+/*!
+ * \brief Free managed data array.
+ */
+inline void deallocSyclPinnedData(void* dptr, sycl::queue *qu)
 {
   sycl::free(dptr, *qu);
   dptr = 0;

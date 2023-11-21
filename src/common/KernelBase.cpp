@@ -239,6 +239,10 @@ DataSpace KernelBase::getDataSpace(VariantID vid) const
     case Kokkos_Lambda :
       return run_params.getKokkosDataSpace();
 
+    case Base_SYCL :
+    case RAJA_SYCL :
+      return run_params.getSyclDataSpace();
+
     default:
       throw std::invalid_argument("getDataSpace : Unknown variant id");
   }

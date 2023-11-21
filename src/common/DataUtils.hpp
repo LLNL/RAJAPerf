@@ -27,6 +27,9 @@
 #if defined(RAJA_ENABLE_HIP)
 #include "RAJA/policy/hip/MemUtils_HIP.hpp"
 #endif
+#if defined(RAJA_ENABLE_HIP)
+#include "RAJA/policy/sycl/MemUtils_SYCL.hpp"
+#endif
 
 namespace rajaperf
 {

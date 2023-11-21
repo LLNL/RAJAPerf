@@ -286,6 +286,7 @@ enum struct DataSpace {
   HipDevice,
   HipDeviceFine,
 
+  SyclPinned,
   SyclManaged,
   SyclDevice,
 

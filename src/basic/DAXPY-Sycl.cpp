@@ -28,15 +28,6 @@ namespace rajaperf
 namespace basic
 {
 
-//#define DAXPY_DATA_SETUP_SYCL \
-  allocAndInitSyclDeviceData(x, m_x, iend, qu); \
-  allocAndInitSyclDeviceData(y, m_y, iend, qu);
-
-//#define DAXPY_DATA_TEARDOWN_SYCL \
-  getSyclDeviceData(m_y, y, iend, qu); \
-  deallocSyclDeviceData(x, qu); \
-  deallocSyclDeviceData(y, qu);
-
 template <size_t work_group_size >
 void DAXPY::runSyclVariantImpl(VariantID vid)
 {
@@ -51,8 +42,6 @@ void DAXPY::runSyclVariantImpl(VariantID vid)
   if ( vid == Base_SYCL ) {
     if (work_group_size > 0) {
 
-//      DAXPY_DATA_SETUP_SYCL;
-  
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
   
@@ -74,10 +63,7 @@ void DAXPY::runSyclVariantImpl(VariantID vid)
 
       stopTimer();
 
-//      DAXPY_DATA_TEARDOWN_SYCL;
     } else {
-
-//      DAXPY_DATA_SETUP_SYCL;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -96,22 +82,19 @@ void DAXPY::runSyclVariantImpl(VariantID vid)
 
       stopTimer();
 
-//      DAXPY_DATA_TEARDOWN_SYCL;
     }
 
   } else if ( vid == RAJA_SYCL ) {
 
     if ( work_group_size == 0 ) {
-      std::cout << "\n  INIT3 : RAJA_SYCL does not support auto work group size" << std::endl;
+      std::cout << "\n  DAXPY : RAJA_SYCL does not support auto work group size" << std::endl;
       return;
     }
-
-//    DAXPY_DATA_SETUP_SYCL;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::sycl_exec<work_group_size, false> >(
+      RAJA::forall< RAJA::sycl_exec<work_group_size, true> >(
         RAJA::RangeSegment(ibegin, iend), [=] (Index_type i) {
         DAXPY_BODY;
       });
@@ -119,8 +102,6 @@ void DAXPY::runSyclVariantImpl(VariantID vid)
     }
     qu->wait();
     stopTimer();
-
-//    DAXPY_DATA_TEARDOWN_SYCL;
 
   } else {
      std::cout << "\n  DAXPY : Unknown Sycl variant id = " << vid << std::endl;

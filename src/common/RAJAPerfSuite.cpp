@@ -368,6 +368,7 @@ static const std::string DataSpaceNames [] =
   std::string("HipDevice"),
   std::string("HipDeviceFine"),
 
+  std::string("SyclPinned"),
   std::string("SyclManaged"),
   std::string("SyclDevice"),
 
@@ -646,7 +647,7 @@ bool isDataSpaceAvailable(DataSpace dataSpace)
 #endif
 
 #if defined(RAJA_ENABLE_SYCL)
-//    case DataSpace::CudaPinned:
+    case DataSpace::SyclPinned:
     case DataSpace::SyclManaged:
     case DataSpace::SyclDevice:
       ret_val = true; break;

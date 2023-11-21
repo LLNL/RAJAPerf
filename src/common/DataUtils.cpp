@@ -113,7 +113,7 @@ bool isHipDataSpace(DataSpace dataSpace)
 bool isSyclDataSpace(DataSpace dataSpace)
 {
   switch (dataSpace) {
-//    case DataSpace::SyclPinned:
+    case DataSpace::SyclPinned:
     case DataSpace::SyclManaged:
     case DataSpace::SyclDevice:
       return true;
@@ -280,10 +280,11 @@ void* allocData(DataSpace dataSpace, Size_type nbytes, Size_type align)
     } break;
 #endif
 #if defined(RAJA_ENABLE_SYCL)
-//    case DataSpace::SyclPinned:
-//    {
-//      ptr = detail::allocSyclPinnedData(nbytes);
-//    } break;
+    case DataSpace::SyclPinned:
+    {
+      auto qu = camp::resources::Sycl::get_default().get_queue();
+      ptr = detail::allocSyclPinnedData(nbytes, qu);
+    } break;
     case DataSpace::SyclManaged:
     {
       auto qu = camp::resources::Sycl::get_default().get_queue();
@@ -341,6 +342,14 @@ void copyData(DataSpace dst_dataSpace, void* dst_ptr,
   else if (isHipDataSpace(dst_dataSpace) ||
            isHipDataSpace(src_dataSpace)) {
     detail::copyHipData(dst_ptr, src_ptr, nbytes);
+  }
+#endif
+
+#if defined(RAJA_ENABLE_SYCL)
+  else if (isSyclDataSpace(dst_dataSpace) ||
+           isSyclDataSpace(src_dataSpace)) {
+    auto qu = camp::resources::Sycl::get_default().get_queue();
+    detail::copySyclData(dst_ptr, src_ptr, nbytes,qu);
   }
 #endif
 
@@ -426,6 +435,26 @@ void deallocData(DataSpace dataSpace, void* ptr)
       detail::deallocHipDeviceData(ptr);
     } break;
 #endif
+
+#if defined(RAJA_ENABLE_SYCL)
+    case DataSpace::SyclPinned:
+    {
+      auto qu = camp::resources::Sycl::get_default().get_queue();
+      detail::deallocSyclPinnedData(ptr,qu);
+    } break;
+    case DataSpace::SyclManaged:
+    {
+      auto qu = camp::resources::Sycl::get_default().get_queue();
+      detail::deallocSyclManagedData(ptr,qu);
+    } break;
+    case DataSpace::SyclDevice:
+    {
+      auto qu = camp::resources::Sycl::get_default().get_queue();
+      detail::deallocSyclDeviceData(ptr,qu);
+    } break;
+#endif
+
+
 
     default:
     {
@@ -645,6 +674,7 @@ DataSpace hostAccessibleDataSpace(DataSpace dataSpace)
     case DataSpace::HipPinned:
     case DataSpace::HipPinnedFine:
     case DataSpace::HipPinnedCoarse:
+    case DataSpace::SyclPinned:
       return dataSpace;
 
     case DataSpace::OmpTarget:
@@ -666,6 +696,10 @@ DataSpace hostAccessibleDataSpace(DataSpace dataSpace)
     case DataSpace::HipDevice:
     case DataSpace::HipDeviceFine:
       return DataSpace::HipPinned;
+
+    case DataSpace::SyclManaged:
+    case DataSpace::SyclDevice:
+      return DataSpace::SyclPinned;
 
     default:
     {
