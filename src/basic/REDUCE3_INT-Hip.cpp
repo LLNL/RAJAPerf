@@ -80,20 +80,31 @@ void REDUCE3_INT::runHipVariantBlock(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    Int_ptr vmem_init;
-    allocData(DataSpace::HipPinnedCoarse, vmem_init, 3);
+    DataSpace rds = getReductionDataSpace(vid);
+    DataSpace hrds = hostAccessibleDataSpace(rds);
+    const bool separate_buffers = hrds != rds;
 
     Int_ptr vmem;
-    allocData(DataSpace::HipDevice, vmem, 3);
+    allocData(rds, vmem, 3);
+    Int_ptr hvmem = vmem;
+    if (separate_buffers) {
+      allocData(hrds, hvmem, 3);
+    }
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      vmem_init[0] = m_vsum_init;
-      vmem_init[1] = m_vmin_init;
-      vmem_init[2] = m_vmax_init;
-      hipErrchk( hipMemcpyAsync( vmem, vmem_init, 3*sizeof(Int_type),
-                                 hipMemcpyHostToDevice, res.get_stream() ) );
+      if (separate_buffers) {
+        hvmem[0] = m_vsum_init;
+        hvmem[1] = m_vmin_init;
+        hvmem[2] = m_vmax_init;
+        hipErrchk( hipMemcpyAsync( vmem, hvmem, 3*sizeof(Int_type),
+                                   hipMemcpyHostToDevice, res.get_stream() ) );
+      } else {
+        vmem[0] = m_vsum_init;
+        vmem[1] = m_vmin_init;
+        vmem[2] = m_vmax_init;
+      }
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 3*sizeof(Int_type)*block_size;
@@ -105,19 +116,22 @@ void REDUCE3_INT::runHipVariantBlock(VariantID vid)
                                                     iend );
       hipErrchk( hipGetLastError() );
 
-      Int_type lmem[3];
-      hipErrchk( hipMemcpyAsync( &lmem[0], vmem, 3*sizeof(Int_type),
-                                 hipMemcpyDeviceToHost, res.get_stream() ) );
+      if (separate_buffers) {
+        hipErrchk( hipMemcpyAsync( hvmem, vmem, 3*sizeof(Int_type),
+                                   hipMemcpyDeviceToHost, res.get_stream() ) );
+      }
       hipErrchk( hipStreamSynchronize( res.get_stream() ) );
-      m_vsum += lmem[0];
-      m_vmin = RAJA_MIN(m_vmin, lmem[1]);
-      m_vmax = RAJA_MAX(m_vmax, lmem[2]);
+      m_vsum += hvmem[0];
+      m_vmin = RAJA_MIN(m_vmin, hvmem[1]);
+      m_vmax = RAJA_MAX(m_vmax, hvmem[2]);
 
     }
     stopTimer();
 
-    deallocData(DataSpace::HipDevice, vmem);
-    deallocData(DataSpace::HipPinnedCoarse, vmem_init);
+    deallocData(rds, vmem);
+    if (separate_buffers) {
+      deallocData(hrds, hvmem);
+    }
 
   } else if ( vid == RAJA_HIP ) {
 
@@ -158,11 +172,16 @@ void REDUCE3_INT::runHipVariantOccGS(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    Int_ptr vmem_init;
-    allocData(DataSpace::HipPinnedCoarse, vmem_init, 3);
+    DataSpace rds = getReductionDataSpace(vid);
+    DataSpace hrds = hostAccessibleDataSpace(rds);
+    const bool separate_buffers = hrds != rds;
 
     Int_ptr vmem;
-    allocData(DataSpace::HipDevice, vmem, 3);
+    allocData(rds, vmem, 3);
+    Int_ptr hvmem = vmem;
+    if (separate_buffers) {
+      allocData(hrds, hvmem, 3);
+    }
 
     constexpr size_t shmem = 3*sizeof(Int_type)*block_size;
     const size_t max_grid_size = detail::getHipOccupancyMaxBlocks(
@@ -171,11 +190,17 @@ void REDUCE3_INT::runHipVariantOccGS(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      vmem_init[0] = m_vsum_init;
-      vmem_init[1] = m_vmin_init;
-      vmem_init[2] = m_vmax_init;
-      hipErrchk( hipMemcpyAsync( vmem, vmem_init, 3*sizeof(Int_type),
-                                 hipMemcpyHostToDevice, res.get_stream() ) );
+      if (separate_buffers) {
+        hvmem[0] = m_vsum_init;
+        hvmem[1] = m_vmin_init;
+        hvmem[2] = m_vmax_init;
+        hipErrchk( hipMemcpyAsync( vmem, hvmem, 3*sizeof(Int_type),
+                                   hipMemcpyHostToDevice, res.get_stream() ) );
+      } else {
+        vmem[0] = m_vsum_init;
+        vmem[1] = m_vmin_init;
+        vmem[2] = m_vmax_init;
+      }
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
@@ -188,19 +213,22 @@ void REDUCE3_INT::runHipVariantOccGS(VariantID vid)
                                                     iend );
       hipErrchk( hipGetLastError() );
 
-      Int_type lmem[3];
-      hipErrchk( hipMemcpyAsync( &lmem[0], vmem, 3*sizeof(Int_type),
-                                 hipMemcpyDeviceToHost, res.get_stream() ) );
+      if (separate_buffers) {
+        hipErrchk( hipMemcpyAsync( hvmem, vmem, 3*sizeof(Int_type),
+                                   hipMemcpyDeviceToHost, res.get_stream() ) );
+      }
       hipErrchk( hipStreamSynchronize( res.get_stream() ) );
-      m_vsum += lmem[0];
-      m_vmin = RAJA_MIN(m_vmin, lmem[1]);
-      m_vmax = RAJA_MAX(m_vmax, lmem[2]);
+      m_vsum += hvmem[0];
+      m_vmin = RAJA_MIN(m_vmin, hvmem[1]);
+      m_vmax = RAJA_MAX(m_vmax, hvmem[2]);
 
     }
     stopTimer();
 
-    deallocData(DataSpace::HipDevice, vmem);
-    deallocData(DataSpace::HipPinnedCoarse, vmem_init);
+    deallocData(rds, vmem);
+    if (separate_buffers) {
+      deallocData(hrds, hvmem);
+    }
 
   } else if ( vid == RAJA_HIP ) {
 

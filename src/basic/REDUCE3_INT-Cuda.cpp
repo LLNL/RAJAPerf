@@ -80,20 +80,31 @@ void REDUCE3_INT::runCudaVariantBlock(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    Int_ptr vmem_init;
-    allocData(DataSpace::CudaPinned, vmem_init, 3);
+    DataSpace rds = getReductionDataSpace(vid);
+    DataSpace hrds = hostAccessibleDataSpace(rds);
+    const bool separate_buffers = hrds != rds;
 
     Int_ptr vmem;
-    allocData(DataSpace::CudaDevice, vmem, 3);
+    allocData(rds, vmem, 3);
+    Int_ptr hvmem = vmem;
+    if (separate_buffers) {
+      allocData(hrds, hvmem, 3);
+    }
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      vmem_init[0] = m_vsum_init;
-      vmem_init[1] = m_vmin_init;
-      vmem_init[2] = m_vmax_init;
-      cudaErrchk( cudaMemcpyAsync( vmem, vmem_init, 3*sizeof(Int_type),
-                                   cudaMemcpyHostToDevice, res.get_stream() ) );
+      if (separate_buffers) {
+        hvmem[0] = m_vsum_init;
+        hvmem[1] = m_vmin_init;
+        hvmem[2] = m_vmax_init;
+        cudaErrchk( cudaMemcpyAsync( vmem, hvmem, 3*sizeof(Int_type),
+                                     cudaMemcpyHostToDevice, res.get_stream() ) );
+      } else {
+        vmem[0] = m_vsum_init;
+        vmem[1] = m_vmin_init;
+        vmem[2] = m_vmax_init;
+      }
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 3*sizeof(Int_type)*block_size;
@@ -105,19 +116,22 @@ void REDUCE3_INT::runCudaVariantBlock(VariantID vid)
                                                     iend );
       cudaErrchk( cudaGetLastError() );
 
-      Int_type lmem[3];
-      cudaErrchk( cudaMemcpyAsync( &lmem[0], vmem, 3*sizeof(Int_type),
-                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
+      if (separate_buffers) {
+        cudaErrchk( cudaMemcpyAsync( hvmem, vmem, 3*sizeof(Int_type),
+                                     cudaMemcpyDeviceToHost, res.get_stream() ) );
+      }
       cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
-      m_vsum += lmem[0];
-      m_vmin = RAJA_MIN(m_vmin, lmem[1]);
-      m_vmax = RAJA_MAX(m_vmax, lmem[2]);
+      m_vsum += hvmem[0];
+      m_vmin = RAJA_MIN(m_vmin, hvmem[1]);
+      m_vmax = RAJA_MAX(m_vmax, hvmem[2]);
 
     }
     stopTimer();
 
-    deallocData(DataSpace::CudaDevice, vmem);
-    deallocData(DataSpace::CudaPinned, vmem_init);
+    deallocData(rds, vmem);
+    if (separate_buffers) {
+      deallocData(hrds, hvmem);
+    }
 
   } else if ( vid == RAJA_CUDA ) {
 
@@ -158,11 +172,16 @@ void REDUCE3_INT::runCudaVariantOccGS(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    Int_ptr vmem_init;
-    allocData(DataSpace::CudaPinned, vmem_init, 3);
+    DataSpace rds = getReductionDataSpace(vid);
+    DataSpace hrds = hostAccessibleDataSpace(rds);
+    const bool separate_buffers = hrds != rds;
 
     Int_ptr vmem;
-    allocData(DataSpace::CudaDevice, vmem, 3);
+    allocData(rds, vmem, 3);
+    Int_ptr hvmem = vmem;
+    if (separate_buffers) {
+      allocData(hrds, hvmem, 3);
+    }
 
     constexpr size_t shmem = 3*sizeof(Int_type)*block_size;
     const size_t max_grid_size = detail::getCudaOccupancyMaxBlocks(
@@ -171,11 +190,17 @@ void REDUCE3_INT::runCudaVariantOccGS(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      vmem_init[0] = m_vsum_init;
-      vmem_init[1] = m_vmin_init;
-      vmem_init[2] = m_vmax_init;
-      cudaErrchk( cudaMemcpyAsync( vmem, vmem_init, 3*sizeof(Int_type),
-                                   cudaMemcpyHostToDevice, res.get_stream() ) );
+      if (separate_buffers) {
+        hvmem[0] = m_vsum_init;
+        hvmem[1] = m_vmin_init;
+        hvmem[2] = m_vmax_init;
+        cudaErrchk( cudaMemcpyAsync( vmem, hvmem, 3*sizeof(Int_type),
+                                     cudaMemcpyHostToDevice, res.get_stream() ) );
+      } else {
+        vmem[0] = m_vsum_init;
+        vmem[1] = m_vmin_init;
+        vmem[2] = m_vmax_init;
+      }
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
@@ -187,19 +212,22 @@ void REDUCE3_INT::runCudaVariantOccGS(VariantID vid)
                                                     iend );
       cudaErrchk( cudaGetLastError() );
 
-      Int_type lmem[3];
-      cudaErrchk( cudaMemcpyAsync( &lmem[0], vmem, 3*sizeof(Int_type),
-                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
+      if (separate_buffers) {
+        cudaErrchk( cudaMemcpyAsync( hvmem, vmem, 3*sizeof(Int_type),
+                                     cudaMemcpyDeviceToHost, res.get_stream() ) );
+      }
       cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
-      m_vsum += lmem[0];
-      m_vmin = RAJA_MIN(m_vmin, lmem[1]);
-      m_vmax = RAJA_MAX(m_vmax, lmem[2]);
+      m_vsum += hvmem[0];
+      m_vmin = RAJA_MIN(m_vmin, hvmem[1]);
+      m_vmax = RAJA_MAX(m_vmax, hvmem[2]);
 
     }
     stopTimer();
 
-    deallocData(DataSpace::CudaDevice, vmem);
-    deallocData(DataSpace::CudaPinned, vmem_init);
+    deallocData(rds, vmem);
+    if (separate_buffers) {
+      deallocData(hrds, hvmem);
+    }
 
   } else if ( vid == RAJA_CUDA ) {
 
