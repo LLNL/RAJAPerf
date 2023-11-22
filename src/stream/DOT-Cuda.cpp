@@ -65,14 +65,27 @@ void DOT::runCudaVariantBlock(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
+    DataSpace rds = getReductionDataSpace(vid);
+    DataSpace hrds = hostAccessibleDataSpace(rds);
+    const bool separate_buffers = hrds != rds;
+
     Real_ptr dprod;
-    allocData(DataSpace::CudaDevice, dprod, 1);
+    allocData(rds, dprod, 1);
+    Real_ptr hprod = dprod;
+    if (separate_buffers) {
+      allocData(hrds, hprod, 1);
+    }
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      cudaErrchk( cudaMemcpyAsync( dprod, &m_dot_init, sizeof(Real_type),
-                                   cudaMemcpyHostToDevice, res.get_stream() ) );
+      if (separate_buffers) {
+        *hprod = m_dot_init;
+        cudaErrchk( cudaMemcpyAsync( dprod, hprod, sizeof(Real_type),
+                                     cudaMemcpyHostToDevice, res.get_stream() ) );
+      } else {
+        *dprod = m_dot_init;
+      }
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = sizeof(Real_type)*block_size;
@@ -80,16 +93,20 @@ void DOT::runCudaVariantBlock(VariantID vid)
           a, b, dprod, m_dot_init, iend );
       cudaErrchk( cudaGetLastError() );
 
-      Real_type lprod;
-      cudaErrchk( cudaMemcpyAsync( &lprod, dprod, sizeof(Real_type),
-                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
+      if (separate_buffers) {
+        cudaErrchk( cudaMemcpyAsync( hprod, dprod, sizeof(Real_type),
+                                     cudaMemcpyDeviceToHost, res.get_stream() ) );
+      }
       cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
-      m_dot += lprod;
+      m_dot += *hprod;
 
     }
     stopTimer();
 
-    deallocData(DataSpace::CudaDevice, dprod);
+    deallocData(rds, dprod);
+    if (separate_buffers) {
+      deallocData(hrds, hprod);
+    }
 
   } else if ( vid == RAJA_CUDA ) {
 
@@ -126,8 +143,16 @@ void DOT::runCudaVariantOccGS(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
+    DataSpace rds = getReductionDataSpace(vid);
+    DataSpace hrds = hostAccessibleDataSpace(rds);
+    const bool separate_buffers = hrds != rds;
+
     Real_ptr dprod;
-    allocData(DataSpace::CudaDevice, dprod, 1);
+    allocData(rds, dprod, 1);
+    Real_ptr hprod = dprod;
+    if (separate_buffers) {
+      allocData(hrds, hprod, 1);
+    }
 
     constexpr size_t shmem = sizeof(Real_type)*block_size;
     const size_t max_grid_size = detail::getCudaOccupancyMaxBlocks(
@@ -136,8 +161,13 @@ void DOT::runCudaVariantOccGS(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      cudaErrchk( cudaMemcpyAsync( dprod, &m_dot_init, sizeof(Real_type),
-                                   cudaMemcpyHostToDevice, res.get_stream() ) );
+      if (separate_buffers) {
+        *hprod = m_dot_init;
+        cudaErrchk( cudaMemcpyAsync( dprod, hprod, sizeof(Real_type),
+                                     cudaMemcpyHostToDevice, res.get_stream() ) );
+      } else {
+        *dprod = m_dot_init;
+      }
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
@@ -145,16 +175,20 @@ void DOT::runCudaVariantOccGS(VariantID vid)
           a, b, dprod, m_dot_init, iend );
       cudaErrchk( cudaGetLastError() );
 
-      Real_type lprod;
-      cudaErrchk( cudaMemcpyAsync( &lprod, dprod, sizeof(Real_type),
-                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
+      if (separate_buffers) {
+        cudaErrchk( cudaMemcpyAsync( hprod, dprod, sizeof(Real_type),
+                                     cudaMemcpyDeviceToHost, res.get_stream() ) );
+      }
       cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
-      m_dot += lprod;
+      m_dot += *hprod;
 
     }
     stopTimer();
 
-    deallocData(DataSpace::CudaDevice, dprod);
+    deallocData(rds, dprod);
+    if (separate_buffers) {
+      deallocData(hrds, hprod);
+    }
 
   } else if ( vid == RAJA_CUDA ) {
 

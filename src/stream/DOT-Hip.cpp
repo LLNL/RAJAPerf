@@ -65,14 +65,27 @@ void DOT::runHipVariantBlock(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
+    DataSpace rds = getReductionDataSpace(vid);
+    DataSpace hrds = hostAccessibleDataSpace(rds);
+    const bool separate_buffers = hrds != rds;
+
     Real_ptr dprod;
-    allocData(DataSpace::HipDevice, dprod, 1);
+    allocData(rds, dprod, 1);
+    Real_ptr hprod = dprod;
+    if (separate_buffers) {
+      allocData(hrds, hprod, 1);
+    }
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipErrchk( hipMemcpyAsync( dprod, &m_dot_init, sizeof(Real_type),
-                                 hipMemcpyHostToDevice, res.get_stream() ) );
+      if (separate_buffers) {
+        *hprod = m_dot_init;
+        hipErrchk( hipMemcpyAsync( dprod, hprod, sizeof(Real_type),
+                                   hipMemcpyHostToDevice, res.get_stream() ) );
+      } else {
+        *dprod = m_dot_init;
+      }
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = sizeof(Real_type)*block_size;
@@ -81,16 +94,20 @@ void DOT::runHipVariantBlock(VariantID vid)
                          a, b, dprod, m_dot_init, iend );
       hipErrchk( hipGetLastError() );
 
-      Real_type lprod;
-      hipErrchk( hipMemcpyAsync( &lprod, dprod, sizeof(Real_type),
-                                 hipMemcpyDeviceToHost, res.get_stream() ) );
+      if (separate_buffers) {
+        hipErrchk( hipMemcpyAsync( hprod, dprod, sizeof(Real_type),
+                                   hipMemcpyDeviceToHost, res.get_stream() ) );
+      }
       hipErrchk( hipStreamSynchronize( res.get_stream() ) );
-      m_dot += lprod;
+      m_dot += *hprod;
 
     }
     stopTimer();
 
-    deallocData(DataSpace::HipDevice, dprod);
+    deallocData(rds, dprod);
+    if (separate_buffers) {
+      deallocData(hrds, hprod);
+    }
 
   } else if ( vid == RAJA_HIP ) {
 
@@ -127,8 +144,16 @@ void DOT::runHipVariantOccGS(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
+    DataSpace rds = getReductionDataSpace(vid);
+    DataSpace hrds = hostAccessibleDataSpace(rds);
+    const bool separate_buffers = hrds != rds;
+
     Real_ptr dprod;
-    allocData(DataSpace::HipDevice, dprod, 1);
+    allocData(rds, dprod, 1);
+    Real_ptr hprod = dprod;
+    if (separate_buffers) {
+      allocData(hrds, hprod, 1);
+    }
 
     constexpr size_t shmem = sizeof(Real_type)*block_size;
     const size_t max_grid_size = detail::getHipOccupancyMaxBlocks(
@@ -137,8 +162,13 @@ void DOT::runHipVariantOccGS(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipErrchk( hipMemcpyAsync( dprod, &m_dot_init, sizeof(Real_type),
-                                 hipMemcpyHostToDevice, res.get_stream() ) );
+      if (separate_buffers) {
+        *hprod = m_dot_init;
+        hipErrchk( hipMemcpyAsync( dprod, hprod, sizeof(Real_type),
+                                   hipMemcpyHostToDevice, res.get_stream() ) );
+      } else {
+        *dprod = m_dot_init;
+      }
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
@@ -147,16 +177,20 @@ void DOT::runHipVariantOccGS(VariantID vid)
                          a, b, dprod, m_dot_init, iend );
       hipErrchk( hipGetLastError() );
 
-      Real_type lprod;
-      hipErrchk( hipMemcpyAsync( &lprod, dprod, sizeof(Real_type),
-                                 hipMemcpyDeviceToHost, res.get_stream() ) );
+      if (separate_buffers) {
+        hipErrchk( hipMemcpyAsync( hprod, dprod, sizeof(Real_type),
+                                   hipMemcpyDeviceToHost, res.get_stream() ) );
+      }
       hipErrchk( hipStreamSynchronize( res.get_stream() ) );
-      m_dot += lprod;
+      m_dot += *hprod;
 
     }
     stopTimer();
 
-    deallocData(DataSpace::HipDevice, dprod);
+    deallocData(rds, dprod);
+    if (separate_buffers) {
+      deallocData(hrds, hprod);
+    }
 
   } else if ( vid == RAJA_HIP ) {
 
