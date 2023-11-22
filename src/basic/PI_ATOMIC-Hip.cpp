@@ -47,23 +47,39 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
 
   PI_ATOMIC_DATA_SETUP;
 
+  DataSpace rds = getReductionDataSpace(vid);
+  DataSpace hrds = hostAccessibleDataSpace(rds);
+  const bool separate_buffers = hrds != rds;
+
+  Real_ptr hpi = pi;
+  if (separate_buffers) {
+    allocData(hrds, hpi, 1);
+  }
+
   if ( vid == Base_HIP ) {
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipErrchk( hipMemcpyAsync( pi, &m_pi_init, sizeof(Real_type),
-                                 hipMemcpyHostToDevice, res.get_stream() ) );
+      if (separate_buffers) {
+        *hpi = m_pi_init;
+        hipErrchk( hipMemcpyAsync( pi, hpi, sizeof(Real_type),
+                                   hipMemcpyHostToDevice, res.get_stream() ) );
+      } else {
+        *pi = m_pi_init;
+      }
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
       hipLaunchKernelGGL((atomic_pi<block_size>),grid_size, block_size, shmem, res.get_stream(), pi, dx, iend );
       hipErrchk( hipGetLastError() );
 
-      hipErrchk( hipMemcpyAsync( &m_pi_final, pi, sizeof(Real_type),
-                                 hipMemcpyDeviceToHost, res.get_stream() ) );
+      if (separate_buffers) {
+        hipErrchk( hipMemcpyAsync( hpi, pi, sizeof(Real_type),
+                                   hipMemcpyDeviceToHost, res.get_stream() ) );
+      }
       hipErrchk( hipStreamSynchronize( res.get_stream() ) );
-      m_pi_final *= 4.0;
+      m_pi_final = *hpi * 4.0;
 
     }
     stopTimer();
@@ -73,8 +89,13 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipErrchk( hipMemcpyAsync( pi, &m_pi_init, sizeof(Real_type),
-                                 hipMemcpyHostToDevice, res.get_stream() ) );
+      if (separate_buffers) {
+        *hpi = m_pi_init;
+        hipErrchk( hipMemcpyAsync( pi, hpi, sizeof(Real_type),
+                                   hipMemcpyHostToDevice, res.get_stream() ) );
+      } else {
+        *pi = m_pi_init;
+      }
 
       auto atomic_pi_lambda = [=] __device__ (Index_type i) {
           double x = (double(i) + 0.5) * dx;
@@ -87,10 +108,12 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
           grid_size, block_size, shmem, res.get_stream(), ibegin, iend, atomic_pi_lambda);
       hipErrchk( hipGetLastError() );
 
-      hipErrchk( hipMemcpyAsync( &m_pi_final, pi, sizeof(Real_type),
-                                 hipMemcpyDeviceToHost, res.get_stream() ) );
+      if (separate_buffers) {
+        hipErrchk( hipMemcpyAsync( hpi, pi, sizeof(Real_type),
+                                   hipMemcpyDeviceToHost, res.get_stream() ) );
+      }
       hipErrchk( hipStreamSynchronize( res.get_stream() ) );
-      m_pi_final *= 4.0;
+      m_pi_final = *hpi * 4.0;
 
     }
     stopTimer();
@@ -100,8 +123,13 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipErrchk( hipMemcpyAsync( pi, &m_pi_init, sizeof(Real_type),
-                                 hipMemcpyHostToDevice, res.get_stream() ) );
+      if (separate_buffers) {
+        *hpi = m_pi_init;
+        hipErrchk( hipMemcpyAsync( pi, hpi, sizeof(Real_type),
+                                   hipMemcpyHostToDevice, res.get_stream() ) );
+      } else {
+        *pi = m_pi_init;
+      }
 
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
@@ -109,16 +137,22 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
           RAJA::atomicAdd<RAJA::hip_atomic>(pi, dx / (1.0 + x * x));
       });
 
-      hipErrchk( hipMemcpyAsync( &m_pi_final, pi, sizeof(Real_type),
-                                 hipMemcpyDeviceToHost, res.get_stream() ) );
+      if (separate_buffers) {
+        hipErrchk( hipMemcpyAsync( hpi, pi, sizeof(Real_type),
+                                   hipMemcpyDeviceToHost, res.get_stream() ) );
+      }
       hipErrchk( hipStreamSynchronize( res.get_stream() ) );
-      m_pi_final *= 4.0;
+      m_pi_final = *hpi * 4.0;
 
     }
     stopTimer();
 
   } else {
      getCout() << "\n  PI_ATOMIC : Unknown Hip variant id = " << vid << std::endl;
+  }
+
+  if (separate_buffers) {
+    deallocData(hrds, hpi);
   }
 }
 

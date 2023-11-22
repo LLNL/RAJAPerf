@@ -64,7 +64,7 @@ PI_ATOMIC::~PI_ATOMIC()
 void PI_ATOMIC::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   m_dx = 1.0 / double(getActualProblemSize());
-  allocAndInitDataConst(m_pi, 1, 0.0, vid);
+  allocData(getReductionDataSpace(vid), m_pi, 1);
   m_pi_init = 0.0;
   m_pi_final = -static_cast<int>(vid);
 }
