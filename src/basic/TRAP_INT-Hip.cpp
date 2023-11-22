@@ -86,14 +86,27 @@ void TRAP_INT::runHipVariantBlock(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
+    DataSpace rds = getReductionDataSpace(vid);
+    DataSpace hrds = hostAccessibleDataSpace(rds);
+    const bool separate_buffers = hrds != rds;
+
     Real_ptr sumx;
-    allocData(DataSpace::HipDevice, sumx, 1);
+    allocData(rds, sumx, 1);
+    Real_ptr hsumx = sumx;
+    if (separate_buffers) {
+      allocData(hrds, hsumx, 1);
+    }
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipErrchk( hipMemcpyAsync( sumx, &m_sumx_init, sizeof(Real_type),
-                                 hipMemcpyHostToDevice, res.get_stream() ) );
+      if (separate_buffers) {
+        *hsumx = m_sumx_init;
+        hipErrchk( hipMemcpyAsync( sumx, hsumx, sizeof(Real_type),
+                                   hipMemcpyHostToDevice, res.get_stream() ) );
+      } else {
+        *sumx = m_sumx_init;
+      }
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = sizeof(Real_type)*block_size;
@@ -104,16 +117,20 @@ void TRAP_INT::runHipVariantBlock(VariantID vid)
                                                 iend);
       hipErrchk( hipGetLastError() );
 
-      Real_type lsumx;
-      hipErrchk( hipMemcpyAsync( &lsumx, sumx, sizeof(Real_type),
-                                 hipMemcpyDeviceToHost, res.get_stream() ) );
+      if (separate_buffers) {
+        hipErrchk( hipMemcpyAsync( hsumx, sumx, sizeof(Real_type),
+                                   hipMemcpyDeviceToHost, res.get_stream() ) );
+      }
       hipErrchk( hipStreamSynchronize( res.get_stream() ) );
-      m_sumx += lsumx * h;
+      m_sumx += *hsumx * h;
 
     }
     stopTimer();
 
-    deallocData(DataSpace::HipDevice, sumx);
+    deallocData(rds, sumx);
+    if (separate_buffers) {
+      deallocData(hrds, hsumx);
+    }
 
   } else if ( vid == RAJA_HIP ) {
 
@@ -150,8 +167,16 @@ void TRAP_INT::runHipVariantOccGS(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
+    DataSpace rds = getReductionDataSpace(vid);
+    DataSpace hrds = hostAccessibleDataSpace(rds);
+    const bool separate_buffers = hrds != rds;
+
     Real_ptr sumx;
-    allocData(DataSpace::HipDevice, sumx, 1);
+    allocData(rds, sumx, 1);
+    Real_ptr hsumx = sumx;
+    if (separate_buffers) {
+      allocData(hrds, hsumx, 1);
+    }
 
     constexpr size_t shmem = sizeof(Real_type)*block_size;
     const size_t max_grid_size = detail::getHipOccupancyMaxBlocks(
@@ -160,8 +185,13 @@ void TRAP_INT::runHipVariantOccGS(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipErrchk( hipMemcpyAsync( sumx, &m_sumx_init, sizeof(Real_type),
-                                 hipMemcpyHostToDevice, res.get_stream() ) );
+      if (separate_buffers) {
+        *hsumx = m_sumx_init;
+        hipErrchk( hipMemcpyAsync( sumx, hsumx, sizeof(Real_type),
+                                   hipMemcpyHostToDevice, res.get_stream() ) );
+      } else {
+        *sumx = m_sumx_init;
+      }
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
@@ -173,16 +203,20 @@ void TRAP_INT::runHipVariantOccGS(VariantID vid)
                                                 iend);
       hipErrchk( hipGetLastError() );
 
-      Real_type lsumx;
-      hipErrchk( hipMemcpyAsync( &lsumx, sumx, sizeof(Real_type),
-                                 hipMemcpyDeviceToHost, res.get_stream() ) );
+      if (separate_buffers) {
+        hipErrchk( hipMemcpyAsync( hsumx, sumx, sizeof(Real_type),
+                                   hipMemcpyDeviceToHost, res.get_stream() ) );
+      }
       hipErrchk( hipStreamSynchronize( res.get_stream() ) );
-      m_sumx += lsumx * h;
+      m_sumx += *hsumx * h;
 
     }
     stopTimer();
 
-    deallocData(DataSpace::HipDevice, sumx);
+    deallocData(rds, sumx);
+    if (separate_buffers) {
+      deallocData(hrds, hsumx);
+    }
 
   } else if ( vid == RAJA_HIP ) {
 
