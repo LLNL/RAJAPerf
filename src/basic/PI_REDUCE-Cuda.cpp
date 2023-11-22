@@ -67,14 +67,27 @@ void PI_REDUCE::runCudaVariantBlock(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
+    DataSpace rds = getReductionDataSpace(vid);
+    DataSpace hrds = hostAccessibleDataSpace(rds);
+    const bool separate_buffers = hrds != rds;
+
     Real_ptr dpi;
-    allocData(DataSpace::CudaDevice, dpi, 1);
+    allocData(rds, dpi, 1);
+    Real_ptr hpi = dpi;
+    if (separate_buffers) {
+      allocData(hrds, hpi, 1);
+    }
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      cudaErrchk( cudaMemcpyAsync( dpi, &m_pi_init, sizeof(Real_type),
-                                   cudaMemcpyHostToDevice, res.get_stream() ) );
+      if (separate_buffers) {
+        *hpi = m_pi_init;
+        cudaErrchk( cudaMemcpyAsync( dpi, hpi, sizeof(Real_type),
+                                     cudaMemcpyHostToDevice, res.get_stream() ) );
+      } else {
+        *dpi = m_pi_init;
+      }
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = sizeof(Real_type)*block_size;
@@ -84,15 +97,20 @@ void PI_REDUCE::runCudaVariantBlock(VariantID vid)
                                                    iend );
       cudaErrchk( cudaGetLastError() );
 
-      cudaErrchk( cudaMemcpyAsync( &m_pi, dpi, sizeof(Real_type),
-                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
+      if (separate_buffers) {
+        cudaErrchk( cudaMemcpyAsync( hpi, dpi, sizeof(Real_type),
+                                     cudaMemcpyDeviceToHost, res.get_stream() ) );
+      }
       cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
-      m_pi *= 4.0;
+      m_pi = *hpi * 4.0;
 
     }
     stopTimer();
 
-    deallocData(DataSpace::CudaDevice, dpi);
+    deallocData(rds, dpi);
+    if (separate_buffers) {
+      deallocData(hrds, hpi);
+    }
 
   } else if ( vid == RAJA_CUDA ) {
 
@@ -129,8 +147,16 @@ void PI_REDUCE::runCudaVariantOccGS(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
+    DataSpace rds = getReductionDataSpace(vid);
+    DataSpace hrds = hostAccessibleDataSpace(rds);
+    const bool separate_buffers = hrds != rds;
+
     Real_ptr dpi;
-    allocData(DataSpace::CudaDevice, dpi, 1);
+    allocData(rds, dpi, 1);
+    Real_ptr hpi = dpi;
+    if (separate_buffers) {
+      allocData(hrds, hpi, 1);
+    }
 
     constexpr size_t shmem = sizeof(Real_type)*block_size;
     const size_t max_grid_size = detail::getCudaOccupancyMaxBlocks(
@@ -139,8 +165,13 @@ void PI_REDUCE::runCudaVariantOccGS(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      cudaErrchk( cudaMemcpyAsync( dpi, &m_pi_init, sizeof(Real_type),
-                                   cudaMemcpyHostToDevice, res.get_stream() ) );
+      if (separate_buffers) {
+        *hpi = m_pi_init;
+        cudaErrchk( cudaMemcpyAsync( dpi, hpi, sizeof(Real_type),
+                                     cudaMemcpyHostToDevice, res.get_stream() ) );
+      } else {
+        *dpi = m_pi_init;
+      }
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
@@ -150,15 +181,20 @@ void PI_REDUCE::runCudaVariantOccGS(VariantID vid)
                                                    iend );
       cudaErrchk( cudaGetLastError() );
 
-      cudaErrchk( cudaMemcpyAsync( &m_pi, dpi, sizeof(Real_type),
-                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
+      if (separate_buffers) {
+        cudaErrchk( cudaMemcpyAsync( hpi, dpi, sizeof(Real_type),
+                                     cudaMemcpyDeviceToHost, res.get_stream() ) );
+      }
       cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
-      m_pi *= 4.0;
+      m_pi = *hpi * 4.0;
 
     }
     stopTimer();
 
-    deallocData(DataSpace::CudaDevice, dpi);
+    deallocData(rds, dpi);
+    if (separate_buffers) {
+      deallocData(hrds, hpi);
+    }
 
   } else if ( vid == RAJA_CUDA ) {
 
