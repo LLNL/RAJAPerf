@@ -66,13 +66,17 @@ public:
   template < size_t block_size >
   void runCudaVariantBlock(VariantID vid);
   template < size_t block_size >
-  void runCudaVariantOpenmp(VariantID vid);
-  template < size_t block_size >
-  void runCudaVariantImpl(VariantID vid);
-  template < size_t block_size >
   void runHipVariantBlock(VariantID vid);
   template < size_t block_size >
-  void runHipVariantOpenmp(VariantID vid);
+  void runCudaVariantStream(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantStream(VariantID vid);
+  template < size_t block_size >
+  void runCudaVariantStreamOpenmp(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantStreamOpenmp(VariantID vid);
+  template < size_t block_size >
+  void runCudaVariantImpl(VariantID vid);
   template < size_t block_size >
   void runHipVariantImpl(VariantID vid);
 
