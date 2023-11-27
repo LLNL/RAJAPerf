@@ -349,6 +349,13 @@ public:
   }
 
   template <typename T>
+  long double calcChecksum(DataSpace dataSpace, T* ptr, Size_type len, VariantID RAJAPERF_UNUSED_ARG(vid))
+  {
+    return rajaperf::calcChecksum(dataSpace,
+      ptr, len, getDataAlignment(), 1.0);
+  }
+
+  template <typename T>
   long double calcChecksum(T* ptr, Size_type len, VariantID vid)
   {
     return rajaperf::calcChecksum(getDataSpace(vid),

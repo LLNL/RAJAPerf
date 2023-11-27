@@ -21,6 +21,12 @@ blt_add_library(
           HALOPACKING_FUSED-Cuda.cpp
           HALOPACKING_FUSED-OMP.cpp
           HALOPACKING_FUSED-OMPTarget.cpp
+          MPI_HALOSENDRECV.cpp
+          MPI_HALOSENDRECV-Seq.cpp
+          MPI_HALOSENDRECV-Hip.cpp
+          MPI_HALOSENDRECV-Cuda.cpp
+          MPI_HALOSENDRECV-OMP.cpp
+          MPI_HALOSENDRECV-OMPTarget.cpp
           MPI_HALOEXCHANGE.cpp
           MPI_HALOEXCHANGE-Seq.cpp
           MPI_HALOEXCHANGE-Hip.cpp

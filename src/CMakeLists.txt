@@ -251,6 +251,9 @@ blt_add_executable(
   comm/HALOPACKING_FUSED.cpp
   comm/HALOPACKING_FUSED-Seq.cpp
   comm/HALOPACKING_FUSED-OMPTarget.cpp
+  comm/MPI_HALOSENDRECV.cpp
+  comm/MPI_HALOSENDRECV-Seq.cpp
+  comm/MPI_HALOSENDRECV-OMPTarget.cpp
   comm/MPI_HALOEXCHANGE.cpp
   comm/MPI_HALOEXCHANGE-Seq.cpp
   comm/MPI_HALOEXCHANGE-OMPTarget.cpp
