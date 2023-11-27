@@ -20,7 +20,7 @@ namespace comm
 {
 
 MPI_HALOEXCHANGE::MPI_HALOEXCHANGE(const RunParams& params)
-  : HALOEXCHANGE_base(rajaperf::Comm_MPI_HALOEXCHANGE, params)
+  : HALO_base(rajaperf::Comm_MPI_HALOEXCHANGE, params)
 {
   m_mpi_size = params.getMPISize();
   m_my_mpi_rank = params.getMPIRank();

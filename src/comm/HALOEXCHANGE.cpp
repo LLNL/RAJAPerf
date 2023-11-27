@@ -18,7 +18,7 @@ namespace comm
 {
 
 HALOEXCHANGE::HALOEXCHANGE(const RunParams& params)
-  : HALOEXCHANGE_base(rajaperf::Comm_HALOEXCHANGE, params)
+  : HALO_base(rajaperf::Comm_HALOEXCHANGE, params)
 {
   setDefaultReps(200);
 

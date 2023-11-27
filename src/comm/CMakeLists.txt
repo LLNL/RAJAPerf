@@ -8,7 +8,7 @@
 
 blt_add_library(
   NAME comm
-  SOURCES HALOEXCHANGE_base.cpp
+  SOURCES HALO_base.cpp
           HALOEXCHANGE.cpp
           HALOEXCHANGE-Seq.cpp
           HALOEXCHANGE-Hip.cpp

@@ -63,7 +63,7 @@
 #define RAJAPerf_Comm_MPI_HALOEXCHANGE_FUSED_HPP
 
 #define MPI_HALOEXCHANGE_FUSED_DATA_SETUP \
-  HALOEXCHANGE_base_DATA_SETUP \
+  HALO_BASE_DATA_SETUP \
   \
   Index_type num_vars = m_num_vars; \
   std::vector<Real_ptr> vars = m_vars; \
@@ -128,7 +128,7 @@
   delete[] unpack_lens;
 
 
-#include "HALOEXCHANGE_base.hpp"
+#include "HALO_base.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -139,7 +139,7 @@ namespace rajaperf
 namespace comm
 {
 
-class MPI_HALOEXCHANGE_FUSED : public HALOEXCHANGE_base
+class MPI_HALOEXCHANGE_FUSED : public HALO_base
 {
 public:
 

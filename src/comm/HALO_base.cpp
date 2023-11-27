@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "HALOEXCHANGE_base.hpp"
+#include "HALO_base.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -19,11 +19,11 @@ namespace rajaperf
 namespace comm
 {
 
-Index_type HALOEXCHANGE_base::s_grid_dims_default[3] {100, 100, 100};
-Index_type HALOEXCHANGE_base::s_halo_width_default = 1;
-Index_type HALOEXCHANGE_base::s_num_vars_default = 3;
+Index_type HALO_base::s_grid_dims_default[3] {100, 100, 100};
+Index_type HALO_base::s_halo_width_default = 1;
+Index_type HALO_base::s_num_vars_default = 3;
 
-HALOEXCHANGE_base::HALOEXCHANGE_base(KernelID kid, const RunParams& params)
+HALO_base::HALO_base(KernelID kid, const RunParams& params)
   : KernelBase(kid, params)
 {
   setDefaultProblemSize( s_grid_dims_default[0] *
@@ -47,11 +47,11 @@ HALOEXCHANGE_base::HALOEXCHANGE_base(KernelID kid, const RunParams& params)
   setActualProblemSize( m_grid_dims[0] * m_grid_dims[1] * m_grid_dims[1] );
 }
 
-HALOEXCHANGE_base::~HALOEXCHANGE_base()
+HALO_base::~HALO_base()
 {
 }
 
-void HALOEXCHANGE_base::setUp_base(const int my_mpi_rank, const int* mpi_dims,
+void HALO_base::setUp_base(const int my_mpi_rank, const int* mpi_dims,
                                    VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   m_mpi_ranks.resize(s_num_neighbors, -1);
@@ -68,7 +68,7 @@ void HALOEXCHANGE_base::setUp_base(const int my_mpi_rank, const int* mpi_dims,
       s_num_neighbors, vid);
 }
 
-void HALOEXCHANGE_base::tearDown_base(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+void HALO_base::tearDown_base(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   destroy_lists(m_pack_index_lists, m_unpack_index_lists, s_num_neighbors, vid);
   m_unpack_index_list_lengths.clear();
@@ -81,7 +81,7 @@ void HALOEXCHANGE_base::tearDown_base(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
 }
 
 
-const int HALOEXCHANGE_base::s_boundary_offsets[HALOEXCHANGE_base::s_num_neighbors][3]{
+const int HALO_base::s_boundary_offsets[HALO_base::s_num_neighbors][3]{
 
   // faces
   {-1,  0,  0},
@@ -117,8 +117,8 @@ const int HALOEXCHANGE_base::s_boundary_offsets[HALOEXCHANGE_base::s_num_neighbo
 
 };
 
-HALOEXCHANGE_base::Extent HALOEXCHANGE_base::make_boundary_extent(
-    const HALOEXCHANGE_base::message_type msg_type,
+HALO_base::Extent HALO_base::make_boundary_extent(
+    const HALO_base::message_type msg_type,
     const int (&boundary_offset)[3],
     const Index_type halo_width, const Index_type* grid_dims)
 {
@@ -168,7 +168,7 @@ HALOEXCHANGE_base::Extent HALOEXCHANGE_base::make_boundary_extent(
 //
 // Function to generate mpi decomposition and index lists for packing and unpacking.
 //
-void HALOEXCHANGE_base::create_lists(
+void HALO_base::create_lists(
     int my_mpi_rank,
     const int* mpi_dims,
     std::vector<int>& mpi_ranks,
@@ -295,7 +295,7 @@ void HALOEXCHANGE_base::create_lists(
 //
 // Function to destroy packing and unpacking index lists.
 //
-void HALOEXCHANGE_base::destroy_lists(
+void HALO_base::destroy_lists(
     std::vector<Int_ptr>& pack_index_lists,
     std::vector<Int_ptr>& unpack_index_lists,
     const Index_type num_neighbors,

@@ -42,10 +42,10 @@
 /// }
 ///
 
-#ifndef RAJAPerf_Comm_HALOEXCHANGE_base_HPP
-#define RAJAPerf_Comm_HALOEXCHANGE_base_HPP
+#ifndef RAJAPerf_Comm_HALO_BASE_HPP
+#define RAJAPerf_Comm_HALO_BASE_HPP
 
-#define HALOEXCHANGE_base_DATA_SETUP \
+#define HALO_BASE_DATA_SETUP \
   Index_type num_neighbors = s_num_neighbors; \
   std::vector<int> send_tags = m_send_tags; \
   std::vector<Int_ptr> pack_index_lists = m_pack_index_lists; \
@@ -74,13 +74,13 @@ class RunParams;
 namespace comm
 {
 
-class HALOEXCHANGE_base : public KernelBase
+class HALO_base : public KernelBase
 {
 public:
 
-  HALOEXCHANGE_base(KernelID kid, const RunParams& params);
+  HALO_base(KernelID kid, const RunParams& params);
 
-  ~HALOEXCHANGE_base();
+  ~HALO_base();
 
   void setUp_base(const int my_mpi_rank, const int* mpi_dims,
              VariantID vid, size_t tune_idx);

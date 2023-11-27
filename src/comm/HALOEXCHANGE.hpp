@@ -50,7 +50,7 @@
 #define RAJAPerf_Comm_HALOEXCHANGE_HPP
 
 #define HALOEXCHANGE_DATA_SETUP \
-  HALOEXCHANGE_base_DATA_SETUP \
+  HALO_BASE_DATA_SETUP \
   \
   Index_type num_vars = m_num_vars; \
   std::vector<Real_ptr> vars = m_vars; \
@@ -58,7 +58,7 @@
   std::vector<Real_ptr> buffers = m_buffers;
 
 
-#include "HALOEXCHANGE_base.hpp"
+#include "HALO_base.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -67,7 +67,7 @@ namespace rajaperf
 namespace comm
 {
 
-class HALOEXCHANGE : public HALOEXCHANGE_base
+class HALOEXCHANGE : public HALO_base
 {
 public:
 
