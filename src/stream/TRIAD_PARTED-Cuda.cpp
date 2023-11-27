@@ -113,7 +113,8 @@ void TRIAD_PARTED::runCudaVariantStream(VariantID vid)
   TRIAD_PARTED_DATA_SETUP;
 
   std::vector<camp::resources::Cuda> res;
-  res.reserve(parts.size()-1);
+  res.reserve(parts.size());
+  res.emplace_back(getCudaResource());
   for (size_t p = 1; p < parts.size(); ++p ) {
     res.emplace_back(p-1);
   }
@@ -129,7 +130,7 @@ void TRIAD_PARTED::runCudaVariantStream(VariantID vid)
 
         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend-ibegin, block_size);
         constexpr size_t shmem = 0;
-        triad_parted<block_size><<<grid_size, block_size, shmem, res[p-1].get_stream()>>>( a, b, c, alpha,
+        triad_parted<block_size><<<grid_size, block_size, shmem, res[p].get_stream()>>>( a, b, c, alpha,
                                           ibegin, iend );
         cudaErrchk( cudaGetLastError() );
       }
@@ -148,7 +149,7 @@ void TRIAD_PARTED::runCudaVariantStream(VariantID vid)
 
         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend-ibegin, block_size);
         constexpr size_t shmem = 0;
-        lambda_cuda_forall<block_size><<<grid_size, block_size, shmem, res[p-1].get_stream()>>>(
+        lambda_cuda_forall<block_size><<<grid_size, block_size, shmem, res[p].get_stream()>>>(
           ibegin, iend, [=] __device__ (Index_type i) {
           TRIAD_PARTED_BODY;
         });
@@ -167,7 +168,7 @@ void TRIAD_PARTED::runCudaVariantStream(VariantID vid)
         const Index_type ibegin = parts[p-1];
         const Index_type iend = parts[p];
 
-        RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res[p-1],
+        RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res[p],
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           TRIAD_PARTED_BODY;
         });
@@ -190,7 +191,8 @@ void TRIAD_PARTED::runCudaVariantStreamOpenmp(VariantID vid)
   TRIAD_PARTED_DATA_SETUP;
 
   std::vector<camp::resources::Cuda> res;
-  res.reserve(parts.size()-1);
+  res.reserve(parts.size());
+  res.emplace_back(getCudaResource());
   for (size_t p = 1; p < parts.size(); ++p ) {
     res.emplace_back(p-1);
   }
@@ -207,7 +209,7 @@ void TRIAD_PARTED::runCudaVariantStreamOpenmp(VariantID vid)
 
         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend-ibegin, block_size);
         constexpr size_t shmem = 0;
-        triad_parted<block_size><<<grid_size, block_size, shmem, res[p-1].get_stream()>>>( a, b, c, alpha,
+        triad_parted<block_size><<<grid_size, block_size, shmem, res[p].get_stream()>>>( a, b, c, alpha,
                                           ibegin, iend );
         cudaErrchk( cudaGetLastError() );
       }
@@ -227,7 +229,7 @@ void TRIAD_PARTED::runCudaVariantStreamOpenmp(VariantID vid)
 
         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend-ibegin, block_size);
         constexpr size_t shmem = 0;
-        lambda_cuda_forall<block_size><<<grid_size, block_size, shmem, res[p-1].get_stream()>>>(
+        lambda_cuda_forall<block_size><<<grid_size, block_size, shmem, res[p].get_stream()>>>(
           ibegin, iend, [=] __device__ (Index_type i) {
           TRIAD_PARTED_BODY;
         });
@@ -247,7 +249,7 @@ void TRIAD_PARTED::runCudaVariantStreamOpenmp(VariantID vid)
         const Index_type ibegin = parts[p-1];
         const Index_type iend = parts[p];
 
-        RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res[p-1],
+        RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res[p],
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           TRIAD_PARTED_BODY;
         });
