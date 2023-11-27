@@ -7,7 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 ///
-/// HALOEXCHANGE_FUSED kernel reference implementation:
+/// HALOPACKING_FUSED kernel reference implementation:
 ///
 /// // post a recv for each neighbor
 ///
@@ -48,10 +48,10 @@
 /// // wait for all sends to complete
 ///
 
-#ifndef RAJAPerf_Comm_HALOEXCHANGE_FUSED_HPP
-#define RAJAPerf_Comm_HALOEXCHANGE_FUSED_HPP
+#ifndef RAJAPerf_Comm_HALOPACKING_FUSED_HPP
+#define RAJAPerf_Comm_HALOPACKING_FUSED_HPP
 
-#define HALOEXCHANGE_FUSED_DATA_SETUP \
+#define HALOPACKING_FUSED_DATA_SETUP \
   HALO_BASE_DATA_SETUP \
   \
   Index_type num_vars = m_num_vars; \
@@ -59,7 +59,7 @@
   \
   std::vector<Real_ptr> buffers = m_buffers;
 
-#define HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP \
+#define HALOPACKING_FUSED_MANUAL_FUSER_SETUP \
   struct ptr_holder { \
     Real_ptr buffer; \
     Int_ptr  list; \
@@ -70,17 +70,17 @@
   ptr_holder* unpack_ptr_holders = new ptr_holder[num_neighbors * num_vars]; \
   Index_type* unpack_lens        = new Index_type[num_neighbors * num_vars];
 
-#define HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN \
+#define HALOPACKING_FUSED_MANUAL_FUSER_TEARDOWN \
   delete[] pack_ptr_holders; \
   delete[] pack_lens; \
   delete[] unpack_ptr_holders; \
   delete[] unpack_lens;
 
 
-#define HALOEXCHANGE_FUSED_MANUAL_LAMBDA_FUSER_SETUP \
+#define HALOPACKING_FUSED_MANUAL_LAMBDA_FUSER_SETUP \
   auto make_pack_lambda = [](Real_ptr buffer, Int_ptr list, Real_ptr var) { \
     return [=](Index_type i) { \
-      HALOEXCHANGE_PACK_BODY; \
+      HALO_PACK_BODY; \
     }; \
   }; \
   using pack_lambda_type = decltype(make_pack_lambda(Real_ptr(), Int_ptr(), Real_ptr())); \
@@ -89,7 +89,7 @@
   Index_type* pack_lens = new Index_type[num_neighbors * num_vars]; \
   auto make_unpack_lambda = [](Real_ptr buffer, Int_ptr list, Real_ptr var) { \
     return [=](Index_type i) { \
-      HALOEXCHANGE_UNPACK_BODY; \
+      HALO_UNPACK_BODY; \
     }; \
   }; \
   using unpack_lambda_type = decltype(make_unpack_lambda(Real_ptr(), Int_ptr(), Real_ptr())); \
@@ -97,7 +97,7 @@
       malloc(sizeof(unpack_lambda_type) * (num_neighbors * num_vars))); \
   Index_type* unpack_lens = new Index_type[num_neighbors * num_vars];
 
-#define HALOEXCHANGE_FUSED_MANUAL_LAMBDA_FUSER_TEARDOWN \
+#define HALOPACKING_FUSED_MANUAL_LAMBDA_FUSER_TEARDOWN \
   free(pack_lambdas); \
   delete[] pack_lens; \
   free(unpack_lambdas); \
@@ -113,13 +113,13 @@ namespace rajaperf
 namespace comm
 {
 
-class HALOEXCHANGE_FUSED : public HALO_base
+class HALOPACKING_FUSED : public HALO_base
 {
 public:
 
-  HALOEXCHANGE_FUSED(const RunParams& params);
+  HALOPACKING_FUSED(const RunParams& params);
 
-  ~HALOEXCHANGE_FUSED();
+  ~HALOPACKING_FUSED();
 
   void setUp(VariantID vid, size_t tune_idx);
   void updateChecksum(VariantID vid, size_t tune_idx);

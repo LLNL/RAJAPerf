@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "HALOEXCHANGE.hpp"
+#include "HALOPACKING_FUSED.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -17,8 +17,8 @@ namespace rajaperf
 namespace comm
 {
 
-HALOEXCHANGE::HALOEXCHANGE(const RunParams& params)
-  : HALO_base(rajaperf::Comm_HALOEXCHANGE, params)
+HALOPACKING_FUSED::HALOPACKING_FUSED(const RunParams& params)
+  : HALO_base(rajaperf::Comm_HALOPACKING_FUSED, params)
 {
   setDefaultReps(200);
 
@@ -26,14 +26,14 @@ HALOEXCHANGE::HALOEXCHANGE(const RunParams& params)
   m_var_size = m_grid_plus_halo_size ;
 
   setItsPerRep( m_num_vars * (m_var_size - getActualProblemSize()) );
-  setKernelsPerRep( 2 * s_num_neighbors * m_num_vars );
+  setKernelsPerRep( 2 );
   setBytesPerRep( (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * getItsPerRep() +  // pack
                   (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() +  // pack
                   (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * getItsPerRep() +  // unpack
                   (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() ); // unpack
   setFLOPsPerRep(0);
 
-  setUsesFeature(Forall);
+  setUsesFeature(Workgroup);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
@@ -53,11 +53,11 @@ HALOEXCHANGE::HALOEXCHANGE(const RunParams& params)
   setVariantDefined( RAJA_HIP );
 }
 
-HALOEXCHANGE::~HALOEXCHANGE()
+HALOPACKING_FUSED::~HALOPACKING_FUSED()
 {
 }
 
-void HALOEXCHANGE::setUp(VariantID vid, size_t tune_idx)
+void HALOPACKING_FUSED::setUp(VariantID vid, size_t tune_idx)
 {
   int my_mpi_rank = 0;
   const int mpi_dims[3] = {1,1,1};
@@ -82,14 +82,14 @@ void HALOEXCHANGE::setUp(VariantID vid, size_t tune_idx)
   }
 }
 
-void HALOEXCHANGE::updateChecksum(VariantID vid, size_t tune_idx)
+void HALOPACKING_FUSED::updateChecksum(VariantID vid, size_t tune_idx)
 {
   for (Real_ptr var : m_vars) {
     checksum[vid][tune_idx] += calcChecksum(var, m_var_size, vid);
   }
 }
 
-void HALOEXCHANGE::tearDown(VariantID vid, size_t tune_idx)
+void HALOPACKING_FUSED::tearDown(VariantID vid, size_t tune_idx)
 {
   for (int l = 0; l < s_num_neighbors; ++l) {
     deallocData(m_buffers[l], vid);

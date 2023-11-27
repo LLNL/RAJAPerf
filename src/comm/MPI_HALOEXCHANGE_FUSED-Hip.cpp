@@ -64,7 +64,7 @@ __global__ void haloexchange_fused_pack(Real_ptr* pack_buffer_ptrs, Int_ptr* pac
   for (Index_type i = threadIdx.x + blockIdx.x * block_size;
        i < len;
        i += block_size * gridDim.x) {
-    HALOEXCHANGE_PACK_BODY;
+    HALO_PACK_BODY;
   }
 }
 
@@ -83,7 +83,7 @@ __global__ void haloexchange_fused_unpack(Real_ptr* unpack_buffer_ptrs, Int_ptr*
   for (Index_type i = threadIdx.x + blockIdx.x * block_size;
        i < len;
        i += block_size * gridDim.x) {
-    HALOEXCHANGE_UNPACK_BODY;
+    HALO_UNPACK_BODY;
   }
 }
 
@@ -244,7 +244,7 @@ void MPI_HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
           auto haloexchange_fused_pack_base_lam = [=] __device__ (Index_type i) {
-                HALOEXCHANGE_PACK_BODY;
+                HALO_PACK_BODY;
               };
           pool_pack.enqueue(
               RAJA::TypedRangeSegment<Index_type>(0, len),
@@ -284,7 +284,7 @@ void MPI_HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
           auto haloexchange_fused_unpack_base_lam = [=] __device__ (Index_type i) {
-                HALOEXCHANGE_UNPACK_BODY;
+                HALO_UNPACK_BODY;
               };
           pool_unpack.enqueue(
               RAJA::TypedRangeSegment<Index_type>(0, len),

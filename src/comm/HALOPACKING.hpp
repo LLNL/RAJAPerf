@@ -7,7 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 ///
-/// HALOEXCHANGE kernel reference implementation:
+/// HALOPACKING kernel reference implementation:
 ///
 /// // post a recv for each neighbor
 ///
@@ -46,10 +46,10 @@
 /// // wait for all sends to complete
 ///
 
-#ifndef RAJAPerf_Comm_HALOEXCHANGE_HPP
-#define RAJAPerf_Comm_HALOEXCHANGE_HPP
+#ifndef RAJAPerf_Comm_HALOPACKING_HPP
+#define RAJAPerf_Comm_HALOPACKING_HPP
 
-#define HALOEXCHANGE_DATA_SETUP \
+#define HALOPACKING_DATA_SETUP \
   HALO_BASE_DATA_SETUP \
   \
   Index_type num_vars = m_num_vars; \
@@ -67,13 +67,13 @@ namespace rajaperf
 namespace comm
 {
 
-class HALOEXCHANGE : public HALO_base
+class HALOPACKING : public HALO_base
 {
 public:
 
-  HALOEXCHANGE(const RunParams& params);
+  HALOPACKING(const RunParams& params);
 
-  ~HALOEXCHANGE();
+  ~HALOPACKING();
 
   void setUp(VariantID vid, size_t tune_idx);
   void updateChecksum(VariantID vid, size_t tune_idx);

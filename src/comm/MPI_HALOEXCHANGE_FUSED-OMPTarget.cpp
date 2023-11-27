@@ -113,7 +113,7 @@ void MPI_HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPE
           Index_type len    = pack_len_ptrs[j];
 
           for (Index_type i = ii; i < len; i += pack_len_ave) {
-            HALOEXCHANGE_PACK_BODY;
+            HALO_PACK_BODY;
           }
         }
       }
@@ -170,7 +170,7 @@ void MPI_HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPE
           Index_type len    = unpack_len_ptrs[j];
 
           for (Index_type i = ii; i < len; i += unpack_len_ave) {
-            HALOEXCHANGE_UNPACK_BODY;
+            HALO_UNPACK_BODY;
           }
         }
       }
@@ -231,7 +231,7 @@ void MPI_HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPE
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
           auto haloexchange_fused_pack_base_lam = [=](Index_type i) {
-                HALOEXCHANGE_PACK_BODY;
+                HALO_PACK_BODY;
               };
           pool_pack.enqueue(
               RAJA::TypedRangeSegment<Index_type>(0, len),
@@ -270,7 +270,7 @@ void MPI_HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPE
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
           auto haloexchange_fused_unpack_base_lam = [=](Index_type i) {
-                HALOEXCHANGE_UNPACK_BODY;
+                HALO_UNPACK_BODY;
               };
           pool_unpack.enqueue(
               RAJA::TypedRangeSegment<Index_type>(0, len),

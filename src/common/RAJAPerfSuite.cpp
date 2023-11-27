@@ -108,8 +108,8 @@
 //
 // Comm kernels...
 //
-#include "comm/HALOEXCHANGE.hpp"
-#include "comm/HALOEXCHANGE_FUSED.hpp"
+#include "comm/HALOPACKING.hpp"
+#include "comm/HALOPACKING_FUSED.hpp"
 #if defined(RAJA_PERFSUITE_ENABLE_MPI)
 #include "comm/MPI_HALOEXCHANGE.hpp"
 #include "comm/MPI_HALOEXCHANGE_FUSED.hpp"
@@ -257,8 +257,8 @@ static const std::string KernelNames [] =
 //
 // Comm kernels...
 //
-  std::string("Comm_HALOEXCHANGE"),
-  std::string("Comm_HALOEXCHANGE_FUSED"),
+  std::string("Comm_HALOPACKING"),
+  std::string("Comm_HALOPACKING_FUSED"),
 #if defined(RAJA_PERFSUITE_ENABLE_MPI)
   std::string("Comm_MPI_HALOEXCHANGE"),
   std::string("Comm_MPI_HALOEXCHANGE_FUSED"),
@@ -988,12 +988,12 @@ KernelBase* getKernelObject(KernelID kid,
 //
 // Comm kernels...
 //
-    case Comm_HALOEXCHANGE : {
-       kernel = new comm::HALOEXCHANGE(run_params);
+    case Comm_HALOPACKING : {
+       kernel = new comm::HALOPACKING(run_params);
        break;
     }
-    case Comm_HALOEXCHANGE_FUSED : {
-       kernel = new comm::HALOEXCHANGE_FUSED(run_params);
+    case Comm_HALOPACKING_FUSED : {
+       kernel = new comm::HALOPACKING_FUSED(run_params);
        break;
     }
 #if defined(RAJA_PERFSUITE_ENABLE_MPI)

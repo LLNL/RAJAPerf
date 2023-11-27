@@ -68,7 +68,7 @@ void MPI_HALOEXCHANGE_FUSED::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNU
             Real_ptr   var    = pack_ptr_holders[j].var;
             Index_type len    = pack_lens[j];
             for (Index_type i = 0; i < len; i++) {
-              HALOEXCHANGE_PACK_BODY;
+              HALO_PACK_BODY;
             }
           }
         }
@@ -80,7 +80,7 @@ void MPI_HALOEXCHANGE_FUSED::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNU
           Real_ptr   var    = pack_ptr_holders[j].var;
           Index_type len    = pack_lens[j];
           for (Index_type i = 0; i < len; i++) {
-            HALOEXCHANGE_PACK_BODY;
+            HALO_PACK_BODY;
           }
         }
 #endif
@@ -131,7 +131,7 @@ void MPI_HALOEXCHANGE_FUSED::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNU
             Real_ptr   var    = unpack_ptr_holders[j].var;
             Index_type len    = unpack_lens[j];
             for (Index_type i = 0; i < len; i++) {
-              HALOEXCHANGE_UNPACK_BODY;
+              HALO_UNPACK_BODY;
             }
           }
         }
@@ -143,7 +143,7 @@ void MPI_HALOEXCHANGE_FUSED::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNU
           Real_ptr   var    = unpack_ptr_holders[j].var;
           Index_type len    = unpack_lens[j];
           for (Index_type i = 0; i < len; i++) {
-            HALOEXCHANGE_UNPACK_BODY;
+            HALO_UNPACK_BODY;
           }
         }
 #endif
@@ -327,7 +327,7 @@ void MPI_HALOEXCHANGE_FUSED::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNU
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
             auto haloexchange_fused_pack_base_lam = [=](Index_type i) {
-                  HALOEXCHANGE_PACK_BODY;
+                  HALO_PACK_BODY;
                 };
             pool_pack.enqueue(
                 RAJA::TypedRangeSegment<Index_type>(0, len),
@@ -366,7 +366,7 @@ void MPI_HALOEXCHANGE_FUSED::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNU
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
             auto haloexchange_fused_unpack_base_lam = [=](Index_type i) {
-                  HALOEXCHANGE_UNPACK_BODY;
+                  HALO_UNPACK_BODY;
                 };
             pool_unpack.enqueue(
                 RAJA::TypedRangeSegment<Index_type>(0, len),

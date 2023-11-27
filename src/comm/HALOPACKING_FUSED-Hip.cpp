@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "HALOEXCHANGE_FUSED.hpp"
+#include "HALOPACKING_FUSED.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -21,7 +21,7 @@ namespace rajaperf
 namespace comm
 {
 
-#define HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_HIP \
+#define HALOPACKING_FUSED_MANUAL_FUSER_SETUP_HIP \
   Real_ptr*   pack_buffer_ptrs; \
   Int_ptr*    pack_list_ptrs; \
   Real_ptr*   pack_var_ptrs; \
@@ -39,7 +39,7 @@ namespace comm
   allocData(DataSpace::HipPinnedCoarse, unpack_var_ptrs,    num_neighbors * num_vars); \
   allocData(DataSpace::HipPinnedCoarse, unpack_len_ptrs,    num_neighbors * num_vars);
 
-#define HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN_HIP \
+#define HALOPACKING_FUSED_MANUAL_FUSER_TEARDOWN_HIP \
   deallocData(DataSpace::HipPinnedCoarse, pack_buffer_ptrs); \
   deallocData(DataSpace::HipPinnedCoarse, pack_list_ptrs); \
   deallocData(DataSpace::HipPinnedCoarse, pack_var_ptrs); \
@@ -64,7 +64,7 @@ __global__ void haloexchange_fused_pack(Real_ptr* pack_buffer_ptrs, Int_ptr* pac
   for (Index_type i = threadIdx.x + blockIdx.x * block_size;
        i < len;
        i += block_size * gridDim.x) {
-    HALOEXCHANGE_PACK_BODY;
+    HALO_PACK_BODY;
   }
 }
 
@@ -83,23 +83,23 @@ __global__ void haloexchange_fused_unpack(Real_ptr* unpack_buffer_ptrs, Int_ptr*
   for (Index_type i = threadIdx.x + blockIdx.x * block_size;
        i < len;
        i += block_size * gridDim.x) {
-    HALOEXCHANGE_UNPACK_BODY;
+    HALO_UNPACK_BODY;
   }
 }
 
 
 template < size_t block_size >
-void HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
+void HALOPACKING_FUSED::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
   auto res{getHipResource()};
 
-  HALOEXCHANGE_FUSED_DATA_SETUP;
+  HALOPACKING_FUSED_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
 
-    HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_HIP;
+    HALOPACKING_FUSED_MANUAL_FUSER_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -161,7 +161,7 @@ void HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN_HIP;
+    HALOPACKING_FUSED_MANUAL_FUSER_TEARDOWN_HIP;
 
   } else if ( vid == RAJA_HIP ) {
 
@@ -209,7 +209,7 @@ void HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
           auto haloexchange_fused_pack_base_lam = [=] __device__ (Index_type i) {
-                HALOEXCHANGE_PACK_BODY;
+                HALO_PACK_BODY;
               };
           pool_pack.enqueue(
               RAJA::TypedRangeSegment<Index_type>(0, len),
@@ -228,7 +228,7 @@ void HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
           auto haloexchange_fused_unpack_base_lam = [=] __device__ (Index_type i) {
-                HALOEXCHANGE_UNPACK_BODY;
+                HALO_UNPACK_BODY;
               };
           pool_unpack.enqueue(
               RAJA::TypedRangeSegment<Index_type>(0, len),
@@ -244,11 +244,11 @@ void HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
     stopTimer();
 
   } else {
-     getCout() << "\n HALOEXCHANGE_FUSED : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n HALOPACKING_FUSED : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(HALOEXCHANGE_FUSED, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(HALOPACKING_FUSED, Hip)
 
 } // end namespace comm
 } // end namespace rajaperf

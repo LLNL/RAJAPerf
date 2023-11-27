@@ -6,13 +6,13 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "HALOEXCHANGE.hpp"
+#include "HALOPACKING.hpp"
 
 #include "RAJA/RAJA.hpp"
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(RAJA_ENABLE_HIP)
 
-#include "common/CudaDataUtils.hpp"
+#include "common/HipDataUtils.hpp"
 
 #include <iostream>
 
@@ -29,7 +29,7 @@ __global__ void haloexchange_pack(Real_ptr buffer, Int_ptr list, Real_ptr var,
    Index_type i = threadIdx.x + blockIdx.x * block_size;
 
    if (i < len) {
-     HALOEXCHANGE_PACK_BODY;
+     HALO_PACK_BODY;
    }
 }
 
@@ -41,21 +41,21 @@ __global__ void haloexchange_unpack(Real_ptr buffer, Int_ptr list, Real_ptr var,
    Index_type i = threadIdx.x + blockIdx.x * block_size;
 
    if (i < len) {
-     HALOEXCHANGE_UNPACK_BODY;
+     HALO_UNPACK_BODY;
    }
 }
 
 
 template < size_t block_size >
-void HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
+void HALOPACKING::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
-  auto res{getCudaResource()};
+  auto res{getHipResource()};
 
-  HALOEXCHANGE_DATA_SETUP;
+  HALOPACKING_DATA_SETUP;
 
-  if ( vid == Base_CUDA ) {
+  if ( vid == Base_HIP ) {
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -69,11 +69,12 @@ void HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
           dim3 nthreads_per_block(block_size);
           dim3 nblocks((len + block_size-1) / block_size);
           constexpr size_t shmem = 0;
-          haloexchange_pack<block_size><<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(buffer, list, var, len);
-          cudaErrchk( cudaGetLastError() );
+          hipLaunchKernelGGL((haloexchange_pack<block_size>), nblocks, nthreads_per_block, shmem, res.get_stream(),
+              buffer, list, var, len);
+          hipErrchk( hipGetLastError() );
           buffer += len;
         }
-        cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
+        hipErrchk( hipStreamSynchronize( res.get_stream() ) );
       }
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
@@ -85,19 +86,20 @@ void HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
           dim3 nthreads_per_block(block_size);
           dim3 nblocks((len + block_size-1) / block_size);
           constexpr size_t shmem = 0;
-          haloexchange_unpack<block_size><<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(buffer, list, var, len);
-          cudaErrchk( cudaGetLastError() );
+          hipLaunchKernelGGL((haloexchange_unpack<block_size>), nblocks, nthreads_per_block, shmem, res.get_stream(),
+              buffer, list, var, len);
+          hipErrchk( hipGetLastError() );
           buffer += len;
         }
       }
-      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
+      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
 
     }
     stopTimer();
 
-  } else if ( vid == RAJA_CUDA ) {
+  } else if ( vid == RAJA_HIP ) {
 
-    using EXEC_POL = RAJA::cuda_exec<block_size, true /*async*/>;
+    using EXEC_POL = RAJA::hip_exec<block_size, true /*async*/>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -109,7 +111,7 @@ void HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
           auto haloexchange_pack_base_lam = [=] __device__ (Index_type i) {
-                HALOEXCHANGE_PACK_BODY;
+                HALO_PACK_BODY;
               };
           RAJA::forall<EXEC_POL>( res,
               RAJA::TypedRangeSegment<Index_type>(0, len),
@@ -126,7 +128,7 @@ void HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
           auto haloexchange_unpack_base_lam = [=] __device__ (Index_type i) {
-                HALOEXCHANGE_UNPACK_BODY;
+                HALO_UNPACK_BODY;
               };
           RAJA::forall<EXEC_POL>( res,
               RAJA::TypedRangeSegment<Index_type>(0, len),
@@ -140,13 +142,13 @@ void HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
     stopTimer();
 
   } else {
-     getCout() << "\n HALOEXCHANGE : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n HALOPACKING : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(HALOEXCHANGE, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(HALOPACKING, Hip)
 
 } // end namespace comm
 } // end namespace rajaperf
 
-#endif  // RAJA_ENABLE_CUDA
+#endif  // RAJA_ENABLE_HIP

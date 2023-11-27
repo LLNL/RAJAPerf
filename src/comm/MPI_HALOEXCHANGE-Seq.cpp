@@ -46,7 +46,7 @@ void MPI_HALOEXCHANGE::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
             for (Index_type i = 0; i < len; i++) {
-              HALOEXCHANGE_PACK_BODY;
+              HALO_PACK_BODY;
             }
             buffer += len;
           }
@@ -77,7 +77,7 @@ void MPI_HALOEXCHANGE::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
             for (Index_type i = 0; i < len; i++) {
-              HALOEXCHANGE_UNPACK_BODY;
+              HALO_UNPACK_BODY;
             }
             buffer += len;
           }
@@ -110,7 +110,7 @@ void MPI_HALOEXCHANGE::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
             auto haloexchange_pack_base_lam = [=](Index_type i) {
-                  HALOEXCHANGE_PACK_BODY;
+                  HALO_PACK_BODY;
                 };
             for (Index_type i = 0; i < len; i++) {
               haloexchange_pack_base_lam(i);
@@ -144,7 +144,7 @@ void MPI_HALOEXCHANGE::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
             auto haloexchange_unpack_base_lam = [=](Index_type i) {
-                  HALOEXCHANGE_UNPACK_BODY;
+                  HALO_UNPACK_BODY;
                 };
             for (Index_type i = 0; i < len; i++) {
               haloexchange_unpack_base_lam(i);
@@ -181,7 +181,7 @@ void MPI_HALOEXCHANGE::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
             auto haloexchange_pack_base_lam = [=](Index_type i) {
-                  HALOEXCHANGE_PACK_BODY;
+                  HALO_PACK_BODY;
                 };
             RAJA::forall<EXEC_POL>(
                 RAJA::TypedRangeSegment<Index_type>(0, len),
@@ -215,7 +215,7 @@ void MPI_HALOEXCHANGE::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
             auto haloexchange_unpack_base_lam = [=](Index_type i) {
-                  HALOEXCHANGE_UNPACK_BODY;
+                  HALO_UNPACK_BODY;
                 };
             RAJA::forall<EXEC_POL>(
                 RAJA::TypedRangeSegment<Index_type>(0, len),

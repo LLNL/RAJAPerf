@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "HALOEXCHANGE_FUSED.hpp"
+#include "HALOPACKING_FUSED.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -26,7 +26,7 @@ namespace comm
   //
 //const size_t threads_per_team = 256;
 
-#define HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_OMP_TARGET \
+#define HALOPACKING_FUSED_MANUAL_FUSER_SETUP_OMP_TARGET \
   void** pack_ptrs; \
   allocData(DataSpace::OmpTarget, pack_ptrs, 4 * num_neighbors * num_vars); \
   Real_ptr*   pack_buffer_ptrs = reinterpret_cast<Real_ptr*>(pack_ptrs) + 0 * num_neighbors * num_vars; \
@@ -50,28 +50,28 @@ namespace comm
   Real_ptr*   h_unpack_var_ptrs    = reinterpret_cast<Real_ptr*>(h_unpack_ptrs) + 2 * num_neighbors * num_vars; \
   Index_type* h_unpack_len_ptrs    = reinterpret_cast<Index_type*>(h_unpack_ptrs) + 3 * num_neighbors * num_vars;
 
-#define HALOEXCHANGE_FUSED_MANUAL_FUSER_COPY_PACK_OMP_TARGET \
+#define HALOPACKING_FUSED_MANUAL_FUSER_COPY_PACK_OMP_TARGET \
   initOpenMPDeviceData(pack_ptrs, h_pack_ptrs, 4 * num_neighbors * num_vars);
 
-#define HALOEXCHANGE_FUSED_MANUAL_FUSER_COPY_UNPACK_OMP_TARGET \
+#define HALOPACKING_FUSED_MANUAL_FUSER_COPY_UNPACK_OMP_TARGET \
   initOpenMPDeviceData(unpack_ptrs, h_unpack_ptrs, 4 * num_neighbors * num_vars);
 
-#define HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN_OMP_TARGET \
+#define HALOPACKING_FUSED_MANUAL_FUSER_TEARDOWN_OMP_TARGET \
   deallocData(DataSpace::OmpTarget, pack_ptrs); \
   delete[] h_pack_ptrs; \
   deallocData(DataSpace::OmpTarget, unpack_ptrs); \
   delete[] h_unpack_ptrs;
 
 
-void HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+void HALOPACKING_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
 
-  HALOEXCHANGE_FUSED_DATA_SETUP;
+  HALOPACKING_FUSED_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
 
-    HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_OMP_TARGET;
+    HALOPACKING_FUSED_MANUAL_FUSER_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -94,7 +94,7 @@ void HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_U
           buffer += len;
         }
       }
-      HALOEXCHANGE_FUSED_MANUAL_FUSER_COPY_PACK_OMP_TARGET;
+      HALOPACKING_FUSED_MANUAL_FUSER_COPY_PACK_OMP_TARGET;
       Index_type pack_len_ave = (pack_len_sum + pack_index-1) / pack_index;
       #pragma omp target is_device_ptr(pack_buffer_ptrs, pack_list_ptrs, pack_var_ptrs, pack_len_ptrs) device( did )
       #pragma omp teams distribute parallel for collapse(2) schedule(static, 1)
@@ -107,7 +107,7 @@ void HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_U
           Index_type len    = pack_len_ptrs[j];
 
           for (Index_type i = ii; i < len; i += pack_len_ave) {
-            HALOEXCHANGE_PACK_BODY;
+            HALO_PACK_BODY;
           }
         }
       }
@@ -130,7 +130,7 @@ void HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_U
           buffer += len;
         }
       }
-      HALOEXCHANGE_FUSED_MANUAL_FUSER_COPY_UNPACK_OMP_TARGET;
+      HALOPACKING_FUSED_MANUAL_FUSER_COPY_UNPACK_OMP_TARGET;
       Index_type unpack_len_ave = (unpack_len_sum + unpack_index-1) / unpack_index;
       #pragma omp target is_device_ptr(unpack_buffer_ptrs, unpack_list_ptrs, unpack_var_ptrs, unpack_len_ptrs) device( did )
       #pragma omp teams distribute parallel for collapse(2) schedule(static, 1)
@@ -143,7 +143,7 @@ void HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_U
           Index_type len    = unpack_len_ptrs[j];
 
           for (Index_type i = ii; i < len; i += unpack_len_ave) {
-            HALOEXCHANGE_UNPACK_BODY;
+            HALO_UNPACK_BODY;
           }
         }
       }
@@ -151,7 +151,7 @@ void HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_U
     }
     stopTimer();
 
-    HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN_OMP_TARGET;
+    HALOPACKING_FUSED_MANUAL_FUSER_TEARDOWN_OMP_TARGET;
 
   } else if ( vid == RAJA_OpenMPTarget ) {
 
@@ -196,7 +196,7 @@ void HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_U
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
           auto haloexchange_fused_pack_base_lam = [=](Index_type i) {
-                HALOEXCHANGE_PACK_BODY;
+                HALO_PACK_BODY;
               };
           pool_pack.enqueue(
               RAJA::TypedRangeSegment<Index_type>(0, len),
@@ -214,7 +214,7 @@ void HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_U
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
           auto haloexchange_fused_unpack_base_lam = [=](Index_type i) {
-                HALOEXCHANGE_UNPACK_BODY;
+                HALO_UNPACK_BODY;
               };
           pool_unpack.enqueue(
               RAJA::TypedRangeSegment<Index_type>(0, len),
@@ -229,7 +229,7 @@ void HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_U
     stopTimer();
 
   } else {
-     getCout() << "\n HALOEXCHANGE_FUSED : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n HALOPACKING_FUSED : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

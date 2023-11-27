@@ -104,7 +104,7 @@
 #define MPI_HALOEXCHANGE_FUSED_MANUAL_LAMBDA_FUSER_SETUP \
   auto make_pack_lambda = [](Real_ptr buffer, Int_ptr list, Real_ptr var) { \
     return [=](Index_type i) { \
-      HALOEXCHANGE_PACK_BODY; \
+      HALO_PACK_BODY; \
     }; \
   }; \
   using pack_lambda_type = decltype(make_pack_lambda(Real_ptr(), Int_ptr(), Real_ptr())); \
@@ -113,7 +113,7 @@
   Index_type* pack_lens = new Index_type[num_neighbors * num_vars]; \
   auto make_unpack_lambda = [](Real_ptr buffer, Int_ptr list, Real_ptr var) { \
     return [=](Index_type i) { \
-      HALOEXCHANGE_UNPACK_BODY; \
+      HALO_UNPACK_BODY; \
     }; \
   }; \
   using unpack_lambda_type = decltype(make_unpack_lambda(Real_ptr(), Int_ptr(), Real_ptr())); \

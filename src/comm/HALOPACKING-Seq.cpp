@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "HALOEXCHANGE.hpp"
+#include "HALOPACKING.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -18,17 +18,15 @@ namespace comm
 {
 
 
-void HALOEXCHANGE::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+void HALOPACKING::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-
   const Index_type run_reps = getRunReps();
 
-  HALOEXCHANGE_DATA_SETUP;
+  HALOPACKING_DATA_SETUP;
 
   switch ( vid ) {
 
-    case Base_OpenMP : {
+    case Base_Seq : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -39,9 +37,8 @@ void HALOEXCHANGE::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
           Index_type  len  = pack_index_list_lengths[l];
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
-            #pragma omp parallel for
             for (Index_type i = 0; i < len; i++) {
-              HALOEXCHANGE_PACK_BODY;
+              HALO_PACK_BODY;
             }
             buffer += len;
           }
@@ -53,9 +50,8 @@ void HALOEXCHANGE::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
           Index_type  len  = unpack_index_list_lengths[l];
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
-            #pragma omp parallel for
             for (Index_type i = 0; i < len; i++) {
-              HALOEXCHANGE_UNPACK_BODY;
+              HALO_UNPACK_BODY;
             }
             buffer += len;
           }
@@ -67,7 +63,8 @@ void HALOEXCHANGE::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
       break;
     }
 
-    case Lambda_OpenMP : {
+#if defined(RUN_RAJA_SEQ)
+    case Lambda_Seq : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -79,9 +76,8 @@ void HALOEXCHANGE::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
             auto haloexchange_pack_base_lam = [=](Index_type i) {
-                  HALOEXCHANGE_PACK_BODY;
+                  HALO_PACK_BODY;
                 };
-            #pragma omp parallel for
             for (Index_type i = 0; i < len; i++) {
               haloexchange_pack_base_lam(i);
             }
@@ -96,9 +92,8 @@ void HALOEXCHANGE::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
             auto haloexchange_unpack_base_lam = [=](Index_type i) {
-                  HALOEXCHANGE_UNPACK_BODY;
+                  HALO_UNPACK_BODY;
                 };
-            #pragma omp parallel for
             for (Index_type i = 0; i < len; i++) {
               haloexchange_unpack_base_lam(i);
             }
@@ -112,9 +107,9 @@ void HALOEXCHANGE::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
       break;
     }
 
-    case RAJA_OpenMP : {
+    case RAJA_Seq : {
 
-      using EXEC_POL = RAJA::omp_parallel_for_exec;
+      using EXEC_POL = RAJA::seq_exec;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -126,7 +121,7 @@ void HALOEXCHANGE::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
             auto haloexchange_pack_base_lam = [=](Index_type i) {
-                  HALOEXCHANGE_PACK_BODY;
+                  HALO_PACK_BODY;
                 };
             RAJA::forall<EXEC_POL>(
                 RAJA::TypedRangeSegment<Index_type>(0, len),
@@ -142,7 +137,7 @@ void HALOEXCHANGE::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
             auto haloexchange_unpack_base_lam = [=](Index_type i) {
-                  HALOEXCHANGE_UNPACK_BODY;
+                  HALO_UNPACK_BODY;
                 };
             RAJA::forall<EXEC_POL>(
                 RAJA::TypedRangeSegment<Index_type>(0, len),
@@ -156,16 +151,14 @@ void HALOEXCHANGE::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
 
       break;
     }
+#endif // RUN_RAJA_SEQ
 
     default : {
-      getCout() << "\n HALOEXCHANGE : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n HALOPACKING : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else
-  RAJA_UNUSED_VAR(vid);
-#endif
 }
 
 } // end namespace comm

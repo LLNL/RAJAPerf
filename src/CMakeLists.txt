@@ -245,12 +245,12 @@ blt_add_executable(
   algorithm/MEMCPY-Seq.cpp
   algorithm/MEMCPY-OMPTarget.cpp
   comm/HALO_base.cpp
-  comm/HALOEXCHANGE.cpp
-  comm/HALOEXCHANGE-Seq.cpp
-  comm/HALOEXCHANGE-OMPTarget.cpp
-  comm/HALOEXCHANGE_FUSED.cpp
-  comm/HALOEXCHANGE_FUSED-Seq.cpp
-  comm/HALOEXCHANGE_FUSED-OMPTarget.cpp
+  comm/HALOPACKING.cpp
+  comm/HALOPACKING-Seq.cpp
+  comm/HALOPACKING-OMPTarget.cpp
+  comm/HALOPACKING_FUSED.cpp
+  comm/HALOPACKING_FUSED-Seq.cpp
+  comm/HALOPACKING_FUSED-OMPTarget.cpp
   comm/MPI_HALOEXCHANGE.cpp
   comm/MPI_HALOEXCHANGE-Seq.cpp
   comm/MPI_HALOEXCHANGE-OMPTarget.cpp

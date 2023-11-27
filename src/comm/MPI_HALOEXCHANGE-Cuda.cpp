@@ -29,7 +29,7 @@ __global__ void haloexchange_pack(Real_ptr buffer, Int_ptr list, Real_ptr var,
    Index_type i = threadIdx.x + blockIdx.x * block_size;
 
    if (i < len) {
-     HALOEXCHANGE_PACK_BODY;
+     HALO_PACK_BODY;
    }
 }
 
@@ -41,7 +41,7 @@ __global__ void haloexchange_unpack(Real_ptr buffer, Int_ptr list, Real_ptr var,
    Index_type i = threadIdx.x + blockIdx.x * block_size;
 
    if (i < len) {
-     HALOEXCHANGE_UNPACK_BODY;
+     HALO_UNPACK_BODY;
    }
 }
 
@@ -141,7 +141,7 @@ void MPI_HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
           auto haloexchange_pack_base_lam = [=] __device__ (Index_type i) {
-                HALOEXCHANGE_PACK_BODY;
+                HALO_PACK_BODY;
               };
           RAJA::forall<EXEC_POL>(res,
               RAJA::TypedRangeSegment<Index_type>(0, len),
@@ -176,7 +176,7 @@ void MPI_HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
           auto haloexchange_unpack_base_lam = [=] __device__ (Index_type i) {
-                HALOEXCHANGE_UNPACK_BODY;
+                HALO_UNPACK_BODY;
               };
           RAJA::forall<EXEC_POL>(res,
               RAJA::TypedRangeSegment<Index_type>(0, len),

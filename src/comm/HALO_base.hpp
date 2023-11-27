@@ -7,7 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 ///
-/// HALOEXCHANGE kernel reference implementation:
+/// HALOPACKING kernel reference implementation:
 ///
 /// // pack a buffer for each neighbor
 /// for (Index_type l = 0; l < num_neighbors; ++l) {
@@ -54,10 +54,10 @@
   std::vector<Int_ptr> unpack_index_lists = m_unpack_index_lists; \
   std::vector<Index_type> unpack_index_list_lengths = m_unpack_index_list_lengths;
 
-#define HALOEXCHANGE_PACK_BODY \
+#define HALO_PACK_BODY \
   buffer[i] = var[list[i]];
 
-#define HALOEXCHANGE_UNPACK_BODY \
+#define HALO_UNPACK_BODY \
   var[list[i]] = buffer[i];
 
 
