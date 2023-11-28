@@ -26,28 +26,28 @@ namespace comm
   Int_ptr*    pack_list_ptrs; \
   Real_ptr*   pack_var_ptrs; \
   Index_type* pack_len_ptrs; \
-  allocData(DataSpace::HipPinned, pack_buffer_ptrs, num_neighbors * num_vars); \
-  allocData(DataSpace::HipPinned, pack_list_ptrs,   num_neighbors * num_vars); \
-  allocData(DataSpace::HipPinned, pack_var_ptrs,    num_neighbors * num_vars); \
-  allocData(DataSpace::HipPinned, pack_len_ptrs,    num_neighbors * num_vars); \
+  allocData(DataSpace::HipPinnedCoarse, pack_buffer_ptrs, num_neighbors * num_vars); \
+  allocData(DataSpace::HipPinnedCoarse, pack_list_ptrs,   num_neighbors * num_vars); \
+  allocData(DataSpace::HipPinnedCoarse, pack_var_ptrs,    num_neighbors * num_vars); \
+  allocData(DataSpace::HipPinnedCoarse, pack_len_ptrs,    num_neighbors * num_vars); \
   Real_ptr*   unpack_buffer_ptrs; \
   Int_ptr*    unpack_list_ptrs; \
   Real_ptr*   unpack_var_ptrs; \
   Index_type* unpack_len_ptrs; \
-  allocData(DataSpace::HipPinned, unpack_buffer_ptrs, num_neighbors * num_vars); \
-  allocData(DataSpace::HipPinned, unpack_list_ptrs,   num_neighbors * num_vars); \
-  allocData(DataSpace::HipPinned, unpack_var_ptrs,    num_neighbors * num_vars); \
-  allocData(DataSpace::HipPinned, unpack_len_ptrs,    num_neighbors * num_vars);
+  allocData(DataSpace::HipPinnedCoarse, unpack_buffer_ptrs, num_neighbors * num_vars); \
+  allocData(DataSpace::HipPinnedCoarse, unpack_list_ptrs,   num_neighbors * num_vars); \
+  allocData(DataSpace::HipPinnedCoarse, unpack_var_ptrs,    num_neighbors * num_vars); \
+  allocData(DataSpace::HipPinnedCoarse, unpack_len_ptrs,    num_neighbors * num_vars);
 
 #define MPI_HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN_HIP \
-  deallocData(DataSpace::HipPinned, pack_buffer_ptrs); \
-  deallocData(DataSpace::HipPinned, pack_list_ptrs); \
-  deallocData(DataSpace::HipPinned, pack_var_ptrs); \
-  deallocData(DataSpace::HipPinned, pack_len_ptrs); \
-  deallocData(DataSpace::HipPinned, unpack_buffer_ptrs); \
-  deallocData(DataSpace::HipPinned, unpack_list_ptrs); \
-  deallocData(DataSpace::HipPinned, unpack_var_ptrs); \
-  deallocData(DataSpace::HipPinned, unpack_len_ptrs);
+  deallocData(DataSpace::HipPinnedCoarse, pack_buffer_ptrs); \
+  deallocData(DataSpace::HipPinnedCoarse, pack_list_ptrs); \
+  deallocData(DataSpace::HipPinnedCoarse, pack_var_ptrs); \
+  deallocData(DataSpace::HipPinnedCoarse, pack_len_ptrs); \
+  deallocData(DataSpace::HipPinnedCoarse, unpack_buffer_ptrs); \
+  deallocData(DataSpace::HipPinnedCoarse, unpack_list_ptrs); \
+  deallocData(DataSpace::HipPinnedCoarse, unpack_var_ptrs); \
+  deallocData(DataSpace::HipPinnedCoarse, unpack_len_ptrs);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
