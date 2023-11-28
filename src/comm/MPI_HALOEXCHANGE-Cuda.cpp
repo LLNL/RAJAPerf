@@ -143,7 +143,7 @@ void MPI_HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
           auto haloexchange_pack_base_lam = [=] __device__ (Index_type i) {
                 HALO_PACK_BODY;
               };
-          RAJA::forall<EXEC_POL>(res,
+          RAJA::forall<EXEC_POL>( res,
               RAJA::TypedRangeSegment<Index_type>(0, len),
               haloexchange_pack_base_lam );
           buffer += len;
@@ -178,7 +178,7 @@ void MPI_HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
           auto haloexchange_unpack_base_lam = [=] __device__ (Index_type i) {
                 HALO_UNPACK_BODY;
               };
-          RAJA::forall<EXEC_POL>(res,
+          RAJA::forall<EXEC_POL>( res,
               RAJA::TypedRangeSegment<Index_type>(0, len),
               haloexchange_unpack_base_lam );
           buffer += len;
