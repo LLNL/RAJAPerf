@@ -7,7 +7,7 @@
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
 
-if [ "$1" == "" ]; then
+if [[ $# -lt 1 ]]; then
   echo
   echo "You must pass a compiler version number to script. For example,"
   echo "    toss4_gcc.sh 10.3.1"
