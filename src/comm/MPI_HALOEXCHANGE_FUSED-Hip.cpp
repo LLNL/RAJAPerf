@@ -136,7 +136,6 @@ void MPI_HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
       hipLaunchKernelGGL((haloexchange_fused_pack<block_size>), pack_nblocks, pack_nthreads_per_block, shmem, res.get_stream(),
           pack_buffer_ptrs, pack_list_ptrs, pack_var_ptrs, pack_len_ptrs);
       hipErrchk( hipGetLastError() );
-      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
       if (separate_buffers) {
         for (Index_type l = 0; l < num_neighbors; ++l) {
           Index_type len = pack_index_list_lengths[l];
@@ -145,6 +144,7 @@ void MPI_HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
                    len*num_vars);
         }
       }
+      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
       for (Index_type l = 0; l < num_neighbors; ++l) {
         Index_type len = pack_index_list_lengths[l];
         MPI_Isend(send_buffers[l], len*num_vars, Real_MPI_type,
@@ -254,7 +254,6 @@ void MPI_HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
       }
       workgroup group_pack = pool_pack.instantiate();
       worksite site_pack = group_pack.run(res);
-      res.wait();
       if (separate_buffers) {
         for (Index_type l = 0; l < num_neighbors; ++l) {
           Index_type len = pack_index_list_lengths[l];
@@ -263,6 +262,7 @@ void MPI_HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
                    len*num_vars);
         }
       }
+      res.wait();
       for (Index_type l = 0; l < num_neighbors; ++l) {
         Index_type len = pack_index_list_lengths[l];
         MPI_Isend(send_buffers[l], len*num_vars, Real_MPI_type,
