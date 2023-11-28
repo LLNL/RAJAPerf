@@ -32,13 +32,9 @@ MPI_HALOSENDRECV::MPI_HALOSENDRECV(const RunParams& params)
   m_var_size = m_grid_plus_halo_size ;
 
   setItsPerRep( m_num_vars * (m_var_size - getActualProblemSize()) );
-  setKernelsPerRep( 2 * s_num_neighbors * m_num_vars );
-  setBytesPerRep( (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * getItsPerRep() +  // pack
-                  (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() +  // pack
-                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() +  // send
-                  (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getItsPerRep() +  // recv
-                  (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * getItsPerRep() +  // unpack
-                  (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() ); // unpack
+  setKernelsPerRep( 0 );
+  setBytesPerRep( (0*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() +  // send
+                  (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getItsPerRep() ); // recv
   setFLOPsPerRep(0);
 
   setUsesFeature(Forall);
