@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "MPI_HALOSENDRECV.hpp"
+#include "HALOSENDRECV.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -20,11 +20,11 @@ namespace comm
 {
 
 
-void MPI_HALOSENDRECV::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+void HALOSENDRECV::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
 
-  MPI_HALOSENDRECV_DATA_SETUP;
+  HALOSENDRECV_DATA_SETUP;
 
   switch ( vid ) {
 
@@ -56,7 +56,7 @@ void MPI_HALOSENDRECV::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
     }
 
     default : {
-      getCout() << "\n MPI_HALOSENDRECV : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n HALOSENDRECV : Unknown variant id = " << vid << std::endl;
     }
 
   }

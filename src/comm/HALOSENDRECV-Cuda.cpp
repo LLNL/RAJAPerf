@@ -6,13 +6,13 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "MPI_HALOSENDRECV.hpp"
+#include "HALOSENDRECV.hpp"
 
 #include "RAJA/RAJA.hpp"
 
-#if defined(RAJA_PERFSUITE_ENABLE_MPI) && defined(RAJA_ENABLE_HIP)
+#if defined(RAJA_PERFSUITE_ENABLE_MPI) && defined(RAJA_ENABLE_CUDA)
 
-#include "common/HipDataUtils.hpp"
+#include "common/CudaDataUtils.hpp"
 
 #include <iostream>
 
@@ -22,13 +22,13 @@ namespace comm
 {
 
 
-void MPI_HALOSENDRECV::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+void HALOSENDRECV::runCudaVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
 
-  MPI_HALOSENDRECV_DATA_SETUP;
+  HALOSENDRECV_DATA_SETUP;
 
-  if ( vid == Base_HIP ) {
+  if ( vid == Base_CUDA ) {
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -53,11 +53,11 @@ void MPI_HALOSENDRECV::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
     stopTimer();
 
   } else {
-     getCout() << "\n MPI_HALOSENDRECV : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n HALOSENDRECV : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
 } // end namespace comm
 } // end namespace rajaperf
 
-#endif  // RAJA_ENABLE_HIP
+#endif  // RAJA_ENABLE_CUDA

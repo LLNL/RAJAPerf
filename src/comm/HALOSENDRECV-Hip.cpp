@@ -6,13 +6,13 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "MPI_HALOSENDRECV.hpp"
+#include "HALOSENDRECV.hpp"
 
 #include "RAJA/RAJA.hpp"
 
-#if defined(RAJA_PERFSUITE_ENABLE_MPI) && defined(RAJA_ENABLE_TARGET_OPENMP)
+#if defined(RAJA_PERFSUITE_ENABLE_MPI) && defined(RAJA_ENABLE_HIP)
 
-#include "common/OpenMPTargetDataUtils.hpp"
+#include "common/HipDataUtils.hpp"
 
 #include <iostream>
 
@@ -21,19 +21,14 @@ namespace rajaperf
 namespace comm
 {
 
-  //
-  // Define threads per team for target execution
-  //
-  const size_t threads_per_team = 256;
 
-
-void MPI_HALOSENDRECV::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+void HALOSENDRECV::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
 
-  MPI_HALOSENDRECV_DATA_SETUP;
+  HALOSENDRECV_DATA_SETUP;
 
-  if ( vid == Base_OpenMPTarget ) {
+  if ( vid == Base_HIP ) {
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -58,11 +53,11 @@ void MPI_HALOSENDRECV::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNU
     stopTimer();
 
   } else {
-     getCout() << "\n MPI_HALOSENDRECV : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n HALOSENDRECV : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
 } // end namespace comm
 } // end namespace rajaperf
 
-#endif  // RAJA_ENABLE_TARGET_OPENMP
+#endif  // RAJA_ENABLE_HIP

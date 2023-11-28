@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "MPI_HALOEXCHANGE.hpp"
+#include "HALOEXCHANGE.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -27,11 +27,11 @@ namespace comm
   const size_t threads_per_team = 256;
 
 
-void MPI_HALOEXCHANGE::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+void HALOEXCHANGE::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
 
-  MPI_HALOEXCHANGE_DATA_SETUP;
+  HALOEXCHANGE_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
 
@@ -166,7 +166,7 @@ void MPI_HALOEXCHANGE::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNU
     stopTimer();
 
   } else {
-     getCout() << "\n MPI_HALOEXCHANGE : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n HALOEXCHANGE : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

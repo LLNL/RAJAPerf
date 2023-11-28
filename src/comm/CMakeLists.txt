@@ -21,23 +21,23 @@ blt_add_library(
           HALOPACKING_FUSED-Cuda.cpp
           HALOPACKING_FUSED-OMP.cpp
           HALOPACKING_FUSED-OMPTarget.cpp
-          MPI_HALOSENDRECV.cpp
-          MPI_HALOSENDRECV-Seq.cpp
-          MPI_HALOSENDRECV-Hip.cpp
-          MPI_HALOSENDRECV-Cuda.cpp
-          MPI_HALOSENDRECV-OMP.cpp
-          MPI_HALOSENDRECV-OMPTarget.cpp
-          MPI_HALOEXCHANGE.cpp
-          MPI_HALOEXCHANGE-Seq.cpp
-          MPI_HALOEXCHANGE-Hip.cpp
-          MPI_HALOEXCHANGE-Cuda.cpp
-          MPI_HALOEXCHANGE-OMP.cpp
-          MPI_HALOEXCHANGE-OMPTarget.cpp
-          MPI_HALOEXCHANGE_FUSED.cpp
-          MPI_HALOEXCHANGE_FUSED-Seq.cpp
-          MPI_HALOEXCHANGE_FUSED-Hip.cpp
-          MPI_HALOEXCHANGE_FUSED-Cuda.cpp
-          MPI_HALOEXCHANGE_FUSED-OMP.cpp
-          MPI_HALOEXCHANGE_FUSED-OMPTarget.cpp
+          HALOSENDRECV.cpp
+          HALOSENDRECV-Seq.cpp
+          HALOSENDRECV-Hip.cpp
+          HALOSENDRECV-Cuda.cpp
+          HALOSENDRECV-OMP.cpp
+          HALOSENDRECV-OMPTarget.cpp
+          HALOEXCHANGE.cpp
+          HALOEXCHANGE-Seq.cpp
+          HALOEXCHANGE-Hip.cpp
+          HALOEXCHANGE-Cuda.cpp
+          HALOEXCHANGE-OMP.cpp
+          HALOEXCHANGE-OMPTarget.cpp
+          HALOEXCHANGE_FUSED.cpp
+          HALOEXCHANGE_FUSED-Seq.cpp
+          HALOEXCHANGE_FUSED-Hip.cpp
+          HALOEXCHANGE_FUSED-Cuda.cpp
+          HALOEXCHANGE_FUSED-OMP.cpp
+          HALOEXCHANGE_FUSED-OMPTarget.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

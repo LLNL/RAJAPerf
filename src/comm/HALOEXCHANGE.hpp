@@ -7,7 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 ///
-/// MPI_HALOEXCHANGE_FUSED kernel reference implementation:
+/// HALOEXCHANGE kernel reference implementation:
 ///
 /// // post a recv for each neighbor
 /// for (Index_type l = 0; l < num_neighbors; ++l) {
@@ -16,7 +16,7 @@
 ///       mpi_ranks[l], recv_tags[l], MPI_COMM_WORLD, &unpack_mpi_requests[l]);
 /// }
 ///
-/// // pack buffers for neighbors
+/// // pack a buffer for each neighbor
 /// for (Index_type l = 0; l < num_neighbors; ++l) {
 ///   Real_ptr buffer = pack_buffers[l];
 ///   Int_ptr list = pack_index_lists[l];
@@ -29,19 +29,15 @@
 ///     }
 ///     buffer += len;
 ///   }
-/// }
-///
-/// // send buffers to neighbors
-/// for (Index_type l = 0; l < num_neighbors; ++l) {
+///   // send buffer to neighbor
 ///   MPI_Isend(send_buffers[l], len*num_vars, Real_MPI_type,
 ///       mpi_ranks[l], send_tags[l], MPI_COMM_WORLD, &pack_mpi_requests[l]);
 /// }
 ///
-/// // wait for all recvs to complete
-/// MPI_Waitall(num_neighbors, unpack_mpi_requests.data(), MPI_STATUSES_IGNORE);
-///
-/// // unpack buffers for neighbors
+/// // unpack a buffer for each neighbor
 /// for (Index_type l = 0; l < num_neighbors; ++l) {
+///   // receive buffer from neighbor
+///   MPI_Wait(&unpack_mpi_requests[l], MPI_STATUS_IGNORE);
 ///   Real_ptr buffer = unpack_buffers[l];
 ///   Int_ptr list = unpack_index_lists[l];
 ///   Index_type  len  = unpack_index_list_lengths[l];
@@ -59,10 +55,11 @@
 /// MPI_Waitall(num_neighbors, pack_mpi_requests.data(), MPI_STATUSES_IGNORE);
 ///
 
-#ifndef RAJAPerf_Comm_MPI_HALOEXCHANGE_FUSED_HPP
-#define RAJAPerf_Comm_MPI_HALOEXCHANGE_FUSED_HPP
 
-#define MPI_HALOEXCHANGE_FUSED_DATA_SETUP \
+#ifndef RAJAPerf_Comm_HALOEXCHANGE_HPP
+#define RAJAPerf_Comm_HALOEXCHANGE_HPP
+
+#define HALOEXCHANGE_DATA_SETUP \
   HALO_BASE_DATA_SETUP \
   \
   Index_type num_vars = m_num_vars; \
@@ -83,50 +80,6 @@
   std::vector<Real_ptr> send_buffers = m_send_buffers; \
   std::vector<Real_ptr> recv_buffers = m_recv_buffers;
 
-#define MPI_HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP \
-  struct ptr_holder { \
-    Real_ptr buffer; \
-    Int_ptr  list; \
-    Real_ptr var; \
-  }; \
-  ptr_holder* pack_ptr_holders = new ptr_holder[num_neighbors * num_vars]; \
-  Index_type* pack_lens        = new Index_type[num_neighbors * num_vars]; \
-  ptr_holder* unpack_ptr_holders = new ptr_holder[num_neighbors * num_vars]; \
-  Index_type* unpack_lens        = new Index_type[num_neighbors * num_vars];
-
-#define MPI_HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN \
-  delete[] pack_ptr_holders; \
-  delete[] pack_lens; \
-  delete[] unpack_ptr_holders; \
-  delete[] unpack_lens;
-
-
-#define MPI_HALOEXCHANGE_FUSED_MANUAL_LAMBDA_FUSER_SETUP \
-  auto make_pack_lambda = [](Real_ptr buffer, Int_ptr list, Real_ptr var) { \
-    return [=](Index_type i) { \
-      HALO_PACK_BODY; \
-    }; \
-  }; \
-  using pack_lambda_type = decltype(make_pack_lambda(Real_ptr(), Int_ptr(), Real_ptr())); \
-  pack_lambda_type* pack_lambdas = reinterpret_cast<pack_lambda_type*>( \
-      malloc(sizeof(pack_lambda_type) * (num_neighbors * num_vars))); \
-  Index_type* pack_lens = new Index_type[num_neighbors * num_vars]; \
-  auto make_unpack_lambda = [](Real_ptr buffer, Int_ptr list, Real_ptr var) { \
-    return [=](Index_type i) { \
-      HALO_UNPACK_BODY; \
-    }; \
-  }; \
-  using unpack_lambda_type = decltype(make_unpack_lambda(Real_ptr(), Int_ptr(), Real_ptr())); \
-  unpack_lambda_type* unpack_lambdas = reinterpret_cast<unpack_lambda_type*>( \
-      malloc(sizeof(unpack_lambda_type) * (num_neighbors * num_vars))); \
-  Index_type* unpack_lens = new Index_type[num_neighbors * num_vars];
-
-#define MPI_HALOEXCHANGE_FUSED_MANUAL_LAMBDA_FUSER_TEARDOWN \
-  free(pack_lambdas); \
-  delete[] pack_lens; \
-  free(unpack_lambdas); \
-  delete[] unpack_lens;
-
 
 #include "HALO_base.hpp"
 
@@ -134,18 +87,21 @@
 
 #if defined(RAJA_PERFSUITE_ENABLE_MPI)
 
+#include <vector>
+#include <array>
+
 namespace rajaperf
 {
 namespace comm
 {
 
-class MPI_HALOEXCHANGE_FUSED : public HALO_base
+class HALOEXCHANGE : public HALO_base
 {
 public:
 
-  MPI_HALOEXCHANGE_FUSED(const RunParams& params);
+  HALOEXCHANGE(const RunParams& params);
 
-  ~MPI_HALOEXCHANGE_FUSED();
+  ~HALOEXCHANGE();
 
   void setUp(VariantID vid, size_t tune_idx);
   void updateChecksum(VariantID vid, size_t tune_idx);
@@ -165,7 +121,7 @@ public:
   void runHipVariantImpl(VariantID vid);
 
 private:
-  static const size_t default_gpu_block_size = 1024;
+  static const size_t default_gpu_block_size = 256;
   using gpu_block_sizes_type = gpu_block_size::make_list_type<default_gpu_block_size>;
 
   int m_mpi_size = -1;

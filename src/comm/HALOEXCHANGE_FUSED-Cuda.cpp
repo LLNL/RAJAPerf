@@ -6,13 +6,13 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "MPI_HALOEXCHANGE_FUSED.hpp"
+#include "HALOEXCHANGE_FUSED.hpp"
 
 #include "RAJA/RAJA.hpp"
 
-#if defined(RAJA_PERFSUITE_ENABLE_MPI) && defined(RAJA_ENABLE_HIP)
+#if defined(RAJA_PERFSUITE_ENABLE_MPI) && defined(RAJA_ENABLE_CUDA)
 
-#include "common/HipDataUtils.hpp"
+#include "common/CudaDataUtils.hpp"
 
 #include <iostream>
 
@@ -21,33 +21,33 @@ namespace rajaperf
 namespace comm
 {
 
-#define MPI_HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_HIP \
+#define HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_CUDA \
   Real_ptr*   pack_buffer_ptrs; \
   Int_ptr*    pack_list_ptrs; \
   Real_ptr*   pack_var_ptrs; \
   Index_type* pack_len_ptrs; \
-  allocData(DataSpace::HipPinnedCoarse, pack_buffer_ptrs, num_neighbors * num_vars); \
-  allocData(DataSpace::HipPinnedCoarse, pack_list_ptrs,   num_neighbors * num_vars); \
-  allocData(DataSpace::HipPinnedCoarse, pack_var_ptrs,    num_neighbors * num_vars); \
-  allocData(DataSpace::HipPinnedCoarse, pack_len_ptrs,    num_neighbors * num_vars); \
+  allocData(DataSpace::CudaPinned, pack_buffer_ptrs, num_neighbors * num_vars); \
+  allocData(DataSpace::CudaPinned, pack_list_ptrs,   num_neighbors * num_vars); \
+  allocData(DataSpace::CudaPinned, pack_var_ptrs,    num_neighbors * num_vars); \
+  allocData(DataSpace::CudaPinned, pack_len_ptrs,    num_neighbors * num_vars); \
   Real_ptr*   unpack_buffer_ptrs; \
   Int_ptr*    unpack_list_ptrs; \
   Real_ptr*   unpack_var_ptrs; \
   Index_type* unpack_len_ptrs; \
-  allocData(DataSpace::HipPinnedCoarse, unpack_buffer_ptrs, num_neighbors * num_vars); \
-  allocData(DataSpace::HipPinnedCoarse, unpack_list_ptrs,   num_neighbors * num_vars); \
-  allocData(DataSpace::HipPinnedCoarse, unpack_var_ptrs,    num_neighbors * num_vars); \
-  allocData(DataSpace::HipPinnedCoarse, unpack_len_ptrs,    num_neighbors * num_vars);
+  allocData(DataSpace::CudaPinned, unpack_buffer_ptrs, num_neighbors * num_vars); \
+  allocData(DataSpace::CudaPinned, unpack_list_ptrs,   num_neighbors * num_vars); \
+  allocData(DataSpace::CudaPinned, unpack_var_ptrs,    num_neighbors * num_vars); \
+  allocData(DataSpace::CudaPinned, unpack_len_ptrs,    num_neighbors * num_vars);
 
-#define MPI_HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN_HIP \
-  deallocData(DataSpace::HipPinnedCoarse, pack_buffer_ptrs); \
-  deallocData(DataSpace::HipPinnedCoarse, pack_list_ptrs); \
-  deallocData(DataSpace::HipPinnedCoarse, pack_var_ptrs); \
-  deallocData(DataSpace::HipPinnedCoarse, pack_len_ptrs); \
-  deallocData(DataSpace::HipPinnedCoarse, unpack_buffer_ptrs); \
-  deallocData(DataSpace::HipPinnedCoarse, unpack_list_ptrs); \
-  deallocData(DataSpace::HipPinnedCoarse, unpack_var_ptrs); \
-  deallocData(DataSpace::HipPinnedCoarse, unpack_len_ptrs);
+#define HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN_CUDA \
+  deallocData(DataSpace::CudaPinned, pack_buffer_ptrs); \
+  deallocData(DataSpace::CudaPinned, pack_list_ptrs); \
+  deallocData(DataSpace::CudaPinned, pack_var_ptrs); \
+  deallocData(DataSpace::CudaPinned, pack_len_ptrs); \
+  deallocData(DataSpace::CudaPinned, unpack_buffer_ptrs); \
+  deallocData(DataSpace::CudaPinned, unpack_list_ptrs); \
+  deallocData(DataSpace::CudaPinned, unpack_var_ptrs); \
+  deallocData(DataSpace::CudaPinned, unpack_len_ptrs);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -89,17 +89,17 @@ __global__ void haloexchange_fused_unpack(Real_ptr* unpack_buffer_ptrs, Int_ptr*
 
 
 template < size_t block_size >
-void MPI_HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
+void HALOEXCHANGE_FUSED::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
-  auto res{getHipResource()};
+  auto res{getCudaResource()};
 
-  MPI_HALOEXCHANGE_FUSED_DATA_SETUP;
+  HALOEXCHANGE_FUSED_DATA_SETUP;
 
-  if ( vid == Base_HIP ) {
+  if ( vid == Base_CUDA ) {
 
-    MPI_HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_HIP;
+    HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -133,9 +133,9 @@ void MPI_HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
       Index_type pack_len_ave = (pack_len_sum + pack_index-1) / pack_index;
       dim3 pack_nthreads_per_block(block_size);
       dim3 pack_nblocks((pack_len_ave + block_size-1) / block_size, pack_index);
-      hipLaunchKernelGGL((haloexchange_fused_pack<block_size>), pack_nblocks, pack_nthreads_per_block, shmem, res.get_stream(),
+      haloexchange_fused_pack<block_size><<<pack_nblocks, pack_nthreads_per_block, shmem, res.get_stream()>>>(
           pack_buffer_ptrs, pack_list_ptrs, pack_var_ptrs, pack_len_ptrs);
-      hipErrchk( hipGetLastError() );
+      cudaErrchk( cudaGetLastError() );
       if (separate_buffers) {
         for (Index_type l = 0; l < num_neighbors; ++l) {
           Index_type len = pack_index_list_lengths[l];
@@ -144,7 +144,7 @@ void MPI_HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
                    len*num_vars);
         }
       }
-      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
+      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
       for (Index_type l = 0; l < num_neighbors; ++l) {
         Index_type len = pack_index_list_lengths[l];
         MPI_Isend(send_buffers[l], len*num_vars, Real_MPI_type,
@@ -159,7 +159,7 @@ void MPI_HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
       for (Index_type l = 0; l < num_neighbors; ++l) {
         Real_ptr buffer = unpack_buffers[l];
         Int_ptr list = unpack_index_lists[l];
-        Index_type len = unpack_index_list_lengths[l];
+        Index_type  len  = unpack_index_list_lengths[l];
         if (separate_buffers) {
           copyData(dataSpace, unpack_buffers[l],
                    DataSpace::Host, recv_buffers[l],
@@ -180,32 +180,28 @@ void MPI_HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
       Index_type unpack_len_ave = (unpack_len_sum + unpack_index-1) / unpack_index;
       dim3 unpack_nthreads_per_block(block_size);
       dim3 unpack_nblocks((unpack_len_ave + block_size-1) / block_size, unpack_index);
-      hipLaunchKernelGGL((haloexchange_fused_unpack<block_size>), unpack_nblocks, unpack_nthreads_per_block, shmem, res.get_stream(),
+      haloexchange_fused_unpack<block_size><<<unpack_nblocks, unpack_nthreads_per_block, shmem, res.get_stream()>>>(
           unpack_buffer_ptrs, unpack_list_ptrs, unpack_var_ptrs, unpack_len_ptrs);
-      hipErrchk( hipGetLastError() );
-      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
+      cudaErrchk( cudaGetLastError() );
+      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
 
       MPI_Waitall(num_neighbors, pack_mpi_requests.data(), MPI_STATUSES_IGNORE);
 
     }
     stopTimer();
 
-    MPI_HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN_HIP;
+    HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN_CUDA;
 
-  } else if ( vid == RAJA_HIP ) {
+  } else if ( vid == RAJA_CUDA ) {
 
-    using AllocatorHolder = RAJAPoolAllocatorHolder<RAJA::hip::pinned_mempool_type>;
+    using AllocatorHolder = RAJAPoolAllocatorHolder<RAJA::cuda::pinned_mempool_type>;
     using Allocator = AllocatorHolder::Allocator<char>;
 
     AllocatorHolder allocatorHolder;
 
     using workgroup_policy = RAJA::WorkGroupPolicy <
-                                 RAJA::hip_work_async<block_size>,
-#if defined(RAJA_ENABLE_HIP_INDIRECT_FUNCTION_CALL)
-                                 RAJA::unordered_hip_loop_y_block_iter_x_threadblock_average,
-#else
-                                 RAJA::ordered,
-#endif
+                                 RAJA::cuda_work_async<block_size>,
+                                 RAJA::unordered_cuda_loop_y_block_iter_x_threadblock_average,
                                  RAJA::constant_stride_array_of_objects >;
 
     using workpool = RAJA::WorkPool< workgroup_policy,
@@ -302,13 +298,13 @@ void MPI_HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
     stopTimer();
 
   } else {
-     getCout() << "\n MPI_HALOEXCHANGE_FUSED : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n HALOEXCHANGE_FUSED : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(MPI_HALOEXCHANGE_FUSED, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(HALOEXCHANGE_FUSED, Cuda)
 
 } // end namespace comm
 } // end namespace rajaperf
 
-#endif  // RAJA_ENABLE_HIP
+#endif  // RAJA_ENABLE_CUDA

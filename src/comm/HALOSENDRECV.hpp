@@ -7,7 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 ///
-/// MPI_HALOEXCHANGE kernel reference implementation:
+/// HALOSENDRECV kernel reference implementation:
 ///
 /// // post a recv for each neighbor
 /// for (Index_type l = 0; l < num_neighbors; ++l) {
@@ -56,26 +56,18 @@
 ///
 
 
-#ifndef RAJAPerf_Comm_MPI_HALOEXCHANGE_HPP
-#define RAJAPerf_Comm_MPI_HALOEXCHANGE_HPP
+#ifndef RAJAPerf_Comm_HALOSENDRECV_HPP
+#define RAJAPerf_Comm_HALOSENDRECV_HPP
 
-#define MPI_HALOEXCHANGE_DATA_SETUP \
+#define HALOSENDRECV_DATA_SETUP \
   HALO_BASE_DATA_SETUP \
   \
   Index_type num_vars = m_num_vars; \
-  std::vector<Real_ptr> vars = m_vars; \
   \
   std::vector<int> mpi_ranks = m_mpi_ranks; \
   \
   std::vector<MPI_Request> pack_mpi_requests(num_neighbors); \
   std::vector<MPI_Request> unpack_mpi_requests(num_neighbors); \
-  \
-  const DataSpace dataSpace = getDataSpace(vid); \
-  \
-  const bool separate_buffers = (getMPIDataSpace(vid) == DataSpace::Copy); \
-  \
-  std::vector<Real_ptr> pack_buffers = m_pack_buffers; \
-  std::vector<Real_ptr> unpack_buffers = m_unpack_buffers; \
   \
   std::vector<Real_ptr> send_buffers = m_send_buffers; \
   std::vector<Real_ptr> recv_buffers = m_recv_buffers;
@@ -95,13 +87,13 @@ namespace rajaperf
 namespace comm
 {
 
-class MPI_HALOEXCHANGE : public HALO_base
+class HALOSENDRECV : public HALO_base
 {
 public:
 
-  MPI_HALOEXCHANGE(const RunParams& params);
+  HALOSENDRECV(const RunParams& params);
 
-  ~MPI_HALOEXCHANGE();
+  ~HALOSENDRECV();
 
   void setUp(VariantID vid, size_t tune_idx);
   void updateChecksum(VariantID vid, size_t tune_idx);
@@ -113,28 +105,13 @@ public:
   void runHipVariant(VariantID vid, size_t tune_idx);
   void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
 
-  void setCudaTuningDefinitions(VariantID vid);
-  void setHipTuningDefinitions(VariantID vid);
-  template < size_t block_size >
-  void runCudaVariantImpl(VariantID vid);
-  template < size_t block_size >
-  void runHipVariantImpl(VariantID vid);
-
 private:
-  static const size_t default_gpu_block_size = 256;
-  using gpu_block_sizes_type = gpu_block_size::make_list_type<default_gpu_block_size>;
-
   int m_mpi_size = -1;
   int m_my_mpi_rank = -1;
   std::array<int, 3> m_mpi_dims = {-1, -1, -1};
 
   Index_type m_num_vars;
   Index_type m_var_size;
-
-  std::vector<Real_ptr> m_vars;
-
-  std::vector<Real_ptr> m_pack_buffers;
-  std::vector<Real_ptr> m_unpack_buffers;
 
   std::vector<Real_ptr> m_send_buffers;
   std::vector<Real_ptr> m_recv_buffers;

@@ -26,7 +26,7 @@
 #include "algorithm/SORT.hpp"
 #include "comm/HALOPACKING_FUSED.hpp"
 #if defined(RAJA_PERFSUITE_ENABLE_MPI)
-#include "comm/MPI_HALOEXCHANGE_FUSED.hpp"
+#include "comm/HALOEXCHANGE_FUSED.hpp"
 #endif
 
 #include <list>
@@ -710,7 +710,7 @@ void Executor::runWarmupKernels()
 
 #ifdef RAJA_PERFSUITE_ENABLE_MPI
       case MPI:
-        kernel_ids.insert(Comm_MPI_HALOEXCHANGE_FUSED); break;
+        kernel_ids.insert(Comm_HALOEXCHANGE_FUSED); break;
 #endif
 
       default:

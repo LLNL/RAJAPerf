@@ -171,9 +171,9 @@ enum KernelID {
   Comm_HALOPACKING,
   Comm_HALOPACKING_FUSED,
 #if defined(RAJA_PERFSUITE_ENABLE_MPI)
-  Comm_MPI_HALOSENDRECV,
-  Comm_MPI_HALOEXCHANGE,
-  Comm_MPI_HALOEXCHANGE_FUSED,
+  Comm_HALOSENDRECV,
+  Comm_HALOEXCHANGE,
+  Comm_HALOEXCHANGE_FUSED,
 #endif
 
   NumKernels // Keep this one last and NEVER comment out (!!)

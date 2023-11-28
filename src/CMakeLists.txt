@@ -251,15 +251,15 @@ blt_add_executable(
   comm/HALOPACKING_FUSED.cpp
   comm/HALOPACKING_FUSED-Seq.cpp
   comm/HALOPACKING_FUSED-OMPTarget.cpp
-  comm/MPI_HALOSENDRECV.cpp
-  comm/MPI_HALOSENDRECV-Seq.cpp
-  comm/MPI_HALOSENDRECV-OMPTarget.cpp
-  comm/MPI_HALOEXCHANGE.cpp
-  comm/MPI_HALOEXCHANGE-Seq.cpp
-  comm/MPI_HALOEXCHANGE-OMPTarget.cpp
-  comm/MPI_HALOEXCHANGE_FUSED.cpp
-  comm/MPI_HALOEXCHANGE_FUSED-Seq.cpp
-  comm/MPI_HALOEXCHANGE_FUSED-OMPTarget.cpp
+  comm/HALOSENDRECV.cpp
+  comm/HALOSENDRECV-Seq.cpp
+  comm/HALOSENDRECV-OMPTarget.cpp
+  comm/HALOEXCHANGE.cpp
+  comm/HALOEXCHANGE-Seq.cpp
+  comm/HALOEXCHANGE-OMPTarget.cpp
+  comm/HALOEXCHANGE_FUSED.cpp
+  comm/HALOEXCHANGE_FUSED-Seq.cpp
+  comm/HALOEXCHANGE_FUSED-OMPTarget.cpp
   DEPENDS_ON ${RAJA_PERFSUITE_EXECUTABLE_DEPENDS}
 )
 install( TARGETS raja-perf-omptarget.exe

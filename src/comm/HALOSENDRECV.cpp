@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "MPI_HALOSENDRECV.hpp"
+#include "HALOSENDRECV.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -17,8 +17,8 @@ namespace rajaperf
 namespace comm
 {
 
-MPI_HALOSENDRECV::MPI_HALOSENDRECV(const RunParams& params)
-  : HALO_base(rajaperf::Comm_MPI_HALOSENDRECV, params)
+HALOSENDRECV::HALOSENDRECV(const RunParams& params)
+  : HALO_base(rajaperf::Comm_HALOSENDRECV, params)
 {
   m_mpi_size = params.getMPISize();
   m_my_mpi_rank = params.getMPIRank();
@@ -51,11 +51,11 @@ MPI_HALOSENDRECV::MPI_HALOSENDRECV(const RunParams& params)
   }
 }
 
-MPI_HALOSENDRECV::~MPI_HALOSENDRECV()
+HALOSENDRECV::~HALOSENDRECV()
 {
 }
 
-void MPI_HALOSENDRECV::setUp(VariantID vid, size_t tune_idx)
+void HALOSENDRECV::setUp(VariantID vid, size_t tune_idx)
 {
   setUp_base(m_my_mpi_rank, m_mpi_dims.data(), vid, tune_idx);
 
@@ -82,7 +82,7 @@ void MPI_HALOSENDRECV::setUp(VariantID vid, size_t tune_idx)
   }
 }
 
-void MPI_HALOSENDRECV::updateChecksum(VariantID vid, size_t tune_idx)
+void HALOSENDRECV::updateChecksum(VariantID vid, size_t tune_idx)
 {
   const bool separate_buffers = (getMPIDataSpace(vid) == DataSpace::Copy);
 
@@ -96,7 +96,7 @@ void MPI_HALOSENDRECV::updateChecksum(VariantID vid, size_t tune_idx)
   }
 }
 
-void MPI_HALOSENDRECV::tearDown(VariantID vid, size_t tune_idx)
+void HALOSENDRECV::tearDown(VariantID vid, size_t tune_idx)
 {
   const bool separate_buffers = (getMPIDataSpace(vid) == DataSpace::Copy);
 

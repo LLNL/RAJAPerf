@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "MPI_HALOEXCHANGE_FUSED.hpp"
+#include "HALOEXCHANGE_FUSED.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -17,8 +17,8 @@ namespace rajaperf
 namespace comm
 {
 
-MPI_HALOEXCHANGE_FUSED::MPI_HALOEXCHANGE_FUSED(const RunParams& params)
-  : HALO_base(rajaperf::Comm_MPI_HALOEXCHANGE_FUSED, params)
+HALOEXCHANGE_FUSED::HALOEXCHANGE_FUSED(const RunParams& params)
+  : HALO_base(rajaperf::Comm_HALOEXCHANGE_FUSED, params)
 {
   m_mpi_size = params.getMPISize();
   m_my_mpi_rank = params.getMPIRank();
@@ -62,11 +62,11 @@ MPI_HALOEXCHANGE_FUSED::MPI_HALOEXCHANGE_FUSED(const RunParams& params)
   }
 }
 
-MPI_HALOEXCHANGE_FUSED::~MPI_HALOEXCHANGE_FUSED()
+HALOEXCHANGE_FUSED::~HALOEXCHANGE_FUSED()
 {
 }
 
-void MPI_HALOEXCHANGE_FUSED::setUp(VariantID vid, size_t tune_idx)
+void HALOEXCHANGE_FUSED::setUp(VariantID vid, size_t tune_idx)
 {
   setUp_base(m_my_mpi_rank, m_mpi_dims.data(), vid, tune_idx);
 
@@ -111,14 +111,14 @@ void MPI_HALOEXCHANGE_FUSED::setUp(VariantID vid, size_t tune_idx)
   }
 }
 
-void MPI_HALOEXCHANGE_FUSED::updateChecksum(VariantID vid, size_t tune_idx)
+void HALOEXCHANGE_FUSED::updateChecksum(VariantID vid, size_t tune_idx)
 {
   for (Real_ptr var : m_vars) {
     checksum[vid][tune_idx] += calcChecksum(var, m_var_size, vid);
   }
 }
 
-void MPI_HALOEXCHANGE_FUSED::tearDown(VariantID vid, size_t tune_idx)
+void HALOEXCHANGE_FUSED::tearDown(VariantID vid, size_t tune_idx)
 {
   const bool separate_buffers = (getMPIDataSpace(vid) == DataSpace::Copy);
 
