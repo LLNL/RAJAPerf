@@ -110,7 +110,7 @@ void HALOPACKING_FUSED::runCudaVariantImpl(VariantID vid)
       Index_type pack_len_sum = 0;
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
-        Real_ptr buffer = buffers[send_tags[l]];
+        Real_ptr buffer = pack_buffers[l];
         Int_ptr list = pack_index_lists[l];
         Index_type  len  = pack_index_list_lengths[l];
         for (Index_type v = 0; v < num_vars; ++v) {
@@ -130,15 +130,29 @@ void HALOPACKING_FUSED::runCudaVariantImpl(VariantID vid)
       haloexchange_fused_pack<block_size><<<pack_nblocks, pack_nthreads_per_block, shmem, res.get_stream()>>>(
           pack_buffer_ptrs, pack_list_ptrs, pack_var_ptrs, pack_len_ptrs);
       cudaErrchk( cudaGetLastError() );
+      if (separate_buffers) {
+        for (Index_type l = 0; l < num_neighbors; ++l) {
+          Index_type len = pack_index_list_lengths[l];
+          copyData(DataSpace::Host, send_buffers[l],
+                   dataSpace, pack_buffers[l],
+                   len*num_vars);
+        }
+      }
       cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
 
       Index_type unpack_index = 0;
       Index_type unpack_len_sum = 0;
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
-        Real_ptr buffer = buffers[recv_tags[l]];
+        Real_ptr buffer = unpack_buffers[l];
         Int_ptr list = unpack_index_lists[l];
         Index_type  len  = unpack_index_list_lengths[l];
+        if (separate_buffers) {
+          copyData(dataSpace, unpack_buffers[l],
+                   DataSpace::Host, recv_buffers[l],
+                   len*num_vars);
+        }
+
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
           unpack_buffer_ptrs[unpack_index] = buffer;
@@ -199,7 +213,7 @@ void HALOPACKING_FUSED::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
-        Real_ptr buffer = buffers[send_tags[l]];
+        Real_ptr buffer = pack_buffers[l];
         Int_ptr list = pack_index_lists[l];
         Index_type len = pack_index_list_lengths[l];
         for (Index_type v = 0; v < num_vars; ++v) {
@@ -215,12 +229,26 @@ void HALOPACKING_FUSED::runCudaVariantImpl(VariantID vid)
       }
       workgroup group_pack = pool_pack.instantiate();
       worksite site_pack = group_pack.run(res);
+      if (separate_buffers) {
+        for (Index_type l = 0; l < num_neighbors; ++l) {
+          Index_type len = pack_index_list_lengths[l];
+          copyData(DataSpace::Host, send_buffers[l],
+                   dataSpace, pack_buffers[l],
+                   len*num_vars);
+        }
+      }
       res.wait();
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
-        Real_ptr buffer = buffers[recv_tags[l]];
+        Real_ptr buffer = unpack_buffers[l];
         Int_ptr list = unpack_index_lists[l];
         Index_type len = unpack_index_list_lengths[l];
+        if (separate_buffers) {
+          copyData(dataSpace, unpack_buffers[l],
+                   DataSpace::Host, recv_buffers[l],
+                   len*num_vars);
+        }
+
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
           auto haloexchange_fused_unpack_base_lam = [=] __device__ (Index_type i) {

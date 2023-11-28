@@ -9,11 +9,9 @@
 ///
 /// HALOPACKING kernel reference implementation:
 ///
-/// // post a recv for each neighbor
-///
 /// // pack a buffer for each neighbor
 /// for (Index_type l = 0; l < num_neighbors; ++l) {
-///   Real_ptr buffer = buffers[l];
+///   Real_ptr buffer = pack_buffers[l];
 ///   Int_ptr list = pack_index_lists[l];
 ///   Index_type  len  = pack_index_list_lengths[l];
 ///   // pack part of each variable
@@ -24,13 +22,11 @@
 ///     }
 ///     buffer += len;
 ///   }
-///   // send buffer to neighbor
 /// }
 ///
 /// // unpack a buffer for each neighbor
 /// for (Index_type l = 0; l < num_neighbors; ++l) {
-///   // receive buffer from neighbor
-///   Real_ptr buffer = buffers[l];
+///   Real_ptr buffer = unpack_buffers[l];
 ///   Int_ptr list = unpack_index_lists[l];
 ///   Index_type  len  = unpack_index_list_lengths[l];
 ///   // unpack part of each variable
@@ -43,8 +39,6 @@
 ///   }
 /// }
 ///
-/// // wait for all sends to complete
-///
 
 #ifndef RAJAPerf_Comm_HALOPACKING_HPP
 #define RAJAPerf_Comm_HALOPACKING_HPP
@@ -55,12 +49,22 @@
   Index_type num_vars = m_num_vars; \
   std::vector<Real_ptr> vars = m_vars; \
   \
-  std::vector<Real_ptr> buffers = m_buffers;
+  const DataSpace dataSpace = getDataSpace(vid); \
+  \
+  const bool separate_buffers = (getMPIDataSpace(vid) == DataSpace::Copy); \
+  \
+  std::vector<Real_ptr> pack_buffers = m_pack_buffers; \
+  std::vector<Real_ptr> unpack_buffers = m_unpack_buffers; \
+  \
+  std::vector<Real_ptr> send_buffers = m_send_buffers; \
+  std::vector<Real_ptr> recv_buffers = m_recv_buffers;
 
 
 #include "HALO_base.hpp"
 
 #include "RAJA/RAJA.hpp"
+
+#include <vector>
 
 namespace rajaperf
 {
@@ -101,7 +105,11 @@ private:
 
   std::vector<Real_ptr> m_vars;
 
-  std::vector<Real_ptr> m_buffers;
+  std::vector<Real_ptr> m_pack_buffers;
+  std::vector<Real_ptr> m_unpack_buffers;
+
+  std::vector<Real_ptr> m_send_buffers;
+  std::vector<Real_ptr> m_recv_buffers;
 };
 
 } // end namespace comm

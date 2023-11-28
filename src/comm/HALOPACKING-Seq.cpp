@@ -31,10 +31,11 @@ void HALOPACKING::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+
         for (Index_type l = 0; l < num_neighbors; ++l) {
-          Real_ptr buffer = buffers[send_tags[l]];
+          Real_ptr buffer = pack_buffers[l];
           Int_ptr list = pack_index_lists[l];
-          Index_type  len  = pack_index_list_lengths[l];
+          Index_type len = pack_index_list_lengths[l];
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
             for (Index_type i = 0; i < len; i++) {
@@ -42,12 +43,24 @@ void HALOPACKING::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
             }
             buffer += len;
           }
+
+          if (separate_buffers) {
+            copyData(DataSpace::Host, send_buffers[l],
+                     dataSpace, pack_buffers[l],
+                     len*num_vars);
+          }
         }
 
         for (Index_type l = 0; l < num_neighbors; ++l) {
-          Real_ptr buffer = buffers[recv_tags[l]];
+          Real_ptr buffer = unpack_buffers[l];
           Int_ptr list = unpack_index_lists[l];
-          Index_type  len  = unpack_index_list_lengths[l];
+          Index_type len = unpack_index_list_lengths[l];
+          if (separate_buffers) {
+            copyData(dataSpace, unpack_buffers[l],
+                     DataSpace::Host, recv_buffers[l],
+                     len*num_vars);
+          }
+
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
             for (Index_type i = 0; i < len; i++) {
@@ -70,9 +83,9 @@ void HALOPACKING::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (Index_type l = 0; l < num_neighbors; ++l) {
-          Real_ptr buffer = buffers[send_tags[l]];
+          Real_ptr buffer = pack_buffers[l];
           Int_ptr list = pack_index_lists[l];
-          Index_type  len  = pack_index_list_lengths[l];
+          Index_type len = pack_index_list_lengths[l];
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
             auto haloexchange_pack_base_lam = [=](Index_type i) {
@@ -83,12 +96,24 @@ void HALOPACKING::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
             }
             buffer += len;
           }
+
+          if (separate_buffers) {
+            copyData(DataSpace::Host, send_buffers[l],
+                     dataSpace, pack_buffers[l],
+                     len*num_vars);
+          }
         }
 
         for (Index_type l = 0; l < num_neighbors; ++l) {
-          Real_ptr buffer = buffers[recv_tags[l]];
+          Real_ptr buffer = unpack_buffers[l];
           Int_ptr list = unpack_index_lists[l];
-          Index_type  len  = unpack_index_list_lengths[l];
+          Index_type len = unpack_index_list_lengths[l];
+          if (separate_buffers) {
+            copyData(dataSpace, unpack_buffers[l],
+                     DataSpace::Host, recv_buffers[l],
+                     len*num_vars);
+          }
+
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
             auto haloexchange_unpack_base_lam = [=](Index_type i) {
@@ -115,7 +140,7 @@ void HALOPACKING::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (Index_type l = 0; l < num_neighbors; ++l) {
-          Real_ptr buffer = buffers[send_tags[l]];
+          Real_ptr buffer = pack_buffers[l];
           Int_ptr list = pack_index_lists[l];
           Index_type  len  = pack_index_list_lengths[l];
           for (Index_type v = 0; v < num_vars; ++v) {
@@ -128,12 +153,24 @@ void HALOPACKING::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
                 haloexchange_pack_base_lam );
             buffer += len;
           }
+
+          if (separate_buffers) {
+            copyData(DataSpace::Host, send_buffers[l],
+                     dataSpace, pack_buffers[l],
+                     len*num_vars);
+          }
         }
 
         for (Index_type l = 0; l < num_neighbors; ++l) {
-          Real_ptr buffer = buffers[recv_tags[l]];
+          Real_ptr buffer = unpack_buffers[l];
           Int_ptr list = unpack_index_lists[l];
-          Index_type  len  = unpack_index_list_lengths[l];
+          Index_type len = unpack_index_list_lengths[l];
+          if (separate_buffers) {
+            copyData(dataSpace, unpack_buffers[l],
+                     DataSpace::Host, recv_buffers[l],
+                     len*num_vars);
+          }
+
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
             auto haloexchange_unpack_base_lam = [=](Index_type i) {
