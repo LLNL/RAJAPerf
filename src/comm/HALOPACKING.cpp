@@ -10,8 +10,6 @@
 
 #include "RAJA/RAJA.hpp"
 
-#include <cmath>
-
 namespace rajaperf
 {
 namespace comm

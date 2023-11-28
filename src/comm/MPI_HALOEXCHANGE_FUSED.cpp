@@ -12,8 +12,6 @@
 
 #if defined(RAJA_PERFSUITE_ENABLE_MPI)
 
-#include <cmath>
-
 namespace rajaperf
 {
 namespace comm
