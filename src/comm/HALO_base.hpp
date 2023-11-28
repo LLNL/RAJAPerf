@@ -7,39 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 ///
-/// HALOPACKING kernel reference implementation:
-///
-/// // pack a buffer for each neighbor
-/// for (Index_type l = 0; l < num_neighbors; ++l) {
-///   Real_ptr buffer = buffers[l];
-///   Int_ptr list = pack_index_lists[l];
-///   Index_type  len  = pack_index_list_lengths[l];
-///   // pack part of each variable
-///   for (Index_type v = 0; v < num_vars; ++v) {
-///     Real_ptr var = vars[v];
-///     for (Index_type i = 0; i < len; i++) {
-///       buffer[i] = var[list[i]];
-///     }
-///     buffer += len;
-///   }
-///   // send buffer to neighbor
-/// }
-///
-/// // unpack a buffer for each neighbor
-/// for (Index_type l = 0; l < num_neighbors; ++l) {
-///   // receive buffer from neighbor
-///   Real_ptr buffer = buffers[l];
-///   Int_ptr list = unpack_index_lists[l];
-///   Index_type  len  = unpack_index_list_lengths[l];
-///   // unpack part of each variable
-///   for (Index_type v = 0; v < num_vars; ++v) {
-///     Real_ptr var = vars[v];
-///     for (Index_type i = 0; i < len; i++) {
-///       var[list[i]] = buffer[i];
-///     }
-///     buffer += len;
-///   }
-/// }
+/// HALO_base provides a common starting point for the other HALO_ classes.
 ///
 
 #ifndef RAJAPerf_Comm_HALO_BASE_HPP

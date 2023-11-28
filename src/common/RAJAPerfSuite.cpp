@@ -108,12 +108,12 @@
 //
 // Comm kernels...
 //
-#include "comm/HALOPACKING.hpp"
-#include "comm/HALOPACKING_FUSED.hpp"
+#include "comm/HALO_PACKING.hpp"
+#include "comm/HALO_PACKING_FUSED.hpp"
 #if defined(RAJA_PERFSUITE_ENABLE_MPI)
-#include "comm/HALOSENDRECV.hpp"
-#include "comm/HALOEXCHANGE.hpp"
-#include "comm/HALOEXCHANGE_FUSED.hpp"
+#include "comm/HALO_SENDRECV.hpp"
+#include "comm/HALO_EXCHANGE.hpp"
+#include "comm/HALO_EXCHANGE_FUSED.hpp"
 #endif
 
 
@@ -258,12 +258,12 @@ static const std::string KernelNames [] =
 //
 // Comm kernels...
 //
-  std::string("Comm_HALOPACKING"),
-  std::string("Comm_HALOPACKING_FUSED"),
+  std::string("Comm_HALO_PACKING"),
+  std::string("Comm_HALO_PACKING_FUSED"),
 #if defined(RAJA_PERFSUITE_ENABLE_MPI)
-  std::string("Comm_HALOSENDRECV"),
-  std::string("Comm_HALOEXCHANGE"),
-  std::string("Comm_HALOEXCHANGE_FUSED"),
+  std::string("Comm_HALO_SENDRECV"),
+  std::string("Comm_HALO_EXCHANGE"),
+  std::string("Comm_HALO_EXCHANGE_FUSED"),
 #endif
 
   std::string("Unknown Kernel")  // Keep this at the end and DO NOT remove....
@@ -990,25 +990,25 @@ KernelBase* getKernelObject(KernelID kid,
 //
 // Comm kernels...
 //
-    case Comm_HALOPACKING : {
-       kernel = new comm::HALOPACKING(run_params);
+    case Comm_HALO_PACKING : {
+       kernel = new comm::HALO_PACKING(run_params);
        break;
     }
-    case Comm_HALOPACKING_FUSED : {
-       kernel = new comm::HALOPACKING_FUSED(run_params);
+    case Comm_HALO_PACKING_FUSED : {
+       kernel = new comm::HALO_PACKING_FUSED(run_params);
        break;
     }
 #if defined(RAJA_PERFSUITE_ENABLE_MPI)
-    case Comm_HALOSENDRECV : {
-       kernel = new comm::HALOSENDRECV(run_params);
+    case Comm_HALO_SENDRECV : {
+       kernel = new comm::HALO_SENDRECV(run_params);
        break;
     }
-    case Comm_HALOEXCHANGE : {
-       kernel = new comm::HALOEXCHANGE(run_params);
+    case Comm_HALO_EXCHANGE : {
+       kernel = new comm::HALO_EXCHANGE(run_params);
        break;
     }
-    case Comm_HALOEXCHANGE_FUSED : {
-       kernel = new comm::HALOEXCHANGE_FUSED(run_params);
+    case Comm_HALO_EXCHANGE_FUSED : {
+       kernel = new comm::HALO_EXCHANGE_FUSED(run_params);
        break;
     }
 #endif

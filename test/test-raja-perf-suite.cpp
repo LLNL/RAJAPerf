@@ -63,7 +63,7 @@ TEST(ShortSuiteTest, Basic)
      (HIP_VERSION_MAJOR < 5 || \
      (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR < 1))
   sargv.emplace_back(std::string("--exclude-kernels"));
-  sargv.emplace_back(std::string("HALOPACKING_FUSED"));
+  sargv.emplace_back(std::string("HALO_PACKING_FUSED"));
 #endif
 
 #if (defined(RAJA_COMPILER_CLANG) && __clang_major__ == 11)

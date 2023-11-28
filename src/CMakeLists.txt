@@ -245,21 +245,21 @@ blt_add_executable(
   algorithm/MEMCPY-Seq.cpp
   algorithm/MEMCPY-OMPTarget.cpp
   comm/HALO_base.cpp
-  comm/HALOPACKING.cpp
-  comm/HALOPACKING-Seq.cpp
-  comm/HALOPACKING-OMPTarget.cpp
-  comm/HALOPACKING_FUSED.cpp
-  comm/HALOPACKING_FUSED-Seq.cpp
-  comm/HALOPACKING_FUSED-OMPTarget.cpp
-  comm/HALOSENDRECV.cpp
-  comm/HALOSENDRECV-Seq.cpp
-  comm/HALOSENDRECV-OMPTarget.cpp
-  comm/HALOEXCHANGE.cpp
-  comm/HALOEXCHANGE-Seq.cpp
-  comm/HALOEXCHANGE-OMPTarget.cpp
-  comm/HALOEXCHANGE_FUSED.cpp
-  comm/HALOEXCHANGE_FUSED-Seq.cpp
-  comm/HALOEXCHANGE_FUSED-OMPTarget.cpp
+  comm/HALO_PACKING.cpp
+  comm/HALO_PACKING-Seq.cpp
+  comm/HALO_PACKING-OMPTarget.cpp
+  comm/HALO_PACKING_FUSED.cpp
+  comm/HALO_PACKING_FUSED-Seq.cpp
+  comm/HALO_PACKING_FUSED-OMPTarget.cpp
+  comm/HALO_SENDRECV.cpp
+  comm/HALO_SENDRECV-Seq.cpp
+  comm/HALO_SENDRECV-OMPTarget.cpp
+  comm/HALO_EXCHANGE.cpp
+  comm/HALO_EXCHANGE-Seq.cpp
+  comm/HALO_EXCHANGE-OMPTarget.cpp
+  comm/HALO_EXCHANGE_FUSED.cpp
+  comm/HALO_EXCHANGE_FUSED-Seq.cpp
+  comm/HALO_EXCHANGE_FUSED-OMPTarget.cpp
   DEPENDS_ON ${RAJA_PERFSUITE_EXECUTABLE_DEPENDS}
 )
 install( TARGETS raja-perf-omptarget.exe
