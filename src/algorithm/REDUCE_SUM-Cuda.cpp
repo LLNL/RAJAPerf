@@ -72,7 +72,7 @@ void REDUCE_SUM::runCudaVariantCub(VariantID vid)
 
     DataSpace rds = getReductionDataSpace(vid);
     DataSpace hrds = hostAccessibleDataSpace(rds);
-    const bool separate_buffers = hrds != rds;
+    const bool separate_buffers = (hrds != rds);
 
     Real_ptr dsum;
     allocData(rds, dsum, 1);
