@@ -74,9 +74,9 @@ cmake \
   -DHIP_PATH=${ROCM_PATH}/llvm/bin \
   -DCMAKE_C_COMPILER=${ROCM_PATH}/llvm/bin/amdclang \
   -DCMAKE_CXX_COMPILER=${ROCM_PATH}/llvm/bin/amdclang++ \
-  -DCMAKE_HIP_ARCHITECTURES="${COMP_ARCH}:xnack+" \
-  -DGPU_TARGETS="${COMP_ARCH}:xnack+" \
-  -DAMDGPU_TARGETS="${COMP_ARCH}:xnack+" \
+  -DCMAKE_HIP_ARCHITECTURES="${COMP_ARCH}" \
+  -DGPU_TARGETS="${COMP_ARCH}" \
+  -DAMDGPU_TARGETS="${COMP_ARCH}" \
   -DBLT_CXX_STD=c++14 \
   -C ${RAJA_HOSTCONFIG} \
   -DENABLE_HIP=ON \
