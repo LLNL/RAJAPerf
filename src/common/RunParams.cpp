@@ -763,9 +763,10 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
   processTuningInput();
 
-  if ( input_state != BadInput &&
+  if ( input_state != InfoRequest && 
+       input_state != BadInput &&
        input_state != DryRun && 
-       input_state != CheckRun ) {
+       input_state != CheckRun) {
     input_state = PerfRun;
   }
 
@@ -1045,15 +1046,15 @@ void RunParams::printVariantNames(std::ostream& str) const
 void RunParams::printDataSpaceNames(std::ostream& str) const
 {
   str << "\nAvailable data spaces:";
-  str << "\n-------------------\n";
+  str << "\n----------------------\n";
   for (int ids = 0; ids < static_cast<int>(DataSpace::NumSpaces); ++ids) {
     DataSpace ds = static_cast<DataSpace>(ids);
     if (isDataSpaceAvailable(ds)) {
       str << getDataSpaceName(ds) << std::endl;
     }
   }
-  str << "\nUnavailable data spaces:";
-  str << "\n-------------------\n";
+  str << "\nUnavailable data spaces in current build configuration:";
+  str << "\n-------------------------------------------------------\n";
   for (int ids = 0; ids < static_cast<int>(DataSpace::NumSpaces); ++ids) {
     DataSpace ds = static_cast<DataSpace>(ids);
     if (!isDataSpaceAvailable(ds)) {
