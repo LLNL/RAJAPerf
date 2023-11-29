@@ -747,6 +747,10 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
     }
 
+    if (input_state == InfoRequest) {
+      break;
+    }
+
   }
 
   // Default size and size_meaning if unset
