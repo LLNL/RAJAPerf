@@ -82,7 +82,7 @@ void REDUCE3_INT::runHipVariantBlock(VariantID vid)
 
     DataSpace rds = getReductionDataSpace(vid);
     DataSpace hrds = hostAccessibleDataSpace(rds);
-    const bool separate_buffers = hrds != rds;
+    const bool separate_buffers = (hrds != rds);
 
     Int_ptr vmem;
     allocData(rds, vmem, 3);
@@ -174,7 +174,7 @@ void REDUCE3_INT::runHipVariantOccGS(VariantID vid)
 
     DataSpace rds = getReductionDataSpace(vid);
     DataSpace hrds = hostAccessibleDataSpace(rds);
-    const bool separate_buffers = hrds != rds;
+    const bool separate_buffers = (hrds != rds);
 
     Int_ptr vmem;
     allocData(rds, vmem, 3);

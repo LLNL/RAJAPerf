@@ -49,7 +49,7 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
 
   DataSpace rds = getReductionDataSpace(vid);
   DataSpace hrds = hostAccessibleDataSpace(rds);
-  const bool separate_buffers = hrds != rds;
+  const bool separate_buffers = (hrds != rds);
 
   Real_ptr hpi = pi;
   if (separate_buffers) {

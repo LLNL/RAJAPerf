@@ -88,7 +88,7 @@ void TRAP_INT::runCudaVariantBlock(VariantID vid)
 
     DataSpace rds = getReductionDataSpace(vid);
     DataSpace hrds = hostAccessibleDataSpace(rds);
-    const bool separate_buffers = hrds != rds;
+    const bool separate_buffers = (hrds != rds);
 
     Real_ptr sumx;
     allocData(rds, sumx, 1);
@@ -170,7 +170,7 @@ void TRAP_INT::runCudaVariantOccGS(VariantID vid)
 
     DataSpace rds = getReductionDataSpace(vid);
     DataSpace hrds = hostAccessibleDataSpace(rds);
-    const bool separate_buffers = hrds != rds;
+    const bool separate_buffers = (hrds != rds);
 
     Real_ptr sumx;
     allocData(rds, sumx, 1);

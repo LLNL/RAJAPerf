@@ -69,7 +69,7 @@ void PI_REDUCE::runHipVariantBlock(VariantID vid)
 
     DataSpace rds = getReductionDataSpace(vid);
     DataSpace hrds = hostAccessibleDataSpace(rds);
-    const bool separate_buffers = hrds != rds;
+    const bool separate_buffers = (hrds != rds);
 
     Real_ptr dpi;
     allocData(rds, dpi, 1);
@@ -148,7 +148,7 @@ void PI_REDUCE::runHipVariantOccGS(VariantID vid)
 
     DataSpace rds = getReductionDataSpace(vid);
     DataSpace hrds = hostAccessibleDataSpace(rds);
-    const bool separate_buffers = hrds != rds;
+    const bool separate_buffers = (hrds != rds);
 
     Real_ptr dpi;
     allocData(rds, dpi, 1);

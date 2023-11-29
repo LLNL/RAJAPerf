@@ -77,7 +77,7 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
 
     DataSpace rds = getReductionDataSpace(vid);
     DataSpace hrds = hostAccessibleDataSpace(rds);
-    const bool separate_buffers = hrds != rds;
+    const bool separate_buffers = (hrds != rds);
 
     Real_ptr dsum;
     allocData(rds, dsum, 1);
@@ -180,7 +180,7 @@ void REDUCE_SUM::runHipVariantBlock(VariantID vid)
 
     DataSpace rds = getReductionDataSpace(vid);
     DataSpace hrds = hostAccessibleDataSpace(rds);
-    const bool separate_buffers = hrds != rds;
+    const bool separate_buffers = (hrds != rds);
 
     Real_ptr dsum;
     allocData(rds, dsum, 1);
@@ -262,7 +262,7 @@ void REDUCE_SUM::runHipVariantOccGS(VariantID vid)
 
     DataSpace rds = getReductionDataSpace(vid);
     DataSpace hrds = hostAccessibleDataSpace(rds);
-    const bool separate_buffers = hrds != rds;
+    const bool separate_buffers = (hrds != rds);
 
     Real_ptr dsum;
     allocData(rds, dsum, 1);

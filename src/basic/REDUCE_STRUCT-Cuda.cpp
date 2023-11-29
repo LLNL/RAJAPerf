@@ -111,7 +111,7 @@ void REDUCE_STRUCT::runCudaVariantBlock(VariantID vid)
 
     DataSpace rds = getReductionDataSpace(vid);
     DataSpace hrds = hostAccessibleDataSpace(rds);
-    const bool separate_buffers = hrds != rds;
+    const bool separate_buffers = (hrds != rds);
 
     Real_ptr mem; //xcenter,xmin,xmax,ycenter,ymin,ymax
     allocData(rds, mem, 6);
@@ -221,7 +221,7 @@ void REDUCE_STRUCT::runCudaVariantOccGS(VariantID vid)
 
     DataSpace rds = getReductionDataSpace(vid);
     DataSpace hrds = hostAccessibleDataSpace(rds);
-    const bool separate_buffers = hrds != rds;
+    const bool separate_buffers = (hrds != rds);
 
     Real_ptr mem; //xcenter,xmin,xmax,ycenter,ymin,ymax
     allocData(rds, mem, 6);

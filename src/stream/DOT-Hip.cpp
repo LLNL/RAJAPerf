@@ -67,7 +67,7 @@ void DOT::runHipVariantBlock(VariantID vid)
 
     DataSpace rds = getReductionDataSpace(vid);
     DataSpace hrds = hostAccessibleDataSpace(rds);
-    const bool separate_buffers = hrds != rds;
+    const bool separate_buffers = (hrds != rds);
 
     Real_ptr dprod;
     allocData(rds, dprod, 1);
@@ -146,7 +146,7 @@ void DOT::runHipVariantOccGS(VariantID vid)
 
     DataSpace rds = getReductionDataSpace(vid);
     DataSpace hrds = hostAccessibleDataSpace(rds);
-    const bool separate_buffers = hrds != rds;
+    const bool separate_buffers = (hrds != rds);
 
     Real_ptr dprod;
     allocData(rds, dprod, 1);
