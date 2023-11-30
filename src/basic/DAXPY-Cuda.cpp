@@ -52,8 +52,11 @@ void DAXPY::runCudaVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      daxpy<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( y, x, a,
-                                        iend );
+
+      RPlaunchCudaKernel( (daxpy<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          y, x, a, iend );
       cudaErrchk( cudaGetLastError() );
 
     }
@@ -66,10 +69,16 @@ void DAXPY::runCudaVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      lambda_cuda_forall<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(
-        ibegin, iend, [=] __device__ (Index_type i) {
+
+      auto daxpy_lambda = [=] __device__ (Index_type i) {
         DAXPY_BODY;
-      });
+      };
+
+      RPlaunchCudaKernel( (lambda_cuda_forall<block_size, 
+                                              decltype(daxpy_lambda)>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          ibegin, iend, daxpy_lambda );
       cudaErrchk( cudaGetLastError() );
 
     }
