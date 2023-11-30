@@ -279,8 +279,8 @@ void copyData(DataSpace dst_dataSpace, void* dst_ptr,
               DataSpace src_dataSpace, const void* src_ptr,
               Size_type nbytes)
 {
-  if (hostBasedDataSpace(dst_dataSpace) == dst_dataSpace &&
-      hostBasedDataSpace(src_dataSpace) == src_dataSpace) {
+  if (hostCopyDataSpace(dst_dataSpace) == dst_dataSpace &&
+      hostCopyDataSpace(src_dataSpace) == src_dataSpace) {
     detail::copyHostData(dst_ptr, src_ptr, nbytes);
   }
 
@@ -598,15 +598,17 @@ long double calcChecksum(Complex_ptr ptr, Size_type len,
 
 
 /*!
- * \brief Get an host based data space for the given dataSpace.
+ * \brief Get a host data space to use when making a host copy of data in the given
+ *        dataSpace.
  *
- * A host based data space is one that is always stored on the host.
+ * The returned host data space should reside in memory attached to the host.
  *
- * The intention is to check if the performance (bandwidth) of the given data
- * space is good on the host. If not then fall back on a space that performs
- * well on the host and in explicit copy operations with the given space.
+ * The intention is to get a data space with high performance on the host.
+ * Return the given data space if its already performant and fall back on a
+ * host data space that performs well in explicit copy operations with the
+ * given space.
  */
-DataSpace hostBasedDataSpace(DataSpace dataSpace)
+DataSpace hostCopyDataSpace(DataSpace dataSpace)
 {
   switch (dataSpace) {
     case DataSpace::Host:
@@ -639,19 +641,20 @@ DataSpace hostBasedDataSpace(DataSpace dataSpace)
 
     default:
     {
-      throw std::invalid_argument("hostBasedDataSpace : Unknown data space");
+      throw std::invalid_argument("hostCopyDataSpace : Unknown data space");
     } break;
   }
 }
 
 /*!
- * \brief Get an host accessible data space for the given dataSpace.
+ * \brief Get a data space accessible to the host for the given dataSpace.
  *
- * A host accessible data space is one that can be accessed on the host.
+ * The returned host data space may reside in memory attached to another device.
  *
- * The intention is to check if the given memory space is accessible on the
- * host. If not then fall back on a space that is host accessible and can be
- * used with explicit copy operations with the given space.
+ * The intention is to get a data space accessible on the host even if it is not
+ * performant. Return the given data space if its already accessible and fall
+ * back on a space that is host accessible and performs well in explicit copy
+ * operations with the given space.
  */
 DataSpace hostAccessibleDataSpace(DataSpace dataSpace)
 {

@@ -323,7 +323,7 @@ public:
   rajaperf::AutoDataMover<T> scopedMoveData(T*& ptr, Size_type len, VariantID vid)
   {
     DataSpace ds = getDataSpace(vid);
-    DataSpace hds = rajaperf::hostBasedDataSpace(ds);
+    DataSpace hds = rajaperf::hostCopyDataSpace(ds);
     rajaperf::moveData(hds, ds, ptr, len, getDataAlignment());
     return {ds, hds, ptr, len, getDataAlignment()};
   }
