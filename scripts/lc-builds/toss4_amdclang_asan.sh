@@ -15,7 +15,7 @@ if [[ $# -lt 2 ]]; then
   echo "   3...) optional arguments to cmake"
   echo
   echo "For example: "
-  echo "    toss4_amdclang.sh 5.7.0 gfx906"
+  echo "    toss4_amdclang_asan.sh 5.7.0 gfx90a"
   exit
 fi
 
@@ -36,11 +36,11 @@ else
   echo "Unknown hip version, using ${HOSTCONFIG} host-config"
 fi
 
-BUILD_SUFFIX=lc_toss4-amdclang-${COMP_VER}-${COMP_ARCH}
+BUILD_SUFFIX=lc_toss4-amdclang-${COMP_VER}-${COMP_ARCH}-asan
 RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/toss4/${HOSTCONFIG}.cmake
 
 echo
-echo "Creating build directory ${BUILD_SUFFIX} and generating configuration in it"
+echo "Creating build directory build_${BUILD_SUFFIX} and generating configuration in it"
 echo "Configuration extra arguments:"
 echo "   $@"
 echo
@@ -74,9 +74,11 @@ cmake \
   -DHIP_PATH=${ROCM_PATH}/llvm/bin \
   -DCMAKE_C_COMPILER=${ROCM_PATH}/llvm/bin/amdclang \
   -DCMAKE_CXX_COMPILER=${ROCM_PATH}/llvm/bin/amdclang++ \
-  -DCMAKE_HIP_ARCHITECTURES="${COMP_ARCH}" \
-  -DGPU_TARGETS="${COMP_ARCH}" \
-  -DAMDGPU_TARGETS="${COMP_ARCH}" \
+  -DCMAKE_HIP_ARCHITECTURES="${COMP_ARCH}:xnack+" \
+  -DGPU_TARGETS="${COMP_ARCH}:xnack+" \
+  -DAMDGPU_TARGETS="${COMP_ARCH}:xnack+" \
+  -DCMAKE_C_FLAGS="-fsanitize=address -shared-libsan" \
+  -DCMAKE_CXX_FLAGS="-fsanitize=address -shared-libsan" \
   -DBLT_CXX_STD=c++14 \
   -C ${RAJA_HOSTCONFIG} \
   -DENABLE_HIP=ON \
@@ -92,10 +94,14 @@ echo
 echo "cd into directory build_${BUILD_SUFFIX} and run make to build RAJAPerf"
 echo
 echo "  Please note that you have to have a consistent build environment"
-echo "  when you make RAJA as cmake may reconfigure; unload the rocm module"
-echo "  or load the appropriate rocm module (${COMP_VER}) when building."
+echo "  when you make RAJA as cmake may reconfigure; load the appropriate"
+echo "  rocm and rocmcc modules (${COMP_VER}) when building."
 echo
-echo "    module unload rocm"
+echo "    module load rocm/COMP_VER rocmcc/COMP_VER"
 echo "    srun -n1 make"
+echo
+echo "  Run with these environment options when using asan"
+echo "    ASAN_OPTIONS=print_suppressions=0:detect_leaks=0"
+echo "    HSA_XNACK=1"
 echo
 echo "***********************************************************************"
