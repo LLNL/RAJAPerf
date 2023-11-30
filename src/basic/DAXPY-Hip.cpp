@@ -53,8 +53,15 @@ void DAXPY::runHipVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
+#if 0
       hipLaunchKernelGGL((daxpy<block_size>),dim3(grid_size), dim3(block_size), shmem, res.get_stream(), y, x, a,
                                         iend );
+#else
+      RPlaunchHipKernel( (daxpy<block_size>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         y, x, a, iend );
+#endif
       hipErrchk( hipGetLastError() );
 
     }
@@ -71,8 +78,16 @@ void DAXPY::runHipVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
+#if 0
       hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(daxpy_lambda)>),
         grid_size, block_size, shmem, res.get_stream(), ibegin, iend, daxpy_lambda);
+#else
+      RPlaunchHipKernel( (lambda_hip_forall<block_size,
+                                            decltype(daxpy_lambda)>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         ibegin, iend, daxpy_lambda );
+#endif
       hipErrchk( hipGetLastError() );
 
     }

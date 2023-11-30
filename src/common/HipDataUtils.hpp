@@ -30,6 +30,31 @@ namespace rajaperf
 {
 
 /*!
+ * \brief Method for launching a HIP kernel with given configuration.
+ *
+ *        Note: method includes a call to check whether number of args
+ *              in kernel signature matches number of args passed to this 
+ *              method.
+ */
+template <typename... Args, typename F = void (*)(Args...)>
+void RPlaunchHipKernel(F kernel,
+                       const size_t& numBlocks, const size_t& dimBlocks,
+                       std::uint32_t sharedMemBytes, hipStream_t stream,
+                       Args... args)
+{
+  constexpr size_t count = sizeof...(Args);
+  auto tup = std::tuple<Args...>{args...};
+  auto chk_tup = checkArgsCount(kernel, tup);
+  void* arg_arr[count];
+  packArgs<0>(chk_tup, arg_arr);
+
+  auto k = reinterpret_cast<void*>(kernel);
+  hipLaunchKernel(k, numBlocks, dimBlocks,
+                  arg_arr,
+                  sharedMemBytes, stream);
+}
+
+/*!
  * \brief Simple forall hip kernel that runs a lambda.
  */
 template < typename Lambda >
