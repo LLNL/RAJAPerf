@@ -86,21 +86,12 @@ void TRAP_INT::runCudaVariantBlock(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    DataSpace rds = getReductionDataSpace(vid);
-    DataSpace hrds = hostAccessibleDataSpace(rds);
-    const bool separate_buffers = (hrds != rds);
-
-    Real_ptr sumx;
-    allocData(rds, sumx, 1);
-    Real_ptr hsumx = sumx;
-    if (separate_buffers) {
-      allocData(hrds, hsumx, 1);
-    }
+    RAJAPERF_GPU_REDUCER_SETUP(Real_ptr, sumx, hsumx, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      if (separate_buffers) {
+      if (sumx != hsumx) {
         *hsumx = m_sumx_init;
         cudaErrchk( cudaMemcpyAsync( sumx, hsumx, sizeof(Real_type),
                                      cudaMemcpyHostToDevice, res.get_stream() ) );
@@ -118,7 +109,7 @@ void TRAP_INT::runCudaVariantBlock(VariantID vid)
                                                 iend);
       cudaErrchk( cudaGetLastError() );
 
-      if (separate_buffers) {
+      if (sumx != hsumx) {
         cudaErrchk( cudaMemcpyAsync( hsumx, sumx, sizeof(Real_type),
                                      cudaMemcpyDeviceToHost, res.get_stream() ) );
       }
@@ -128,10 +119,7 @@ void TRAP_INT::runCudaVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    deallocData(rds, sumx);
-    if (separate_buffers) {
-      deallocData(hrds, hsumx);
-    }
+    RAJAPERF_GPU_REDUCER_TEARDOWN(sumx, hsumx);
 
   } else if ( vid == RAJA_CUDA ) {
 
@@ -168,16 +156,7 @@ void TRAP_INT::runCudaVariantOccGS(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    DataSpace rds = getReductionDataSpace(vid);
-    DataSpace hrds = hostAccessibleDataSpace(rds);
-    const bool separate_buffers = (hrds != rds);
-
-    Real_ptr sumx;
-    allocData(rds, sumx, 1);
-    Real_ptr hsumx = sumx;
-    if (separate_buffers) {
-      allocData(hrds, hsumx, 1);
-    }
+    RAJAPERF_GPU_REDUCER_SETUP(Real_ptr, sumx, hsumx, 1);
 
     constexpr size_t shmem = sizeof(Real_type)*block_size;
     const size_t max_grid_size = detail::getCudaOccupancyMaxBlocks(
@@ -186,7 +165,7 @@ void TRAP_INT::runCudaVariantOccGS(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      if (separate_buffers) {
+      if (sumx != hsumx) {
         *hsumx = m_sumx_init;
         cudaErrchk( cudaMemcpyAsync( sumx, hsumx, sizeof(Real_type),
                                      cudaMemcpyHostToDevice, res.get_stream() ) );
@@ -204,7 +183,7 @@ void TRAP_INT::runCudaVariantOccGS(VariantID vid)
                                                 iend);
       cudaErrchk( cudaGetLastError() );
 
-      if (separate_buffers) {
+      if (sumx != hsumx) {
         cudaErrchk( cudaMemcpyAsync( hsumx, sumx, sizeof(Real_type),
                                      cudaMemcpyDeviceToHost, res.get_stream() ) );
       }
@@ -214,10 +193,7 @@ void TRAP_INT::runCudaVariantOccGS(VariantID vid)
     }
     stopTimer();
 
-    deallocData(rds, sumx);
-    if (separate_buffers) {
-      deallocData(hrds, hsumx);
-    }
+    RAJAPERF_GPU_REDUCER_TEARDOWN(sumx, hsumx);
 
   } else if ( vid == RAJA_CUDA ) {
 

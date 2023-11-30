@@ -65,21 +65,12 @@ void DOT::runCudaVariantBlock(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    DataSpace rds = getReductionDataSpace(vid);
-    DataSpace hrds = hostAccessibleDataSpace(rds);
-    const bool separate_buffers = (hrds != rds);
-
-    Real_ptr dprod;
-    allocData(rds, dprod, 1);
-    Real_ptr hdprod = dprod;
-    if (separate_buffers) {
-      allocData(hrds, hdprod, 1);
-    }
+    RAJAPERF_GPU_REDUCER_SETUP(Real_ptr, dprod, hdprod, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      if (separate_buffers) {
+      if (dprod != hdprod) {
         *hdprod = m_dot_init;
         cudaErrchk( cudaMemcpyAsync( dprod, hdprod, sizeof(Real_type),
                                      cudaMemcpyHostToDevice, res.get_stream() ) );
@@ -93,7 +84,7 @@ void DOT::runCudaVariantBlock(VariantID vid)
           a, b, dprod, m_dot_init, iend );
       cudaErrchk( cudaGetLastError() );
 
-      if (separate_buffers) {
+      if (dprod != hdprod) {
         cudaErrchk( cudaMemcpyAsync( hdprod, dprod, sizeof(Real_type),
                                      cudaMemcpyDeviceToHost, res.get_stream() ) );
       }
@@ -103,10 +94,7 @@ void DOT::runCudaVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    deallocData(rds, dprod);
-    if (separate_buffers) {
-      deallocData(hrds, hdprod);
-    }
+    RAJAPERF_GPU_REDUCER_TEARDOWN(dprod, hdprod);
 
   } else if ( vid == RAJA_CUDA ) {
 
@@ -143,16 +131,7 @@ void DOT::runCudaVariantOccGS(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    DataSpace rds = getReductionDataSpace(vid);
-    DataSpace hrds = hostAccessibleDataSpace(rds);
-    const bool separate_buffers = (hrds != rds);
-
-    Real_ptr dprod;
-    allocData(rds, dprod, 1);
-    Real_ptr hdprod = dprod;
-    if (separate_buffers) {
-      allocData(hrds, hdprod, 1);
-    }
+    RAJAPERF_GPU_REDUCER_SETUP(Real_ptr, dprod, hdprod, 1);
 
     constexpr size_t shmem = sizeof(Real_type)*block_size;
     const size_t max_grid_size = detail::getCudaOccupancyMaxBlocks(
@@ -161,7 +140,7 @@ void DOT::runCudaVariantOccGS(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      if (separate_buffers) {
+      if (dprod != hdprod) {
         *hdprod = m_dot_init;
         cudaErrchk( cudaMemcpyAsync( dprod, hdprod, sizeof(Real_type),
                                      cudaMemcpyHostToDevice, res.get_stream() ) );
@@ -175,7 +154,7 @@ void DOT::runCudaVariantOccGS(VariantID vid)
           a, b, dprod, m_dot_init, iend );
       cudaErrchk( cudaGetLastError() );
 
-      if (separate_buffers) {
+      if (dprod != hdprod) {
         cudaErrchk( cudaMemcpyAsync( hdprod, dprod, sizeof(Real_type),
                                      cudaMemcpyDeviceToHost, res.get_stream() ) );
       }
@@ -185,10 +164,7 @@ void DOT::runCudaVariantOccGS(VariantID vid)
     }
     stopTimer();
 
-    deallocData(rds, dprod);
-    if (separate_buffers) {
-      deallocData(hrds, hdprod);
-    }
+    RAJAPERF_GPU_REDUCER_TEARDOWN(dprod, hdprod);
 
   } else if ( vid == RAJA_CUDA ) {
 

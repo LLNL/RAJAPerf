@@ -80,21 +80,12 @@ void REDUCE3_INT::runCudaVariantBlock(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    DataSpace rds = getReductionDataSpace(vid);
-    DataSpace hrds = hostAccessibleDataSpace(rds);
-    const bool separate_buffers = (hrds != rds);
-
-    Int_ptr vmem;
-    allocData(rds, vmem, 3);
-    Int_ptr hvmem = vmem;
-    if (separate_buffers) {
-      allocData(hrds, hvmem, 3);
-    }
+    RAJAPERF_GPU_REDUCER_SETUP(Int_ptr, vmem, hvmem, 3);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      if (separate_buffers) {
+      if (vmem != hvmem) {
         hvmem[0] = m_vsum_init;
         hvmem[1] = m_vmin_init;
         hvmem[2] = m_vmax_init;
@@ -116,7 +107,7 @@ void REDUCE3_INT::runCudaVariantBlock(VariantID vid)
                                                     iend );
       cudaErrchk( cudaGetLastError() );
 
-      if (separate_buffers) {
+      if (vmem != hvmem) {
         cudaErrchk( cudaMemcpyAsync( hvmem, vmem, 3*sizeof(Int_type),
                                      cudaMemcpyDeviceToHost, res.get_stream() ) );
       }
@@ -128,10 +119,7 @@ void REDUCE3_INT::runCudaVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    deallocData(rds, vmem);
-    if (separate_buffers) {
-      deallocData(hrds, hvmem);
-    }
+    RAJAPERF_GPU_REDUCER_TEARDOWN(vmem, hvmem);
 
   } else if ( vid == RAJA_CUDA ) {
 
@@ -172,16 +160,7 @@ void REDUCE3_INT::runCudaVariantOccGS(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    DataSpace rds = getReductionDataSpace(vid);
-    DataSpace hrds = hostAccessibleDataSpace(rds);
-    const bool separate_buffers = (hrds != rds);
-
-    Int_ptr vmem;
-    allocData(rds, vmem, 3);
-    Int_ptr hvmem = vmem;
-    if (separate_buffers) {
-      allocData(hrds, hvmem, 3);
-    }
+    RAJAPERF_GPU_REDUCER_SETUP(Int_ptr, vmem, hvmem, 3);
 
     constexpr size_t shmem = 3*sizeof(Int_type)*block_size;
     const size_t max_grid_size = detail::getCudaOccupancyMaxBlocks(
@@ -190,7 +169,7 @@ void REDUCE3_INT::runCudaVariantOccGS(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      if (separate_buffers) {
+      if (vmem != hvmem) {
         hvmem[0] = m_vsum_init;
         hvmem[1] = m_vmin_init;
         hvmem[2] = m_vmax_init;
@@ -212,7 +191,7 @@ void REDUCE3_INT::runCudaVariantOccGS(VariantID vid)
                                                     iend );
       cudaErrchk( cudaGetLastError() );
 
-      if (separate_buffers) {
+      if (vmem != hvmem) {
         cudaErrchk( cudaMemcpyAsync( hvmem, vmem, 3*sizeof(Int_type),
                                      cudaMemcpyDeviceToHost, res.get_stream() ) );
       }
@@ -224,10 +203,7 @@ void REDUCE3_INT::runCudaVariantOccGS(VariantID vid)
     }
     stopTimer();
 
-    deallocData(rds, vmem);
-    if (separate_buffers) {
-      deallocData(hrds, hvmem);
-    }
+    RAJAPERF_GPU_REDUCER_TEARDOWN(vmem, hvmem);
 
   } else if ( vid == RAJA_CUDA ) {
 

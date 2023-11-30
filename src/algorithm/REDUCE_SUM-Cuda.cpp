@@ -70,16 +70,7 @@ void REDUCE_SUM::runCudaVariantCub(VariantID vid)
 
     int len = iend - ibegin;
 
-    DataSpace rds = getReductionDataSpace(vid);
-    DataSpace hrds = hostAccessibleDataSpace(rds);
-    const bool separate_buffers = (hrds != rds);
-
-    Real_ptr sum;
-    allocData(rds, sum, 1);
-    Real_ptr hsum = sum;
-    if (separate_buffers) {
-      allocData(hrds, hsum, 1);
-    }
+    RAJAPERF_GPU_REDUCER_SETUP(Real_ptr, sum, hsum, 1);
 
     // Determine temporary device storage requirements
     void* d_temp_storage = nullptr;
@@ -112,7 +103,7 @@ void REDUCE_SUM::runCudaVariantCub(VariantID vid)
                                              m_sum_init,
                                              stream));
 
-      if (separate_buffers) {
+      if (sum != hsum) {
         cudaErrchk( cudaMemcpyAsync( hsum, sum, sizeof(Real_type),
                                    cudaMemcpyDeviceToHost, stream ) );
       }
@@ -125,10 +116,7 @@ void REDUCE_SUM::runCudaVariantCub(VariantID vid)
 
     // Free temporary storage
     deallocData(DataSpace::CudaDevice, temp_storage);
-    deallocData(rds, sum);
-    if (separate_buffers) {
-      deallocData(hrds, hsum);
-    }
+    RAJAPERF_GPU_REDUCER_TEARDOWN(sum, hsum);
 
   } else {
 
@@ -151,21 +139,12 @@ void REDUCE_SUM::runCudaVariantBlock(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    DataSpace rds = getReductionDataSpace(vid);
-    DataSpace hrds = hostAccessibleDataSpace(rds);
-    const bool separate_buffers = (hrds != rds);
-
-    Real_ptr sum;
-    allocData(rds, sum, 1);
-    Real_ptr hsum = sum;
-    if (separate_buffers) {
-      allocData(hrds, hsum, 1);
-    }
+    RAJAPERF_GPU_REDUCER_SETUP(Real_ptr, sum, hsum, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      if (separate_buffers) {
+      if (sum != hsum) {
         *hsum = m_sum_init;
         cudaErrchk( cudaMemcpyAsync( sum, hsum, sizeof(Real_type),
                                      cudaMemcpyHostToDevice, res.get_stream() ) );
@@ -181,7 +160,7 @@ void REDUCE_SUM::runCudaVariantBlock(VariantID vid)
                                                    iend );
       cudaErrchk( cudaGetLastError() );
 
-      if (separate_buffers) {
+      if (sum != hsum) {
         cudaErrchk( cudaMemcpyAsync( hsum, sum, sizeof(Real_type),
                                      cudaMemcpyDeviceToHost, res.get_stream() ) );
       }
@@ -191,10 +170,7 @@ void REDUCE_SUM::runCudaVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    deallocData(rds, sum);
-    if (separate_buffers) {
-      deallocData(hrds, hsum);
-    }
+    RAJAPERF_GPU_REDUCER_TEARDOWN(sum, hsum);
 
   } else if ( vid == RAJA_CUDA ) {
 
@@ -234,16 +210,7 @@ void REDUCE_SUM::runCudaVariantOccGS(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    DataSpace rds = getReductionDataSpace(vid);
-    DataSpace hrds = hostAccessibleDataSpace(rds);
-    const bool separate_buffers = (hrds != rds);
-
-    Real_ptr sum;
-    allocData(rds, sum, 1);
-    Real_ptr hsum = sum;
-    if (separate_buffers) {
-      allocData(hrds, hsum, 1);
-    }
+    RAJAPERF_GPU_REDUCER_SETUP(Real_ptr, sum, hsum, 1);
 
     constexpr size_t shmem = sizeof(Real_type)*block_size;
     const size_t max_grid_size = detail::getCudaOccupancyMaxBlocks(
@@ -252,7 +219,7 @@ void REDUCE_SUM::runCudaVariantOccGS(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      if (separate_buffers) {
+      if (sum != hsum) {
         *hsum = m_sum_init;
         cudaErrchk( cudaMemcpyAsync( sum, hsum, sizeof(Real_type),
                                      cudaMemcpyHostToDevice, res.get_stream() ) );
@@ -268,7 +235,7 @@ void REDUCE_SUM::runCudaVariantOccGS(VariantID vid)
                                                    iend );
       cudaErrchk( cudaGetLastError() );
 
-      if (separate_buffers) {
+      if (sum != hsum) {
         cudaErrchk( cudaMemcpyAsync( hsum, sum, sizeof(Real_type),
                                      cudaMemcpyDeviceToHost, res.get_stream() ) );
       }
@@ -278,10 +245,7 @@ void REDUCE_SUM::runCudaVariantOccGS(VariantID vid)
     }
     stopTimer();
 
-    deallocData(rds, sum);
-    if (separate_buffers) {
-      deallocData(hrds, hsum);
-    }
+    RAJAPERF_GPU_REDUCER_TEARDOWN(sum, hsum);
 
   } else if ( vid == RAJA_CUDA ) {
 

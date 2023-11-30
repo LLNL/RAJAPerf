@@ -86,21 +86,12 @@ void TRAP_INT::runHipVariantBlock(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    DataSpace rds = getReductionDataSpace(vid);
-    DataSpace hrds = hostAccessibleDataSpace(rds);
-    const bool separate_buffers = (hrds != rds);
-
-    Real_ptr sumx;
-    allocData(rds, sumx, 1);
-    Real_ptr hsumx = sumx;
-    if (separate_buffers) {
-      allocData(hrds, hsumx, 1);
-    }
+    RAJAPERF_GPU_REDUCER_SETUP(Real_ptr, sumx, hsumx, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      if (separate_buffers) {
+      if (sumx != hsumx) {
         *hsumx = m_sumx_init;
         hipErrchk( hipMemcpyAsync( sumx, hsumx, sizeof(Real_type),
                                    hipMemcpyHostToDevice, res.get_stream() ) );
@@ -117,7 +108,7 @@ void TRAP_INT::runHipVariantBlock(VariantID vid)
                                                 iend);
       hipErrchk( hipGetLastError() );
 
-      if (separate_buffers) {
+      if (sumx != hsumx) {
         hipErrchk( hipMemcpyAsync( hsumx, sumx, sizeof(Real_type),
                                    hipMemcpyDeviceToHost, res.get_stream() ) );
       }
@@ -127,10 +118,7 @@ void TRAP_INT::runHipVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    deallocData(rds, sumx);
-    if (separate_buffers) {
-      deallocData(hrds, hsumx);
-    }
+    RAJAPERF_GPU_REDUCER_TEARDOWN(sumx, hsumx);
 
   } else if ( vid == RAJA_HIP ) {
 
@@ -167,16 +155,7 @@ void TRAP_INT::runHipVariantOccGS(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    DataSpace rds = getReductionDataSpace(vid);
-    DataSpace hrds = hostAccessibleDataSpace(rds);
-    const bool separate_buffers = (hrds != rds);
-
-    Real_ptr sumx;
-    allocData(rds, sumx, 1);
-    Real_ptr hsumx = sumx;
-    if (separate_buffers) {
-      allocData(hrds, hsumx, 1);
-    }
+    RAJAPERF_GPU_REDUCER_SETUP(Real_ptr, sumx, hsumx, 1);
 
     constexpr size_t shmem = sizeof(Real_type)*block_size;
     const size_t max_grid_size = detail::getHipOccupancyMaxBlocks(
@@ -185,7 +164,7 @@ void TRAP_INT::runHipVariantOccGS(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      if (separate_buffers) {
+      if (sumx != hsumx) {
         *hsumx = m_sumx_init;
         hipErrchk( hipMemcpyAsync( sumx, hsumx, sizeof(Real_type),
                                    hipMemcpyHostToDevice, res.get_stream() ) );
@@ -203,7 +182,7 @@ void TRAP_INT::runHipVariantOccGS(VariantID vid)
                                                 iend);
       hipErrchk( hipGetLastError() );
 
-      if (separate_buffers) {
+      if (sumx != hsumx) {
         hipErrchk( hipMemcpyAsync( hsumx, sumx, sizeof(Real_type),
                                    hipMemcpyDeviceToHost, res.get_stream() ) );
       }
@@ -213,10 +192,7 @@ void TRAP_INT::runHipVariantOccGS(VariantID vid)
     }
     stopTimer();
 
-    deallocData(rds, sumx);
-    if (separate_buffers) {
-      deallocData(hrds, hsumx);
-    }
+    RAJAPERF_GPU_REDUCER_TEARDOWN(sumx, hsumx);
 
   } else if ( vid == RAJA_HIP ) {
 

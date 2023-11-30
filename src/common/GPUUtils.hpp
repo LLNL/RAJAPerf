@@ -169,6 +169,25 @@ inline void seq_for(camp::int_seq<T, ts...> const&, Func&& func)
 } // closing brace for rajaperf namespace
 
 //
+#define RAJAPERF_GPU_REDUCER_SETUP(pointer_type, device_ptr_name, host_ptr_name, length) \
+    DataSpace reduction_data_space = getReductionDataSpace(vid);               \
+    DataSpace host_data_space = hostAccessibleDataSpace(reduction_data_space); \
+                                                                               \
+    pointer_type device_ptr_name;                                              \
+    allocData(reduction_data_space, device_ptr_name, (length));                \
+    pointer_type host_ptr_name = device_ptr_name;                              \
+    if (reduction_data_space != host_data_space) {                             \
+      allocData(host_data_space, host_ptr_name, (length));                     \
+    }
+
+//
+#define RAJAPERF_GPU_REDUCER_TEARDOWN(device_ptr_name, host_ptr_name)          \
+    deallocData(reduction_data_space, device_ptr_name);                        \
+    if (reduction_data_space != host_data_space) {                             \
+      deallocData(host_data_space, host_ptr_name);                             \
+    }
+
+//
 #define RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(kernel, variant)     \
   void kernel::run##variant##Variant(VariantID vid, size_t tune_idx)           \
   {                                                                            \
