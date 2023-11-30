@@ -47,13 +47,12 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
 
   PI_ATOMIC_DATA_SETUP;
 
-  DataSpace rds = getReductionDataSpace(vid);
-  DataSpace hrds = hostAccessibleDataSpace(rds);
-  const bool separate_buffers = (hrds != rds);
+  DataSpace reduction_data_space = getReductionDataSpace(vid);
+  DataSpace host_data_space = hostAccessibleDataSpace(reduction_data_space);
 
   Real_ptr hpi = pi;
-  if (separate_buffers) {
-    allocData(hrds, hpi, 1);
+  if (reduction_data_space != host_data_space) {
+    allocData(host_data_space, hpi, 1);
   }
 
   if ( vid == Base_CUDA ) {
@@ -61,7 +60,7 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      if (separate_buffers) {
+      if (pi != hpi) {
         *hpi = m_pi_init;
         cudaErrchk( cudaMemcpyAsync( pi, hpi, sizeof(Real_type),
                                      cudaMemcpyHostToDevice, res.get_stream() ) );
@@ -74,7 +73,7 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
       pi_atomic<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( pi, dx, iend );
       cudaErrchk( cudaGetLastError() );
 
-      if (separate_buffers) {
+      if (pi != hpi) {
         cudaErrchk( cudaMemcpyAsync( hpi, pi, sizeof(Real_type),
                                      cudaMemcpyDeviceToHost, res.get_stream() ) );
       }
@@ -89,7 +88,7 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      if (separate_buffers) {
+      if (pi != hpi) {
         *hpi = m_pi_init;
         cudaErrchk( cudaMemcpyAsync( pi, hpi, sizeof(Real_type),
                                      cudaMemcpyHostToDevice, res.get_stream() ) );
@@ -106,7 +105,7 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
       });
       cudaErrchk( cudaGetLastError() );
 
-      if (separate_buffers) {
+      if (pi != hpi) {
         cudaErrchk( cudaMemcpyAsync( hpi, pi, sizeof(Real_type),
                                      cudaMemcpyDeviceToHost, res.get_stream() ) );
       }
@@ -121,7 +120,7 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      if (separate_buffers) {
+      if (pi != hpi) {
         *hpi = m_pi_init;
         cudaErrchk( cudaMemcpyAsync( pi, hpi, sizeof(Real_type),
                                      cudaMemcpyHostToDevice, res.get_stream() ) );
@@ -135,7 +134,7 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
           RAJA::atomicAdd<RAJA::cuda_atomic>(pi, dx / (1.0 + x * x));
       });
 
-      if (separate_buffers) {
+      if (pi != hpi) {
         cudaErrchk( cudaMemcpyAsync( hpi, pi, sizeof(Real_type),
                                      cudaMemcpyDeviceToHost, res.get_stream() ) );
       }
@@ -149,8 +148,8 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
      getCout() << "\n  PI_ATOMIC : Unknown Cuda variant id = " << vid << std::endl;
   }
 
-  if (separate_buffers) {
-    deallocData(hrds, hpi);
+  if (pi != hpi) {
+    deallocData(host_data_space, hpi);
   }
 }
 
