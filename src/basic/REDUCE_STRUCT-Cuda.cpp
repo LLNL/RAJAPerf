@@ -109,28 +109,13 @@ void REDUCE_STRUCT::runCudaVariantBlock(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    RAJAPERF_GPU_REDUCER_SETUP(Real_ptr, mem, hmem, 6);
+    RAJAPERF_CUDA_REDUCER_SETUP(Real_ptr, mem, hmem, 6);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      if (mem != hmem) {
-        hmem[0] = m_init_sum; // xcenter
-        hmem[1] = m_init_min; // xmin
-        hmem[2] = m_init_max; // xmax
-        hmem[3] = m_init_sum; // ycenter
-        hmem[4] = m_init_min; // ymin
-        hmem[5] = m_init_max; // ymax
-        cudaErrchk( cudaMemcpyAsync( mem, hmem, 6*sizeof(Real_type),
-                                     cudaMemcpyHostToDevice, res.get_stream() ) );
-      } else {
-        mem[0] = m_init_sum; // xcenter
-        mem[1] = m_init_min; // xmin
-        mem[2] = m_init_max; // xmax
-        mem[3] = m_init_sum; // ycenter
-        mem[4] = m_init_min; // ymin
-        mem[5] = m_init_max; // ymax
-      }
+      Real_type imem[6] {m_init_sum, m_init_min, m_init_max, m_init_sum, m_init_min, m_init_max};
+      RAJAPERF_CUDA_REDUCER_INITIALIZE(imem, mem, hmem, 6);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 6*sizeof(Real_type)*block_size;
@@ -143,22 +128,19 @@ void REDUCE_STRUCT::runCudaVariantBlock(VariantID vid)
         points.N);
       cudaErrchk( cudaGetLastError() );
 
-      if (mem != hmem) {
-        cudaErrchk( cudaMemcpyAsync( hmem, mem, 6*sizeof(Real_type),
-                                     cudaMemcpyDeviceToHost, res.get_stream() ) );
-      }
-      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
-      points.SetCenter(hmem[0]/points.N, hmem[3]/points.N);
-      points.SetXMin(hmem[1]);
-      points.SetXMax(hmem[2]);
-      points.SetYMin(hmem[4]);
-      points.SetYMax(hmem[5]);
+      Real_type rmem[6];
+      RAJAPERF_CUDA_REDUCER_COPY_BACK(rmem, mem, hmem, 6);
+      points.SetCenter(rmem[0]/points.N, rmem[3]/points.N);
+      points.SetXMin(rmem[1]);
+      points.SetXMax(rmem[2]);
+      points.SetYMin(rmem[4]);
+      points.SetYMax(rmem[5]);
       m_points=points;
 
     }
     stopTimer();
 
-    RAJAPERF_GPU_REDUCER_TEARDOWN(mem, hmem);
+    RAJAPERF_CUDA_REDUCER_TEARDOWN(mem, hmem);
 
   } else if ( vid == RAJA_CUDA ) {
 
@@ -207,7 +189,7 @@ void REDUCE_STRUCT::runCudaVariantOccGS(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    RAJAPERF_GPU_REDUCER_SETUP(Real_ptr, mem, hmem, 6);
+    RAJAPERF_CUDA_REDUCER_SETUP(Real_ptr, mem, hmem, 6);
 
     constexpr size_t shmem = 6*sizeof(Real_type)*block_size;
     const size_t max_grid_size = detail::getCudaOccupancyMaxBlocks(
@@ -216,23 +198,8 @@ void REDUCE_STRUCT::runCudaVariantOccGS(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      if (mem != hmem) {
-        hmem[0] = m_init_sum; // xcenter
-        hmem[1] = m_init_min; // xmin
-        hmem[2] = m_init_max; // xmax
-        hmem[3] = m_init_sum; // ycenter
-        hmem[4] = m_init_min; // ymin
-        hmem[5] = m_init_max; // ymax
-        cudaErrchk( cudaMemcpyAsync( mem, hmem, 6*sizeof(Real_type),
-                                     cudaMemcpyHostToDevice, res.get_stream() ) );
-      } else {
-        mem[0] = m_init_sum; // xcenter
-        mem[1] = m_init_min; // xmin
-        mem[2] = m_init_max; // xmax
-        mem[3] = m_init_sum; // ycenter
-        mem[4] = m_init_min; // ymin
-        mem[5] = m_init_max; // ymax
-      }
+      Real_type imem[6] {m_init_sum, m_init_min, m_init_max, m_init_sum, m_init_min, m_init_max};
+      RAJAPERF_CUDA_REDUCER_INITIALIZE(imem, mem, hmem, 6);
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
@@ -245,22 +212,19 @@ void REDUCE_STRUCT::runCudaVariantOccGS(VariantID vid)
         points.N);
       cudaErrchk( cudaGetLastError() );
 
-      if (mem != hmem) {
-        cudaErrchk( cudaMemcpyAsync( hmem, mem, 6*sizeof(Real_type),
-                                     cudaMemcpyDeviceToHost, res.get_stream() ) );
-      }
-      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
-      points.SetCenter(hmem[0]/points.N, hmem[3]/points.N);
-      points.SetXMin(hmem[1]);
-      points.SetXMax(hmem[2]);
-      points.SetYMin(hmem[4]);
-      points.SetYMax(hmem[5]);
+      Real_type rmem[6];
+      RAJAPERF_CUDA_REDUCER_COPY_BACK(rmem, mem, hmem, 6);
+      points.SetCenter(rmem[0]/points.N, rmem[3]/points.N);
+      points.SetXMin(rmem[1]);
+      points.SetXMax(rmem[2]);
+      points.SetYMin(rmem[4]);
+      points.SetYMax(rmem[5]);
       m_points=points;
 
     }
     stopTimer();
 
-    RAJAPERF_GPU_REDUCER_TEARDOWN(mem, hmem);
+    RAJAPERF_CUDA_REDUCER_TEARDOWN(mem, hmem);
 
   } else if ( vid == RAJA_CUDA ) {
 

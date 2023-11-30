@@ -65,18 +65,12 @@ void DOT::runHipVariantBlock(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    RAJAPERF_GPU_REDUCER_SETUP(Real_ptr, dprod, hdprod, 1);
+    RAJAPERF_HIP_REDUCER_SETUP(Real_ptr, dprod, hdprod, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      if (dprod != hdprod) {
-        *hdprod = m_dot_init;
-        hipErrchk( hipMemcpyAsync( dprod, hdprod, sizeof(Real_type),
-                                   hipMemcpyHostToDevice, res.get_stream() ) );
-      } else {
-        *dprod = m_dot_init;
-      }
+      RAJAPERF_HIP_REDUCER_INITIALIZE(&m_dot_init, dprod, hdprod, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = sizeof(Real_type)*block_size;
@@ -85,17 +79,14 @@ void DOT::runHipVariantBlock(VariantID vid)
                          a, b, dprod, m_dot_init, iend );
       hipErrchk( hipGetLastError() );
 
-      if (dprod != hdprod) {
-        hipErrchk( hipMemcpyAsync( hdprod, dprod, sizeof(Real_type),
-                                   hipMemcpyDeviceToHost, res.get_stream() ) );
-      }
-      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
-      m_dot += *hdprod;
+      Real_type rdprod;
+      RAJAPERF_HIP_REDUCER_COPY_BACK(&rdprod, dprod, hdprod, 1);
+      m_dot += rdprod;
 
     }
     stopTimer();
 
-    RAJAPERF_GPU_REDUCER_TEARDOWN(dprod, hdprod);
+    RAJAPERF_HIP_REDUCER_TEARDOWN(dprod, hdprod);
 
   } else if ( vid == RAJA_HIP ) {
 
@@ -132,7 +123,7 @@ void DOT::runHipVariantOccGS(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    RAJAPERF_GPU_REDUCER_SETUP(Real_ptr, dprod, hdprod, 1);
+    RAJAPERF_HIP_REDUCER_SETUP(Real_ptr, dprod, hdprod, 1);
 
     constexpr size_t shmem = sizeof(Real_type)*block_size;
     const size_t max_grid_size = detail::getHipOccupancyMaxBlocks(
@@ -141,13 +132,7 @@ void DOT::runHipVariantOccGS(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      if (dprod != hdprod) {
-        *hdprod = m_dot_init;
-        hipErrchk( hipMemcpyAsync( dprod, hdprod, sizeof(Real_type),
-                                   hipMemcpyHostToDevice, res.get_stream() ) );
-      } else {
-        *dprod = m_dot_init;
-      }
+      RAJAPERF_HIP_REDUCER_INITIALIZE(&m_dot_init, dprod, hdprod, 1);
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
@@ -156,17 +141,14 @@ void DOT::runHipVariantOccGS(VariantID vid)
                          a, b, dprod, m_dot_init, iend );
       hipErrchk( hipGetLastError() );
 
-      if (dprod != hdprod) {
-        hipErrchk( hipMemcpyAsync( hdprod, dprod, sizeof(Real_type),
-                                   hipMemcpyDeviceToHost, res.get_stream() ) );
-      }
-      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
-      m_dot += *hdprod;
+      Real_type rdprod;
+      RAJAPERF_HIP_REDUCER_COPY_BACK(&rdprod, dprod, hdprod, 1);
+      m_dot += rdprod;
 
     }
     stopTimer();
 
-    RAJAPERF_GPU_REDUCER_TEARDOWN(dprod, hdprod);
+    RAJAPERF_HIP_REDUCER_TEARDOWN(dprod, hdprod);
 
   } else if ( vid == RAJA_HIP ) {
 

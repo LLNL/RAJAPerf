@@ -67,18 +67,12 @@ void PI_REDUCE::runHipVariantBlock(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    RAJAPERF_GPU_REDUCER_SETUP(Real_ptr, pi, hpi, 1);
+    RAJAPERF_HIP_REDUCER_SETUP(Real_ptr, pi, hpi, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      if (pi != hpi) {
-        *hpi = m_pi_init;
-        hipErrchk( hipMemcpyAsync( pi, hpi, sizeof(Real_type),
-                                   hipMemcpyHostToDevice, res.get_stream() ) );
-      } else {
-        *pi = m_pi_init;
-      }
+      RAJAPERF_HIP_REDUCER_INITIALIZE(&m_pi_init, pi, hpi, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = sizeof(Real_type)*block_size;
@@ -87,17 +81,14 @@ void PI_REDUCE::runHipVariantBlock(VariantID vid)
                           dx, pi, m_pi_init, iend );
       hipErrchk( hipGetLastError() );
 
-      if (pi != hpi) {
-        hipErrchk( hipMemcpyAsync( hpi, pi, sizeof(Real_type),
-                                   hipMemcpyDeviceToHost, res.get_stream() ) );
-      }
-      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
-      m_pi = *hpi * 4.0;
+      Real_type rpi;
+      RAJAPERF_HIP_REDUCER_COPY_BACK(&rpi, pi, hpi, 1);
+      m_pi = rpi * static_cast<Real_type>(4);
 
     }
     stopTimer();
 
-    RAJAPERF_GPU_REDUCER_TEARDOWN(pi, hpi);
+    RAJAPERF_HIP_REDUCER_TEARDOWN(pi, hpi);
 
   } else if ( vid == RAJA_HIP ) {
 
@@ -111,7 +102,7 @@ void PI_REDUCE::runHipVariantBlock(VariantID vid)
          PI_REDUCE_BODY;
        });
 
-      m_pi = 4.0 * static_cast<Real_type>(pi.get());
+      m_pi = static_cast<Real_type>(4) * static_cast<Real_type>(pi.get());
 
     }
     stopTimer();
@@ -134,7 +125,7 @@ void PI_REDUCE::runHipVariantOccGS(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    RAJAPERF_GPU_REDUCER_SETUP(Real_ptr, pi, hpi, 1);
+    RAJAPERF_HIP_REDUCER_SETUP(Real_ptr, pi, hpi, 1);
 
     constexpr size_t shmem = sizeof(Real_type)*block_size;
     const size_t max_grid_size = detail::getHipOccupancyMaxBlocks(
@@ -143,13 +134,7 @@ void PI_REDUCE::runHipVariantOccGS(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      if (pi != hpi) {
-        *hpi = m_pi_init;
-        hipErrchk( hipMemcpyAsync( pi, hpi, sizeof(Real_type),
-                                   hipMemcpyHostToDevice, res.get_stream() ) );
-      } else {
-        *pi = m_pi_init;
-      }
+      RAJAPERF_HIP_REDUCER_INITIALIZE(&m_pi_init, pi, hpi, 1);
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
@@ -158,17 +143,14 @@ void PI_REDUCE::runHipVariantOccGS(VariantID vid)
                           dx, pi, m_pi_init, iend );
       hipErrchk( hipGetLastError() );
 
-      if (pi != hpi) {
-        hipErrchk( hipMemcpyAsync( hpi, pi, sizeof(Real_type),
-                                   hipMemcpyDeviceToHost, res.get_stream() ) );
-      }
-      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
-      m_pi = *hpi * 4.0;
+      Real_type rpi;
+      RAJAPERF_HIP_REDUCER_COPY_BACK(&rpi, pi, hpi, 1);
+      m_pi = rpi * static_cast<Real_type>(4);
 
     }
     stopTimer();
 
-    RAJAPERF_GPU_REDUCER_TEARDOWN(pi, hpi);
+    RAJAPERF_HIP_REDUCER_TEARDOWN(pi, hpi);
 
   } else if ( vid == RAJA_HIP ) {
 
@@ -182,7 +164,7 @@ void PI_REDUCE::runHipVariantOccGS(VariantID vid)
          PI_REDUCE_BODY;
        });
 
-      m_pi = 4.0 * static_cast<Real_type>(pi.get());
+      m_pi = static_cast<Real_type>(4) * static_cast<Real_type>(pi.get());
 
     }
     stopTimer();
