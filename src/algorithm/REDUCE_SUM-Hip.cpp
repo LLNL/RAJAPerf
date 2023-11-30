@@ -33,7 +33,7 @@ namespace algorithm
 
 template < size_t block_size >
 __launch_bounds__(block_size)
-__global__ void reduce_sum(Real_ptr x, Real_ptr dsum, Real_type sum_init,
+__global__ void reduce_sum(Real_ptr x, Real_ptr sum, Real_type sum_init,
                            Index_type iend)
 {
   HIP_DYNAMIC_SHARED(Real_type, psum);
@@ -54,7 +54,7 @@ __global__ void reduce_sum(Real_ptr x, Real_ptr dsum, Real_type sum_init,
   }
 
   if ( threadIdx.x == 0 ) {
-    RAJA::atomicAdd<RAJA::hip_atomic>( dsum, psum[ 0 ] );
+    RAJA::atomicAdd<RAJA::hip_atomic>( sum, psum[ 0 ] );
   }
 }
 
@@ -79,9 +79,9 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
     DataSpace hrds = hostAccessibleDataSpace(rds);
     const bool separate_buffers = (hrds != rds);
 
-    Real_ptr dsum;
-    allocData(rds, dsum, 1);
-    Real_ptr hsum = dsum;
+    Real_ptr sum;
+    allocData(rds, sum, 1);
+    Real_ptr hsum = sum;
     if (separate_buffers) {
       allocData(hrds, hsum, 1);
     }
@@ -93,7 +93,7 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
     hipErrchk(::rocprim::reduce(d_temp_storage,
                                 temp_storage_bytes,
                                 x+ibegin,
-                                dsum,
+                                sum,
                                 m_sum_init,
                                 len,
                                 rocprim::plus<Real_type>(),
@@ -102,7 +102,7 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
     hipErrchk(::cub::DeviceReduce::Reduce(d_temp_storage,
                                           temp_storage_bytes,
                                           x+ibegin,
-                                          dsum,
+                                          sum,
                                           len,
                                           ::cub::Sum(),
                                           m_sum_init,
@@ -123,7 +123,7 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
       hipErrchk(::rocprim::reduce(d_temp_storage,
                                   temp_storage_bytes,
                                   x+ibegin,
-                                  dsum,
+                                  sum,
                                   m_sum_init,
                                   len,
                                   rocprim::plus<Real_type>(),
@@ -132,7 +132,7 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
       hipErrchk(::cub::DeviceReduce::Reduce(d_temp_storage,
                                             temp_storage_bytes,
                                             x+ibegin,
-                                            dsum,
+                                            sum,
                                             len,
                                             ::cub::Sum(),
                                             m_sum_init,
@@ -140,7 +140,7 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
 #endif
 
       if (separate_buffers) {
-        hipErrchk( hipMemcpyAsync( hsum, dsum, sizeof(Real_type),
+        hipErrchk( hipMemcpyAsync( hsum, sum, sizeof(Real_type),
                                    hipMemcpyDeviceToHost, stream ) );
       }
 
@@ -152,7 +152,7 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
 
     // Free temporary storage
     deallocData(DataSpace::HipDevice, temp_storage);
-    deallocData(rds, dsum);
+    deallocData(rds, sum);
     if (separate_buffers) {
       deallocData(hrds, hsum);
     }
@@ -182,9 +182,9 @@ void REDUCE_SUM::runHipVariantBlock(VariantID vid)
     DataSpace hrds = hostAccessibleDataSpace(rds);
     const bool separate_buffers = (hrds != rds);
 
-    Real_ptr dsum;
-    allocData(rds, dsum, 1);
-    Real_ptr hsum = dsum;
+    Real_ptr sum;
+    allocData(rds, sum, 1);
+    Real_ptr hsum = sum;
     if (separate_buffers) {
       allocData(hrds, hsum, 1);
     }
@@ -194,21 +194,21 @@ void REDUCE_SUM::runHipVariantBlock(VariantID vid)
 
       if (separate_buffers) {
         *hsum = m_sum_init;
-        hipErrchk( hipMemcpyAsync( dsum, hsum, sizeof(Real_type),
+        hipErrchk( hipMemcpyAsync( sum, hsum, sizeof(Real_type),
                                    hipMemcpyHostToDevice, res.get_stream() ) );
       } else {
-        *dsum = m_sum_init;
+        *sum = m_sum_init;
       }
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = sizeof(Real_type)*block_size;
       hipLaunchKernelGGL( (reduce_sum<block_size>), dim3(grid_size), dim3(block_size),
                           shmem, res.get_stream(),
-                          x, dsum, m_sum_init, iend );
+                          x, sum, m_sum_init, iend );
       hipErrchk( hipGetLastError() );
 
       if (separate_buffers) {
-        hipErrchk( hipMemcpyAsync( hsum, dsum, sizeof(Real_type),
+        hipErrchk( hipMemcpyAsync( hsum, sum, sizeof(Real_type),
                                    hipMemcpyDeviceToHost, res.get_stream() ) );
       }
       hipErrchk( hipStreamSynchronize( res.get_stream() ) );
@@ -217,7 +217,7 @@ void REDUCE_SUM::runHipVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    deallocData(rds, dsum);
+    deallocData(rds, sum);
     if (separate_buffers) {
       deallocData(hrds, hsum);
     }
@@ -264,9 +264,9 @@ void REDUCE_SUM::runHipVariantOccGS(VariantID vid)
     DataSpace hrds = hostAccessibleDataSpace(rds);
     const bool separate_buffers = (hrds != rds);
 
-    Real_ptr dsum;
-    allocData(rds, dsum, 1);
-    Real_ptr hsum = dsum;
+    Real_ptr sum;
+    allocData(rds, sum, 1);
+    Real_ptr hsum = sum;
     if (separate_buffers) {
       allocData(hrds, hsum, 1);
     }
@@ -280,21 +280,21 @@ void REDUCE_SUM::runHipVariantOccGS(VariantID vid)
 
       if (separate_buffers) {
         *hsum = m_sum_init;
-        hipErrchk( hipMemcpyAsync( dsum, hsum, sizeof(Real_type),
+        hipErrchk( hipMemcpyAsync( sum, hsum, sizeof(Real_type),
                                    hipMemcpyHostToDevice, res.get_stream() ) );
       } else {
-        *dsum = m_sum_init;
+        *sum = m_sum_init;
       }
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
       hipLaunchKernelGGL( (reduce_sum<block_size>), dim3(grid_size), dim3(block_size),
                           shmem, res.get_stream(),
-                          x, dsum, m_sum_init, iend );
+                          x, sum, m_sum_init, iend );
       hipErrchk( hipGetLastError() );
 
       if (separate_buffers) {
-        hipErrchk( hipMemcpyAsync( hsum, dsum, sizeof(Real_type),
+        hipErrchk( hipMemcpyAsync( hsum, sum, sizeof(Real_type),
                                    hipMemcpyDeviceToHost, res.get_stream() ) );
       }
       hipErrchk( hipStreamSynchronize( res.get_stream() ) );
@@ -303,7 +303,7 @@ void REDUCE_SUM::runHipVariantOccGS(VariantID vid)
     }
     stopTimer();
 
-    deallocData(rds, dsum);
+    deallocData(rds, sum);
     if (separate_buffers) {
       deallocData(hrds, hsum);
     }

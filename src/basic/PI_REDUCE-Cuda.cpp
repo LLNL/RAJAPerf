@@ -26,7 +26,7 @@ namespace basic
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void pi_reduce(Real_type dx,
-                          Real_ptr dpi, Real_type pi_init,
+                          Real_ptr pi, Real_type pi_init,
                           Index_type iend)
 {
   extern __shared__ Real_type ppi[ ];
@@ -48,7 +48,7 @@ __global__ void pi_reduce(Real_type dx,
   }
 
   if ( threadIdx.x == 0 ) {
-    RAJA::atomicAdd<RAJA::cuda_atomic>( dpi, ppi[ 0 ] );
+    RAJA::atomicAdd<RAJA::cuda_atomic>( pi, ppi[ 0 ] );
   }
 }
 
@@ -71,9 +71,9 @@ void PI_REDUCE::runCudaVariantBlock(VariantID vid)
     DataSpace hrds = hostAccessibleDataSpace(rds);
     const bool separate_buffers = (hrds != rds);
 
-    Real_ptr dpi;
-    allocData(rds, dpi, 1);
-    Real_ptr hpi = dpi;
+    Real_ptr pi;
+    allocData(rds, pi, 1);
+    Real_ptr hpi = pi;
     if (separate_buffers) {
       allocData(hrds, hpi, 1);
     }
@@ -83,22 +83,22 @@ void PI_REDUCE::runCudaVariantBlock(VariantID vid)
 
       if (separate_buffers) {
         *hpi = m_pi_init;
-        cudaErrchk( cudaMemcpyAsync( dpi, hpi, sizeof(Real_type),
+        cudaErrchk( cudaMemcpyAsync( pi, hpi, sizeof(Real_type),
                                      cudaMemcpyHostToDevice, res.get_stream() ) );
       } else {
-        *dpi = m_pi_init;
+        *pi = m_pi_init;
       }
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = sizeof(Real_type)*block_size;
       pi_reduce<block_size><<<grid_size, block_size,
                   shmem, res.get_stream()>>>( dx,
-                                                   dpi, m_pi_init,
+                                                   pi, m_pi_init,
                                                    iend );
       cudaErrchk( cudaGetLastError() );
 
       if (separate_buffers) {
-        cudaErrchk( cudaMemcpyAsync( hpi, dpi, sizeof(Real_type),
+        cudaErrchk( cudaMemcpyAsync( hpi, pi, sizeof(Real_type),
                                      cudaMemcpyDeviceToHost, res.get_stream() ) );
       }
       cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
@@ -107,7 +107,7 @@ void PI_REDUCE::runCudaVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    deallocData(rds, dpi);
+    deallocData(rds, pi);
     if (separate_buffers) {
       deallocData(hrds, hpi);
     }
@@ -151,9 +151,9 @@ void PI_REDUCE::runCudaVariantOccGS(VariantID vid)
     DataSpace hrds = hostAccessibleDataSpace(rds);
     const bool separate_buffers = (hrds != rds);
 
-    Real_ptr dpi;
-    allocData(rds, dpi, 1);
-    Real_ptr hpi = dpi;
+    Real_ptr pi;
+    allocData(rds, pi, 1);
+    Real_ptr hpi = pi;
     if (separate_buffers) {
       allocData(hrds, hpi, 1);
     }
@@ -167,22 +167,22 @@ void PI_REDUCE::runCudaVariantOccGS(VariantID vid)
 
       if (separate_buffers) {
         *hpi = m_pi_init;
-        cudaErrchk( cudaMemcpyAsync( dpi, hpi, sizeof(Real_type),
+        cudaErrchk( cudaMemcpyAsync( pi, hpi, sizeof(Real_type),
                                      cudaMemcpyHostToDevice, res.get_stream() ) );
       } else {
-        *dpi = m_pi_init;
+        *pi = m_pi_init;
       }
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
       pi_reduce<block_size><<<grid_size, block_size,
                               shmem, res.get_stream()>>>( dx,
-                                                   dpi, m_pi_init,
+                                                   pi, m_pi_init,
                                                    iend );
       cudaErrchk( cudaGetLastError() );
 
       if (separate_buffers) {
-        cudaErrchk( cudaMemcpyAsync( hpi, dpi, sizeof(Real_type),
+        cudaErrchk( cudaMemcpyAsync( hpi, pi, sizeof(Real_type),
                                      cudaMemcpyDeviceToHost, res.get_stream() ) );
       }
       cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
@@ -191,7 +191,7 @@ void PI_REDUCE::runCudaVariantOccGS(VariantID vid)
     }
     stopTimer();
 
-    deallocData(rds, dpi);
+    deallocData(rds, pi);
     if (separate_buffers) {
       deallocData(hrds, hpi);
     }

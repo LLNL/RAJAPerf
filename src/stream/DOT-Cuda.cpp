@@ -71,17 +71,17 @@ void DOT::runCudaVariantBlock(VariantID vid)
 
     Real_ptr dprod;
     allocData(rds, dprod, 1);
-    Real_ptr hprod = dprod;
+    Real_ptr hdprod = dprod;
     if (separate_buffers) {
-      allocData(hrds, hprod, 1);
+      allocData(hrds, hdprod, 1);
     }
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       if (separate_buffers) {
-        *hprod = m_dot_init;
-        cudaErrchk( cudaMemcpyAsync( dprod, hprod, sizeof(Real_type),
+        *hdprod = m_dot_init;
+        cudaErrchk( cudaMemcpyAsync( dprod, hdprod, sizeof(Real_type),
                                      cudaMemcpyHostToDevice, res.get_stream() ) );
       } else {
         *dprod = m_dot_init;
@@ -94,18 +94,18 @@ void DOT::runCudaVariantBlock(VariantID vid)
       cudaErrchk( cudaGetLastError() );
 
       if (separate_buffers) {
-        cudaErrchk( cudaMemcpyAsync( hprod, dprod, sizeof(Real_type),
+        cudaErrchk( cudaMemcpyAsync( hdprod, dprod, sizeof(Real_type),
                                      cudaMemcpyDeviceToHost, res.get_stream() ) );
       }
       cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
-      m_dot += *hprod;
+      m_dot += *hdprod;
 
     }
     stopTimer();
 
     deallocData(rds, dprod);
     if (separate_buffers) {
-      deallocData(hrds, hprod);
+      deallocData(hrds, hdprod);
     }
 
   } else if ( vid == RAJA_CUDA ) {
@@ -149,9 +149,9 @@ void DOT::runCudaVariantOccGS(VariantID vid)
 
     Real_ptr dprod;
     allocData(rds, dprod, 1);
-    Real_ptr hprod = dprod;
+    Real_ptr hdprod = dprod;
     if (separate_buffers) {
-      allocData(hrds, hprod, 1);
+      allocData(hrds, hdprod, 1);
     }
 
     constexpr size_t shmem = sizeof(Real_type)*block_size;
@@ -162,8 +162,8 @@ void DOT::runCudaVariantOccGS(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       if (separate_buffers) {
-        *hprod = m_dot_init;
-        cudaErrchk( cudaMemcpyAsync( dprod, hprod, sizeof(Real_type),
+        *hdprod = m_dot_init;
+        cudaErrchk( cudaMemcpyAsync( dprod, hdprod, sizeof(Real_type),
                                      cudaMemcpyHostToDevice, res.get_stream() ) );
       } else {
         *dprod = m_dot_init;
@@ -176,18 +176,18 @@ void DOT::runCudaVariantOccGS(VariantID vid)
       cudaErrchk( cudaGetLastError() );
 
       if (separate_buffers) {
-        cudaErrchk( cudaMemcpyAsync( hprod, dprod, sizeof(Real_type),
+        cudaErrchk( cudaMemcpyAsync( hdprod, dprod, sizeof(Real_type),
                                      cudaMemcpyDeviceToHost, res.get_stream() ) );
       }
       cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
-      m_dot += *hprod;
+      m_dot += *hdprod;
 
     }
     stopTimer();
 
     deallocData(rds, dprod);
     if (separate_buffers) {
-      deallocData(hrds, hprod);
+      deallocData(hrds, hdprod);
     }
 
   } else if ( vid == RAJA_CUDA ) {

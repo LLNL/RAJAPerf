@@ -71,17 +71,17 @@ void DOT::runHipVariantBlock(VariantID vid)
 
     Real_ptr dprod;
     allocData(rds, dprod, 1);
-    Real_ptr hprod = dprod;
+    Real_ptr hdprod = dprod;
     if (separate_buffers) {
-      allocData(hrds, hprod, 1);
+      allocData(hrds, hdprod, 1);
     }
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       if (separate_buffers) {
-        *hprod = m_dot_init;
-        hipErrchk( hipMemcpyAsync( dprod, hprod, sizeof(Real_type),
+        *hdprod = m_dot_init;
+        hipErrchk( hipMemcpyAsync( dprod, hdprod, sizeof(Real_type),
                                    hipMemcpyHostToDevice, res.get_stream() ) );
       } else {
         *dprod = m_dot_init;
@@ -95,18 +95,18 @@ void DOT::runHipVariantBlock(VariantID vid)
       hipErrchk( hipGetLastError() );
 
       if (separate_buffers) {
-        hipErrchk( hipMemcpyAsync( hprod, dprod, sizeof(Real_type),
+        hipErrchk( hipMemcpyAsync( hdprod, dprod, sizeof(Real_type),
                                    hipMemcpyDeviceToHost, res.get_stream() ) );
       }
       hipErrchk( hipStreamSynchronize( res.get_stream() ) );
-      m_dot += *hprod;
+      m_dot += *hdprod;
 
     }
     stopTimer();
 
     deallocData(rds, dprod);
     if (separate_buffers) {
-      deallocData(hrds, hprod);
+      deallocData(hrds, hdprod);
     }
 
   } else if ( vid == RAJA_HIP ) {
@@ -150,9 +150,9 @@ void DOT::runHipVariantOccGS(VariantID vid)
 
     Real_ptr dprod;
     allocData(rds, dprod, 1);
-    Real_ptr hprod = dprod;
+    Real_ptr hdprod = dprod;
     if (separate_buffers) {
-      allocData(hrds, hprod, 1);
+      allocData(hrds, hdprod, 1);
     }
 
     constexpr size_t shmem = sizeof(Real_type)*block_size;
@@ -163,8 +163,8 @@ void DOT::runHipVariantOccGS(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       if (separate_buffers) {
-        *hprod = m_dot_init;
-        hipErrchk( hipMemcpyAsync( dprod, hprod, sizeof(Real_type),
+        *hdprod = m_dot_init;
+        hipErrchk( hipMemcpyAsync( dprod, hdprod, sizeof(Real_type),
                                    hipMemcpyHostToDevice, res.get_stream() ) );
       } else {
         *dprod = m_dot_init;
@@ -178,18 +178,18 @@ void DOT::runHipVariantOccGS(VariantID vid)
       hipErrchk( hipGetLastError() );
 
       if (separate_buffers) {
-        hipErrchk( hipMemcpyAsync( hprod, dprod, sizeof(Real_type),
+        hipErrchk( hipMemcpyAsync( hdprod, dprod, sizeof(Real_type),
                                    hipMemcpyDeviceToHost, res.get_stream() ) );
       }
       hipErrchk( hipStreamSynchronize( res.get_stream() ) );
-      m_dot += *hprod;
+      m_dot += *hdprod;
 
     }
     stopTimer();
 
     deallocData(rds, dprod);
     if (separate_buffers) {
-      deallocData(hrds, hprod);
+      deallocData(hrds, hdprod);
     }
 
   } else if ( vid == RAJA_HIP ) {

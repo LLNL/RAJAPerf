@@ -26,7 +26,7 @@ namespace basic
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void pi_reduce(Real_type dx,
-                          Real_ptr dpi, Real_type pi_init,
+                          Real_ptr pi, Real_type pi_init,
                           Index_type iend)
 {
   HIP_DYNAMIC_SHARED(Real_type, ppi);
@@ -48,7 +48,7 @@ __global__ void pi_reduce(Real_type dx,
   }
 
   if ( threadIdx.x == 0 ) {
-    RAJA::atomicAdd<RAJA::hip_atomic>( dpi, ppi[ 0 ] );
+    RAJA::atomicAdd<RAJA::hip_atomic>( pi, ppi[ 0 ] );
   }
 }
 
@@ -71,9 +71,9 @@ void PI_REDUCE::runHipVariantBlock(VariantID vid)
     DataSpace hrds = hostAccessibleDataSpace(rds);
     const bool separate_buffers = (hrds != rds);
 
-    Real_ptr dpi;
-    allocData(rds, dpi, 1);
-    Real_ptr hpi = dpi;
+    Real_ptr pi;
+    allocData(rds, pi, 1);
+    Real_ptr hpi = pi;
     if (separate_buffers) {
       allocData(hrds, hpi, 1);
     }
@@ -83,21 +83,21 @@ void PI_REDUCE::runHipVariantBlock(VariantID vid)
 
       if (separate_buffers) {
         *hpi = m_pi_init;
-        hipErrchk( hipMemcpyAsync( dpi, hpi, sizeof(Real_type),
+        hipErrchk( hipMemcpyAsync( pi, hpi, sizeof(Real_type),
                                    hipMemcpyHostToDevice, res.get_stream() ) );
       } else {
-        *dpi = m_pi_init;
+        *pi = m_pi_init;
       }
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = sizeof(Real_type)*block_size;
       hipLaunchKernelGGL( (pi_reduce<block_size>), dim3(grid_size), dim3(block_size),
                           shmem, res.get_stream(),
-                          dx, dpi, m_pi_init, iend );
+                          dx, pi, m_pi_init, iend );
       hipErrchk( hipGetLastError() );
 
       if (separate_buffers) {
-        hipErrchk( hipMemcpyAsync( hpi, dpi, sizeof(Real_type),
+        hipErrchk( hipMemcpyAsync( hpi, pi, sizeof(Real_type),
                                    hipMemcpyDeviceToHost, res.get_stream() ) );
       }
       hipErrchk( hipStreamSynchronize( res.get_stream() ) );
@@ -106,7 +106,7 @@ void PI_REDUCE::runHipVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    deallocData(rds, dpi);
+    deallocData(rds, pi);
     if (separate_buffers) {
       deallocData(hrds, hpi);
     }
@@ -150,9 +150,9 @@ void PI_REDUCE::runHipVariantOccGS(VariantID vid)
     DataSpace hrds = hostAccessibleDataSpace(rds);
     const bool separate_buffers = (hrds != rds);
 
-    Real_ptr dpi;
-    allocData(rds, dpi, 1);
-    Real_ptr hpi = dpi;
+    Real_ptr pi;
+    allocData(rds, pi, 1);
+    Real_ptr hpi = pi;
     if (separate_buffers) {
       allocData(hrds, hpi, 1);
     }
@@ -166,21 +166,21 @@ void PI_REDUCE::runHipVariantOccGS(VariantID vid)
 
       if (separate_buffers) {
         *hpi = m_pi_init;
-        hipErrchk( hipMemcpyAsync( dpi, hpi, sizeof(Real_type),
+        hipErrchk( hipMemcpyAsync( pi, hpi, sizeof(Real_type),
                                    hipMemcpyHostToDevice, res.get_stream() ) );
       } else {
-        *dpi = m_pi_init;
+        *pi = m_pi_init;
       }
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
       hipLaunchKernelGGL( (pi_reduce<block_size>), dim3(grid_size), dim3(block_size),
                           shmem, res.get_stream(),
-                          dx, dpi, m_pi_init, iend );
+                          dx, pi, m_pi_init, iend );
       hipErrchk( hipGetLastError() );
 
       if (separate_buffers) {
-        hipErrchk( hipMemcpyAsync( hpi, dpi, sizeof(Real_type),
+        hipErrchk( hipMemcpyAsync( hpi, pi, sizeof(Real_type),
                                    hipMemcpyDeviceToHost, res.get_stream() ) );
       }
       hipErrchk( hipStreamSynchronize( res.get_stream() ) );
@@ -189,7 +189,7 @@ void PI_REDUCE::runHipVariantOccGS(VariantID vid)
     }
     stopTimer();
 
-    deallocData(rds, dpi);
+    deallocData(rds, pi);
     if (separate_buffers) {
       deallocData(hrds, hpi);
     }
