@@ -45,15 +45,9 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
 
   auto res{getHipResource()};
 
-  PI_ATOMIC_DATA_SETUP;
+  PI_ATOMIC_GPU_DATA_SETUP;
 
-  DataSpace reduction_data_space = getReductionDataSpace(vid);
-  DataSpace host_data_space = hostAccessibleDataSpace(reduction_data_space);
-
-  Real_ptr hpi = pi;
-  if (reduction_data_space != host_data_space) {
-    allocData(host_data_space, hpi, 1);
-  }
+  RAJAPERF_HIP_REDUCER_SETUP(Real_ptr, pi, hpi, 1);
 
   if ( vid == Base_HIP ) {
 
@@ -123,9 +117,7 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
      getCout() << "\n  PI_ATOMIC : Unknown Hip variant id = " << vid << std::endl;
   }
 
-  if (pi != hpi) {
-    deallocData(host_data_space, hpi);
-  }
+  RAJAPERF_HIP_REDUCER_TEARDOWN(pi, hpi);
 }
 
 RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(PI_ATOMIC, Hip)
