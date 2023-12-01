@@ -66,16 +66,9 @@ __global__ void trapint(Real_type x0, Real_type xp,
      __syncthreads();
   }
 
-#if 1 // serialized access to shared data;
   if ( threadIdx.x == 0 ) {
     RAJA::atomicAdd<RAJA::hip_atomic>( sumx, psumx[ 0 ] );
   }
-#else // this doesn't work due to data races
-  if ( threadIdx.x == 0 ) {
-    *sumx += psumx[ 0 ];
-  }
-#endif
-
 }
 
 
@@ -93,14 +86,12 @@ void TRAP_INT::runHipVariantBlock(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    Real_ptr sumx;
-    allocData(DataSpace::HipDevice, sumx, 1);
+    RAJAPERF_HIP_REDUCER_SETUP(Real_ptr, sumx, hsumx, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipErrchk( hipMemcpyAsync( sumx, &m_sumx_init, sizeof(Real_type),
-                                 hipMemcpyHostToDevice, res.get_stream() ) );
+      RAJAPERF_HIP_REDUCER_INITIALIZE(&m_sumx_init, sumx, hsumx, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = sizeof(Real_type)*block_size;
@@ -111,16 +102,14 @@ void TRAP_INT::runHipVariantBlock(VariantID vid)
                                                 iend);
       hipErrchk( hipGetLastError() );
 
-      Real_type lsumx;
-      hipErrchk( hipMemcpyAsync( &lsumx, sumx, sizeof(Real_type),
-                                 hipMemcpyDeviceToHost, res.get_stream() ) );
-      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
-      m_sumx += lsumx * h;
+      Real_type rsumx;
+      RAJAPERF_HIP_REDUCER_COPY_BACK(&rsumx, sumx, hsumx, 1);
+      m_sumx += rsumx * h;
 
     }
     stopTimer();
 
-    deallocData(DataSpace::HipDevice, sumx);
+    RAJAPERF_HIP_REDUCER_TEARDOWN(sumx, hsumx);
 
   } else if ( vid == RAJA_HIP ) {
 
@@ -157,8 +146,7 @@ void TRAP_INT::runHipVariantOccGS(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    Real_ptr sumx;
-    allocData(DataSpace::HipDevice, sumx, 1);
+    RAJAPERF_HIP_REDUCER_SETUP(Real_ptr, sumx, hsumx, 1);
 
     constexpr size_t shmem = sizeof(Real_type)*block_size;
     const size_t max_grid_size = detail::getHipOccupancyMaxBlocks(
@@ -167,8 +155,7 @@ void TRAP_INT::runHipVariantOccGS(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipErrchk( hipMemcpyAsync( sumx, &m_sumx_init, sizeof(Real_type),
-                                 hipMemcpyHostToDevice, res.get_stream() ) );
+      RAJAPERF_HIP_REDUCER_INITIALIZE(&m_sumx_init, sumx, hsumx, 1);
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
@@ -180,16 +167,14 @@ void TRAP_INT::runHipVariantOccGS(VariantID vid)
                                                 iend);
       hipErrchk( hipGetLastError() );
 
-      Real_type lsumx;
-      hipErrchk( hipMemcpyAsync( &lsumx, sumx, sizeof(Real_type),
-                                 hipMemcpyDeviceToHost, res.get_stream() ) );
-      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
-      m_sumx += lsumx * h;
+      Real_type rsumx;
+      RAJAPERF_HIP_REDUCER_COPY_BACK(&rsumx, sumx, hsumx, 1);
+      m_sumx += rsumx * h;
 
     }
     stopTimer();
 
-    deallocData(DataSpace::HipDevice, sumx);
+    RAJAPERF_HIP_REDUCER_TEARDOWN(sumx, hsumx);
 
   } else if ( vid == RAJA_HIP ) {
 

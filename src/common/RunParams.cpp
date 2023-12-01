@@ -144,6 +144,13 @@ void RunParams::print(std::ostream& str) const
   str << "\n hip data space = " << getDataSpaceName(hipDataSpace);
   str << "\n kokkos data space = " << getDataSpaceName(kokkosDataSpace);
 
+  str << "\n seq reduction data space = " << getDataSpaceName(seqReductionDataSpace);
+  str << "\n omp reduction data space = " << getDataSpaceName(ompReductionDataSpace);
+  str << "\n omp target reduction data space = " << getDataSpaceName(ompTargetReductionDataSpace);
+  str << "\n cuda reduction data space = " << getDataSpaceName(cudaReductionDataSpace);
+  str << "\n hip reduction data space = " << getDataSpaceName(hipReductionDataSpace);
+  str << "\n kokkos reduction data space = " << getDataSpaceName(kokkosReductionDataSpace);
+
   str << "\n kernel_input = ";
   for (size_t j = 0; j < kernel_input.size(); ++j) {
     str << "\n\t" << kernel_input[j];
@@ -529,7 +536,13 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
                 opt == std::string("--hip-data-space") ||
                 opt == std::string("-hds") ||
                 opt == std::string("--kokkos-data-space") ||
-                opt == std::string("-kds") ) {
+                opt == std::string("-kds") ||
+                opt == std::string("--seq-reduction-data-space") ||
+                opt == std::string("--omp-reduction-data-space") ||
+                opt == std::string("--omptarget-reduction-data-space") ||
+                opt == std::string("--cuda-reduction-data-space") ||
+                opt == std::string("--hip-reduction-data-space") ||
+                opt == std::string("--kokkos-reduction-data-space") ) {
 
       bool got_someting = false;
       bool got_something_available = false;
@@ -563,6 +576,18 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
               } else if ( opt_name == std::string("--kokkos-data-space") ||
                           opt_name == std::string("-kds") ) {
                 kokkosDataSpace = ds;
+              } else if ( opt_name == std::string("--seq-reduction-data-space") ) {
+                seqReductionDataSpace = ds;
+              } else if ( opt_name == std::string("--omp-reduction-data-space") ) {
+                ompReductionDataSpace = ds;
+              } else if ( opt_name == std::string("--omptarget-reduction-data-space") ) {
+                ompTargetReductionDataSpace = ds;
+              } else if ( opt_name == std::string("--cuda-reduction-data-space") ) {
+                cudaReductionDataSpace = ds;
+              } else if ( opt_name == std::string("--hip-reduction-data-space") ) {
+                hipReductionDataSpace = ds;
+              } else if ( opt_name == std::string("--kokkos-reduction-data-space") ) {
+                kokkosReductionDataSpace = ds;
               } else {
                 got_someting = false;
               }
@@ -583,6 +608,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
           }
         }
       }
+
     } else if ( std::string(argv[i]) == std::string("--tunings") ||
                 std::string(argv[i]) == std::string("-t") ) {
 

@@ -46,16 +46,9 @@ __global__ void dot(Real_ptr a, Real_ptr b,
      __syncthreads();
   }
 
-#if 1 // serialized access to shared data;
   if ( threadIdx.x == 0 ) {
     RAJA::atomicAdd<RAJA::cuda_atomic>( dprod, pdot[ 0 ] );
   }
-#else // this doesn't work due to data races
-  if ( threadIdx.x == 0 ) {
-    *dprod += pdot[ 0 ];
-  }
-#endif
-
 }
 
 
@@ -72,14 +65,12 @@ void DOT::runCudaVariantBlock(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    Real_ptr dprod;
-    allocData(DataSpace::CudaDevice, dprod, 1);
+    RAJAPERF_CUDA_REDUCER_SETUP(Real_ptr, dprod, hdprod, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      cudaErrchk( cudaMemcpyAsync( dprod, &m_dot_init, sizeof(Real_type),
-                                   cudaMemcpyHostToDevice, res.get_stream() ) );
+      RAJAPERF_CUDA_REDUCER_INITIALIZE(&m_dot_init, dprod, hdprod, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = sizeof(Real_type)*block_size;
@@ -87,16 +78,14 @@ void DOT::runCudaVariantBlock(VariantID vid)
           a, b, dprod, m_dot_init, iend );
       cudaErrchk( cudaGetLastError() );
 
-      Real_type lprod;
-      cudaErrchk( cudaMemcpyAsync( &lprod, dprod, sizeof(Real_type),
-                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
-      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
-      m_dot += lprod;
+      Real_type rdprod;
+      RAJAPERF_CUDA_REDUCER_COPY_BACK(&rdprod, dprod, hdprod, 1);
+      m_dot += rdprod;
 
     }
     stopTimer();
 
-    deallocData(DataSpace::CudaDevice, dprod);
+    RAJAPERF_CUDA_REDUCER_TEARDOWN(dprod, hdprod);
 
   } else if ( vid == RAJA_CUDA ) {
 
@@ -133,8 +122,7 @@ void DOT::runCudaVariantOccGS(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    Real_ptr dprod;
-    allocData(DataSpace::CudaDevice, dprod, 1);
+    RAJAPERF_CUDA_REDUCER_SETUP(Real_ptr, dprod, hdprod, 1);
 
     constexpr size_t shmem = sizeof(Real_type)*block_size;
     const size_t max_grid_size = detail::getCudaOccupancyMaxBlocks(
@@ -143,8 +131,7 @@ void DOT::runCudaVariantOccGS(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      cudaErrchk( cudaMemcpyAsync( dprod, &m_dot_init, sizeof(Real_type),
-                                   cudaMemcpyHostToDevice, res.get_stream() ) );
+      RAJAPERF_CUDA_REDUCER_INITIALIZE(&m_dot_init, dprod, hdprod, 1);
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
@@ -152,16 +139,14 @@ void DOT::runCudaVariantOccGS(VariantID vid)
           a, b, dprod, m_dot_init, iend );
       cudaErrchk( cudaGetLastError() );
 
-      Real_type lprod;
-      cudaErrchk( cudaMemcpyAsync( &lprod, dprod, sizeof(Real_type),
-                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
-      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
-      m_dot += lprod;
+      Real_type rdprod;
+      RAJAPERF_CUDA_REDUCER_COPY_BACK(&rdprod, dprod, hdprod, 1);
+      m_dot += rdprod;
 
     }
     stopTimer();
 
-    deallocData(DataSpace::CudaDevice, dprod);
+    RAJAPERF_CUDA_REDUCER_TEARDOWN(dprod, hdprod);
 
   } else if ( vid == RAJA_CUDA ) {
 

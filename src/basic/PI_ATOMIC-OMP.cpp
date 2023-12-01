@@ -99,6 +99,8 @@ void PI_ATOMIC::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
 
   }
 
+  PI_ATOMIC_DATA_TEARDOWN;
+
 #else
   RAJA_UNUSED_VAR(vid);
 #endif

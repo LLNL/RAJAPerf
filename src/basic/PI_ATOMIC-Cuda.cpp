@@ -45,25 +45,25 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
 
   auto res{getCudaResource()};
 
-  PI_ATOMIC_DATA_SETUP;
+  PI_ATOMIC_GPU_DATA_SETUP;
+
+  RAJAPERF_CUDA_REDUCER_SETUP(Real_ptr, pi, hpi, 1);
 
   if ( vid == Base_CUDA ) {
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      cudaErrchk( cudaMemcpyAsync( pi, &m_pi_init, sizeof(Real_type),
-                                   cudaMemcpyHostToDevice, res.get_stream() ) );
+      RAJAPERF_CUDA_REDUCER_INITIALIZE(&m_pi_init, pi, hpi, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
       pi_atomic<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( pi, dx, iend );
       cudaErrchk( cudaGetLastError() );
 
-      cudaErrchk( cudaMemcpyAsync( &m_pi_final, pi, sizeof(Real_type),
-                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
-      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
-      m_pi_final *= 4.0;
+      Real_type rpi;
+      RAJAPERF_CUDA_REDUCER_COPY_BACK(&rpi, pi, hpi, 1);
+      m_pi_final = rpi * static_cast<Real_type>(4);
 
     }
     stopTimer();
@@ -73,8 +73,7 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      cudaErrchk( cudaMemcpyAsync( pi, &m_pi_init, sizeof(Real_type),
-                                   cudaMemcpyHostToDevice, res.get_stream() ) );
+      RAJAPERF_CUDA_REDUCER_INITIALIZE(&m_pi_init, pi, hpi, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
@@ -85,10 +84,9 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
       });
       cudaErrchk( cudaGetLastError() );
 
-      cudaErrchk( cudaMemcpyAsync( &m_pi_final, pi, sizeof(Real_type),
-                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
-      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
-      m_pi_final *= 4.0;
+      Real_type rpi;
+      RAJAPERF_CUDA_REDUCER_COPY_BACK(&rpi, pi, hpi, 1);
+      m_pi_final = rpi * static_cast<Real_type>(4);
 
     }
     stopTimer();
@@ -98,8 +96,7 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      cudaErrchk( cudaMemcpyAsync( pi, &m_pi_init, sizeof(Real_type),
-                                   cudaMemcpyHostToDevice, res.get_stream() ) );
+      RAJAPERF_CUDA_REDUCER_INITIALIZE(&m_pi_init, pi, hpi, 1);
 
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
@@ -107,10 +104,9 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
           RAJA::atomicAdd<RAJA::cuda_atomic>(pi, dx / (1.0 + x * x));
       });
 
-      cudaErrchk( cudaMemcpyAsync( &m_pi_final, pi, sizeof(Real_type),
-                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
-      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
-      m_pi_final *= 4.0;
+      Real_type rpi;
+      RAJAPERF_CUDA_REDUCER_COPY_BACK(&rpi, pi, hpi, 1);
+      m_pi_final = rpi * static_cast<Real_type>(4);
 
     }
     stopTimer();
@@ -118,6 +114,9 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
   } else {
      getCout() << "\n  PI_ATOMIC : Unknown Cuda variant id = " << vid << std::endl;
   }
+
+  RAJAPERF_CUDA_REDUCER_TEARDOWN(pi, hpi);
+
 }
 
 RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(PI_ATOMIC, Cuda)
