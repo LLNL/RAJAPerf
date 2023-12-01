@@ -36,14 +36,16 @@ namespace rajaperf
  *              in kernel signature matches number of args passed to this 
  *              method.
  */
-template <typename... Args, typename F = void (*)(Args...)>
-void RPlaunchHipKernel(F kernel,
+template <typename... Args, typename...KernArgs>
+void RPlaunchHipKernel(void (*kernel)(KernArgs...),
                        const dim3& numBlocks, const dim3& dimBlocks,
                        std::uint32_t sharedMemBytes, hipStream_t stream,
                        Args const&... args)
 {
+  static_assert(sizeof...(KernArgs) == sizeof...(Args),
+                "Argument count mismatch between kernel and call to this method");
+
   constexpr size_t count = sizeof...(Args);
-  checkArgsCount(kernel, args...);
   void* arg_arr[count]{(void*)&args...};
 
   auto k = reinterpret_cast<const void*>(kernel);

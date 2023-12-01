@@ -19,19 +19,6 @@
 namespace rajaperf
 {
 
-/*!
- * \brief Routine to check whether number of args in signature of the
- *        given kernel matches the number of items in the given tuple.
- */
-template <typename... Formals, typename... Actuals>
-void checkArgsCount(void (*kernel)(Formals...),
-                    Actuals...)
-{
-  (void) kernel; // to prevent compiler warning
-  static_assert(sizeof...(Formals) == sizeof...(Actuals),
-                "Argument Count Mismatch");
-}
-
 namespace gpu_block_size
 {
 
