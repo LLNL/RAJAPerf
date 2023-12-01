@@ -24,46 +24,12 @@ namespace rajaperf
  *        given kernel matches the number of items in the given tuple.
  */
 template <typename... Formals, typename... Actuals>
-std::tuple<Formals...> checkArgsCount(void (*kernel)(Formals...),
-                                      std::tuple<Actuals...>(actuals))
+void checkArgsCount(void (*kernel)(Formals...),
+                    Actuals...)
 {
   (void) kernel; // to prevent compiler warning
   static_assert(sizeof...(Formals) == sizeof...(Actuals),
                 "Argument Count Mismatch");
-  std::tuple<Formals...> to_formals{std::move(actuals)};
-  return to_formals;
-}
-
-/*!
- * \brief Stopping case for recursive method below.
- */
-template <std::size_t n, typename... Ts,
-          typename std::enable_if<n == sizeof...(Ts)>::type* = nullptr>
-void packArgs(const std::tuple<Ts...>&, void*) {}
-
-/*!
- * \brief Recursive method to copy items from given tuple to an array
- *        of void* pointers, which is what CUDA and HIP kernel launch
- *        methods want for kernel arguments.
- *
- *        Note: method contains a static assert check for whether any
- *              item in the given tuple is a reference type, which
- *              doesn't work for passing args to a GPU kernel.
- */
-template <std::size_t n, typename... Ts,
-          typename std::enable_if<n != sizeof...(Ts)>::type* = nullptr>
-void packArgs(const std::tuple<Ts...>& formals, void** vargs)
-{
-  using T = typename std::tuple_element<n, std::tuple<Ts...> >::type;
-
-  static_assert(!std::is_reference<T>{},
-                "A __global__ function cannot have a reference as one of its "
-                "arguments.");
-
-  vargs[n] = const_cast<void*>(
-               reinterpret_cast<const void*>(&std::get<n>(formals)) );
-
-  return packArgs<n + 1>(formals, vargs);
 }
 
 namespace gpu_block_size

@@ -40,15 +40,13 @@ template <typename... Args, typename F = void (*)(Args...)>
 void RPlaunchHipKernel(F kernel,
                        const size_t& numBlocks, const size_t& dimBlocks,
                        std::uint32_t sharedMemBytes, hipStream_t stream,
-                       Args... args)
+                       Args const&... args)
 {
   constexpr size_t count = sizeof...(Args);
-  auto tup = std::tuple<Args...>{args...};
-  auto chk_tup = checkArgsCount(kernel, tup);
-  void* arg_arr[count];
-  packArgs<0>(chk_tup, arg_arr);
+  checkArgsCount(kernel, args...);
+  void* arg_arr[count]{(void*)&args...};
 
-  auto k = reinterpret_cast<void*>(kernel);
+  auto k = reinterpret_cast<const void*>(kernel);
   hipLaunchKernel(k, numBlocks, dimBlocks,
                   arg_arr,
                   sharedMemBytes, stream);

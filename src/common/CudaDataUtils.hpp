@@ -51,17 +51,15 @@ __device__ __forceinline__ unsigned long long device_timer()
  */
 template <typename... Args, typename F = void (*)(Args...)>
 void RPlaunchCudaKernel(F kernel,
-                        const size_t& numBlocks, const size_t& dimBlocks,
+                        const dim3& numBlocks, const dim3& dimBlocks,
                         std::uint32_t sharedMemBytes, cudaStream_t stream,
-                        Args... args) 
+                        Args const&... args) 
 {
   constexpr size_t count = sizeof...(Args);
-  auto tup = std::tuple<Args...>{args...};
-  auto chk_tup = checkArgsCount(kernel, tup);
-  void* arg_arr[count];
-  packArgs<0>(chk_tup, arg_arr);
+  checkArgsCount(kernel, args...);
+  void* arg_arr[count]{(void*)&args...};
 
-  auto k = reinterpret_cast<void*>(kernel);
+  auto k = reinterpret_cast<const void*>(kernel);
   cudaLaunchKernel(k, numBlocks, dimBlocks,
                    arg_arr,
                    sharedMemBytes, stream);
