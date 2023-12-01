@@ -45,7 +45,7 @@ void RPlaunchHipKernel(void (*kernel)(KernArgs...),
                 "Number of kernel args doesn't match what's passed to method");
 
   using int_array = int[];
-  int_array ia = {[](){
+  int_array ia = {[](...){
     static_assert(std::is_same<std::decay_t<KernArgs>, std::decay_t<Args>>::value, 
                   "Kernel arg types don't match what's passed to method");
     return 0;
