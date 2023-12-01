@@ -32,9 +32,8 @@ namespace rajaperf
 /*!
  * \brief Method for launching a HIP kernel with given configuration.
  *
- *        Note: method includes a call to check whether number of args
- *              in kernel signature matches number of args passed to this 
- *              method.
+ *        Note: method checks whether number of args and their types in 
+ *              kernel signature matches args passed to this method.
  */
 template <typename... Args, typename...KernArgs>
 void RPlaunchHipKernel(void (*kernel)(KernArgs...),
@@ -43,7 +42,15 @@ void RPlaunchHipKernel(void (*kernel)(KernArgs...),
                        Args const&... args)
 {
   static_assert(sizeof...(KernArgs) == sizeof...(Args),
-                "Argument count mismatch between kernel and call to this method");
+                "Number of kernel args doesn't match what's passed to method");
+
+  using int_array = int[];
+  int_array ia = {[](){
+    static_assert(std::is_same<std::decay_t<KernArgs>, std::decay_t<Args>>::value, 
+                  "Kernel arg types don't match what's passed to method");
+    return 0;
+  }()...};
+  RAJA_UNUSED_VAR(ia);
 
   constexpr size_t count = sizeof...(Args);
   void* arg_arr[count]{(void*)&args...};
