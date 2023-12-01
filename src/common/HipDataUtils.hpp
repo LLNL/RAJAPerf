@@ -38,7 +38,7 @@ namespace rajaperf
  */
 template <typename... Args, typename F = void (*)(Args...)>
 void RPlaunchHipKernel(F kernel,
-                       const size_t& numBlocks, const size_t& dimBlocks,
+                       const dim3& numBlocks, const dim3& dimBlocks,
                        std::uint32_t sharedMemBytes, hipStream_t stream,
                        Args const&... args)
 {
