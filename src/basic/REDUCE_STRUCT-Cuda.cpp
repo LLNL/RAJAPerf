@@ -85,7 +85,6 @@ __global__ void reduce_struct(Real_ptr x, Real_ptr y,
      __syncthreads();
   }
 
-// serialized access to shared data;
   if ( threadIdx.x == 0 ) {
     RAJA::atomicAdd<RAJA::cuda_atomic>( xsum, pxsum[ 0 ] );
     RAJA::atomicMin<RAJA::cuda_atomic>( xmin, pxmin[ 0 ] );
@@ -112,16 +111,16 @@ void REDUCE_STRUCT::runCudaVariantBlockAtomic(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    Real_ptr mem; //xcenter,xmin,xmax,ycenter,ymin,ymax
-    allocData(DataSpace::CudaDevice, mem,6);
+    RAJAPERF_CUDA_REDUCER_SETUP(Real_ptr, mem, hmem, 6);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      cudaErrchk(cudaMemsetAsync(mem, 0.0, 6*sizeof(Real_type), res.get_stream()));
+      Real_type imem[6] {m_init_sum, m_init_min, m_init_max, m_init_sum, m_init_min, m_init_max};
+      RAJAPERF_CUDA_REDUCER_INITIALIZE(imem, mem, hmem, 6);
+
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 6*sizeof(Real_type)*block_size;
-                                                            
       reduce_struct<block_size><<<grid_size, block_size,
                                   shmem, res.get_stream()>>>(
         points.x, points.y,
@@ -131,22 +130,19 @@ void REDUCE_STRUCT::runCudaVariantBlockAtomic(VariantID vid)
         points.N);
       cudaErrchk( cudaGetLastError() );
 
-      Real_type lmem[6]={0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-      cudaErrchk( cudaMemcpyAsync( &lmem[0], mem, 6*sizeof(Real_type),
-                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
-      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
-
-      points.SetCenter(lmem[0]/points.N, lmem[3]/points.N);
-      points.SetXMin(lmem[1]);
-      points.SetXMax(lmem[2]);
-      points.SetYMin(lmem[4]);
-      points.SetYMax(lmem[5]);
+      Real_type rmem[6];
+      RAJAPERF_CUDA_REDUCER_COPY_BACK(rmem, mem, hmem, 6);
+      points.SetCenter(rmem[0]/points.N, rmem[3]/points.N);
+      points.SetXMin(rmem[1]);
+      points.SetXMax(rmem[2]);
+      points.SetYMin(rmem[4]);
+      points.SetYMax(rmem[5]);
       m_points=points;
 
     }
     stopTimer();
 
-    deallocData(DataSpace::CudaDevice, mem);
+    RAJAPERF_CUDA_REDUCER_TEARDOWN(mem, hmem);
 
   } else if ( vid == RAJA_CUDA ) {
 
@@ -195,8 +191,7 @@ void REDUCE_STRUCT::runCudaVariantBlockAtomicOccGS(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    Real_ptr mem; //xcenter,xmin,xmax,ycenter,ymin,ymax
-    allocData(DataSpace::CudaDevice, mem,6);
+    RAJAPERF_CUDA_REDUCER_SETUP(Real_ptr, mem, hmem, 6);
 
     constexpr size_t shmem = 6*sizeof(Real_type)*block_size;
     const size_t max_grid_size = detail::getCudaOccupancyMaxBlocks(
@@ -205,7 +200,8 @@ void REDUCE_STRUCT::runCudaVariantBlockAtomicOccGS(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      cudaErrchk(cudaMemsetAsync(mem, 0.0, 6*sizeof(Real_type), res.get_stream()));
+      Real_type imem[6] {m_init_sum, m_init_min, m_init_max, m_init_sum, m_init_min, m_init_max};
+      RAJAPERF_CUDA_REDUCER_INITIALIZE(imem, mem, hmem, 6);
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
@@ -218,22 +214,19 @@ void REDUCE_STRUCT::runCudaVariantBlockAtomicOccGS(VariantID vid)
         points.N);
       cudaErrchk( cudaGetLastError() );
 
-      Real_type lmem[6]={0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-      cudaErrchk( cudaMemcpyAsync( &lmem[0], mem, 6*sizeof(Real_type),
-                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
-      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
-
-      points.SetCenter(lmem[0]/points.N, lmem[3]/points.N);
-      points.SetXMin(lmem[1]);
-      points.SetXMax(lmem[2]);
-      points.SetYMin(lmem[4]);
-      points.SetYMax(lmem[5]);
+      Real_type rmem[6];
+      RAJAPERF_CUDA_REDUCER_COPY_BACK(rmem, mem, hmem, 6);
+      points.SetCenter(rmem[0]/points.N, rmem[3]/points.N);
+      points.SetXMin(rmem[1]);
+      points.SetXMax(rmem[2]);
+      points.SetYMin(rmem[4]);
+      points.SetYMax(rmem[5]);
       m_points=points;
 
     }
     stopTimer();
 
-    deallocData(DataSpace::CudaDevice, mem);
+    RAJAPERF_CUDA_REDUCER_TEARDOWN(mem, hmem);
 
   } else if ( vid == RAJA_CUDA ) {
 

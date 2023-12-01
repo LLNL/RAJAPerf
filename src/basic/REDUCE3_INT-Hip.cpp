@@ -58,19 +58,11 @@ __global__ void reduce3int(Int_ptr vec,
      __syncthreads();
   }
 
-#if 1 // serialized access to shared data;
   if ( threadIdx.x == 0 ) {
     RAJA::atomicAdd<RAJA::hip_atomic>( vsum, psum[ 0 ] );
     RAJA::atomicMin<RAJA::hip_atomic>( vmin, pmin[ 0 ] );
     RAJA::atomicMax<RAJA::hip_atomic>( vmax, pmax[ 0 ] );
   }
-#else // this doesn't work due to data races
-  if ( threadIdx.x == 0 ) {
-    *vsum += psum[ 0 ];
-    *vmin = RAJA_MIN( *vmin, pmin[ 0 ] );
-    *vmax = RAJA_MAX( *vmax, pmax[ 0 ] );
-  }
-#endif
 }
 
 
@@ -88,20 +80,13 @@ void REDUCE3_INT::runHipVariantBlockAtomic(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    Int_ptr vmem_init;
-    allocData(DataSpace::HipPinnedCoarse, vmem_init, 3);
-
-    Int_ptr vmem;
-    allocData(DataSpace::HipDevice, vmem, 3);
+    RAJAPERF_HIP_REDUCER_SETUP(Int_ptr, vmem, hvmem, 3);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      vmem_init[0] = m_vsum_init;
-      vmem_init[1] = m_vmin_init;
-      vmem_init[2] = m_vmax_init;
-      hipErrchk( hipMemcpyAsync( vmem, vmem_init, 3*sizeof(Int_type),
-                                 hipMemcpyHostToDevice, res.get_stream() ) );
+      Int_type ivmem[3] {m_vsum_init, m_vmin_init, m_vmax_init};
+      RAJAPERF_HIP_REDUCER_INITIALIZE(ivmem, vmem, hvmem, 3);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 3*sizeof(Int_type)*block_size;
@@ -113,19 +98,16 @@ void REDUCE3_INT::runHipVariantBlockAtomic(VariantID vid)
                                                     iend );
       hipErrchk( hipGetLastError() );
 
-      Int_type lmem[3];
-      hipErrchk( hipMemcpyAsync( &lmem[0], vmem, 3*sizeof(Int_type),
-                                 hipMemcpyDeviceToHost, res.get_stream() ) );
-      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
-      m_vsum += lmem[0];
-      m_vmin = RAJA_MIN(m_vmin, lmem[1]);
-      m_vmax = RAJA_MAX(m_vmax, lmem[2]);
+      Int_type rvmem[3];
+      RAJAPERF_HIP_REDUCER_COPY_BACK(rvmem, vmem, hvmem, 3);
+      m_vsum += rvmem[0];
+      m_vmin = RAJA_MIN(m_vmin, rvmem[1]);
+      m_vmax = RAJA_MAX(m_vmax, rvmem[2]);
 
     }
     stopTimer();
 
-    deallocData(DataSpace::HipDevice, vmem);
-    deallocData(DataSpace::HipPinnedCoarse, vmem_init);
+    RAJAPERF_HIP_REDUCER_TEARDOWN(vmem, hvmem);
 
   } else if ( vid == RAJA_HIP ) {
 
@@ -166,11 +148,7 @@ void REDUCE3_INT::runHipVariantBlockAtomicOccGS(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    Int_ptr vmem_init;
-    allocData(DataSpace::HipPinnedCoarse, vmem_init, 3);
-
-    Int_ptr vmem;
-    allocData(DataSpace::HipDevice, vmem, 3);
+    RAJAPERF_HIP_REDUCER_SETUP(Int_ptr, vmem, hvmem, 3);
 
     constexpr size_t shmem = 3*sizeof(Int_type)*block_size;
     const size_t max_grid_size = detail::getHipOccupancyMaxBlocks(
@@ -179,11 +157,8 @@ void REDUCE3_INT::runHipVariantBlockAtomicOccGS(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      vmem_init[0] = m_vsum_init;
-      vmem_init[1] = m_vmin_init;
-      vmem_init[2] = m_vmax_init;
-      hipErrchk( hipMemcpyAsync( vmem, vmem_init, 3*sizeof(Int_type),
-                                 hipMemcpyHostToDevice, res.get_stream() ) );
+      Int_type ivmem[3] {m_vsum_init, m_vmin_init, m_vmax_init};
+      RAJAPERF_HIP_REDUCER_INITIALIZE(ivmem, vmem, hvmem, 3);
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
@@ -196,19 +171,16 @@ void REDUCE3_INT::runHipVariantBlockAtomicOccGS(VariantID vid)
                                                     iend );
       hipErrchk( hipGetLastError() );
 
-      Int_type lmem[3];
-      hipErrchk( hipMemcpyAsync( &lmem[0], vmem, 3*sizeof(Int_type),
-                                 hipMemcpyDeviceToHost, res.get_stream() ) );
-      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
-      m_vsum += lmem[0];
-      m_vmin = RAJA_MIN(m_vmin, lmem[1]);
-      m_vmax = RAJA_MAX(m_vmax, lmem[2]);
+      Int_type rvmem[3];
+      RAJAPERF_HIP_REDUCER_COPY_BACK(rvmem, vmem, hvmem, 3);
+      m_vsum += rvmem[0];
+      m_vmin = RAJA_MIN(m_vmin, rvmem[1]);
+      m_vmax = RAJA_MAX(m_vmax, rvmem[2]);
 
     }
     stopTimer();
 
-    deallocData(DataSpace::HipDevice, vmem);
-    deallocData(DataSpace::HipPinnedCoarse, vmem_init);
+    RAJAPERF_HIP_REDUCER_TEARDOWN(vmem, hvmem);
 
   } else if ( vid == RAJA_HIP ) {
 

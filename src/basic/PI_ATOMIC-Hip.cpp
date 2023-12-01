@@ -45,25 +45,25 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
 
   auto res{getHipResource()};
 
-  PI_ATOMIC_DATA_SETUP;
+  PI_ATOMIC_GPU_DATA_SETUP;
+
+  RAJAPERF_HIP_REDUCER_SETUP(Real_ptr, pi, hpi, 1);
 
   if ( vid == Base_HIP ) {
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipErrchk( hipMemcpyAsync( pi, &m_pi_init, sizeof(Real_type),
-                                 hipMemcpyHostToDevice, res.get_stream() ) );
+      RAJAPERF_HIP_REDUCER_INITIALIZE(&m_pi_init, pi, hpi, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
       hipLaunchKernelGGL((atomic_pi<block_size>),grid_size, block_size, shmem, res.get_stream(), pi, dx, iend );
       hipErrchk( hipGetLastError() );
 
-      hipErrchk( hipMemcpyAsync( &m_pi_final, pi, sizeof(Real_type),
-                                 hipMemcpyDeviceToHost, res.get_stream() ) );
-      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
-      m_pi_final *= 4.0;
+      Real_type rpi;
+      RAJAPERF_HIP_REDUCER_COPY_BACK(&rpi, pi, hpi, 1);
+      m_pi_final = rpi * static_cast<Real_type>(4);
 
     }
     stopTimer();
@@ -73,8 +73,7 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipErrchk( hipMemcpyAsync( pi, &m_pi_init, sizeof(Real_type),
-                                 hipMemcpyHostToDevice, res.get_stream() ) );
+      RAJAPERF_HIP_REDUCER_INITIALIZE(&m_pi_init, pi, hpi, 1);
 
       auto atomic_pi_lambda = [=] __device__ (Index_type i) {
           double x = (double(i) + 0.5) * dx;
@@ -87,10 +86,9 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
           grid_size, block_size, shmem, res.get_stream(), ibegin, iend, atomic_pi_lambda);
       hipErrchk( hipGetLastError() );
 
-      hipErrchk( hipMemcpyAsync( &m_pi_final, pi, sizeof(Real_type),
-                                 hipMemcpyDeviceToHost, res.get_stream() ) );
-      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
-      m_pi_final *= 4.0;
+      Real_type rpi;
+      RAJAPERF_HIP_REDUCER_COPY_BACK(&rpi, pi, hpi, 1);
+      m_pi_final = rpi * static_cast<Real_type>(4);
 
     }
     stopTimer();
@@ -100,8 +98,7 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipErrchk( hipMemcpyAsync( pi, &m_pi_init, sizeof(Real_type),
-                                 hipMemcpyHostToDevice, res.get_stream() ) );
+      RAJAPERF_HIP_REDUCER_INITIALIZE(&m_pi_init, pi, hpi, 1);
 
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
@@ -109,10 +106,9 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
           RAJA::atomicAdd<RAJA::hip_atomic>(pi, dx / (1.0 + x * x));
       });
 
-      hipErrchk( hipMemcpyAsync( &m_pi_final, pi, sizeof(Real_type),
-                                 hipMemcpyDeviceToHost, res.get_stream() ) );
-      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
-      m_pi_final *= 4.0;
+      Real_type rpi;
+      RAJAPERF_HIP_REDUCER_COPY_BACK(&rpi, pi, hpi, 1);
+      m_pi_final = rpi * static_cast<Real_type>(4);
 
     }
     stopTimer();
@@ -120,6 +116,8 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
   } else {
      getCout() << "\n  PI_ATOMIC : Unknown Hip variant id = " << vid << std::endl;
   }
+
+  RAJAPERF_HIP_REDUCER_TEARDOWN(pi, hpi);
 }
 
 RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(PI_ATOMIC, Hip)

@@ -28,7 +28,7 @@ namespace algorithm
 
 template < size_t block_size >
 __launch_bounds__(block_size)
-__global__ void reduce_sum(Real_ptr x, Real_ptr dsum, Real_type sum_init,
+__global__ void reduce_sum(Real_ptr x, Real_ptr sum, Real_type sum_init,
                            Index_type iend)
 {
   extern __shared__ Real_type psum[ ];
@@ -48,15 +48,9 @@ __global__ void reduce_sum(Real_ptr x, Real_ptr dsum, Real_type sum_init,
      __syncthreads();
   }
 
-#if 1 // serialized access to shared data;
   if ( threadIdx.x == 0 ) {
-    RAJA::atomicAdd<RAJA::cuda_atomic>( dsum, psum[ 0 ] );
+    RAJA::atomicAdd<RAJA::cuda_atomic>( sum, psum[ 0 ] );
   }
-#else // this doesn't work due to data races
-  if ( threadIdx.x == 0 ) {
-    *dsum += psum[ 0 ];
-  }
-#endif
 }
 
 
@@ -76,8 +70,7 @@ void REDUCE_SUM::runCudaVariantCub(VariantID vid)
 
     int len = iend - ibegin;
 
-    Real_type* sum_storage;
-    allocData(DataSpace::CudaPinned, sum_storage, 1);
+    RAJAPERF_CUDA_REDUCER_SETUP(Real_ptr, sum, hsum, 1);
 
     // Determine temporary device storage requirements
     void* d_temp_storage = nullptr;
@@ -85,7 +78,7 @@ void REDUCE_SUM::runCudaVariantCub(VariantID vid)
     cudaErrchk(::cub::DeviceReduce::Reduce(d_temp_storage,
                                            temp_storage_bytes,
                                            x+ibegin,
-                                           sum_storage,
+                                           sum,
                                            len,
                                            ::cub::Sum(),
                                            m_sum_init,
@@ -104,21 +97,26 @@ void REDUCE_SUM::runCudaVariantCub(VariantID vid)
       cudaErrchk(::cub::DeviceReduce::Reduce(d_temp_storage,
                                              temp_storage_bytes,
                                              x+ibegin,
-                                             sum_storage,
+                                             sum,
                                              len,
                                              ::cub::Sum(),
                                              m_sum_init,
                                              stream));
 
+      if (sum != hsum) {
+        cudaErrchk( cudaMemcpyAsync( hsum, sum, sizeof(Real_type),
+                                   cudaMemcpyDeviceToHost, stream ) );
+      }
+
       cudaErrchk(cudaStreamSynchronize(stream));
-      m_sum = *sum_storage;
+      m_sum = *hsum;
 
     }
     stopTimer();
 
     // Free temporary storage
     deallocData(DataSpace::CudaDevice, temp_storage);
-    deallocData(DataSpace::CudaPinned, sum_storage);
+    RAJAPERF_CUDA_REDUCER_TEARDOWN(sum, hsum);
 
   } else {
 
@@ -141,31 +139,27 @@ void REDUCE_SUM::runCudaVariantBlockAtomic(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    Real_ptr dsum;
-    allocData(DataSpace::CudaDevice, dsum, 1);
+    RAJAPERF_CUDA_REDUCER_SETUP(Real_ptr, sum, hsum, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      cudaErrchk( cudaMemcpyAsync( dsum, &m_sum_init, sizeof(Real_type),
-                                   cudaMemcpyHostToDevice, res.get_stream() ) );
+      RAJAPERF_CUDA_REDUCER_INITIALIZE(&m_sum_init, sum, hsum, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = sizeof(Real_type)*block_size;
       reduce_sum<block_size><<<grid_size, block_size,
                   shmem, res.get_stream()>>>( x,
-                                                   dsum, m_sum_init,
+                                                   sum, m_sum_init,
                                                    iend );
       cudaErrchk( cudaGetLastError() );
 
-      cudaErrchk( cudaMemcpyAsync( &m_sum, dsum, sizeof(Real_type),
-                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
-      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
+      RAJAPERF_CUDA_REDUCER_COPY_BACK(&m_sum, sum, hsum, 1);
 
     }
     stopTimer();
 
-    deallocData(DataSpace::CudaDevice, dsum);
+    RAJAPERF_CUDA_REDUCER_TEARDOWN(sum, hsum);
 
   } else if ( vid == RAJA_CUDA ) {
 
@@ -205,8 +199,7 @@ void REDUCE_SUM::runCudaVariantBlockAtomicOccGS(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    Real_ptr dsum;
-    allocData(DataSpace::CudaDevice, dsum, 1);
+    RAJAPERF_CUDA_REDUCER_SETUP(Real_ptr, sum, hsum, 1);
 
     constexpr size_t shmem = sizeof(Real_type)*block_size;
     const size_t max_grid_size = detail::getCudaOccupancyMaxBlocks(
@@ -215,25 +208,22 @@ void REDUCE_SUM::runCudaVariantBlockAtomicOccGS(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      cudaErrchk( cudaMemcpyAsync( dsum, &m_sum_init, sizeof(Real_type),
-                                   cudaMemcpyHostToDevice, res.get_stream() ) );
+      RAJAPERF_CUDA_REDUCER_INITIALIZE(&m_sum_init, sum, hsum, 1);
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
       reduce_sum<block_size><<<grid_size, block_size,
                                shmem, res.get_stream()>>>( x,
-                                                   dsum, m_sum_init,
+                                                   sum, m_sum_init,
                                                    iend );
       cudaErrchk( cudaGetLastError() );
 
-      cudaErrchk( cudaMemcpyAsync( &m_sum, dsum, sizeof(Real_type),
-                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
-      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
+      RAJAPERF_CUDA_REDUCER_COPY_BACK(&m_sum, sum, hsum, 1);
 
     }
     stopTimer();
 
-    deallocData(DataSpace::CudaDevice, dsum);
+    RAJAPERF_CUDA_REDUCER_TEARDOWN(sum, hsum);
 
   } else if ( vid == RAJA_CUDA ) {
 

@@ -78,6 +78,9 @@ void PI_ATOMIC::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
   } else {
      getCout() << "\n  PI_ATOMIC : Unknown OMP Target variant id = " << vid << std::endl;
   }
+
+  PI_ATOMIC_DATA_TEARDOWN;
+
 }
 
 } // end namespace basic
