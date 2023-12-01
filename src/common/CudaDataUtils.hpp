@@ -45,7 +45,7 @@ __device__ __forceinline__ unsigned long long device_timer()
 /*!
  * \brief Method for launching a CUDA kernel with given configuration.
  *
- *        Note: method checks whether number of args and their types in 
+ *        Note: method checks whether number of args and their types in
  *              kernel signature matches args passed to this method.
  */
 template <typename... Args, typename...KernArgs>
@@ -57,11 +57,8 @@ void RPlaunchCudaKernel(void (*kernel)(KernArgs...),
   static_assert(sizeof...(KernArgs) == sizeof...(Args),
                 "Number of kernel args doesn't match what's passed to method");
 
-  int ia[] = {[](){
-    static_assert(std::is_same<std::decay_t<KernArgs>, std::decay_t<Args>>::value, "Kernel arg types don't match what's passed to method");
-    return 0;
-  }()...};
-  RAJA_UNUSED_VAR(ia);
+  static_assert(conjunction<std::is_same<std::decay_t<KernArgs>, std::decay_t<Args>>...>::value,
+                "Kernel arg types don't match what's passed to method");
 
   constexpr size_t count = sizeof...(Args);
   void* arg_arr[count]{(void*)&args...};
