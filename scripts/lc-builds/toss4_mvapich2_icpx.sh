@@ -7,10 +7,15 @@
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
 
-if [ "$1" == "" ]; then
+if [[ $# -lt 2 ]]; then
   echo
-  echo "You must pass a compiler version number to script. For example,"
-  echo "    toss4_mvapich2_icpx.sh 2.3.7 2022.1.0"
+  echo "You must pass 2 or more arguments to the script (in this order): "
+  echo "   1) mvapich2 compiler version number"
+  echo "   2) icpx compiler version number"
+  echo "   3...) optional arguments to cmake"
+  echo
+  echo "For example: "
+  echo "    toss4_mvapich2_icpx.sh 2022.1.0"
   exit
 fi
 
@@ -30,15 +35,25 @@ echo
 rm -rf build_${BUILD_SUFFIX} 2>/dev/null
 mkdir build_${BUILD_SUFFIX} && cd build_${BUILD_SUFFIX}
 
-module load cmake/3.21.1
+module load cmake/3.23.1
+
+##
+# CMake option -DRAJA_ENABLE_FORCEINLINE_RECURSIVE=Off used to speed up compile
+# times at a potential cost of slower 'forall' execution.
+##
+
+source /usr/tce/packages/intel/intel-${COMP_VER}/setvars.sh
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -DMPI_CXX_COMPILER=/usr/tce/packages/mvapich2/mvapich2-${MPI_VER}-intel-${COMP_VER}/bin/mpic++ \
+  -DMPI_C_COMPILER="/usr/tce/packages/mvapich2/mvapich2-${MPI_VER}-intel-${COMP_VER}/bin/mpicc" \
+  -DMPI_CXX_COMPILER="/usr/tce/packages/mvapich2/mvapich2-${MPI_VER}-intel-${COMP_VER}/bin/mpicxx" \
   -DCMAKE_CXX_COMPILER=/usr/tce/packages/intel/intel-${COMP_VER}/compiler/${COMP_VER}/linux/bin/icpx \
+  -DCMAKE_C_COMPILER=/usr/tce/packages/intel/intel-${COMP_VER}/compiler/${COMP_VER}/linux/bin/icx \
   -DBLT_CXX_STD=c++14 \
   -C ${RAJA_HOSTCONFIG} \
-  -DENABLE_MPI=On \
+  -DENABLE_MPI=ON \
+  -DRAJA_ENABLE_FORCEINLINE_RECURSIVE=Off \
   -DENABLE_OPENMP=On \
   -DCMAKE_INSTALL_PREFIX=../install_${BUILD_SUFFIX} \
   "$@" \
