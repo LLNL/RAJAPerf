@@ -159,6 +159,13 @@ void RunParams::print(std::ostream& str) const
   str << "\n hip reduction data space = " << getDataSpaceName(hipReductionDataSpace);
   str << "\n kokkos reduction data space = " << getDataSpaceName(kokkosReductionDataSpace);
 
+  str << "\n seq MPI data space = " << getDataSpaceName(seqMPIDataSpace);
+  str << "\n omp MPI data space = " << getDataSpaceName(ompMPIDataSpace);
+  str << "\n omp target MPI data space = " << getDataSpaceName(ompTargetMPIDataSpace);
+  str << "\n cuda MPI data space = " << getDataSpaceName(cudaMPIDataSpace);
+  str << "\n hip MPI data space = " << getDataSpaceName(hipMPIDataSpace);
+  str << "\n kokkos MPI data space = " << getDataSpaceName(kokkosMPIDataSpace);
+
   str << "\n kernel_input = ";
   for (size_t j = 0; j < kernel_input.size(); ++j) {
     str << "\n\t" << kernel_input[j];
@@ -1152,41 +1159,35 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t --kokkos-data-space Host (run KOKKOS variants with Host memory)\n"
       << "\t\t -kds HipPinned (run KOKKOS variants with Hip Pinned memory)\n\n";
 
-  str << "\t --seq-mpi-data-space, -smpids <string> [Default is Host]\n"
+  str << "\t --seq-mpi-data-space <string> [Default is Host]\n"
       << "\t      (name of data space to use with MPI and sequential execution)\n";
   str << "\t\t Examples...\n"
-      << "\t\t --seq-mpi-data-space Host (run sequential variants with Host memory for MPI buffers)\n"
-      << "\t\t -smpids Copy (run sequential variants and copy to Host memory for MPI buffers)\n\n";
+      << "\t\t --seq-mpi-data-space Host (run sequential variants with Host memory for MPI buffers)\n\n";
 
-  str << "\t --omp-mpi-data-space, -ompids <string> [Default is Omp]\n"
+  str << "\t --omp-mpi-data-space <string> [Default is Omp]\n"
       << "\t      (name of data space to use with MPI and OpenMP execution)\n";
   str << "\t\t Examples...\n"
-      << "\t\t --omp-mpi-data-space Omp (run Omp variants with Omp memory for MPI buffers)\n"
-      << "\t\t -ompids Host (run Omp variants with Host memory for MPI buffers)\n\n";
+      << "\t\t --omp-mpi-data-space Omp (run Omp variants with Omp memory for MPI buffers)\n\n";
 
-  str << "\t --omptarget-mpi-data-space, -otmpids <string> [Default is Copy]\n"
+  str << "\t --omptarget-mpi-data-space <string> [Default is Copy]\n"
       << "\t      (name of data space to use with MPI and OpenMP target execution)\n";
   str << "\t\t Examples...\n"
-      << "\t\t --omptarget-mpi-data-space Copy (run Omp Target variants and copy to Host memory for MPI buffers)\n"
-      << "\t\t -otmpids OmpTarget (run Omp Target variants with OmpTarget memory for MPI buffers (assumes MPI can access OmpTarget memory))\n\n";
+      << "\t\t --omptarget-mpi-data-space Copy (run Omp Target variants and copy to Host memory for MPI buffers)\n\n";
 
-  str << "\t --cuda-mpi-data-space, -cmpids <string> [Default is CudaPinned]\n"
+  str << "\t --cuda-mpi-data-space <string> [Default is CudaPinned]\n"
       << "\t      (name of data space to use with MPI and cuda execution)\n";
   str << "\t\t Examples...\n"
-      << "\t\t --cuda-mpi-data-space CudaPinned (run CUDA variants with Cuda Pinned memory for MPI buffers)\n"
-      << "\t\t -cmpids CudaDevice (run CUDA variants with Cuda Device memory for MPI buffers (assumes MPI is cuda/gpu aware))\n\n";
+      << "\t\t --cuda-mpi-data-space CudaPinned (run CUDA variants with Cuda Pinned memory for MPI buffers)\n\n";
 
-  str << "\t --hip-mpi-data-space, -hmpids <string> [Default is HipPinned]\n"
+  str << "\t --hip-mpi-data-space <string> [Default is HipPinned]\n"
       << "\t      (name of data space to use with MPI and hip execution)\n";
   str << "\t\t Examples...\n"
-      << "\t\t --hip-mpi-data-space Copy (run HIP variants and copy to Host memory for MPI buffers)\n"
-      << "\t\t -hmpids hipDevice (run HIP variants with Hip Device memory for MPI buffers (assumes MPI is hip/gpu aware))\n\n";
+      << "\t\t --hip-mpi-data-space Copy (run HIP variants and copy to Host memory for MPI buffers)\n\n";
 
-  str << "\t --kokkos-mpi-data-space, -kmpids <string> [Default is Copy]\n"
+  str << "\t --kokkos-mpi-data-space <string> [Default is Copy]\n"
       << "\t      (name of data space to use with MPI and kokkos execution)\n";
   str << "\t\t Examples...\n"
-      << "\t\t --kokkos-mpi-data-space Copy (run KOKKOS variants and copy to Host memory for MPI buffers)\n"
-      << "\t\t -kmpids HipPinned (run KOKKOS variants with Hip Pinned memory for MPI buffers)\n\n";
+      << "\t\t --kokkos-mpi-data-space Copy (run KOKKOS variants and copy to Host memory for MPI buffers)\n\n";
 
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
   str << "\t --add-to-spot-config, -atsc <string> [Default is none]\n"
