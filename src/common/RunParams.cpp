@@ -1159,6 +1159,42 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t --kokkos-data-space Host (run KOKKOS variants with Host memory)\n"
       << "\t\t -kds HipPinned (run KOKKOS variants with Hip Pinned memory)\n\n";
 
+  str << "\t --seq-reduction-data-space <string> [Default is Host]\n"
+      << "\t      (name of data space to use with reductions for sequential variants)\n"
+      << "\t      Valid data space names are 'Host' or 'CudaPinned'\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --seq-reduction-data-space Host (run sequential variants with Host memory)\n\n";
+
+  str << "\t --omp-reduction-data-space <string> [Default is Omp]\n"
+      << "\t      (names of data space to use with reductions for OpenMP variants)\n"
+      << "\t      Valid data space names are 'Host' or 'Omp'\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --omp-reduction-data-space Omp (run Omp variants with Omp memory)\n\n";
+
+  str << "\t --omptarget-reduction-data-space <string> [Default is OmpTarget]\n"
+      << "\t      (names of data space to use with reductions for OpenMP Target variants)\n"
+      << "\t      Valid data space names are 'OmpTarget' or 'CudaPinned'\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --omptarget-reduction-data-space OmpTarget (run Omp Target variants with Omp Target memory)\n\n";
+
+  str << "\t --cuda-reduction-data-space <string> [Default is CudaManagedDevicePreferredHostAccessed]\n"
+      << "\t      (names of data space to use with reductions for CUDA variants)\n"
+      << "\t      Valid data space names are 'CudaDevice', 'CudaPinned', or 'CudaManaged'\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --cuda-reduction-data-space CudaManaged (run CUDA variants with Cuda Managed memory)\n\n";
+
+  str << "\t --hip-reduction-data-space <string> [Default is HipDevice]\n"
+      << "\t      (names of data space to use with reductions for HIP variants)\n"
+      << "\t      Valid data space names are 'HipDevice', 'HipPinned', or 'HipManaged'\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --hip-reduction-data-space HipManaged (run HIP variants with Hip Managed memory)\n\n";
+
+  str << "\t --kokkos-reduction-data-space <string> [Default is Host]\n"
+      << "\t      (names of data space to use with reductions)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --kokkos-data-space Host (run KOKKOS variants with Host memory)\n"
+      << "\t\t -kds HipPinned (run KOKKOS variants with Hip Pinned memory)\n\n";
+
   str << "\t --seq-mpi-data-space <string> [Default is Host]\n"
       << "\t      (name of data space to use with MPI and sequential execution)\n";
   str << "\t\t Examples...\n"
