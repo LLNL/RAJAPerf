@@ -152,6 +152,13 @@ void RunParams::print(std::ostream& str) const
   str << "\n hip data space = " << getDataSpaceName(hipDataSpace);
   str << "\n kokkos data space = " << getDataSpaceName(kokkosDataSpace);
 
+  str << "\n seq reduction data space = " << getDataSpaceName(seqReductionDataSpace);
+  str << "\n omp reduction data space = " << getDataSpaceName(ompReductionDataSpace);
+  str << "\n omp target reduction data space = " << getDataSpaceName(ompTargetReductionDataSpace);
+  str << "\n cuda reduction data space = " << getDataSpaceName(cudaReductionDataSpace);
+  str << "\n hip reduction data space = " << getDataSpaceName(hipReductionDataSpace);
+  str << "\n kokkos reduction data space = " << getDataSpaceName(kokkosReductionDataSpace);
+
   str << "\n kernel_input = ";
   for (size_t j = 0; j < kernel_input.size(); ++j) {
     str << "\n\t" << kernel_input[j];
@@ -574,18 +581,18 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
                 opt == std::string("-hds") ||
                 opt == std::string("--kokkos-data-space") ||
                 opt == std::string("-kds") ||
+                opt == std::string("--seq-reduction-data-space") ||
+                opt == std::string("--omp-reduction-data-space") ||
+                opt == std::string("--omptarget-reduction-data-space") ||
+                opt == std::string("--cuda-reduction-data-space") ||
+                opt == std::string("--hip-reduction-data-space") ||
+                opt == std::string("--kokkos-reduction-data-space")
                 opt == std::string("--seq-mpi-data-space") ||
-                opt == std::string("-smpids") ||
                 opt == std::string("--omp-mpi-data-space") ||
-                opt == std::string("-ompids") ||
                 opt == std::string("--omptarget-mpi-data-space") ||
-                opt == std::string("-ompitds") ||
                 opt == std::string("--cuda-mpi-data-space") ||
-                opt == std::string("-cmpids") ||
                 opt == std::string("--hip-mpi-data-space") ||
-                opt == std::string("-hmpids") ||
-                opt == std::string("--kokkos-mpi-data-space") ||
-                opt == std::string("-kmpids") ) {
+                opt == std::string("--kokkos-mpi-data-space") ) {
 
       bool got_someting = false;
       bool got_something_available = false;
@@ -621,28 +628,34 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
               } else if ( opt_name == std::string("--kokkos-data-space") ||
                           opt_name == std::string("-kds") ) {
                 kokkosDataSpace = ds;
-              } else if ( opt_name == std::string("--seq-mpi-data-space") ||
-                          opt_name == std::string("-smpids") ) {
+              } else if ( opt_name == std::string("--seq-reduction-data-space") ) {
+                seqReductionDataSpace = ds;
+              } else if ( opt_name == std::string("--omp-reduction-data-space") ) {
+                ompReductionDataSpace = ds;
+              } else if ( opt_name == std::string("--omptarget-reduction-data-space") ) {
+                ompTargetReductionDataSpace = ds;
+              } else if ( opt_name == std::string("--cuda-reduction-data-space") ) {
+                cudaReductionDataSpace = ds;
+              } else if ( opt_name == std::string("--hip-reduction-data-space") ) {
+                hipReductionDataSpace = ds;
+              } else if ( opt_name == std::string("--kokkos-reduction-data-space") ) {
+                kokkosReductionDataSpace = ds;
+              } else if ( opt_name == std::string("--seq-mpi-data-space") ) {
                 seqMPIDataSpace = ds;
                 got_something_available = got_something_available || got_something_pseudo;
-              } else if ( opt_name == std::string("--omp-mpi-data-space") ||
-                          opt_name == std::string("-ompids") ) {
+              } else if ( opt_name == std::string("--omp-mpi-data-space") ) {
                 ompMPIDataSpace = ds;
                 got_something_available = got_something_available || got_something_pseudo;
-              } else if ( opt_name == std::string("--omptarget-mpi-data-space") ||
-                          opt_name == std::string("-otmpids") ) {
+              } else if ( opt_name == std::string("--omptarget-mpi-data-space") ) {
                 ompTargetMPIDataSpace = ds;
                 got_something_available = got_something_available || got_something_pseudo;
-              } else if ( opt_name == std::string("--cuda-mpi-data-space") ||
-                          opt_name == std::string("-cmpids") ) {
+              } else if ( opt_name == std::string("--cuda-mpi-data-space") ) {
                 cudaMPIDataSpace = ds;
                 got_something_available = got_something_available || got_something_pseudo;
-              } else if ( opt_name == std::string("--hip-mpi-data-space") ||
-                          opt_name == std::string("-hmpids") ) {
+              } else if ( opt_name == std::string("--hip-mpi-data-space") ) {
                 hipMPIDataSpace = ds;
                 got_something_available = got_something_available || got_something_pseudo;
-              } else if ( opt_name == std::string("--kokkos-mpi-data-space") ||
-                          opt_name == std::string("-kmpids") ) {
+              } else if ( opt_name == std::string("--kokkos-mpi-data-space") ) {
                 kokkosMPIDataSpace = ds;
                 got_something_available = got_something_available || got_something_pseudo;
               } else {
@@ -665,6 +678,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
           }
         }
       }
+
     } else if ( std::string(argv[i]) == std::string("--tunings") ||
                 std::string(argv[i]) == std::string("-t") ) {
 
@@ -829,6 +843,10 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
     }
 
+    if (input_state == InfoRequest) {
+      break;
+    }
+
   }
 
   // Default size and size_meaning if unset
@@ -894,9 +912,10 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
   processTuningInput();
 
-  if ( input_state != BadInput &&
+  if ( input_state != InfoRequest && 
+       input_state != BadInput &&
        input_state != DryRun && 
-       input_state != CheckRun ) {
+       input_state != CheckRun) {
     input_state = PerfRun;
   }
 }
@@ -1217,15 +1236,15 @@ void RunParams::printVariantNames(std::ostream& str) const
 void RunParams::printDataSpaceNames(std::ostream& str) const
 {
   str << "\nAvailable data spaces:";
-  str << "\n-------------------\n";
+  str << "\n----------------------\n";
   for (int ids = 0; ids < static_cast<int>(DataSpace::NumSpaces); ++ids) {
     DataSpace ds = static_cast<DataSpace>(ids);
     if (isDataSpaceAvailable(ds)) {
       str << getDataSpaceName(ds) << std::endl;
     }
   }
-  str << "\nUnavailable data spaces:";
-  str << "\n-------------------\n";
+  str << "\nUnavailable data spaces in current build configuration:";
+  str << "\n-------------------------------------------------------\n";
   for (int ids = 0; ids < static_cast<int>(DataSpace::NumSpaces); ++ids) {
     DataSpace ds = static_cast<DataSpace>(ids);
     if (!isDataSpaceAvailable(ds)) {

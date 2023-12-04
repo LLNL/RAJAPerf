@@ -85,7 +85,6 @@ __global__ void reduce_struct(Real_ptr x, Real_ptr y,
      __syncthreads();
   }
 
-// serialized access to shared data;
   if ( threadIdx.x == 0 ) {
     RAJA::atomicAdd<RAJA::hip_atomic>( xsum, pxsum[ 0 ] );
     RAJA::atomicMin<RAJA::hip_atomic>( xmin, pxmin[ 0 ] );
@@ -98,8 +97,10 @@ __global__ void reduce_struct(Real_ptr x, Real_ptr y,
 }
 
 
+
+
 template < size_t block_size >
-void REDUCE_STRUCT::runHipVariantBlock(VariantID vid)
+void REDUCE_STRUCT::runHipVariantBlockAtomic(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -111,13 +112,13 @@ void REDUCE_STRUCT::runHipVariantBlock(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    Real_ptr mem; //xcenter,xmin,xmax,ycenter,ymin,ymax
-    allocData(DataSpace::HipDevice, mem,6);
+    RAJAPERF_HIP_REDUCER_SETUP(Real_ptr, mem, hmem, 6);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipErrchk(hipMemsetAsync(mem, 0.0, 6*sizeof(Real_type), res.get_stream()));
+      Real_type imem[6] {m_init_sum, m_init_min, m_init_max, m_init_sum, m_init_min, m_init_max};
+      RAJAPERF_HIP_REDUCER_INITIALIZE(imem, mem, hmem, 6);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 6*sizeof(Real_type)*block_size;
@@ -132,34 +133,31 @@ void REDUCE_STRUCT::runHipVariantBlock(VariantID vid)
                          points.N);
       hipErrchk( hipGetLastError() );
 
-      Real_type lmem[6]={0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-      hipErrchk( hipMemcpyAsync( &lmem[0], mem, 6*sizeof(Real_type),
-                                 hipMemcpyDeviceToHost, res.get_stream() ) );
-      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
-
-      points.SetCenter(lmem[0]/points.N, lmem[3]/points.N);
-      points.SetXMin(lmem[1]);
-      points.SetXMax(lmem[2]);
-      points.SetYMin(lmem[4]);
-      points.SetYMax(lmem[5]);
+      Real_type rmem[6];
+      RAJAPERF_HIP_REDUCER_COPY_BACK(rmem, mem, hmem, 6);
+      points.SetCenter(rmem[0]/points.N, rmem[3]/points.N);
+      points.SetXMin(rmem[1]);
+      points.SetXMax(rmem[2]);
+      points.SetYMin(rmem[4]);
+      points.SetYMax(rmem[5]);
       m_points=points;
 
     }
     stopTimer();
 
-    deallocData(DataSpace::HipDevice, mem);
+    RAJAPERF_HIP_REDUCER_TEARDOWN(mem, hmem);
 
   } else if ( vid == RAJA_HIP ) {
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::hip_reduce, Real_type> xsum(m_init_sum);
-      RAJA::ReduceSum<RAJA::hip_reduce, Real_type> ysum(m_init_sum);
-      RAJA::ReduceMin<RAJA::hip_reduce, Real_type> xmin(m_init_min);
-      RAJA::ReduceMin<RAJA::hip_reduce, Real_type> ymin(m_init_min);
-      RAJA::ReduceMax<RAJA::hip_reduce, Real_type> xmax(m_init_max);
-      RAJA::ReduceMax<RAJA::hip_reduce, Real_type> ymax(m_init_max);
+      RAJA::ReduceSum<RAJA::hip_reduce_atomic, Real_type> xsum(m_init_sum);
+      RAJA::ReduceSum<RAJA::hip_reduce_atomic, Real_type> ysum(m_init_sum);
+      RAJA::ReduceMin<RAJA::hip_reduce_atomic, Real_type> xmin(m_init_min);
+      RAJA::ReduceMin<RAJA::hip_reduce_atomic, Real_type> ymin(m_init_min);
+      RAJA::ReduceMax<RAJA::hip_reduce_atomic, Real_type> xmax(m_init_max);
+      RAJA::ReduceMax<RAJA::hip_reduce_atomic, Real_type> ymax(m_init_max);
 
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
@@ -183,7 +181,7 @@ void REDUCE_STRUCT::runHipVariantBlock(VariantID vid)
 
 }
 template < size_t block_size >
-void REDUCE_STRUCT::runHipVariantOccGS(VariantID vid)
+void REDUCE_STRUCT::runHipVariantBlockAtomicOccGS(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -195,8 +193,7 @@ void REDUCE_STRUCT::runHipVariantOccGS(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    Real_ptr mem; //xcenter,xmin,xmax,ycenter,ymin,ymax
-    allocData(DataSpace::HipDevice, mem,6);
+    RAJAPERF_HIP_REDUCER_SETUP(Real_ptr, mem, hmem, 6);
 
     constexpr size_t shmem = 6*sizeof(Real_type)*block_size;
     const size_t max_grid_size = detail::getHipOccupancyMaxBlocks(
@@ -205,7 +202,8 @@ void REDUCE_STRUCT::runHipVariantOccGS(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipErrchk(hipMemsetAsync(mem, 0.0, 6*sizeof(Real_type), res.get_stream()));
+      Real_type imem[6] {m_init_sum, m_init_min, m_init_max, m_init_sum, m_init_min, m_init_max};
+      RAJAPERF_HIP_REDUCER_INITIALIZE(imem, mem, hmem, 6);
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
@@ -219,24 +217,110 @@ void REDUCE_STRUCT::runHipVariantOccGS(VariantID vid)
                          points.N);
       hipErrchk( hipGetLastError() );
 
-      Real_type lmem[6]={0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-      hipErrchk( hipMemcpyAsync( &lmem[0], mem, 6*sizeof(Real_type),
-                                 hipMemcpyDeviceToHost, res.get_stream() ) );
-      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
-
-      points.SetCenter(lmem[0]/points.N, lmem[3]/points.N);
-      points.SetXMin(lmem[1]);
-      points.SetXMax(lmem[2]);
-      points.SetYMin(lmem[4]);
-      points.SetYMax(lmem[5]);
+      Real_type rmem[6];
+      RAJAPERF_HIP_REDUCER_COPY_BACK(rmem, mem, hmem, 6);
+      points.SetCenter(rmem[0]/points.N, rmem[3]/points.N);
+      points.SetXMin(rmem[1]);
+      points.SetXMax(rmem[2]);
+      points.SetYMin(rmem[4]);
+      points.SetYMax(rmem[5]);
       m_points=points;
 
     }
     stopTimer();
 
-    deallocData(DataSpace::HipDevice, mem);
+    RAJAPERF_HIP_REDUCER_TEARDOWN(mem, hmem);
 
   } else if ( vid == RAJA_HIP ) {
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      RAJA::ReduceSum<RAJA::hip_reduce_atomic, Real_type> xsum(m_init_sum);
+      RAJA::ReduceSum<RAJA::hip_reduce_atomic, Real_type> ysum(m_init_sum);
+      RAJA::ReduceMin<RAJA::hip_reduce_atomic, Real_type> xmin(m_init_min);
+      RAJA::ReduceMin<RAJA::hip_reduce_atomic, Real_type> ymin(m_init_min);
+      RAJA::ReduceMax<RAJA::hip_reduce_atomic, Real_type> xmax(m_init_max);
+      RAJA::ReduceMax<RAJA::hip_reduce_atomic, Real_type> ymax(m_init_max);
+
+      RAJA::forall< RAJA::hip_exec_occ_calc<block_size, true /*async*/> >( res,
+        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+          REDUCE_STRUCT_BODY_RAJA;
+      });
+
+      points.SetCenter((xsum.get()/(points.N)),
+                       (ysum.get()/(points.N)));
+      points.SetXMin((xmin.get()));
+      points.SetXMax((xmax.get()));
+      points.SetYMin((ymin.get()));
+      points.SetYMax((ymax.get()));
+      m_points=points;
+
+    }
+    stopTimer();
+
+  } else {
+     getCout() << "\n  REDUCE_STRUCT : Unknown Hip variant id = " << vid << std::endl;
+  }
+
+}
+
+template < size_t block_size >
+void REDUCE_STRUCT::runHipVariantBlock(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  auto res{getHipResource()};
+
+  REDUCE_STRUCT_DATA_SETUP;
+
+  if ( vid == RAJA_HIP ) {
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      RAJA::ReduceSum<RAJA::hip_reduce, Real_type> xsum(m_init_sum);
+      RAJA::ReduceSum<RAJA::hip_reduce, Real_type> ysum(m_init_sum);
+      RAJA::ReduceMin<RAJA::hip_reduce, Real_type> xmin(m_init_min);
+      RAJA::ReduceMin<RAJA::hip_reduce, Real_type> ymin(m_init_min);
+      RAJA::ReduceMax<RAJA::hip_reduce, Real_type> xmax(m_init_max);
+      RAJA::ReduceMax<RAJA::hip_reduce, Real_type> ymax(m_init_max);
+
+      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
+        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+          REDUCE_STRUCT_BODY_RAJA;
+      });
+
+      points.SetCenter((xsum.get()/(points.N)),
+                       (ysum.get()/(points.N)));
+      points.SetXMin((xmin.get()));
+      points.SetXMax((xmax.get()));
+      points.SetYMin((ymin.get()));
+      points.SetYMax((ymax.get()));
+      m_points=points;
+
+    }
+    stopTimer();
+
+  } else {
+     getCout() << "\n  REDUCE_STRUCT : Unknown Hip variant id = " << vid << std::endl;
+  }
+
+}
+template < size_t block_size >
+void REDUCE_STRUCT::runHipVariantBlockOccGS(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  auto res{getHipResource()};
+
+  REDUCE_STRUCT_DATA_SETUP;
+
+  if ( vid == RAJA_HIP ) {
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -284,7 +368,7 @@ void REDUCE_STRUCT::runHipVariant(VariantID vid, size_t tune_idx)
         if (tune_idx == t) {
 
           setBlockSize(block_size);
-          runHipVariantBlock<block_size>(vid);
+          runHipVariantBlockAtomic<block_size>(vid);
 
         }
 
@@ -293,11 +377,33 @@ void REDUCE_STRUCT::runHipVariant(VariantID vid, size_t tune_idx)
         if (tune_idx == t) {
 
           setBlockSize(block_size);
-          runHipVariantOccGS<block_size>(vid);
+          runHipVariantBlockAtomicOccGS<block_size>(vid);
 
         }
 
         t += 1;
+
+        if ( vid == RAJA_HIP ) {
+
+          if (tune_idx == t) {
+
+            setBlockSize(block_size);
+            runHipVariantBlock<block_size>(vid);
+
+          }
+
+          t += 1;
+
+          if (tune_idx == t) {
+
+            setBlockSize(block_size);
+            runHipVariantBlockOccGS<block_size>(vid);
+
+          }
+
+          t += 1;
+
+        }
 
       }
 
@@ -320,9 +426,17 @@ void REDUCE_STRUCT::setHipTuningDefinitions(VariantID vid)
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
 
-        addVariantTuningName(vid, "block_"+std::to_string(block_size));
+        addVariantTuningName(vid, "blkatm_"+std::to_string(block_size));
 
-        addVariantTuningName(vid, "occgs_"+std::to_string(block_size));
+        addVariantTuningName(vid, "blkatm_occgs_"+std::to_string(block_size));
+
+        if ( vid == RAJA_HIP ) {
+
+          addVariantTuningName(vid, "block_"+std::to_string(block_size));
+
+          addVariantTuningName(vid, "block_occgs_"+std::to_string(block_size));
+
+        }
 
       }
 

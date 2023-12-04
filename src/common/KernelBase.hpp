@@ -261,7 +261,7 @@ public:
   Size_type getDataAlignment() const;
 
   DataSpace getDataSpace(VariantID vid) const;
-  DataSpace getHostAccessibleDataSpace(VariantID vid) const;
+  DataSpace getReductionDataSpace(VariantID vid) const;
   DataSpace getMPIDataSpace(VariantID vid) const;
 
   template <typename T>
@@ -330,9 +330,10 @@ public:
   template <typename T>
   rajaperf::AutoDataMover<T> scopedMoveData(T*& ptr, Size_type len, VariantID vid)
   {
-    rajaperf::moveData(getHostAccessibleDataSpace(vid), getDataSpace(vid),
-        ptr, len, getDataAlignment());
-    return {getDataSpace(vid), getHostAccessibleDataSpace(vid), ptr, len, getDataAlignment()};
+    DataSpace ds = getDataSpace(vid);
+    DataSpace hds = rajaperf::hostCopyDataSpace(ds);
+    rajaperf::moveData(hds, ds, ptr, len, getDataAlignment());
+    return {ds, hds, ptr, len, getDataAlignment()};
   }
 
   template <typename T>

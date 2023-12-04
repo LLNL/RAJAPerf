@@ -95,6 +95,8 @@ void PI_ATOMIC::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
 
   }
 
+  PI_ATOMIC_DATA_TEARDOWN;
+
 }
 
 } // end namespace basic

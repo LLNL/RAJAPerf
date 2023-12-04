@@ -25,7 +25,14 @@
 
 #define PI_ATOMIC_DATA_SETUP \
   Real_type dx = m_dx; \
-  Real_ptr pi = m_pi;
+  Real_ptr pi; \
+  allocData(getReductionDataSpace(vid), pi, 1);
+
+#define PI_ATOMIC_DATA_TEARDOWN \
+  deallocData(pi, vid);
+
+#define PI_ATOMIC_GPU_DATA_SETUP \
+  Real_type dx = m_dx;
 
 
 #include "common/KernelBase.hpp"
@@ -68,7 +75,6 @@ private:
   using gpu_block_sizes_type = gpu_block_size::make_list_type<default_gpu_block_size>;
 
   Real_type m_dx;
-  Real_ptr m_pi;
   Real_type m_pi_init;
   Real_type m_pi_final;
 };
