@@ -586,7 +586,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
                 opt == std::string("--omptarget-reduction-data-space") ||
                 opt == std::string("--cuda-reduction-data-space") ||
                 opt == std::string("--hip-reduction-data-space") ||
-                opt == std::string("--kokkos-reduction-data-space")
+                opt == std::string("--kokkos-reduction-data-space") ||
                 opt == std::string("--seq-mpi-data-space") ||
                 opt == std::string("--omp-mpi-data-space") ||
                 opt == std::string("--omptarget-mpi-data-space") ||
