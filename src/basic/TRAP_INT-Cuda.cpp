@@ -74,7 +74,7 @@ __global__ void trapint(Real_type x0, Real_type xp,
 
 
 template < size_t block_size >
-void TRAP_INT::runCudaVariantBlock(VariantID vid)
+void TRAP_INT::runCudaVariantBlockAtomic(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -117,7 +117,7 @@ void TRAP_INT::runCudaVariantBlock(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> sumx(m_sumx_init);
+      RAJA::ReduceSum<RAJA::cuda_reduce_atomic, Real_type> sumx(m_sumx_init);
 
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
@@ -135,7 +135,7 @@ void TRAP_INT::runCudaVariantBlock(VariantID vid)
 }
 
 template < size_t block_size >
-void TRAP_INT::runCudaVariantOccGS(VariantID vid)
+void TRAP_INT::runCudaVariantBlockAtomicOccGS(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -182,6 +182,72 @@ void TRAP_INT::runCudaVariantOccGS(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+      RAJA::ReduceSum<RAJA::cuda_reduce_atomic, Real_type> sumx(m_sumx_init);
+
+      RAJA::forall< RAJA::cuda_exec_occ_calc<block_size, true /*async*/> >( res,
+        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+        TRAP_INT_BODY;
+      });
+
+      m_sumx += static_cast<Real_type>(sumx.get()) * h;
+
+    }
+    stopTimer();
+
+  } else {
+     getCout() << "\n  TRAP_INT : Unknown Cuda variant id = " << vid << std::endl;
+  }
+}
+
+template < size_t block_size >
+void TRAP_INT::runCudaVariantBlock(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  auto res{getCudaResource()};
+
+  TRAP_INT_DATA_SETUP;
+
+  if ( vid == RAJA_CUDA ) {
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> sumx(m_sumx_init);
+
+      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
+        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+        TRAP_INT_BODY;
+      });
+
+      m_sumx += static_cast<Real_type>(sumx.get()) * h;
+
+    }
+    stopTimer();
+
+  } else {
+     getCout() << "\n  TRAP_INT : Unknown Cuda variant id = " << vid << std::endl;
+  }
+}
+
+template < size_t block_size >
+void TRAP_INT::runCudaVariantBlockOccGS(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  auto res{getCudaResource()};
+
+  TRAP_INT_DATA_SETUP;
+
+  if ( vid == RAJA_CUDA ) {
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
       RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> sumx(m_sumx_init);
 
       RAJA::forall< RAJA::cuda_exec_occ_calc<block_size, true /*async*/> >( res,
@@ -213,7 +279,7 @@ void TRAP_INT::runCudaVariant(VariantID vid, size_t tune_idx)
         if (tune_idx == t) {
 
           setBlockSize(block_size);
-          runCudaVariantBlock<block_size>(vid);
+          runCudaVariantBlockAtomic<block_size>(vid);
 
         }
 
@@ -222,11 +288,33 @@ void TRAP_INT::runCudaVariant(VariantID vid, size_t tune_idx)
         if (tune_idx == t) {
 
           setBlockSize(block_size);
-          runCudaVariantOccGS<block_size>(vid);
+          runCudaVariantBlockAtomicOccGS<block_size>(vid);
 
         }
 
         t += 1;
+
+        if ( vid == RAJA_CUDA ) {
+
+          if (tune_idx == t) {
+
+            setBlockSize(block_size);
+            runCudaVariantBlock<block_size>(vid);
+
+          }
+
+          t += 1;
+
+          if (tune_idx == t) {
+
+            setBlockSize(block_size);
+            runCudaVariantBlockOccGS<block_size>(vid);
+
+          }
+
+          t += 1;
+
+        }
 
       }
 
@@ -249,9 +337,17 @@ void TRAP_INT::setCudaTuningDefinitions(VariantID vid)
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
 
-        addVariantTuningName(vid, "block_"+std::to_string(block_size));
+        addVariantTuningName(vid, "blkatm_"+std::to_string(block_size));
 
-        addVariantTuningName(vid, "occgs_"+std::to_string(block_size));
+        addVariantTuningName(vid, "blkatm_occgs_"+std::to_string(block_size));
+
+        if ( vid == RAJA_CUDA ) {
+
+          addVariantTuningName(vid, "block_"+std::to_string(block_size));
+
+          addVariantTuningName(vid, "block_occgs_"+std::to_string(block_size));
+
+        }
 
       }
 

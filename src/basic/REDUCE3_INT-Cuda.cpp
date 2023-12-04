@@ -68,7 +68,7 @@ __global__ void reduce3int(Int_ptr vec,
 
 
 template < size_t block_size >
-void REDUCE3_INT::runCudaVariantBlock(VariantID vid)
+void REDUCE3_INT::runCudaVariantBlockAtomic(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -114,9 +114,9 @@ void REDUCE3_INT::runCudaVariantBlock(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::cuda_reduce, Int_type> vsum(m_vsum_init);
-      RAJA::ReduceMin<RAJA::cuda_reduce, Int_type> vmin(m_vmin_init);
-      RAJA::ReduceMax<RAJA::cuda_reduce, Int_type> vmax(m_vmax_init);
+      RAJA::ReduceSum<RAJA::cuda_reduce_atomic, Int_type> vsum(m_vsum_init);
+      RAJA::ReduceMin<RAJA::cuda_reduce_atomic, Int_type> vmin(m_vmin_init);
+      RAJA::ReduceMax<RAJA::cuda_reduce_atomic, Int_type> vmax(m_vmax_init);
 
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
@@ -136,7 +136,7 @@ void REDUCE3_INT::runCudaVariantBlock(VariantID vid)
 }
 
 template < size_t block_size >
-void REDUCE3_INT::runCudaVariantOccGS(VariantID vid)
+void REDUCE3_INT::runCudaVariantBlockAtomicOccGS(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -186,6 +186,80 @@ void REDUCE3_INT::runCudaVariantOccGS(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+      RAJA::ReduceSum<RAJA::cuda_reduce_atomic, Int_type> vsum(m_vsum_init);
+      RAJA::ReduceMin<RAJA::cuda_reduce_atomic, Int_type> vmin(m_vmin_init);
+      RAJA::ReduceMax<RAJA::cuda_reduce_atomic, Int_type> vmax(m_vmax_init);
+
+      RAJA::forall< RAJA::cuda_exec_occ_calc<block_size, true /*async*/> >( res,
+        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+        REDUCE3_INT_BODY_RAJA;
+      });
+
+      m_vsum += static_cast<Int_type>(vsum.get());
+      m_vmin = RAJA_MIN(m_vmin, static_cast<Int_type>(vmin.get()));
+      m_vmax = RAJA_MAX(m_vmax, static_cast<Int_type>(vmax.get()));
+
+    }
+    stopTimer();
+
+  } else {
+     getCout() << "\n  REDUCE3_INT : Unknown Cuda variant id = " << vid << std::endl;
+  }
+}
+
+template < size_t block_size >
+void REDUCE3_INT::runCudaVariantBlock(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  auto res{getCudaResource()};
+
+  REDUCE3_INT_DATA_SETUP;
+
+  if ( vid == RAJA_CUDA ) {
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      RAJA::ReduceSum<RAJA::cuda_reduce, Int_type> vsum(m_vsum_init);
+      RAJA::ReduceMin<RAJA::cuda_reduce, Int_type> vmin(m_vmin_init);
+      RAJA::ReduceMax<RAJA::cuda_reduce, Int_type> vmax(m_vmax_init);
+
+      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
+        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+        REDUCE3_INT_BODY_RAJA;
+      });
+
+      m_vsum += static_cast<Int_type>(vsum.get());
+      m_vmin = RAJA_MIN(m_vmin, static_cast<Int_type>(vmin.get()));
+      m_vmax = RAJA_MAX(m_vmax, static_cast<Int_type>(vmax.get()));
+
+    }
+    stopTimer();
+
+  } else {
+     getCout() << "\n  REDUCE3_INT : Unknown Cuda variant id = " << vid << std::endl;
+  }
+}
+
+template < size_t block_size >
+void REDUCE3_INT::runCudaVariantBlockOccGS(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  auto res{getCudaResource()};
+
+  REDUCE3_INT_DATA_SETUP;
+
+  if ( vid == RAJA_CUDA ) {
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
       RAJA::ReduceSum<RAJA::cuda_reduce, Int_type> vsum(m_vsum_init);
       RAJA::ReduceMin<RAJA::cuda_reduce, Int_type> vmin(m_vmin_init);
       RAJA::ReduceMax<RAJA::cuda_reduce, Int_type> vmax(m_vmax_init);
@@ -221,7 +295,7 @@ void REDUCE3_INT::runCudaVariant(VariantID vid, size_t tune_idx)
         if (tune_idx == t) {
 
           setBlockSize(block_size);
-          runCudaVariantBlock<block_size>(vid);
+          runCudaVariantBlockAtomic<block_size>(vid);
 
         }
 
@@ -230,11 +304,33 @@ void REDUCE3_INT::runCudaVariant(VariantID vid, size_t tune_idx)
         if (tune_idx == t) {
 
           setBlockSize(block_size);
-          runCudaVariantOccGS<block_size>(vid);
+          runCudaVariantBlockAtomicOccGS<block_size>(vid);
 
         }
 
         t += 1;
+
+        if ( vid == RAJA_CUDA ) {
+
+          if (tune_idx == t) {
+
+            setBlockSize(block_size);
+            runCudaVariantBlock<block_size>(vid);
+
+          }
+
+          t += 1;
+
+          if (tune_idx == t) {
+
+            setBlockSize(block_size);
+            runCudaVariantBlockOccGS<block_size>(vid);
+
+          }
+
+          t += 1;
+
+        }
 
       }
 
@@ -257,9 +353,17 @@ void REDUCE3_INT::setCudaTuningDefinitions(VariantID vid)
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
 
-        addVariantTuningName(vid, "block_"+std::to_string(block_size));
+        addVariantTuningName(vid, "blkatm_"+std::to_string(block_size));
 
-        addVariantTuningName(vid, "occgs_"+std::to_string(block_size));
+        addVariantTuningName(vid, "blkatm_occgs_"+std::to_string(block_size));
+
+        if ( vid == RAJA_CUDA ) {
+
+          addVariantTuningName(vid, "block_"+std::to_string(block_size));
+
+          addVariantTuningName(vid, "block_occgs_"+std::to_string(block_size));
+
+        }
 
       }
 

@@ -154,7 +154,7 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
 }
 
 template < size_t block_size >
-void REDUCE_SUM::runHipVariantBlock(VariantID vid)
+void REDUCE_SUM::runHipVariantBlockAtomic(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -192,7 +192,7 @@ void REDUCE_SUM::runHipVariantBlock(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::hip_reduce, Real_type> sum(m_sum_init);
+      RAJA::ReduceSum<RAJA::hip_reduce_atomic, Real_type> sum(m_sum_init);
 
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
@@ -213,7 +213,7 @@ void REDUCE_SUM::runHipVariantBlock(VariantID vid)
 }
 
 template < size_t block_size >
-void REDUCE_SUM::runHipVariantOccGS(VariantID vid)
+void REDUCE_SUM::runHipVariantBlockAtomicOccGS(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -251,6 +251,78 @@ void REDUCE_SUM::runHipVariantOccGS(VariantID vid)
     RAJAPERF_HIP_REDUCER_TEARDOWN(sum, hsum);
 
   } else if ( vid == RAJA_HIP ) {
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      RAJA::ReduceSum<RAJA::hip_reduce_atomic, Real_type> sum(m_sum_init);
+
+      RAJA::forall< RAJA::hip_exec_occ_calc<block_size, true /*async*/> >( res,
+        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+          REDUCE_SUM_BODY;
+      });
+
+      m_sum = sum.get();
+
+    }
+    stopTimer();
+
+  } else {
+
+    getCout() << "\n  REDUCE_SUM : Unknown Hip variant id = " << vid << std::endl;
+
+  }
+
+}
+
+template < size_t block_size >
+void REDUCE_SUM::runHipVariantBlock(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  auto res{getHipResource()};
+
+  REDUCE_SUM_DATA_SETUP;
+
+  if ( vid == RAJA_HIP ) {
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      RAJA::ReduceSum<RAJA::hip_reduce, Real_type> sum(m_sum_init);
+
+      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
+        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+          REDUCE_SUM_BODY;
+      });
+
+      m_sum = sum.get();
+
+    }
+    stopTimer();
+
+  } else {
+
+    getCout() << "\n  REDUCE_SUM : Unknown Hip variant id = " << vid << std::endl;
+
+  }
+
+}
+
+template < size_t block_size >
+void REDUCE_SUM::runHipVariantBlockOccGS(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  auto res{getHipResource()};
+
+  REDUCE_SUM_DATA_SETUP;
+
+  if ( vid == RAJA_HIP ) {
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -301,7 +373,7 @@ void REDUCE_SUM::runHipVariant(VariantID vid, size_t tune_idx)
         if (tune_idx == t) {
 
           setBlockSize(block_size);
-          runHipVariantBlock<block_size>(vid);
+          runHipVariantBlockAtomic<block_size>(vid);
 
         }
 
@@ -310,12 +382,33 @@ void REDUCE_SUM::runHipVariant(VariantID vid, size_t tune_idx)
         if (tune_idx == t) {
 
           setBlockSize(block_size);
-          runHipVariantOccGS<block_size>(vid);
+          runHipVariantBlockAtomicOccGS<block_size>(vid);
 
         }
 
         t += 1;
 
+        if ( vid == RAJA_HIP ) {
+
+          if (tune_idx == t) {
+
+            setBlockSize(block_size);
+            runHipVariantBlock<block_size>(vid);
+
+          }
+
+          t += 1;
+
+          if (tune_idx == t) {
+
+            setBlockSize(block_size);
+            runHipVariantBlockOccGS<block_size>(vid);
+
+          }
+
+          t += 1;
+
+        }
       }
 
     });
@@ -347,9 +440,17 @@ void REDUCE_SUM::setHipTuningDefinitions(VariantID vid)
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
 
-        addVariantTuningName(vid, "block_"+std::to_string(block_size));
+        addVariantTuningName(vid, "blkatm_"+std::to_string(block_size));
 
-        addVariantTuningName(vid, "occgs_"+std::to_string(block_size));
+        addVariantTuningName(vid, "blkatm_occgs_"+std::to_string(block_size));
+
+        if ( vid == RAJA_HIP ) {
+
+          addVariantTuningName(vid, "block_"+std::to_string(block_size));
+
+          addVariantTuningName(vid, "block_occgs_"+std::to_string(block_size));
+
+        }
 
       }
 
