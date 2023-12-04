@@ -26,7 +26,7 @@ COMP_ARCH=$3
 COMP_CLANG_VER=$4
 shift 4
 
-BUILD_SUFFIX=lc_blueos-spectrum${COMP_MPI_VER}-nvcc${COMP_NVCC_VER}-${COMP_ARCH}-clang${COMP_CLANG_VER}
+BUILD_SUFFIX=lc_blueos-spectrum-${COMP_MPI_VER}-nvcc-${COMP_NVCC_VER}-${COMP_ARCH}-clang-${COMP_CLANG_VER}
 RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/blueos/nvcc_clang_X.cmake
 
 echo
