@@ -59,10 +59,10 @@ __global__ void first_min(Real_ptr x,
 
 
 template < size_t block_size >
-void FIRST_MIN::runCudaVariantBlock(VariantID vid)
+void FIRST_MIN::runCudaVariantBlockHost(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
+  // const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
   auto res{getCudaResource()};
@@ -99,7 +99,23 @@ void FIRST_MIN::runCudaVariantBlock(VariantID vid)
 
     RAJAPERF_CUDA_REDUCER_TEARDOWN(dminloc, mymin_block);
 
-  } else if ( vid == RAJA_CUDA ) {
+  } else {
+     getCout() << "\n  FIRST_MIN : Unknown Cuda variant id = " << vid << std::endl;
+  }
+}
+
+template < size_t block_size >
+void FIRST_MIN::runCudaVariantBlockDevice(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  auto res{getCudaResource()};
+
+  FIRST_MIN_DATA_SETUP;
+
+  if ( vid == RAJA_CUDA ) {
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -123,10 +139,10 @@ void FIRST_MIN::runCudaVariantBlock(VariantID vid)
 }
 
 template < size_t block_size >
-void FIRST_MIN::runCudaVariantOccGS(VariantID vid)
+void FIRST_MIN::runCudaVariantBlockHostOccGS(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
+  // const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
   auto res{getCudaResource()};
@@ -167,7 +183,23 @@ void FIRST_MIN::runCudaVariantOccGS(VariantID vid)
 
     RAJAPERF_CUDA_REDUCER_TEARDOWN(dminloc, mymin_block);
 
-  } else if ( vid == RAJA_CUDA ) {
+  } else {
+     getCout() << "\n  FIRST_MIN : Unknown Cuda variant id = " << vid << std::endl;
+  }
+}
+
+template < size_t block_size >
+void FIRST_MIN::runCudaVariantBlockDeviceOccGS(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  auto res{getCudaResource()};
+
+  FIRST_MIN_DATA_SETUP;
+
+  if ( vid == RAJA_CUDA ) {
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -201,23 +233,49 @@ void FIRST_MIN::runCudaVariant(VariantID vid, size_t tune_idx)
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
 
-        if (tune_idx == t) {
+        if ( vid == Base_HIP ) {
 
-          setBlockSize(block_size);
-          runCudaVariantBlock<block_size>(vid);
+          if (tune_idx == t) {
+
+            setBlockSize(block_size);
+            runCudaVariantBlockHost<block_size>(vid);
+
+          }
+
+          t += 1;
+
+          if (tune_idx == t) {
+
+            setBlockSize(block_size);
+            runCudaVariantBlockHostOccGS<block_size>(vid);
+
+          }
+
+          t += 1;
 
         }
 
-        t += 1;
+        if ( vid == RAJA_HIP ) {
 
-        if (tune_idx == t) {
+          if (tune_idx == t) {
 
-          setBlockSize(block_size);
-          runCudaVariantOccGS<block_size>(vid);
+            setBlockSize(block_size);
+            runCudaVariantBlockDevice<block_size>(vid);
+
+          }
+
+          t += 1;
+
+          if (tune_idx == t) {
+
+            setBlockSize(block_size);
+            runCudaVariantBlockDeviceOccGS<block_size>(vid);
+
+          }
+
+          t += 1;
 
         }
-
-        t += 1;
 
       }
 
@@ -240,9 +298,21 @@ void FIRST_MIN::setCudaTuningDefinitions(VariantID vid)
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
 
-        addVariantTuningName(vid, "block_"+std::to_string(block_size));
+        if ( vid == Base_HIP ) {
 
-        addVariantTuningName(vid, "occgs_"+std::to_string(block_size));
+          addVariantTuningName(vid, "blkhst"+std::to_string(block_size));
+
+          addVariantTuningName(vid, "blkhst_occgs_"+std::to_string(block_size));
+
+        }
+
+        if ( vid == RAJA_HIP ) {
+
+          addVariantTuningName(vid, "blkdev"+std::to_string(block_size));
+
+          addVariantTuningName(vid, "blkdev_occgs_"+std::to_string(block_size));
+
+        }
 
       }
 
