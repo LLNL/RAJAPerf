@@ -168,7 +168,10 @@ inline void seq_for(camp::int_seq<T, ts...> const&, Func&& func)
 
 } // closing brace for rajaperf namespace
 
-//
+// allocate pointer of pointer_type with length
+// device_ptr_name gets memory in the reduction data space for the current variant
+// host_ptr_name is set to either device_ptr_name if the reduction data space is
+// host accessible or a new allocation in a host accessible data space otherwise
 #define RAJAPERF_GPU_REDUCER_SETUP_IMPL(pointer_type, device_ptr_name, host_ptr_name, length) \
   DataSpace reduction_data_space = getReductionDataSpace(vid);                 \
   DataSpace host_data_space = hostAccessibleDataSpace(reduction_data_space);   \
@@ -180,42 +183,50 @@ inline void seq_for(camp::int_seq<T, ts...> const&, Func&& func)
     allocData(host_data_space, host_ptr_name, (length));                       \
   }
 
-//
+// deallocate device_ptr_name and host_ptr_name
+// must be in the same scope as RAJAPERF_GPU_REDUCER_SETUP_IMPL
 #define RAJAPERF_GPU_REDUCER_TEARDOWN_IMPL(device_ptr_name, host_ptr_name)     \
   deallocData(reduction_data_space, device_ptr_name);                          \
   if (reduction_data_space != host_data_space) {                               \
     deallocData(host_data_space, host_ptr_name);                               \
   }
 
-//
+// Initialize device_ptr_name with length copies of init_value
+// host_ptr_name will be used as an intermediary with an explicit copy
+// if the reduction data space is not host accessible
 #define RAJAPERF_GPU_REDUCER_INITIALIZE_VALUE_IMPL(gpu_type, init_value, device_ptr_name, host_ptr_name, length) \
   if (device_ptr_name != host_ptr_name) {                                      \
-    for (size_t i = 0; i < static_cast<size_t>(length); ++i) {                                       \
+    for (size_t i = 0; i < static_cast<size_t>(length); ++i) {                 \
       host_ptr_name[i] = (init_value);                                         \
     }                                                                          \
     gpu_type##Errchk( gpu_type##MemcpyAsync( device_ptr_name, host_ptr_name,   \
         (length)*sizeof(device_ptr_name[0]),                                   \
         gpu_type##MemcpyHostToDevice, res.get_stream() ) );                    \
   } else {                                                                     \
-    for (size_t i = 0; i < static_cast<size_t>(length); ++i) {                                       \
+    for (size_t i = 0; i < static_cast<size_t>(length); ++i) {                 \
       device_ptr_name[i] = (init_value);                                       \
     }                                                                          \
   }
+
+// Initialize device_ptr_name with values in init_ptr
+// host_ptr_name will be used as an intermediary with an explicit copy
+// if the reduction data space is not host accessible
 #define RAJAPERF_GPU_REDUCER_INITIALIZE_IMPL(gpu_type, init_ptr, device_ptr_name, host_ptr_name, length) \
   if (device_ptr_name != host_ptr_name) {                                      \
-    for (size_t i = 0; i < static_cast<size_t>(length); ++i) {                                       \
+    for (size_t i = 0; i < static_cast<size_t>(length); ++i) {                 \
       host_ptr_name[i] = (init_ptr)[i];                                        \
     }                                                                          \
     gpu_type##Errchk( gpu_type##MemcpyAsync( device_ptr_name, host_ptr_name,   \
         (length)*sizeof(device_ptr_name[0]),                                   \
         gpu_type##MemcpyHostToDevice, res.get_stream() ) );                    \
   } else {                                                                     \
-    for (size_t i = 0; i < static_cast<size_t>(length); ++i) {                                       \
+    for (size_t i = 0; i < static_cast<size_t>(length); ++i) {                 \
       device_ptr_name[i] = (init_ptr)[i];                                      \
     }                                                                          \
   }
 
-//
+// Copy back data from device_ptr_name into host_ptr_name
+// if the reduction data space is not host accessible
 #define RAJAPERF_GPU_REDUCER_COPY_BACK_IMPL(gpu_type, device_ptr_name, host_ptr_name, length) \
   if (device_ptr_name != host_ptr_name) {                                      \
     gpu_type##Errchk( gpu_type##MemcpyAsync( host_ptr_name, device_ptr_name,   \
@@ -224,15 +235,16 @@ inline void seq_for(camp::int_seq<T, ts...> const&, Func&& func)
   }                                                                            \
   gpu_type##Errchk( gpu_type##StreamSynchronize( res.get_stream() ) );
 
+// Copy data into final_ptr from host_ptr_name
 #define RAJAPERF_GPU_REDUCER_COPY_FINAL_IMPL(final_ptr, host_ptr_name, length) \
-  for (size_t i = 0; i < static_cast<size_t>(length); ++i) {                                         \
+  for (size_t i = 0; i < static_cast<size_t>(length); ++i) {                   \
     (final_ptr)[i] = host_ptr_name[i];                                         \
   }
 
 
 #define RAJAPERF_CUDA_REDUCER_SETUP(pointer_type, device_ptr_name, host_ptr_name, length) \
   RAJAPERF_GPU_REDUCER_SETUP_IMPL(pointer_type, device_ptr_name, host_ptr_name, length)
-#define RAJAPERF_CUDA_REDUCER_TEARDOWN(device_ptr_name, host_ptr_name)          \
+#define RAJAPERF_CUDA_REDUCER_TEARDOWN(device_ptr_name, host_ptr_name) \
   RAJAPERF_GPU_REDUCER_TEARDOWN_IMPL(device_ptr_name, host_ptr_name)
 #define RAJAPERF_CUDA_REDUCER_INITIALIZE_VALUE(init_value, device_ptr_name, host_ptr_name, length) \
   RAJAPERF_GPU_REDUCER_INITIALIZE_VALUE_IMPL(cuda, init_value, device_ptr_name, host_ptr_name, length)
@@ -246,7 +258,7 @@ inline void seq_for(camp::int_seq<T, ts...> const&, Func&& func)
 
 #define RAJAPERF_HIP_REDUCER_SETUP(pointer_type, device_ptr_name, host_ptr_name, length) \
   RAJAPERF_GPU_REDUCER_SETUP_IMPL(pointer_type, device_ptr_name, host_ptr_name, length)
-#define RAJAPERF_HIP_REDUCER_TEARDOWN(device_ptr_name, host_ptr_name)          \
+#define RAJAPERF_HIP_REDUCER_TEARDOWN(device_ptr_name, host_ptr_name) \
   RAJAPERF_GPU_REDUCER_TEARDOWN_IMPL(device_ptr_name, host_ptr_name)
 #define RAJAPERF_HIP_REDUCER_INITIALIZE_VALUE(init_value, device_ptr_name, host_ptr_name, length) \
   RAJAPERF_GPU_REDUCER_INITIALIZE_VALUE_IMPL(hip, init_value, device_ptr_name, host_ptr_name, length)
