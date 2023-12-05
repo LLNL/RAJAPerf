@@ -29,7 +29,6 @@ namespace basic
 {
 
 #define REDUCE3_INT_DATA_SETUP_SYCL \
-  allocAndInitSyclDeviceData(vec, m_vec, iend, qu); \
     Int_ptr hsum; \
     allocAndInitSyclDeviceData(hsum, &m_vsum_init, 1, qu); \
     Int_ptr hmin; \
@@ -38,7 +37,9 @@ namespace basic
     allocAndInitSyclDeviceData(hmax, &m_vmax_init, 1, qu);
 
 #define REDUCE3_INT_DATA_TEARDOWN_SYCL \
-  deallocSyclDeviceData(vec, qu);
+  deallocSyclDeviceData(hsum, qu); \
+  deallocSyclDeviceData(hmin, qu); \
+  deallocSyclDeviceData(hmax, qu);
 
 template <size_t work_group_size >
 void REDUCE3_INT::runSyclVariantImpl(VariantID vid)

@@ -43,10 +43,6 @@ Real_type trap_int_func(Real_type x,
    return denom;
 }
 
-#define TRAP_INT_DATA_SETUP_SYCL // nothing to do here...
-
-#define TRAP_INT_DATA_TEARDOWN_SYCL // nothing to do here...
-
 template <size_t work_group_size >
 void TRAP_INT::runSyclVariantImpl(VariantID vid)
 {
@@ -57,8 +53,6 @@ void TRAP_INT::runSyclVariantImpl(VariantID vid)
   TRAP_INT_DATA_SETUP;
 
   if ( vid == Base_SYCL ) {
-
-    TRAP_INT_DATA_SETUP_SYCL;
 
     if (work_group_size > 0) {
   
@@ -127,16 +121,12 @@ void TRAP_INT::runSyclVariantImpl(VariantID vid)
       stopTimer();
   
     } 
-
-    TRAP_INT_DATA_TEARDOWN_SYCL;
   } else if ( vid == RAJA_SYCL ) {
 
     if ( work_group_size == 0 ) {
       std::cout << "\n  TRAP_INT : RAJA_SYCL does not support auto work group size" << std::endl;
       return;
     }
-
-    TRAP_INT_DATA_SETUP_SYCL;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -153,8 +143,6 @@ void TRAP_INT::runSyclVariantImpl(VariantID vid)
     }
     qu->wait();
     stopTimer();
-
-    TRAP_INT_DATA_TEARDOWN_SYCL;
 
   } else {
      std::cout << "\n  TRAP_INT : Unknown Sycl variant id = " << vid << std::endl;

@@ -28,13 +28,6 @@ namespace rajaperf
 namespace basic
 {
 
-#define INIT_VIEW1D_OFFSET_DATA_SETUP_SYCL \
-  allocAndInitSyclDeviceData(a, m_a, iend, qu);
-
-#define INIT_VIEW1D_OFFSET_DATA_TEARDOWN_SYCL \
-  getSyclDeviceData(m_a, a, iend, qu); \
-  deallocSyclDeviceData(a, qu);
-
 template <size_t work_group_size >
 void INIT_VIEW1D_OFFSET::runSyclVariantImpl(VariantID vid)
 {
@@ -45,8 +38,6 @@ void INIT_VIEW1D_OFFSET::runSyclVariantImpl(VariantID vid)
   INIT_VIEW1D_OFFSET_DATA_SETUP;
 
   if ( vid == Base_SYCL ) {
-
-    INIT_VIEW1D_OFFSET_DATA_SETUP_SYCL;
 
     if (work_group_size > 0) {
   
@@ -91,16 +82,12 @@ void INIT_VIEW1D_OFFSET::runSyclVariantImpl(VariantID vid)
       stopTimer();
   
     } 
-
-    INIT_VIEW1D_OFFSET_DATA_TEARDOWN_SYCL;
   } else if ( vid == RAJA_SYCL ) {
 
     if ( work_group_size == 0 ) {
       std::cout << "\n  INIT_VIEW1D_OFFSET : RAJA_SYCL does not support auto work group size" << std::endl;
       return;
     }
-
-    INIT_VIEW1D_OFFSET_DATA_SETUP_SYCL;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -113,8 +100,6 @@ void INIT_VIEW1D_OFFSET::runSyclVariantImpl(VariantID vid)
     }
     qu->wait();
     stopTimer();
-
-    INIT_VIEW1D_OFFSET_DATA_TEARDOWN_SYCL;
 
   } else {
      std::cout << "\n  INIT_VIEW1D_OFFSET : Unknown Sycl variant id = " << vid << std::endl;

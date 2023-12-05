@@ -29,13 +29,6 @@ namespace rajaperf
 namespace basic
 {
 
-#define INIT_VIEW1D_DATA_SETUP_SYCL \
-  allocAndInitSyclDeviceData(a, m_a, iend, qu);
-
-#define INIT_VIEW1D_DATA_TEARDOWN_SYCL \
-  getSyclDeviceData(m_a, a, iend, qu); \
-  deallocSyclDeviceData(a, qu);
-
 template <size_t work_group_size >
 void INIT_VIEW1D::runSyclVariantImpl(VariantID vid)
 {
@@ -46,8 +39,6 @@ void INIT_VIEW1D::runSyclVariantImpl(VariantID vid)
   INIT_VIEW1D_DATA_SETUP;
 
   if ( vid == Base_SYCL ) {
-
-    INIT_VIEW1D_DATA_SETUP_SYCL;
 
     if (work_group_size > 0) {
 
@@ -90,16 +81,12 @@ void INIT_VIEW1D::runSyclVariantImpl(VariantID vid)
 
     }
 
-    INIT_VIEW1D_DATA_TEARDOWN_SYCL;
-
   } else if ( vid == RAJA_SYCL ) {
 
     if ( work_group_size == 0 ) {
-      std::cout << "\n  INIT3 : RAJA_SYCL does not support auto work group size" << std::endl;
+      std::cout << "\n  INIT_VIEW1D : RAJA_SYCL does not support auto work group size" << std::endl;
       return;
     }
-
-    INIT_VIEW1D_DATA_SETUP_SYCL;
 
     INIT_VIEW1D_VIEW_RAJA;
 
@@ -114,8 +101,6 @@ void INIT_VIEW1D::runSyclVariantImpl(VariantID vid)
     }
     qu->wait();
     stopTimer();
-
-    INIT_VIEW1D_DATA_TEARDOWN_SYCL;
 
   } else {
      std::cout << "\n  INIT_VIEW1D : Unknown Sycl variant id = " << vid << std::endl;

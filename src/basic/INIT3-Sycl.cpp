@@ -28,23 +28,6 @@ namespace rajaperf
 namespace basic
 {
 
-#define INIT3_DATA_SETUP_SYCL \
-  allocAndInitSyclDeviceData(out1, m_out1, iend, qu); \
-  allocAndInitSyclDeviceData(out2, m_out2, iend, qu); \
-  allocAndInitSyclDeviceData(out3, m_out3, iend, qu); \
-  allocAndInitSyclDeviceData(in1, m_in1, iend, qu); \
-  allocAndInitSyclDeviceData(in2, m_in2, iend, qu);
-
-#define INIT3_DATA_TEARDOWN_SYCL \
-  getSyclDeviceData(m_out1, out1, iend, qu); \
-  getSyclDeviceData(m_out2, out2, iend, qu); \
-  getSyclDeviceData(m_out3, out3, iend, qu); \
-  deallocSyclDeviceData(out1, qu); \
-  deallocSyclDeviceData(out2, qu); \
-  deallocSyclDeviceData(out3, qu); \
-  deallocSyclDeviceData(in1, qu); \
-  deallocSyclDeviceData(in2, qu);
-
 template <size_t work_group_size >
 void INIT3::runSyclVariantImpl(VariantID vid)
 {
@@ -55,8 +38,6 @@ void INIT3::runSyclVariantImpl(VariantID vid)
   INIT3_DATA_SETUP;
 
   if ( vid == Base_SYCL ) {
-
-    INIT3_DATA_SETUP_SYCL;
 
     if (work_group_size > 0) {
   
@@ -101,16 +82,12 @@ void INIT3::runSyclVariantImpl(VariantID vid)
       stopTimer();
   
     } 
-
-    INIT3_DATA_TEARDOWN_SYCL;
   } else if ( vid == RAJA_SYCL ) {
 
     if ( work_group_size == 0 ) {
       std::cout << "\n  INIT3 : RAJA_SYCL does not support auto work group size" << std::endl;
       return;
     }
-
-    INIT3_DATA_SETUP_SYCL;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -123,8 +100,6 @@ void INIT3::runSyclVariantImpl(VariantID vid)
     }
     qu->wait();
     stopTimer();
-
-    INIT3_DATA_TEARDOWN_SYCL;
 
   } else {
      std::cout << "\n  INIT3 : Unknown Sycl variant id = " << vid << std::endl;

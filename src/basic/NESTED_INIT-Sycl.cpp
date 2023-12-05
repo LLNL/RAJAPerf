@@ -28,13 +28,6 @@ namespace rajaperf
 namespace basic
 {
 
-#define NESTED_INIT_DATA_SETUP_SYCL \
-  allocAndInitSyclDeviceData(array, m_array, m_array_length, qu);
-
-#define NESTED_INIT_DATA_TEARDOWN_SYCL \
-  getSyclDeviceData(m_array, array, m_array_length, qu); \
-  deallocSyclDeviceData(array, qu);
-
 template <size_t work_group_size >
 void NESTED_INIT::runSyclVariantImpl(VariantID vid)
 {
@@ -43,8 +36,6 @@ void NESTED_INIT::runSyclVariantImpl(VariantID vid)
   NESTED_INIT_DATA_SETUP;
 
   if ( vid == Base_SYCL ) {
-
-    NESTED_INIT_DATA_SETUP_SYCL;
 
     if (work_group_size > 0) {
   
@@ -97,16 +88,12 @@ void NESTED_INIT::runSyclVariantImpl(VariantID vid)
   
     } 
 
-    NESTED_INIT_DATA_TEARDOWN_SYCL;
-
   } else if ( vid == RAJA_SYCL ) {
 
     if ( work_group_size == 0 ) {
       std::cout << "\n  NESTED_INIT : RAJA_SYCL does not support auto work group size" << std::endl;
       return;
     }
-
-    NESTED_INIT_DATA_SETUP_SYCL;
 
     using EXEC_POL =
       RAJA::KernelPolicy<
@@ -134,8 +121,6 @@ void NESTED_INIT::runSyclVariantImpl(VariantID vid)
     }
     qu->wait();
     stopTimer();
-
-    NESTED_INIT_DATA_TEARDOWN_SYCL;
 
   } else {
      std::cout << "\n  NESTED_INIT : Unknown Sycl variant id = " << vid << std::endl;

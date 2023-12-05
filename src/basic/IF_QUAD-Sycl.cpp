@@ -29,22 +29,6 @@ namespace rajaperf
 namespace basic
 {
 
-#define IF_QUAD_DATA_SETUP_SYCL \
-  allocAndInitSyclDeviceData(a, m_a, iend, qu); \
-  allocAndInitSyclDeviceData(b, m_b, iend, qu); \
-  allocAndInitSyclDeviceData(c, m_c, iend, qu); \
-  allocAndInitSyclDeviceData(x1, m_x1, iend, qu); \
-  allocAndInitSyclDeviceData(x2, m_x2, iend, qu);
-
-#define IF_QUAD_DATA_TEARDOWN_SYCL \
-  getSyclDeviceData(m_x1, x1, iend, qu); \
-  getSyclDeviceData(m_x2, x2, iend, qu); \
-  deallocSyclDeviceData(a, qu); \
-  deallocSyclDeviceData(b, qu); \
-  deallocSyclDeviceData(c, qu); \
-  deallocSyclDeviceData(x1, qu); \
-  deallocSyclDeviceData(x2, qu);
-
 template <size_t work_group_size >
 void IF_QUAD::runSyclVariantImpl(VariantID vid)
 {
@@ -57,8 +41,6 @@ void IF_QUAD::runSyclVariantImpl(VariantID vid)
   if ( vid == Base_SYCL ) {
     if (work_group_size > 0) {
 
-      IF_QUAD_DATA_SETUP_SYCL;
-  
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
   
@@ -79,12 +61,8 @@ void IF_QUAD::runSyclVariantImpl(VariantID vid)
       qu->wait(); // Wait for computation to finish before stopping timer
       stopTimer();
   
-      IF_QUAD_DATA_TEARDOWN_SYCL;
-
     } else {
 
-      IF_QUAD_DATA_SETUP_SYCL;
-  
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
   
@@ -101,8 +79,6 @@ void IF_QUAD::runSyclVariantImpl(VariantID vid)
       qu->wait(); // Wait for computation to finish before stopping timer
       stopTimer();
   
-      IF_QUAD_DATA_TEARDOWN_SYCL;
-
     }
 
   } else if ( vid == RAJA_SYCL ) {
@@ -111,8 +87,6 @@ void IF_QUAD::runSyclVariantImpl(VariantID vid)
       std::cout << "\n  IF_QUAD : RAJA_SYCL does not support auto work group size" << std::endl;
       return;
     }
-
-    IF_QUAD_DATA_SETUP_SYCL;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -125,8 +99,6 @@ void IF_QUAD::runSyclVariantImpl(VariantID vid)
     }
     qu->wait();
     stopTimer();
-
-    IF_QUAD_DATA_TEARDOWN_SYCL;
 
   } else {
      std::cout << "\n  IF_QUAD : Unknown Sycl variant id = " << vid << std::endl;
