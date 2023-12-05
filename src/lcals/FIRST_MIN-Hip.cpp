@@ -72,16 +72,14 @@ void FIRST_MIN::runHipVariantBlock(VariantID vid)
   if ( vid == Base_HIP ) {
 
     const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-    MyMinLoc* mymin_block = new MyMinLoc[grid_size]; //per-block min value
 
-    MyMinLoc* dminloc;
-    hipErrchk( hipMalloc( (void**)&dminloc, 
-                          grid_size * sizeof(MyMinLoc) ) );
+    RAJAPERF_HIP_REDUCER_SETUP(MyMinLoc*, dminloc, mymin_block, grid_size);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       FIRST_MIN_MINLOC_INIT;
+      RAJAPERF_HIP_REDUCER_INITIALIZE_VALUE(mymin, dminloc, mymin_block, grid_size);
 
       constexpr size_t shmem = sizeof(MyMinLoc)*block_size;
       hipLaunchKernelGGL( (first_min<block_size>), grid_size, block_size,
@@ -91,11 +89,7 @@ void FIRST_MIN::runHipVariantBlock(VariantID vid)
                            iend );
       hipErrchk( hipGetLastError() );
 
-      hipErrchk( hipMemcpyAsync( mymin_block, dminloc,
-                                 grid_size * sizeof(MyMinLoc),
-                                 hipMemcpyDeviceToHost, res.get_stream() ) );
-      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
-
+      RAJAPERF_HIP_REDUCER_COPY_BACK_NOFINAL(dminloc, mymin_block, grid_size);
       for (Index_type i = 0; i < static_cast<Index_type>(grid_size); i++) {
         if ( mymin_block[i].val < mymin.val ) {
           mymin = mymin_block[i];
@@ -106,8 +100,7 @@ void FIRST_MIN::runHipVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    hipErrchk( hipFree( dminloc ) );
-    delete[] mymin_block;
+    RAJAPERF_HIP_REDUCER_TEARDOWN(dminloc, mymin_block);
 
   } else if ( vid == RAJA_HIP ) {
 
@@ -152,16 +145,13 @@ void FIRST_MIN::runHipVariantOccGS(VariantID vid)
     const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
     const size_t grid_size = std::min(normal_grid_size, max_grid_size);
 
-    MyMinLoc* mymin_block = new MyMinLoc[grid_size]; //per-block min value
-
-    MyMinLoc* dminloc;
-    hipErrchk( hipMalloc( (void**)&dminloc,
-                          grid_size * sizeof(MyMinLoc) ) );
+    RAJAPERF_HIP_REDUCER_SETUP(MyMinLoc*, dminloc, mymin_block, grid_size);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       FIRST_MIN_MINLOC_INIT;
+      RAJAPERF_HIP_REDUCER_INITIALIZE_VALUE(mymin, dminloc, mymin_block, grid_size);
 
       hipLaunchKernelGGL( (first_min<block_size>), grid_size, block_size,
                            shmem, res.get_stream(), x,
@@ -170,11 +160,7 @@ void FIRST_MIN::runHipVariantOccGS(VariantID vid)
                            iend );
       hipErrchk( hipGetLastError() );
 
-      hipErrchk( hipMemcpyAsync( mymin_block, dminloc,
-                                 grid_size * sizeof(MyMinLoc),
-                                 hipMemcpyDeviceToHost, res.get_stream() ) );
-      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
-
+      RAJAPERF_HIP_REDUCER_COPY_BACK_NOFINAL(dminloc, mymin_block, grid_size);
       for (Index_type i = 0; i < static_cast<Index_type>(grid_size); i++) {
         if ( mymin_block[i].val < mymin.val ) {
           mymin = mymin_block[i];
@@ -185,8 +171,7 @@ void FIRST_MIN::runHipVariantOccGS(VariantID vid)
     }
     stopTimer();
 
-    hipErrchk( hipFree( dminloc ) );
-    delete[] mymin_block;
+    RAJAPERF_HIP_REDUCER_TEARDOWN(dminloc, mymin_block);
 
   } else if ( vid == RAJA_HIP ) {
 
