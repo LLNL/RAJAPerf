@@ -41,6 +41,13 @@ gcc_8_3_1_cuda_11_5_0_ats_disabled:
     MODULE_LIST: "cuda/11.5.0"
     LASSEN_JOB_ALLOC: "1 --atsdisable -W 30"
 
+gcc_8_3_1_cuda_11_5_0_ats_disabled_mpi:
+  extends: .job_on_lassen
+  variables:
+    SPEC: " ~shared +openmp +cuda +mpi %gcc@8.3.1 cuda_arch=70 ^cuda@11.5.0+allow-unsupported-compilers ^spectrum-mpi ^blt@git.a7f0a6ecc4fdfa1724399b1454c3909b9ee02e81=develop"
+    MODULE_LIST: "cuda/11.5.0"
+    LASSEN_JOB_ALLOC: "1 --atsdisable -W 30"
+
 ##########
 # OTHERS
 ##########
