@@ -138,12 +138,53 @@ public:
   void runHipVariant(VariantID vid, size_t tune_idx);
   void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
 
+  void setSeqTuningDefinitions(VariantID vid);
+  void setOpenMPTuningDefinitions(VariantID vid);
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
+  void setOpenMPTargetTuningDefinitions(VariantID vid);
+
+  void runSeqVariantDirect(VariantID vid);
+  void runOpenMPVariantDirect(VariantID vid);
   template < size_t block_size >
-  void runCudaVariantImpl(VariantID vid);
+  void runCudaVariantDirect(VariantID vid);
   template < size_t block_size >
-  void runHipVariantImpl(VariantID vid);
+  void runHipVariantDirect(VariantID vid);
+  void runOpenMPTargetVariantDirect(VariantID vid);
+
+  void runSeqVariantFuncPtr(VariantID vid);
+  void runOpenMPVariantFuncPtr(VariantID vid);
+  template < size_t block_size >
+  void runCudaVariantFuncPtr(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantFuncPtr(VariantID vid);
+  void runOpenMPTargetVariantFuncPtr(VariantID vid);
+
+  void runSeqVariantVirtFunc(VariantID vid);
+  void runOpenMPVariantVirtFunc(VariantID vid);
+  template < size_t block_size >
+  void runCudaVariantVirtFunc(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantVirtFunc(VariantID vid);
+  void runOpenMPTargetVariantVirtFunc(VariantID vid);
+
+  struct Packer {
+    Real_ptr buffer;
+    Real_ptr var;
+    Int_ptr list;
+    RAJA_HOST_DEVICE void operator()(Index_type i) const {
+      HALOEXCHANGE_FUSED_PACK_BODY;
+    }
+  };
+
+  struct UnPacker {
+    Real_ptr buffer;
+    Real_ptr var;
+    Int_ptr list;
+    RAJA_HOST_DEVICE void operator()(Index_type i) const {
+      HALOEXCHANGE_FUSED_UNPACK_BODY;
+    }
+  };
 
 private:
   static const size_t default_gpu_block_size = 1024;
