@@ -59,10 +59,9 @@ __global__ void first_min(Real_ptr x,
 
 
 template < size_t block_size >
-void FIRST_MIN::runHipVariantBlock(VariantID vid)
+void FIRST_MIN::runHipVariantBlockHost(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
   auto res{getHipResource()};
@@ -72,16 +71,14 @@ void FIRST_MIN::runHipVariantBlock(VariantID vid)
   if ( vid == Base_HIP ) {
 
     const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-    MyMinLoc* mymin_block = new MyMinLoc[grid_size]; //per-block min value
 
-    MyMinLoc* dminloc;
-    hipErrchk( hipMalloc( (void**)&dminloc, 
-                          grid_size * sizeof(MyMinLoc) ) );
+    RAJAPERF_HIP_REDUCER_SETUP(MyMinLoc*, dminloc, mymin_block, grid_size);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       FIRST_MIN_MINLOC_INIT;
+      RAJAPERF_HIP_REDUCER_INITIALIZE_VALUE(mymin, dminloc, mymin_block, grid_size);
 
       constexpr size_t shmem = sizeof(MyMinLoc)*block_size;
       hipLaunchKernelGGL( (first_min<block_size>), grid_size, block_size,
@@ -91,11 +88,7 @@ void FIRST_MIN::runHipVariantBlock(VariantID vid)
                            iend );
       hipErrchk( hipGetLastError() );
 
-      hipErrchk( hipMemcpyAsync( mymin_block, dminloc,
-                                 grid_size * sizeof(MyMinLoc),
-                                 hipMemcpyDeviceToHost, res.get_stream() ) );
-      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
-
+      RAJAPERF_HIP_REDUCER_COPY_BACK_NOFINAL(dminloc, mymin_block, grid_size);
       for (Index_type i = 0; i < static_cast<Index_type>(grid_size); i++) {
         if ( mymin_block[i].val < mymin.val ) {
           mymin = mymin_block[i];
@@ -106,10 +99,25 @@ void FIRST_MIN::runHipVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    hipErrchk( hipFree( dminloc ) );
-    delete[] mymin_block;
+    RAJAPERF_HIP_REDUCER_TEARDOWN(dminloc, mymin_block);
 
-  } else if ( vid == RAJA_HIP ) {
+  } else {
+     getCout() << "\n  FIRST_MIN : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+template < size_t block_size >
+void FIRST_MIN::runHipVariantBlockDevice(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  auto res{getHipResource()};
+
+  FIRST_MIN_DATA_SETUP;
+
+  if ( vid == RAJA_HIP ) {
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -133,10 +141,9 @@ void FIRST_MIN::runHipVariantBlock(VariantID vid)
 }
 
 template < size_t block_size >
-void FIRST_MIN::runHipVariantOccGS(VariantID vid)
+void FIRST_MIN::runHipVariantBlockHostOccGS(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
   auto res{getHipResource()};
@@ -152,16 +159,13 @@ void FIRST_MIN::runHipVariantOccGS(VariantID vid)
     const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
     const size_t grid_size = std::min(normal_grid_size, max_grid_size);
 
-    MyMinLoc* mymin_block = new MyMinLoc[grid_size]; //per-block min value
-
-    MyMinLoc* dminloc;
-    hipErrchk( hipMalloc( (void**)&dminloc,
-                          grid_size * sizeof(MyMinLoc) ) );
+    RAJAPERF_HIP_REDUCER_SETUP(MyMinLoc*, dminloc, mymin_block, grid_size);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       FIRST_MIN_MINLOC_INIT;
+      RAJAPERF_HIP_REDUCER_INITIALIZE_VALUE(mymin, dminloc, mymin_block, grid_size);
 
       hipLaunchKernelGGL( (first_min<block_size>), grid_size, block_size,
                            shmem, res.get_stream(), x,
@@ -170,11 +174,7 @@ void FIRST_MIN::runHipVariantOccGS(VariantID vid)
                            iend );
       hipErrchk( hipGetLastError() );
 
-      hipErrchk( hipMemcpyAsync( mymin_block, dminloc,
-                                 grid_size * sizeof(MyMinLoc),
-                                 hipMemcpyDeviceToHost, res.get_stream() ) );
-      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
-
+      RAJAPERF_HIP_REDUCER_COPY_BACK_NOFINAL(dminloc, mymin_block, grid_size);
       for (Index_type i = 0; i < static_cast<Index_type>(grid_size); i++) {
         if ( mymin_block[i].val < mymin.val ) {
           mymin = mymin_block[i];
@@ -185,10 +185,25 @@ void FIRST_MIN::runHipVariantOccGS(VariantID vid)
     }
     stopTimer();
 
-    hipErrchk( hipFree( dminloc ) );
-    delete[] mymin_block;
+    RAJAPERF_HIP_REDUCER_TEARDOWN(dminloc, mymin_block);
 
-  } else if ( vid == RAJA_HIP ) {
+  } else {
+     getCout() << "\n  FIRST_MIN : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+template < size_t block_size >
+void FIRST_MIN::runHipVariantBlockDeviceOccGS(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  auto res{getHipResource()};
+
+  FIRST_MIN_DATA_SETUP;
+
+  if ( vid == RAJA_HIP ) {
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -222,24 +237,49 @@ void FIRST_MIN::runHipVariant(VariantID vid, size_t tune_idx)
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
 
-        if (tune_idx == t) {
+        if ( vid == Base_HIP ) {
 
-          setBlockSize(block_size);
-          runHipVariantBlock<block_size>(vid);
+          if (tune_idx == t) {
+
+            setBlockSize(block_size);
+            runHipVariantBlockHost<block_size>(vid);
+
+          }
+
+          t += 1;
+
+          if (tune_idx == t) {
+
+            setBlockSize(block_size);
+            runHipVariantBlockHostOccGS<block_size>(vid);
+
+          }
+
+          t += 1;
 
         }
 
-        t += 1;
+        if ( vid == RAJA_HIP ) {
 
-        if (tune_idx == t) {
+          if (tune_idx == t) {
 
-          setBlockSize(block_size);
-          runHipVariantOccGS<block_size>(vid);
+            setBlockSize(block_size);
+            runHipVariantBlockDevice<block_size>(vid);
+
+          }
+
+          t += 1;
+
+          if (tune_idx == t) {
+
+            setBlockSize(block_size);
+            runHipVariantBlockDeviceOccGS<block_size>(vid);
+
+          }
+
+          t += 1;
 
         }
-
-        t += 1;
-
       }
 
     });
@@ -261,9 +301,21 @@ void FIRST_MIN::setHipTuningDefinitions(VariantID vid)
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
 
-        addVariantTuningName(vid, "block_"+std::to_string(block_size));
+        if ( vid == Base_HIP ) {
 
-        addVariantTuningName(vid, "occgs_"+std::to_string(block_size));
+          addVariantTuningName(vid, "blkhst"+std::to_string(block_size));
+
+          addVariantTuningName(vid, "blkhst_occgs_"+std::to_string(block_size));
+
+        }
+
+        if ( vid == RAJA_HIP ) {
+
+          addVariantTuningName(vid, "blkdev"+std::to_string(block_size));
+
+          addVariantTuningName(vid, "blkdev_occgs_"+std::to_string(block_size));
+
+        }
 
       }
 

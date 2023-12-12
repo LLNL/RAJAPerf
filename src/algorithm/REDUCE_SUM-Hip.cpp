@@ -276,7 +276,7 @@ void REDUCE_SUM::runHipVariantBlockAtomicOccGS(VariantID vid)
 }
 
 template < size_t block_size >
-void REDUCE_SUM::runHipVariantBlock(VariantID vid)
+void REDUCE_SUM::runHipVariantBlockDevice(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -312,7 +312,7 @@ void REDUCE_SUM::runHipVariantBlock(VariantID vid)
 }
 
 template < size_t block_size >
-void REDUCE_SUM::runHipVariantBlockOccGS(VariantID vid)
+void REDUCE_SUM::runHipVariantBlockDeviceOccGS(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -393,7 +393,7 @@ void REDUCE_SUM::runHipVariant(VariantID vid, size_t tune_idx)
           if (tune_idx == t) {
 
             setBlockSize(block_size);
-            runHipVariantBlock<block_size>(vid);
+            runHipVariantBlockDevice<block_size>(vid);
 
           }
 
@@ -402,7 +402,7 @@ void REDUCE_SUM::runHipVariant(VariantID vid, size_t tune_idx)
           if (tune_idx == t) {
 
             setBlockSize(block_size);
-            runHipVariantBlockOccGS<block_size>(vid);
+            runHipVariantBlockDeviceOccGS<block_size>(vid);
 
           }
 
@@ -446,9 +446,9 @@ void REDUCE_SUM::setHipTuningDefinitions(VariantID vid)
 
         if ( vid == RAJA_HIP ) {
 
-          addVariantTuningName(vid, "block_"+std::to_string(block_size));
+          addVariantTuningName(vid, "blkdev_"+std::to_string(block_size));
 
-          addVariantTuningName(vid, "block_occgs_"+std::to_string(block_size));
+          addVariantTuningName(vid, "blkdev_occgs_"+std::to_string(block_size));
 
         }
 
