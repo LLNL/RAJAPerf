@@ -29,9 +29,9 @@ variables:
 # Optimization notes: We have 4 jobs lasting at max 5 minutes and using 28
 # cores out of 112 available (see -j in scripts/gitlab/build_and_test.sh).
 # We allow allocation overlapping.
-  POODLE_SHARED_ALLOC: "--exclusive --partition=pdebug --time=12 --nodes=1"
+  POODLE_SHARED_ALLOC: "--exclusive --partition=pdebug --time=14 --nodes=1"
 # Arguments for job level allocation
-  POODLE_JOB_ALLOC: "--overlap --time=10 --nodes=1"
+  POODLE_JOB_ALLOC: "--overlap --time=12 --nodes=1"
 # Project specific variants for poodle
   PROJECT_POODLE_VARIANTS: "~shared +openmp"
 # Project specific deps for poodle
