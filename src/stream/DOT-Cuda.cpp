@@ -75,8 +75,11 @@ void DOT::runCudaVariantBlockAtomic(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = sizeof(Real_type)*block_size;
-      dot<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(
-          a, b, dprod, m_dot_init, iend );
+
+      RPlaunchCudaKernel( (dot<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          a, b, dprod, m_dot_init, iend );
       cudaErrchk( cudaGetLastError() );
 
       Real_type rdprod;
@@ -136,8 +139,11 @@ void DOT::runCudaVariantBlockAtomicOccGS(VariantID vid)
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
-      dot<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(
-          a, b, dprod, m_dot_init, iend );
+
+      RPlaunchCudaKernel( (dot<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          a, b, dprod, m_dot_init, iend );
       cudaErrchk( cudaGetLastError() );
 
       Real_type rdprod;
