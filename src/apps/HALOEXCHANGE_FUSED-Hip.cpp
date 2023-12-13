@@ -163,7 +163,21 @@ void HALOEXCHANGE_FUSED::runHipVariantDirect(VariantID vid)
 
     HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN_HIP;
 
-  } else if ( vid == RAJA_HIP ) {
+  } else {
+     getCout() << "\n HALOEXCHANGE_FUSED : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+template < size_t block_size, typename dispatch_helper >
+void HALOEXCHANGE_FUSED::runHipVariantWorkGroup(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+
+  auto res{getHipResource()};
+
+  HALOEXCHANGE_FUSED_DATA_SETUP;
+
+  if ( vid == RAJA_HIP ) {
 
     using AllocatorHolder = RAJAPoolAllocatorHolder<RAJA::hip::pinned_mempool_type>;
     using Allocator = AllocatorHolder::Allocator<char>;
@@ -172,12 +186,15 @@ void HALOEXCHANGE_FUSED::runHipVariantDirect(VariantID vid)
 
     using range_segment = RAJA::TypedRangeSegment<Index_type>;
 
+    using dispatch_policy = typename dispatch_helper::template dispatch_policy<
+                              camp::list<range_segment, Packer>,
+                              camp::list<range_segment, UnPacker>>;
+
     using workgroup_policy = RAJA::WorkGroupPolicy <
                                  RAJA::hip_work_async<block_size>,
                                  RAJA::unordered_hip_loop_y_block_iter_x_threadblock_average,
                                  RAJA::constant_stride_array_of_objects,
-                                 RAJA::direct_dispatch<camp::list<range_segment, Packer>,
-                                                       camp::list<range_segment, UnPacker>> >;
+                                 dispatch_policy >;
 
     using workpool = RAJA::WorkPool< workgroup_policy,
                                      Index_type,
@@ -238,221 +255,11 @@ void HALOEXCHANGE_FUSED::runHipVariantDirect(VariantID vid)
   }
 }
 
-template < size_t block_size >
-void HALOEXCHANGE_FUSED::runHipVariantFuncPtr(VariantID vid)
-{
-#if defined(RAJA_ENABLE_HIP_INDIRECT_FUNCTION_CALL)
-  const Index_type run_reps = getRunReps();
-
-  auto res{getHipResource()};
-
-  HALOEXCHANGE_FUSED_DATA_SETUP;
-
-  if ( vid == RAJA_HIP ) {
-
-    using AllocatorHolder = RAJAPoolAllocatorHolder<RAJA::hip::pinned_mempool_type>;
-    using Allocator = AllocatorHolder::Allocator<char>;
-
-    AllocatorHolder allocatorHolder;
-
-    using workgroup_policy = RAJA::WorkGroupPolicy <
-                                 RAJA::hip_work_async<block_size>,
-                                 RAJA::unordered_hip_loop_y_block_iter_x_threadblock_average,
-                                 RAJA::constant_stride_array_of_objects,
-                                 RAJA::indirect_function_call_dispatch >;
-
-    using workpool = RAJA::WorkPool< workgroup_policy,
-                                     Index_type,
-                                     RAJA::xargs<>,
-                                     Allocator >;
-
-    using workgroup = RAJA::WorkGroup< workgroup_policy,
-                                       Index_type,
-                                       RAJA::xargs<>,
-                                       Allocator >;
-
-    using worksite = RAJA::WorkSite< workgroup_policy,
-                                     Index_type,
-                                     RAJA::xargs<>,
-                                     Allocator >;
-
-    workpool pool_pack  (allocatorHolder.template getAllocator<char>());
-    workpool pool_unpack(allocatorHolder.template getAllocator<char>());
-    pool_pack.reserve(num_neighbors * num_vars, 1024ull*1024ull);
-    pool_unpack.reserve(num_neighbors * num_vars, 1024ull*1024ull);
-
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      for (Index_type l = 0; l < num_neighbors; ++l) {
-        Real_ptr buffer = buffers[l];
-        Int_ptr list = pack_index_lists[l];
-        Index_type len = pack_index_list_lengths[l];
-        for (Index_type v = 0; v < num_vars; ++v) {
-          Real_ptr var = vars[v];
-          auto haloexchange_fused_pack_base_lam = [=] __device__ (Index_type i) {
-                HALOEXCHANGE_FUSED_PACK_BODY;
-              };
-          pool_pack.enqueue(
-              RAJA::TypedRangeSegment<Index_type>(0, len),
-              haloexchange_fused_pack_base_lam );
-          buffer += len;
-        }
-      }
-      workgroup group_pack = pool_pack.instantiate();
-      worksite site_pack = group_pack.run(res);
-      res.wait();
-
-      for (Index_type l = 0; l < num_neighbors; ++l) {
-        Real_ptr buffer = buffers[l];
-        Int_ptr list = unpack_index_lists[l];
-        Index_type len = unpack_index_list_lengths[l];
-        for (Index_type v = 0; v < num_vars; ++v) {
-          Real_ptr var = vars[v];
-          auto haloexchange_fused_unpack_base_lam = [=] __device__ (Index_type i) {
-                HALOEXCHANGE_FUSED_UNPACK_BODY;
-              };
-          pool_unpack.enqueue(
-              RAJA::TypedRangeSegment<Index_type>(0, len),
-              haloexchange_fused_unpack_base_lam );
-          buffer += len;
-        }
-      }
-      workgroup group_unpack = pool_unpack.instantiate();
-      worksite site_unpack = group_unpack.run(res);
-      res.wait();
-
-    }
-    stopTimer();
-
-  } else {
-     getCout() << "\n HALOEXCHANGE_FUSED : Unknown Hip variant id = " << vid << std::endl;
-  }
-#else
-     getCout() << "\n HALOEXCHANGE_FUSED : Unknown Hip variant id = " << vid << std::endl;
-#endif
-}
-
-
-template < size_t block_size >
-void HALOEXCHANGE_FUSED::runHipVariantVirtFunc(VariantID vid)
-{
-#ifdef RAJA_ENABLE_HIP_INDIRECT_FUNCTION_CALL
-  const Index_type run_reps = getRunReps();
-
-  auto res{getHipResource()};
-
-  HALOEXCHANGE_FUSED_DATA_SETUP;
-
-  if ( vid == RAJA_HIP ) {
-
-    using AllocatorHolder = RAJAPoolAllocatorHolder<RAJA::hip::pinned_mempool_type>;
-    using Allocator = AllocatorHolder::Allocator<char>;
-
-    AllocatorHolder allocatorHolder;
-
-    using workgroup_policy = RAJA::WorkGroupPolicy <
-                                 RAJA::hip_work_async<block_size>,
-                                 RAJA::unordered_hip_loop_y_block_iter_x_threadblock_average,
-                                 RAJA::constant_stride_array_of_objects,
-                                 RAJA::indirect_virtual_function_dispatch >;
-
-    using workpool = RAJA::WorkPool< workgroup_policy,
-                                     Index_type,
-                                     RAJA::xargs<>,
-                                     Allocator >;
-
-    using workgroup = RAJA::WorkGroup< workgroup_policy,
-                                       Index_type,
-                                       RAJA::xargs<>,
-                                       Allocator >;
-
-    using worksite = RAJA::WorkSite< workgroup_policy,
-                                     Index_type,
-                                     RAJA::xargs<>,
-                                     Allocator >;
-
-    workpool pool_pack  (allocatorHolder.template getAllocator<char>());
-    workpool pool_unpack(allocatorHolder.template getAllocator<char>());
-    pool_pack.reserve(num_neighbors * num_vars, 1024ull*1024ull);
-    pool_unpack.reserve(num_neighbors * num_vars, 1024ull*1024ull);
-
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      for (Index_type l = 0; l < num_neighbors; ++l) {
-        Real_ptr buffer = buffers[l];
-        Int_ptr list = pack_index_lists[l];
-        Index_type len = pack_index_list_lengths[l];
-        for (Index_type v = 0; v < num_vars; ++v) {
-          Real_ptr var = vars[v];
-          auto haloexchange_fused_pack_base_lam = [=] __device__ (Index_type i) {
-                HALOEXCHANGE_FUSED_PACK_BODY;
-              };
-          pool_pack.enqueue(
-              RAJA::TypedRangeSegment<Index_type>(0, len),
-              haloexchange_fused_pack_base_lam );
-          buffer += len;
-        }
-      }
-      workgroup group_pack = pool_pack.instantiate();
-      worksite site_pack = group_pack.run(res);
-      res.wait();
-
-      for (Index_type l = 0; l < num_neighbors; ++l) {
-        Real_ptr buffer = buffers[l];
-        Int_ptr list = unpack_index_lists[l];
-        Index_type len = unpack_index_list_lengths[l];
-        for (Index_type v = 0; v < num_vars; ++v) {
-          Real_ptr var = vars[v];
-          auto haloexchange_fused_unpack_base_lam = [=] __device__ (Index_type i) {
-                HALOEXCHANGE_FUSED_UNPACK_BODY;
-              };
-          pool_unpack.enqueue(
-              RAJA::TypedRangeSegment<Index_type>(0, len),
-              haloexchange_fused_unpack_base_lam );
-          buffer += len;
-        }
-      }
-      workgroup group_unpack = pool_unpack.instantiate();
-      worksite site_unpack = group_unpack.run(res);
-      res.wait();
-
-    }
-    stopTimer();
-
-  } else {
-     getCout() << "\n HALOEXCHANGE_FUSED : Unknown Hip variant id = " << vid << std::endl;
-  }
-#else
-     getCout() << "\n HALOEXCHANGE_FUSED : Unknown Hip variant id = " << vid << std::endl;
-#endif
-}
-
-
 void HALOEXCHANGE_FUSED::runHipVariant(VariantID vid, size_t tune_idx)
 {
   size_t t = 0;
 
-  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
-
-    if (run_params.numValidGPUBlockSize() == 0u ||
-        run_params.validGPUBlockSize(block_size)) {
-
-      if (tune_idx == t) {
-
-        runHipVariantDirect<block_size>(vid);
-
-      }
-
-      t += 1;
-
-    }
-
-  });
-
-#ifdef RAJA_ENABLE_HIP_INDIRECT_FUNCTION_CALL
-  if (vid == RAJA_HIP) {
+  if (vid == Base_HIP || vid == Lambda_HIP) {
 
     seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
 
@@ -461,24 +268,7 @@ void HALOEXCHANGE_FUSED::runHipVariant(VariantID vid, size_t tune_idx)
 
         if (tune_idx == t) {
 
-          runHipVariantFuncPtr<block_size>(vid);
-
-        }
-
-        t += 1;
-
-      }
-
-    });
-
-    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
-
-      if (run_params.numValidGPUBlockSize() == 0u ||
-          run_params.validGPUBlockSize(block_size)) {
-
-        if (tune_idx == t) {
-
-          runHipVariantVirtFunc<block_size>(vid);
+          runHipVariantDirect<block_size>(vid);
 
         }
 
@@ -489,23 +279,50 @@ void HALOEXCHANGE_FUSED::runHipVariant(VariantID vid, size_t tune_idx)
     });
 
   }
-#endif
+
+  if (vid == RAJA_HIP) {
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        seq_for(hip_workgroup_dispatch_helpers{}, [&](auto dispatch_helper) {
+
+          if (tune_idx == t) {
+
+            runHipVariantWorkGroup<decltype(block_size){}, decltype(dispatch_helper)>(vid);
+
+          }
+
+          t += 1;
+
+        });
+
+      }
+
+    });
+
+  }
 }
 
 void HALOEXCHANGE_FUSED::setHipTuningDefinitions(VariantID vid)
 {
-  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+  if (vid == Base_HIP || vid == Lambda_HIP) {
 
-    if (run_params.numValidGPUBlockSize() == 0u ||
-        run_params.validGPUBlockSize(block_size)) {
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
 
-      addVariantTuningName(vid, "direct_"+std::to_string(block_size));
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
 
-    }
+        addVariantTuningName(vid, "direct_"+std::to_string(block_size));
 
-  });
+      }
 
-#ifdef RAJA_ENABLE_HIP_INDIRECT_FUNCTION_CALL
+    });
+
+  }
+
   if (vid == RAJA_HIP) {
 
     seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
@@ -513,25 +330,17 @@ void HALOEXCHANGE_FUSED::setHipTuningDefinitions(VariantID vid)
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
 
-        addVariantTuningName(vid, "funcptr_"+std::to_string(block_size));
+        seq_for(hip_workgroup_dispatch_helpers{}, [&](auto dispatch_helper) {
 
-      }
+          addVariantTuningName(vid, decltype(dispatch_helper)::get_name()+"_"+std::to_string(block_size));
 
-    });
-
-    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
-
-      if (run_params.numValidGPUBlockSize() == 0u ||
-          run_params.validGPUBlockSize(block_size)) {
-
-        addVariantTuningName(vid, "virtfunc_"+std::to_string(block_size));
+        });
 
       }
 
     });
 
   }
-#endif
 }
 
 } // end namespace apps

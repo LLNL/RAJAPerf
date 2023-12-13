@@ -117,6 +117,40 @@ namespace rajaperf
 {
 class RunParams;
 
+struct direct_dispatch_helper
+{
+  template < typename... Ts >
+  using dispatch_policy = RAJA::direct_dispatch<Ts...>;
+  static std::string get_name() { return "direct"; }
+};
+
+struct indirect_function_call_dispatch_helper
+{
+  template < typename... Ts >
+  using dispatch_policy = RAJA::indirect_function_call_dispatch;
+  static std::string get_name() { return "funcptr"; }
+};
+
+struct indirect_virtual_function_dispatch_helper
+{
+  template < typename... Ts >
+  using dispatch_policy = RAJA::indirect_virtual_function_dispatch;
+  static std::string get_name() { return "virtfunc"; }
+};
+
+using workgroup_dispatch_helpers = camp::list<
+    direct_dispatch_helper,
+    indirect_function_call_dispatch_helper,
+    indirect_virtual_function_dispatch_helper >;
+
+using hip_workgroup_dispatch_helpers = camp::list<
+    direct_dispatch_helper
+#ifdef RAJA_ENABLE_HIP_INDIRECT_FUNCTION_CALL
+   ,indirect_function_call_dispatch_helper
+   ,indirect_virtual_function_dispatch_helper
+#endif
+    >;
+
 namespace apps
 {
 
@@ -146,27 +180,22 @@ public:
 
   void runSeqVariantDirect(VariantID vid);
   void runOpenMPVariantDirect(VariantID vid);
+  void runOpenMPTargetVariantDirect(VariantID vid);
   template < size_t block_size >
   void runCudaVariantDirect(VariantID vid);
   template < size_t block_size >
   void runHipVariantDirect(VariantID vid);
-  void runOpenMPTargetVariantDirect(VariantID vid);
 
-  void runSeqVariantFuncPtr(VariantID vid);
-  void runOpenMPVariantFuncPtr(VariantID vid);
-  template < size_t block_size >
-  void runCudaVariantFuncPtr(VariantID vid);
-  template < size_t block_size >
-  void runHipVariantFuncPtr(VariantID vid);
-  void runOpenMPTargetVariantFuncPtr(VariantID vid);
-
-  void runSeqVariantVirtFunc(VariantID vid);
-  void runOpenMPVariantVirtFunc(VariantID vid);
-  template < size_t block_size >
-  void runCudaVariantVirtFunc(VariantID vid);
-  template < size_t block_size >
-  void runHipVariantVirtFunc(VariantID vid);
-  void runOpenMPTargetVariantVirtFunc(VariantID vid);
+  template < typename dispatch_policy >
+  void runSeqVariantWorkGroup(VariantID vid);
+  template < typename dispatch_policy >
+  void runOpenMPVariantWorkGroup(VariantID vid);
+  template < typename dispatch_policy >
+  void runOpenMPTargetVariantWorkGroup(VariantID vid);
+  template < size_t block_size, typename dispatch_policy >
+  void runCudaVariantWorkGroup(VariantID vid);
+  template < size_t block_size, typename dispatch_policy >
+  void runHipVariantWorkGroup(VariantID vid);
 
   struct Packer {
     Real_ptr buffer;
