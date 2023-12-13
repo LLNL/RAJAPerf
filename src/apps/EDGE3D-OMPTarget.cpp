@@ -61,8 +61,6 @@ void EDGE3D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
 
   } else if ( vid == RAJA_OpenMPTarget ) {
 
-    EDGE3D_DATA_SETUP_OMP_TARGET;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
