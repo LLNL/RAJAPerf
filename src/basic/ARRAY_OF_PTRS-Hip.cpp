@@ -54,8 +54,11 @@ void ARRAY_OF_PTRS::runHipVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      hipLaunchKernelGGL((array_of_ptrs<block_size>),dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
-          y, x_array, array_size, iend );
+  
+      RPlaunchHipKernel( (array_of_ptrs<block_size>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         y, x_array, array_size, iend );
       hipErrchk( hipGetLastError() );
 
     }
@@ -72,8 +75,12 @@ void ARRAY_OF_PTRS::runHipVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(array_of_ptrs_lambda)>),
-        grid_size, block_size, shmem, res.get_stream(), ibegin, iend, array_of_ptrs_lambda);
+
+      RPlaunchHipKernel( (lambda_hip_forall<block_size,
+                                            decltype(array_of_ptrs_lambda)>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         ibegin, iend, array_of_ptrs_lambda );
       hipErrchk( hipGetLastError() );
 
     }

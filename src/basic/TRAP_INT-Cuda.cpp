@@ -95,12 +95,15 @@ void TRAP_INT::runCudaVariantBlockAtomic(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = sizeof(Real_type)*block_size;
-      trapint<block_size><<<grid_size, block_size,
-                shmem, res.get_stream()>>>(x0, xp,
-                                                y, yp,
-                                                h,
-                                                sumx,
-                                                iend);
+
+      RPlaunchCudaKernel( (trapint<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          x0, xp,
+                          y, yp,
+                          h,
+                          sumx,
+                          iend);
       cudaErrchk( cudaGetLastError() );
 
       Real_type rsumx;
@@ -160,12 +163,15 @@ void TRAP_INT::runCudaVariantBlockAtomicOccGS(VariantID vid)
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
-      trapint<block_size><<<grid_size, block_size,
-                            shmem, res.get_stream()>>>(x0, xp,
-                                                y, yp,
-                                                h,
-                                                sumx,
-                                                iend);
+
+      RPlaunchCudaKernel( (trapint<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          x0, xp,
+                          y, yp,
+                          h,
+                          sumx,
+                          iend);
       cudaErrchk( cudaGetLastError() );
 
       Real_type rsumx;

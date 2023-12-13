@@ -58,7 +58,13 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      hipLaunchKernelGGL((atomic_pi<block_size>),grid_size, block_size, shmem, res.get_stream(), pi, dx, iend );
+
+      RPlaunchHipKernel( (pi_atomic<block_size>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         pi,
+                         dx,
+                         iend );
       hipErrchk( hipGetLastError() );
 
       Real_type rpi;
@@ -75,16 +81,19 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
 
       RAJAPERF_HIP_REDUCER_INITIALIZE(&m_pi_init, pi, hpi, 1);
 
-      auto atomic_pi_lambda = [=] __device__ (Index_type i) {
+      auto pi_atomic_lambda = [=] __device__ (Index_type i) {
           double x = (double(i) + 0.5) * dx;
           RAJA::atomicAdd<RAJA::hip_atomic>(pi, dx / (1.0 + x * x));
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(atomic_pi_lambda)>),
-          grid_size, block_size, shmem, res.get_stream(), ibegin, iend, atomic_pi_lambda);
-      hipErrchk( hipGetLastError() );
+
+      RPlaunchHipKernel( (lambda_hip_forall<block_size,
+                                            decltype(pi_atomic_lambda)>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         ibegin, iend, pi_atomic_lambda );
 
       Real_type rpi;
       RAJAPERF_HIP_REDUCER_COPY_BACK(&rpi, pi, hpi, 1);

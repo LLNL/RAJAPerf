@@ -76,9 +76,13 @@ void PI_REDUCE::runHipVariantBlockAtomic(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = sizeof(Real_type)*block_size;
-      hipLaunchKernelGGL( (pi_reduce<block_size>), dim3(grid_size), dim3(block_size),
-                          shmem, res.get_stream(),
-                          dx, pi, m_pi_init, iend );
+
+      RPlaunchHipKernel( (pi_reduce<block_size>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         dx,
+                         pi, m_pi_init,
+                         iend );
       hipErrchk( hipGetLastError() );
 
       Real_type rpi;
@@ -138,9 +142,13 @@ void PI_REDUCE::runHipVariantBlockAtomicOccGS(VariantID vid)
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
-      hipLaunchKernelGGL( (pi_reduce<block_size>), dim3(grid_size), dim3(block_size),
-                          shmem, res.get_stream(),
-                          dx, pi, m_pi_init, iend );
+
+      RPlaunchHipKernel( (pi_reduce<block_size>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         dx,
+                         pi, m_pi_init,
+                         iend );
       hipErrchk( hipGetLastError() );
 
       Real_type rpi;

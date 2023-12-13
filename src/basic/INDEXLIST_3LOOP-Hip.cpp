@@ -112,8 +112,11 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      hipLaunchKernelGGL((indexlist_conditional<block_size>), grid_size, block_size, shmem, stream,
-          x, counts, iend );
+
+      RPlaunchHipKernel( (indexlist_conditional<block_size>),
+                         grid_size, block_size,
+                         shmem, stream,
+                         x, counts, iend );
       hipErrchk( hipGetLastError() );
 
 #if defined(__HIPCC__)
@@ -136,8 +139,10 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
                                                  stream));
 #endif
 
-      hipLaunchKernelGGL((indexlist_make_list<block_size>), grid_size, block_size, shmem, stream,
-          list, counts, len, iend );
+      RPlaunchHipKernel( (indexlist_make_list<block_size>),
+                         grid_size, block_size,
+                         shmem, stream,
+                         list, counts, len, iend );
       hipErrchk( hipGetLastError() );
 
       hipErrchk( hipStreamSynchronize(stream) );

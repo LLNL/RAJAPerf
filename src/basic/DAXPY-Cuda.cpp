@@ -67,12 +67,12 @@ void DAXPY::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      constexpr size_t shmem = 0;
-
       auto daxpy_lambda = [=] __device__ (Index_type i) {
         DAXPY_BODY;
       };
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = 0;
 
       RPlaunchCudaKernel( (lambda_cuda_forall<block_size, 
                                               decltype(daxpy_lambda)>),

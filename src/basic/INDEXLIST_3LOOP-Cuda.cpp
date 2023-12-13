@@ -101,8 +101,11 @@ void INDEXLIST_3LOOP::runCudaVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      indexlist_conditional<block_size><<<grid_size, block_size, shmem, stream>>>(
-          x, counts, iend );
+
+      RPlaunchCudaKernel( (indexlist_conditional<block_size>),
+                          grid_size, block_size,
+                          shmem, stream,
+                          x, counts, iend );
       cudaErrchk( cudaGetLastError() );
 
       cudaErrchk(::cub::DeviceScan::ExclusiveScan(d_temp_storage,
@@ -114,8 +117,10 @@ void INDEXLIST_3LOOP::runCudaVariantImpl(VariantID vid)
                                                   scan_size,
                                                   stream));
 
-      indexlist_make_list<block_size><<<grid_size, block_size, shmem, stream>>>(
-          list, counts, len, iend );
+      RPlaunchCudaKernel( (indexlist_make_list<block_size>),
+                          grid_size, block_size,
+                          shmem, stream,
+                          list, counts, len, iend );
       cudaErrchk( cudaGetLastError() );
 
       cudaErrchk( cudaStreamSynchronize(stream) );
