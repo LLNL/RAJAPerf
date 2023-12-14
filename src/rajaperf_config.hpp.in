@@ -124,6 +124,17 @@ std::string machine_run;
 
 };
 
+#if __cplusplus < 201703L
+// Implement std::conjunction from https://en.cppreference.com/w/cpp/types/conjunction
+template<class...> struct conjunction : std::true_type {};
+template<class B1> struct conjunction<B1> : B1 {};
+template<class B1, class... Bn>
+struct conjunction<B1, Bn...>
+  : std::conditional_t<bool(B1::value), conjunction<Bn...>, B1> {};
+#else
+using std::conjunction;
+#endif
+
 //compile time loop over an integer sequence
 //this allows for creating a loop over a compile time constant variable
 template <typename Func, typename... Ts>
