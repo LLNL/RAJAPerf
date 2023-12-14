@@ -18,7 +18,7 @@ namespace apps
 {
 
 
-void HALOEXCHANGE_FUSED::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+void HALOEXCHANGE_FUSED::runSeqVariantDirect(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -148,7 +148,26 @@ void HALOEXCHANGE_FUSED::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
 
       break;
     }
+#endif // RUN_RAJA_SEQ
 
+    default : {
+      getCout() << "\n HALOEXCHANGE_FUSED : Unknown variant id = " << vid << std::endl;
+    }
+
+  }
+
+}
+
+template < typename dispatch_helper >
+void HALOEXCHANGE_FUSED::runSeqVariantWorkGroup(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+
+  HALOEXCHANGE_FUSED_DATA_SETUP;
+
+  switch ( vid ) {
+
+#if defined(RUN_RAJA_SEQ)
     case RAJA_Seq : {
 
       using AllocatorHolder = RAJAPoolAllocatorHolder<
@@ -157,10 +176,17 @@ void HALOEXCHANGE_FUSED::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
 
       AllocatorHolder allocatorHolder;
 
+      using range_segment = RAJA::TypedRangeSegment<Index_type>;
+
+      using dispatch_policy = typename dispatch_helper::template dispatch_policy<
+                                camp::list<range_segment, Packer>,
+                                camp::list<range_segment, UnPacker>>;
+
       using workgroup_policy = RAJA::WorkGroupPolicy <
                                    RAJA::seq_work,
                                    RAJA::ordered,
-                                   RAJA::constant_stride_array_of_objects >;
+                                   RAJA::constant_stride_array_of_objects,
+                                   dispatch_policy >;
 
       using workpool = RAJA::WorkPool< workgroup_policy,
                                        Index_type,
@@ -191,12 +217,7 @@ void HALOEXCHANGE_FUSED::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
           Index_type  len  = pack_index_list_lengths[l];
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
-            auto haloexchange_fused_pack_base_lam = [=](Index_type i) {
-                  HALOEXCHANGE_FUSED_PACK_BODY;
-                };
-            pool_pack.enqueue(
-                RAJA::TypedRangeSegment<Index_type>(0, len),
-                haloexchange_fused_pack_base_lam );
+            pool_pack.enqueue(range_segment(0, len), Packer{buffer, var, list});
             buffer += len;
           }
         }
@@ -209,12 +230,7 @@ void HALOEXCHANGE_FUSED::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
           Index_type  len  = unpack_index_list_lengths[l];
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
-            auto haloexchange_fused_unpack_base_lam = [=](Index_type i) {
-                  HALOEXCHANGE_FUSED_UNPACK_BODY;
-                };
-            pool_unpack.enqueue(
-                RAJA::TypedRangeSegment<Index_type>(0, len),
-                haloexchange_fused_unpack_base_lam );
+            pool_unpack.enqueue(range_segment(0, len), UnPacker{buffer, var, list});
             buffer += len;
           }
         }
@@ -234,6 +250,58 @@ void HALOEXCHANGE_FUSED::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
 
   }
 
+}
+
+void HALOEXCHANGE_FUSED::runSeqVariant(VariantID vid, size_t tune_idx)
+{
+  size_t t = 0;
+
+  if (vid == Base_Seq || vid == Lambda_Seq) {
+
+    if (tune_idx == t) {
+
+      runSeqVariantDirect(vid);
+
+    }
+
+    t += 1;
+
+  }
+
+  if (vid == RAJA_Seq) {
+
+    seq_for(workgroup_dispatch_helpers{}, [&](auto dispatch_helper) {
+
+      if (tune_idx == t) {
+
+        runSeqVariantWorkGroup<decltype(dispatch_helper)>(vid);
+
+      }
+
+      t += 1;
+
+    });
+
+  }
+}
+
+void HALOEXCHANGE_FUSED::setSeqTuningDefinitions(VariantID vid)
+{
+  if (vid == Base_Seq || vid == Lambda_Seq) {
+
+    addVariantTuningName(vid, "direct");
+
+  }
+
+  if (vid == RAJA_Seq) {
+
+    seq_for(workgroup_dispatch_helpers{}, [&](auto dispatch_helper) {
+
+      addVariantTuningName(vid, decltype(dispatch_helper)::get_name());
+
+    });
+
+  }
 }
 
 } // end namespace apps

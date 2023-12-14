@@ -117,6 +117,40 @@ namespace rajaperf
 {
 class RunParams;
 
+struct direct_dispatch_helper
+{
+  template < typename... Ts >
+  using dispatch_policy = RAJA::direct_dispatch<Ts...>;
+  static std::string get_name() { return "direct"; }
+};
+
+struct indirect_function_call_dispatch_helper
+{
+  template < typename... Ts >
+  using dispatch_policy = RAJA::indirect_function_call_dispatch;
+  static std::string get_name() { return "funcptr"; }
+};
+
+struct indirect_virtual_function_dispatch_helper
+{
+  template < typename... Ts >
+  using dispatch_policy = RAJA::indirect_virtual_function_dispatch;
+  static std::string get_name() { return "virtfunc"; }
+};
+
+using workgroup_dispatch_helpers = camp::list<
+    direct_dispatch_helper,
+    indirect_function_call_dispatch_helper,
+    indirect_virtual_function_dispatch_helper >;
+
+using hip_workgroup_dispatch_helpers = camp::list<
+    direct_dispatch_helper
+#ifdef RAJA_ENABLE_HIP_INDIRECT_FUNCTION_CALL
+   ,indirect_function_call_dispatch_helper
+   ,indirect_virtual_function_dispatch_helper
+#endif
+    >;
+
 namespace apps
 {
 
@@ -138,12 +172,48 @@ public:
   void runHipVariant(VariantID vid, size_t tune_idx);
   void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
 
+  void setSeqTuningDefinitions(VariantID vid);
+  void setOpenMPTuningDefinitions(VariantID vid);
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
+  void setOpenMPTargetTuningDefinitions(VariantID vid);
+
+  void runSeqVariantDirect(VariantID vid);
+  void runOpenMPVariantDirect(VariantID vid);
+  void runOpenMPTargetVariantDirect(VariantID vid);
   template < size_t block_size >
-  void runCudaVariantImpl(VariantID vid);
+  void runCudaVariantDirect(VariantID vid);
   template < size_t block_size >
-  void runHipVariantImpl(VariantID vid);
+  void runHipVariantDirect(VariantID vid);
+
+  template < typename dispatch_policy >
+  void runSeqVariantWorkGroup(VariantID vid);
+  template < typename dispatch_policy >
+  void runOpenMPVariantWorkGroup(VariantID vid);
+  template < typename dispatch_policy >
+  void runOpenMPTargetVariantWorkGroup(VariantID vid);
+  template < size_t block_size, typename dispatch_policy >
+  void runCudaVariantWorkGroup(VariantID vid);
+  template < size_t block_size, typename dispatch_policy >
+  void runHipVariantWorkGroup(VariantID vid);
+
+  struct Packer {
+    Real_ptr buffer;
+    Real_ptr var;
+    Int_ptr list;
+    RAJA_HOST_DEVICE void operator()(Index_type i) const {
+      HALOEXCHANGE_FUSED_PACK_BODY;
+    }
+  };
+
+  struct UnPacker {
+    Real_ptr buffer;
+    Real_ptr var;
+    Int_ptr list;
+    RAJA_HOST_DEVICE void operator()(Index_type i) const {
+      HALOEXCHANGE_FUSED_UNPACK_BODY;
+    }
+  };
 
 private:
   static const size_t default_gpu_block_size = 1024;
