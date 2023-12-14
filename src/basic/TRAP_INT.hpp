@@ -80,13 +80,13 @@ public:
   template < size_t block_size >
   void runHipVariantBlockAtomicOccGS(VariantID vid);
   template < size_t block_size >
-  void runCudaVariantBlock(VariantID vid);
+  void runCudaVariantBlockDevice(VariantID vid);
   template < size_t block_size >
-  void runHipVariantBlock(VariantID vid);
+  void runHipVariantBlockDevice(VariantID vid);
   template < size_t block_size >
-  void runCudaVariantBlockOccGS(VariantID vid);
+  void runCudaVariantBlockDeviceOccGS(VariantID vid);
   template < size_t block_size >
-  void runHipVariantBlockOccGS(VariantID vid);
+  void runHipVariantBlockDeviceOccGS(VariantID vid);
 
 private:
   static const size_t default_gpu_block_size = 256;
