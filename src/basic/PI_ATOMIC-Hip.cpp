@@ -23,7 +23,7 @@ namespace basic
 
 template < size_t block_size >
 __launch_bounds__(block_size)
-__global__ void atomic_pi(Real_ptr pi,
+__global__ void pi_atomic(Real_ptr pi,
                           Real_type dx,
                           Index_type iend)
 {
