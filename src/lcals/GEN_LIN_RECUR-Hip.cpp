@@ -65,17 +65,25 @@ void GEN_LIN_RECUR::runHipVariantImpl(VariantID vid)
        constexpr size_t shmem = 0;
 
        const size_t grid_size1 = RAJA_DIVIDE_CEILING_INT(N, block_size);
-       hipLaunchKernelGGL((genlinrecur1<block_size>), grid_size1, block_size, shmem, res.get_stream(),
-                                                 b5, stb5, sa, sb,
-                                                 kb5i,
-                                                 N );
-       hipErrchk( hipGetLastError() );
+
+       RPlaunchHipKernel( (genlinrecur1<block_size>),
+                          grid_size1, block_size,
+                          shmem, res.get_stream(),
+                          b5, stb5,
+                          sa, sb,
+                          kb5i,
+                          N );
+       cudaErrchk( hipGetLastError() );
 
        const size_t grid_size2 = RAJA_DIVIDE_CEILING_INT(N+1, block_size);
-       hipLaunchKernelGGL((genlinrecur2<block_size>), grid_size2, block_size, shmem, res.get_stream(),
-                                                 b5, stb5, sa, sb,
-                                                 kb5i,
-                                                 N );
+
+       RPlaunchHipKernel( (genlinrecur2<block_size>),
+                          grid_size2, block_size,
+                          shmem, res.get_stream(),
+                          b5, stb5,
+                          sa, sb,
+                          kb5i,
+                          N );
        hipErrchk( hipGetLastError() );
 
     }

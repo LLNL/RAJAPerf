@@ -51,8 +51,12 @@ void FIRST_SUM::runHipVariantImpl(VariantID vid)
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
        constexpr size_t shmem = 0;
-       hipLaunchKernelGGL((first_sum<block_size>),grid_size, block_size, shmem, res.get_stream(), x, y,
-                                              iend );
+
+       RPlaunchCudaKernel( (first_sum<block_size>),
+                           grid_size, block_size,
+                           shmem, res.get_stream(),
+                           x, y,
+                           iend );
        hipErrchk( hipGetLastError() );
 
     }
