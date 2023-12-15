@@ -90,10 +90,12 @@ void LTIMES_NOVIEW::runCudaVariantImpl(VariantID vid)
       LTIMES_NOVIEW_NBLOCKS_CUDA;
       constexpr size_t shmem = 0;
 
-      ltimes_noview<LTIMES_NOVIEW_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                   <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(phidat, elldat, psidat,
-                                                     num_d,
-                                                     num_m, num_g, num_z);
+      RPlaunchCudaKernel( 
+        (ltimes_noview<LTIMES_NOVIEW_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>),
+        nblocks, nthreads_per_block,
+        shmem, res.get_stream(),
+        phidat, elldat, psidat,
+        num_d, num_m, num_g, num_z );
       cudaErrchk( cudaGetLastError() );
 
     }
@@ -104,18 +106,24 @@ void LTIMES_NOVIEW::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      LTIMES_NOVIEW_THREADS_PER_BLOCK_CUDA;
-      LTIMES_NOVIEW_NBLOCKS_CUDA;
-      constexpr size_t shmem = 0;
-
-      ltimes_noview_lam<LTIMES_NOVIEW_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                       <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(num_m, num_g, num_z,
+      auto ltimes_noview_lambda = 
         [=] __device__ (Index_type z, Index_type g, Index_type m) {
           for (Index_type d = 0; d < num_d; ++d ) {
             LTIMES_NOVIEW_BODY;
           }
-        }
-      );
+        }; 
+
+      LTIMES_NOVIEW_THREADS_PER_BLOCK_CUDA;
+      LTIMES_NOVIEW_NBLOCKS_CUDA;
+      constexpr size_t shmem = 0;
+
+      RPlaunchCudaKernel( 
+        (ltimes_noview_lam<LTIMES_NOVIEW_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA,
+                           decltype(ltimes_noview_lambda)>),
+        nblocks, nthreads_per_block,
+        shmem, res.get_stream(),
+        num_m, num_g, num_z,
+        ltimes_noview_lambda );
       cudaErrchk( cudaGetLastError() );
 
     }
