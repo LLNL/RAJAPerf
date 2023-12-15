@@ -117,15 +117,16 @@ void DIFFUSION3DPA::runCudaVariantImpl(VariantID vid) {
 
   case Base_CUDA: {
 
-    dim3 nthreads_per_block(DPA_Q1D, DPA_Q1D, DPA_Q1D);
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+      dim3 nthreads_per_block(DPA_Q1D, DPA_Q1D, DPA_Q1D);
       constexpr size_t shmem = 0;
-      Diffusion3DPA<block_size><<<NE, nthreads_per_block, shmem, res.get_stream()>>>(
-          Basis, dBasis, D, X, Y, symmetric);
 
+      RPlaunchCudaKernel( (Diffusion3DPA<block_size>),
+                          NE, nthreads_per_block,
+                          shmem, res.get_stream(),
+                          Basis, dBasis, D, X, Y, symmetric );
       cudaErrchk(cudaGetLastError());
     }
     stopTimer();
