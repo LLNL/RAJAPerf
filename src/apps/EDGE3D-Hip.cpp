@@ -89,8 +89,8 @@ void EDGE3D::runHipVariantImpl(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
 
-      RPlaunchHipKernel( (lambda_cuda_forall<block_size,
-                                             decltype(edge3d_lambda)>),
+      RPlaunchHipKernel( (lambda_hip_forall<block_size,
+                                            decltype(edge3d_lambda)>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          ibegin, iend,

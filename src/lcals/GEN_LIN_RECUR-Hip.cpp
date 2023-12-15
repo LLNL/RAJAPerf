@@ -73,7 +73,7 @@ void GEN_LIN_RECUR::runHipVariantImpl(VariantID vid)
                           sa, sb,
                           kb5i,
                           N );
-       cudaErrchk( hipGetLastError() );
+       hipErrchk( hipGetLastError() );
 
        const size_t grid_size2 = RAJA_DIVIDE_CEILING_INT(N+1, block_size);
 

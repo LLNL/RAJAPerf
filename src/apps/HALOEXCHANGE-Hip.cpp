@@ -69,8 +69,10 @@ void HALOEXCHANGE::runHipVariantImpl(VariantID vid)
           dim3 nthreads_per_block(block_size);
           dim3 nblocks((len + block_size-1) / block_size);
           constexpr size_t shmem = 0;
-          hipLaunchKernelGGL((haloexchange_pack<block_size>), nblocks, nthreads_per_block, shmem, res.get_stream(),
-              buffer, list, var, len);
+          RPlaunchHipKernel( (haloexchange_pack<block_size>),
+                             nblocks, nthreads_per_block,
+                             shmem, res.get_stream(),
+                             buffer, list, var, len );
           hipErrchk( hipGetLastError() );
           buffer += len;
         }
@@ -86,8 +88,10 @@ void HALOEXCHANGE::runHipVariantImpl(VariantID vid)
           dim3 nthreads_per_block(block_size);
           dim3 nblocks((len + block_size-1) / block_size);
           constexpr size_t shmem = 0;
-          hipLaunchKernelGGL((haloexchange_unpack<block_size>), nblocks, nthreads_per_block, shmem, res.get_stream(),
-              buffer, list, var, len);
+          RPlaunchHipKernel( (haloexchange_unpack<block_size>),
+                             nblocks, nthreads_per_block,
+                             shmem, res.get_stream(),
+                             buffer, list, var, len );
           hipErrchk( hipGetLastError() );
           buffer += len;
         }
