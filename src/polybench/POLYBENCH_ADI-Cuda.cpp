@@ -23,7 +23,7 @@ namespace polybench
 
 template < size_t block_size >
 __launch_bounds__(block_size)
-__global__ void adi1(const Index_type n,
+__global__ void poly_adi1(const Index_type n,
                      const Real_type a, const Real_type b, const Real_type c,
                      const Real_type d, const Real_type f,
                      Real_ptr P, Real_ptr Q, Real_ptr U, Real_ptr V)
@@ -43,7 +43,7 @@ __global__ void adi1(const Index_type n,
 
 template < size_t block_size >
 __launch_bounds__(block_size)
-__global__ void adi2(const Index_type n,
+__global__ void poly_adi2(const Index_type n,
                      const Real_type a, const Real_type c, const Real_type d,
                      const Real_type e, const Real_type f,
                      Real_ptr P, Real_ptr Q, Real_ptr U, Real_ptr V)
@@ -63,7 +63,7 @@ __global__ void adi2(const Index_type n,
 
 template < size_t block_size, typename Lambda >
 __launch_bounds__(block_size)
-__global__ void adi_lam(const Index_type n,
+__global__ void poly_adi_lam(const Index_type n,
                         Lambda body)
 {
   Index_type i = 1 + blockIdx.x * block_size + threadIdx.x;
@@ -92,14 +92,22 @@ void POLYBENCH_ADI::runCudaVariantImpl(VariantID vid)
         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(n-2, block_size);
         constexpr size_t shmem = 0;
 
-        adi1<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(n,
-                                        a, b, c, d, f,
-                                        P, Q, U, V);
+        RPlaunchCudaKernel( (poly_adi1<block_size>),
+                            grid_size, block_size,
+                            shmem, res.get_stream(),
+                            n,
+                            a, b, c,
+                            d, f,
+                            P, Q, U, V ); 
         cudaErrchk( cudaGetLastError() );
 
-        adi2<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(n,
-                                        a, c, d, e, f,
-                                        P, Q, U, V);
+        RPlaunchCudaKernel( (poly_adi2<block_size>),
+                            grid_size, block_size,
+                            shmem, res.get_stream(),
+                            n,
+                            a, c, d,
+                            e, f,
+                            P, Q, U, V ); 
         cudaErrchk( cudaGetLastError() );
 
       }  // tstep loop
@@ -117,32 +125,40 @@ void POLYBENCH_ADI::runCudaVariantImpl(VariantID vid)
         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(n-2, block_size);
         constexpr size_t shmem = 0;
 
-        adi_lam<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(n,
-          [=] __device__ (Index_type i) {
-            POLYBENCH_ADI_BODY2;
-            for (Index_type j = 1; j < n-1; ++j) {
-              POLYBENCH_ADI_BODY3;
-            }
-            POLYBENCH_ADI_BODY4;
-            for (Index_type k = n-2; k >= 1; --k) {
-              POLYBENCH_ADI_BODY5;
-            }
+        auto poly_adi1_lambda = [=] __device__ (Index_type i) {
+          POLYBENCH_ADI_BODY2;
+          for (Index_type j = 1; j < n-1; ++j) {
+            POLYBENCH_ADI_BODY3;
           }
-        );
+          POLYBENCH_ADI_BODY4;
+          for (Index_type k = n-2; k >= 1; --k) {
+            POLYBENCH_ADI_BODY5;
+          }
+        };
+
+        RPlaunchCudaKernel( (poly_adi_lam<block_size,
+                                          decltype(poly_adi1_lambda)>),
+                            grid_size, block_size,
+                            shmem, res.get_stream(),
+                            n, poly_adi1_lambda );
         cudaErrchk( cudaGetLastError() );
 
-        adi_lam<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(n,
-          [=] __device__ (Index_type i) {
-            POLYBENCH_ADI_BODY6;
-            for (Index_type j = 1; j < n-1; ++j) {
-              POLYBENCH_ADI_BODY7;
-            }
-            POLYBENCH_ADI_BODY8;
-            for (Index_type k = n-2; k >= 1; --k) {
-              POLYBENCH_ADI_BODY9;
-            }
+        auto poly_adi2_lambda = [=] __device__ (Index_type i) {
+          POLYBENCH_ADI_BODY6;
+          for (Index_type j = 1; j < n-1; ++j) {
+            POLYBENCH_ADI_BODY7;
           }
-        );
+          POLYBENCH_ADI_BODY8;
+          for (Index_type k = n-2; k >= 1; --k) {
+            POLYBENCH_ADI_BODY9;
+          }
+        };
+
+        RPlaunchCudaKernel( (poly_adi_lam<block_size,
+                                          decltype(poly_adi2_lambda)>),
+                            grid_size, block_size, 
+                            shmem, res.get_stream(),
+                            n, poly_adi2_lambda );
         cudaErrchk( cudaGetLastError() );
 
       }  // tstep loop

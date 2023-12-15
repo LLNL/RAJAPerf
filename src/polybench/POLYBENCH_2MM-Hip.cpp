@@ -168,7 +168,7 @@ void POLYBENCH_2MM::runHipVariantImpl(VariantID vid)
       };
 
       RPlaunchHipKernel(
-        (poly_2mm_1_lam<POLY_2MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP
+        (poly_2mm_1_lam<POLY_2MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP,
                         decltype(poly_2mm_1_lambda)>),
         nblocks1, nthreads_per_block,
         shmem, res.get_stream(),

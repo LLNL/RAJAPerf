@@ -85,9 +85,11 @@ void POLYBENCH_FLOYD_WARSHALL::runCudaVariantImpl(VariantID vid)
         POLY_FLOYD_WARSHALL_NBLOCKS_CUDA;
         constexpr size_t shmem = 0;
 
-        poly_floyd_warshall<POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                           <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(pout, pin,
-                                                             k, N);
+        RPlaunchCudaKernel(
+          (poly_floyd_warshall<POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>),
+          nblocks, nthreads_per_block,
+          shmem, res.get_stream(),
+          pout, pin, k, N );
         cudaErrchk( cudaGetLastError() );
 
       }
@@ -106,12 +108,18 @@ void POLYBENCH_FLOYD_WARSHALL::runCudaVariantImpl(VariantID vid)
         POLY_FLOYD_WARSHALL_NBLOCKS_CUDA;
         constexpr size_t shmem = 0;
 
-        poly_floyd_warshall_lam<POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                               <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(N,
-          [=] __device__ (Index_type i, Index_type j) {
-            POLYBENCH_FLOYD_WARSHALL_BODY;
-          }
-        );
+        auto poly_floyd_warshall_lambda = [=] __device__ (Index_type i,
+                                                          Index_type j) {
+          POLYBENCH_FLOYD_WARSHALL_BODY;
+        }; 
+ 
+        RPlaunchCudaKernel(
+          (poly_floyd_warshall_lam<POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA, 
+                                   decltype(poly_floyd_warshall_lambda)>),
+          nblocks, nthreads_per_block,
+          shmem, res.get_stream(),
+          N, poly_floyd_warshall_lambda );
+        cudaErrchk( cudaGetLastError() );
 
       }
 

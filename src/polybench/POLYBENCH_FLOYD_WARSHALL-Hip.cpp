@@ -85,10 +85,11 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariantImpl(VariantID vid)
         POLY_FLOYD_WARSHALL_NBLOCKS_HIP;
         constexpr size_t shmem = 0;
 
-        hipLaunchKernelGGL((poly_floyd_warshall<POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                           dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
-                           pout, pin,
-                           k, N);
+        RPlaunchHipKernel(
+          (poly_floyd_warshall<POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
+          nblocks, nthreads_per_block,
+          shmem, res.get_stream(),
+          pout, pin, k, N );
         hipErrchk( hipGetLastError() );
 
       }
@@ -103,19 +104,21 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariantImpl(VariantID vid)
 
       for (Index_type k = 0; k < N; ++k) {
 
-        auto poly_floyd_warshall_lambda =
-          [=] __device__ (Index_type i, Index_type j) {
-            POLYBENCH_FLOYD_WARSHALL_BODY;
-          };
-
         POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_HIP;
         POLY_FLOYD_WARSHALL_NBLOCKS_HIP;
         constexpr size_t shmem = 0;
 
-        hipLaunchKernelGGL(
-          (poly_floyd_warshall_lam<POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(poly_floyd_warshall_lambda)>),
-          dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
-          N, poly_floyd_warshall_lambda);
+        auto poly_floyd_warshall_lambda = [=] __device__ (Index_type i,
+                                                          Index_type j) {
+          POLYBENCH_FLOYD_WARSHALL_BODY;
+        };
+
+        RPlaunchHipKernel(
+          (poly_floyd_warshall_lam<POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP,
+                                   decltype(poly_floyd_warshall_lambda)>),
+          nblocks, nthreads_per_block,
+          shmem, res.get_stream(),
+          N, poly_floyd_warshall_lambda );
         hipErrchk( hipGetLastError() );
 
       }
