@@ -270,9 +270,10 @@ void POLYBENCH_GEMVER::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel_resource<EXEC_POL1>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
-                                                RAJA::RangeSegment{0, n}),
-                                        res,
+      RAJA::kernel_resource<EXEC_POL1>(
+        RAJA::make_tuple(RAJA::RangeSegment{0, n},
+                         RAJA::RangeSegment{0, n}),
+        res,
         [=] __device__ (Index_type i, Index_type j) {
           POLYBENCH_GEMVER_BODY1_RAJA;
         }

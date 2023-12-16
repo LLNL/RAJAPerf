@@ -146,10 +146,11 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel_resource<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
-                                               RAJA::RangeSegment{0, N},
-                                               RAJA::RangeSegment{0, N}),
-                                       res,
+      RAJA::kernel_resource<EXEC_POL>(
+        RAJA::make_tuple(RAJA::RangeSegment{0, N},
+                         RAJA::RangeSegment{0, N},
+                         RAJA::RangeSegment{0, N}),
+        res,
         [=] __device__ (Index_type k, Index_type i, Index_type j) {
           POLYBENCH_FLOYD_WARSHALL_BODY_RAJA;
         }
