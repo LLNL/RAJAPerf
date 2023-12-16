@@ -172,8 +172,10 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
         counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
       });
 
-      RAJA::exclusive_scan_inplace< RAJA::hip_exec<block_size, true /*async*/> >( res,
-          RAJA::make_span(counts+ibegin, iend+1-ibegin));
+      RAJA::exclusive_scan_inplace<
+        RAJA::hip_exec<block_size, true /*async*/> >(
+          res,
+          RAJA::make_span(counts+ibegin, iend+1-ibegin) );
 
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend),

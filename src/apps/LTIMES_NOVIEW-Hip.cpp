@@ -149,14 +149,17 @@ void LTIMES_NOVIEW::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel_resource<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, num_d),
-                                               RAJA::RangeSegment(0, num_z),
-                                               RAJA::RangeSegment(0, num_g),
-                                               RAJA::RangeSegment(0, num_m)),
-                                       res,
-        [=] __device__ (Index_type d, Index_type z, Index_type g, Index_type m) {
+      RAJA::kernel_resource<EXEC_POL>(
+        RAJA::make_tuple(RAJA::RangeSegment(0, num_d),
+                         RAJA::RangeSegment(0, num_z),
+                         RAJA::RangeSegment(0, num_g),
+                         RAJA::RangeSegment(0, num_m)),
+        res,
+        [=] __device__ (Index_type d, Index_type z,
+                        Index_type g, Index_type m) {
           LTIMES_NOVIEW_BODY;
-      });
+        }
+      );
 
     }
     stopTimer();

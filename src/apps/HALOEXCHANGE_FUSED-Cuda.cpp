@@ -307,7 +307,8 @@ void HALOEXCHANGE_FUSED::runCudaVariant(VariantID vid, size_t tune_idx)
 
           if (tune_idx == t) {
 
-            runCudaVariantWorkGroup<decltype(block_size){}, decltype(dispatch_helper)>(vid);
+            runCudaVariantWorkGroup<decltype(block_size){},
+                                    decltype(dispatch_helper)>(vid);
 
           }
 

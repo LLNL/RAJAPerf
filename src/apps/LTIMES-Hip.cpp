@@ -151,14 +151,16 @@ void LTIMES::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel_resource<EXEC_POL>( RAJA::make_tuple(IDRange(0, num_d),
-                                               IZRange(0, num_z),
-                                               IGRange(0, num_g),
-                                               IMRange(0, num_m)),
-                                       res,
+      RAJA::kernel_resource<EXEC_POL>(
+        RAJA::make_tuple(IDRange(0, num_d),
+                         IZRange(0, num_z),
+                         IGRange(0, num_g),
+                         IMRange(0, num_m)),
+        res,
         [=] __device__ (ID d, IZ z, IG g, IM m) {
-        LTIMES_BODY_RAJA;
-      });
+          LTIMES_BODY_RAJA;
+        }
+      );
 
     }
     stopTimer();

@@ -150,8 +150,10 @@ void INDEXLIST_3LOOP::runCudaVariantImpl(VariantID vid)
         counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
       });
 
-      RAJA::exclusive_scan_inplace< RAJA::cuda_exec<block_size, true /*async*/> >( res,
-          RAJA::make_span(counts+ibegin, iend+1-ibegin));
+      RAJA::exclusive_scan_inplace<
+        RAJA::cuda_exec<block_size, true /*async*/> >(
+          res,
+          RAJA::make_span(counts+ibegin, iend+1-ibegin) );
 
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend),
