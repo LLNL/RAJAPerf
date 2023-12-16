@@ -41,10 +41,10 @@ namespace polybench
 
 template < size_t j_block_size, size_t i_block_size >
 __launch_bounds__(j_block_size*i_block_size)
-__global__ void poly_gemmver_1(Real_ptr A,
-                               Real_ptr u1, Real_ptr v1,
-                               Real_ptr u2, Real_ptr v2,
-                               Index_type n)
+__global__ void poly_gemver_1(Real_ptr A,
+                              Real_ptr u1, Real_ptr v1,
+                              Real_ptr u2, Real_ptr v2,
+                              Index_type n)
 {
   Index_type i = blockIdx.y * i_block_size + threadIdx.y;
   Index_type j = blockIdx.x * j_block_size + threadIdx.x;
@@ -56,7 +56,7 @@ __global__ void poly_gemmver_1(Real_ptr A,
 
 template < size_t j_block_size, size_t i_block_size, typename Lambda >
 __launch_bounds__(j_block_size*i_block_size)
-__global__ void poly_gemmver_1_lam(Index_type n, Lambda body)
+__global__ void poly_gemver_1_lam(Index_type n, Lambda body)
 {
   Index_type i = blockIdx.y * i_block_size + threadIdx.y;
   Index_type j = blockIdx.x * j_block_size + threadIdx.x;
@@ -68,10 +68,10 @@ __global__ void poly_gemmver_1_lam(Index_type n, Lambda body)
 
 template < size_t block_size >
 __launch_bounds__(block_size)
-__global__ void poly_gemmver_2(Real_ptr A,
-                               Real_ptr x, Real_ptr y,
-                               Real_type beta,
-                               Index_type n)
+__global__ void poly_gemver_2(Real_ptr A,
+                              Real_ptr x, Real_ptr y,
+                              Real_type beta,
+                              Index_type n)
 {
   Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < n) {
@@ -85,8 +85,8 @@ __global__ void poly_gemmver_2(Real_ptr A,
 
 template < size_t block_size >
 __launch_bounds__(block_size)
-__global__ void poly_gemmver_3(Real_ptr x, Real_ptr z,
-                               Index_type n)
+__global__ void poly_gemver_3(Real_ptr x, Real_ptr z,
+                              Index_type n)
 {
   Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < n) {
@@ -96,10 +96,10 @@ __global__ void poly_gemmver_3(Real_ptr x, Real_ptr z,
 
 template < size_t block_size >
 __launch_bounds__(block_size)
-__global__ void poly_gemmver_4(Real_ptr A,
-                               Real_ptr x, Real_ptr w,
-                               Real_type alpha,
-                               Index_type n)
+__global__ void poly_gemver_4(Real_ptr A,
+                              Real_ptr x, Real_ptr w,
+                              Real_type alpha,
+                              Index_type n)
 {
   Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < n) {
@@ -113,7 +113,7 @@ __global__ void poly_gemmver_4(Real_ptr A,
 
 template < size_t block_size, typename Lambda >
 __launch_bounds__(block_size)
-__global__ void poly_gemmver_234_lam(Index_type n, Lambda body)
+__global__ void poly_gemver_234_lam(Index_type n, Lambda body)
 {
   Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < n) {
@@ -140,25 +140,31 @@ void POLYBENCH_GEMVER::runCudaVariantImpl(VariantID vid)
       GEMVER_NBLOCKS_CUDA;
       constexpr size_t shmem = 0;
 
-      poly_gemmver_1<GEMVER_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                    <<<nblocks1, nthreads_per_block1, shmem, res.get_stream()>>>(A, u1, v1, u2, v2,
-                                                        n);
+      RPlaunchCudaKernel(
+        (poly_gemver_1<GEMVER_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>),
+        nblocks1, nthreads_per_block1,
+        shmem, res.get_stream(),
+        A, u1, v1, u2, v2, n );
       cudaErrchk( cudaGetLastError() );
 
       size_t grid_size = RAJA_DIVIDE_CEILING_INT(n, block_size);
 
-      poly_gemmver_2<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(A, x, y,
-                                                beta,
-                                                n);
+      RPlaunchCudaKernel( (poly_gemver_2<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          A, x, y, beta, n );
       cudaErrchk( cudaGetLastError() );
 
-      poly_gemmver_3<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(x, z,
-                                                n);
+      RPlaunchCudaKernel( (poly_gemver_3<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          x, z, n );
       cudaErrchk( cudaGetLastError() );
 
-      poly_gemmver_4<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(A, x, w,
-                                                alpha,
-                                                n);
+      RPlaunchCudaKernel( (poly_gemver_4<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          A, x, w, alpha, n );
       cudaErrchk( cudaGetLastError() );
 
     }
@@ -173,43 +179,59 @@ void POLYBENCH_GEMVER::runCudaVariantImpl(VariantID vid)
       GEMVER_NBLOCKS_CUDA;
       constexpr size_t shmem = 0;
 
-      poly_gemmver_1_lam<GEMVER_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                        <<<nblocks1, nthreads_per_block1, shmem, res.get_stream()>>>(n,
-        [=] __device__ (Index_type i, Index_type j) {
-          POLYBENCH_GEMVER_BODY1;
-        }
-      );
+      auto poly_gemver1_lambda = [=] __device__ (Index_type i, Index_type j) {
+        POLYBENCH_GEMVER_BODY1;
+      };
+  
+      RPlaunchCudaKernel(
+       (poly_gemver_1_lam<GEMVER_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA,
+                          decltype(poly_gemver1_lambda)>),
+       nblocks1, nthreads_per_block1,
+       shmem, res.get_stream(),
+       n, poly_gemver1_lambda );
       cudaErrchk( cudaGetLastError() );
 
       size_t grid_size = RAJA_DIVIDE_CEILING_INT(n, block_size);
 
-      poly_gemmver_234_lam<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(n,
-        [=] __device__ (Index_type i) {
-          POLYBENCH_GEMVER_BODY2;
-          for (Index_type j = 0; j < n; ++j) {
-            POLYBENCH_GEMVER_BODY3;
-          }
-          POLYBENCH_GEMVER_BODY4;
+      auto poly_gemver2_lambda = [=] __device__ (Index_type i) {
+        POLYBENCH_GEMVER_BODY2;
+        for (Index_type j = 0; j < n; ++j) {
+          POLYBENCH_GEMVER_BODY3;
         }
-      );
+        POLYBENCH_GEMVER_BODY4;
+      };
+
+      RPlaunchCudaKernel( (poly_gemver_234_lam<block_size,
+                                               decltype(poly_gemver2_lambda)>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          n, poly_gemver2_lambda );
       cudaErrchk( cudaGetLastError() );
 
-      poly_gemmver_234_lam<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(n,
-        [=] __device__ (Index_type i) {
-          POLYBENCH_GEMVER_BODY5;
-        }
-      );
+      auto poly_gemver3_lambda = [=] __device__ (Index_type i) {
+        POLYBENCH_GEMVER_BODY5;
+      };
+
+      RPlaunchCudaKernel( (poly_gemver_234_lam<block_size,
+                                               decltype(poly_gemver3_lambda)>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          n, poly_gemver3_lambda );
       cudaErrchk( cudaGetLastError() );
 
-      poly_gemmver_234_lam<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(n,
-        [=] __device__ (Index_type i) {
-          POLYBENCH_GEMVER_BODY6;
-          for (Index_type j = 0; j < n; ++j) {
-            POLYBENCH_GEMVER_BODY7;
-          }
-          POLYBENCH_GEMVER_BODY8;
+      auto poly_gemver4_lambda = [=] __device__ (Index_type i) {
+        POLYBENCH_GEMVER_BODY6;
+        for (Index_type j = 0; j < n; ++j) {
+          POLYBENCH_GEMVER_BODY7;
         }
-      );
+        POLYBENCH_GEMVER_BODY8;
+      };
+
+      RPlaunchCudaKernel( (poly_gemver_234_lam<block_size,
+                                               decltype(poly_gemver4_lambda)>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          n, poly_gemver4_lambda );
       cudaErrchk( cudaGetLastError() );
 
     }
