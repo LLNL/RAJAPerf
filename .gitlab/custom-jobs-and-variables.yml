@@ -60,7 +60,7 @@ variables:
 # Lassen and Butte use a different job scheduler (spectrum lsf) that does not
 # allow pre-allocation the same way slurm does.
 # Arguments for job level allocation
-  LASSEN_JOB_ALLOC: "1 -W 15 --smpiargs=\"-disable_gpu_hooks\""
+  LASSEN_JOB_ALLOC: "1 -W 15 -alloc_flags \"--smpiargs=\\\"-disable_gpu_hooks\\\"\""
 # Project specific variants for lassen
   PROJECT_LASSEN_VARIANTS: "~shared +openmp cuda_arch=70"
 # Project specific deps for lassen
