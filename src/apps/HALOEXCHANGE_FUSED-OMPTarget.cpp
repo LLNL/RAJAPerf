@@ -237,8 +237,6 @@ void HALOEXCHANGE_FUSED::runOpenMPTargetVariantWorkGroup(VariantID vid)
     }
     stopTimer();
 
-    HALOEXCHANGE_FUSED_DATA_TEARDOWN_OMP_TARGET;
-
   } else {
      getCout() << "\n HALOEXCHANGE_FUSED : Unknown OMP Target variant id = " << vid << std::endl;
   }
@@ -248,7 +246,7 @@ void HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t tune_idx)
 {
   size_t t = 0;
 
-  if (vid == Base_OpenMPTarget || vid == Lambda_OpenMPTarget) {
+  if (vid == Base_OpenMPTarget) {
 
     if (tune_idx == t) {
 
@@ -279,7 +277,7 @@ void HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t tune_idx)
 
 void HALOEXCHANGE_FUSED::setOpenMPTargetTuningDefinitions(VariantID vid)
 {
-  if (vid == Base_OpenMPTarget || vid == Lambda_OpenMPTarget) {
+  if (vid == Base_OpenMPTarget) {
 
     addVariantTuningName(vid, "direct");
 
