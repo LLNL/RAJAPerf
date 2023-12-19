@@ -39,7 +39,7 @@ variables:
 
 # Corona
 # Arguments for top level allocation
-  CORONA_SHARED_ALLOC: "--exclusive --time-limit=10m --nodes=1"
+  CORONA_SHARED_ALLOC: "--exclusive --time-limit=10m --nodes=1 -o per-resource.count=2"
 # Arguments for job level allocation
   CORONA_JOB_ALLOC: "--time-limit=8m --nodes=1 --begin-time=+5s"
 # Project specific variants for corona
@@ -49,7 +49,7 @@ variables:
 
 # Tioga
 # Arguments for top level allocation
-  TIOGA_SHARED_ALLOC: "--exclusive --time-limit=26m --nodes=1"
+  TIOGA_SHARED_ALLOC: "--exclusive --time-limit=26m --nodes=1 -o per-resource.count=2"
 # Arguments for job level allocation
   TIOGA_JOB_ALLOC: "--time-limit=8m --nodes=1 --begin-time=+5s"
 # Project specific variants for tioga
@@ -60,7 +60,7 @@ variables:
 # Lassen and Butte use a different job scheduler (spectrum lsf) that does not
 # allow pre-allocation the same way slurm does.
 # Arguments for job level allocation
-  LASSEN_JOB_ALLOC: "1 -W 15"
+  LASSEN_JOB_ALLOC: "1 -W 16"
 # Project specific variants for lassen
   PROJECT_LASSEN_VARIANTS: "~shared +openmp cuda_arch=70"
 # Project specific deps for lassen
