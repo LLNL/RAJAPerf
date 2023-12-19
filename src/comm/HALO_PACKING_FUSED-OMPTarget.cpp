@@ -63,7 +63,7 @@ namespace comm
   delete[] h_unpack_ptrs;
 
 
-void HALO_PACKING_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+void HALO_PACKING_FUSED::runOpenMPTargetVariantDirect(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -167,7 +167,19 @@ void HALO_PACKING_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_U
 
     HALO_PACKING_FUSED_MANUAL_FUSER_TEARDOWN_OMP_TARGET;
 
-  } else if ( vid == RAJA_OpenMPTarget ) {
+  } else {
+     getCout() << "\n HALO_PACKING_FUSED : Unknown OMP Target variant id = " << vid << std::endl;
+  }
+}
+
+template < typename dispatch_helper >
+void HALO_PACKING_FUSED::runOpenMPTargetVariantWorkGroup(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+
+  HALO_PACKING_FUSED_DATA_SETUP;
+
+  if ( vid == RAJA_OpenMPTarget ) {
 
     using AllocatorHolder = RAJAPoolAllocatorHolder<
         RAJA::basic_mempool::MemPool<RAJA::basic_mempool::generic_allocator>>;
@@ -175,10 +187,17 @@ void HALO_PACKING_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_U
 
     AllocatorHolder allocatorHolder;
 
+    using range_segment = RAJA::TypedRangeSegment<Index_type>;
+
+    using dispatch_policy = typename dispatch_helper::template dispatch_policy<
+                              camp::list<range_segment, Packer>,
+                              camp::list<range_segment, UnPacker>>;
+
     using workgroup_policy = RAJA::WorkGroupPolicy <
                                  RAJA::omp_target_work /*<threads_per_team>*/,
                                  RAJA::ordered,
-                                 RAJA::constant_stride_array_of_objects >;
+                                 RAJA::constant_stride_array_of_objects,
+                                 dispatch_policy >;
 
     using workpool = RAJA::WorkPool< workgroup_policy,
                                      Index_type,
@@ -209,12 +228,7 @@ void HALO_PACKING_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_U
         Index_type  len  = pack_index_list_lengths[l];
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
-          auto HALO_exchange_fused_pack_base_lam = [=](Index_type i) {
-                HALO_PACK_BODY;
-              };
-          pool_pack.enqueue(
-              RAJA::TypedRangeSegment<Index_type>(0, len),
-              HALO_exchange_fused_pack_base_lam );
+          pool_pack.enqueue(range_segment(0, len), Packer{buffer, var, list});
           buffer += len;
         }
       }
@@ -241,12 +255,7 @@ void HALO_PACKING_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_U
 
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
-          auto HALO_exchange_fused_unpack_base_lam = [=](Index_type i) {
-                HALO_UNPACK_BODY;
-              };
-          pool_unpack.enqueue(
-              RAJA::TypedRangeSegment<Index_type>(0, len),
-              HALO_exchange_fused_unpack_base_lam );
+          pool_unpack.enqueue(range_segment(0, len), UnPacker{buffer, var, list});
           buffer += len;
         }
       }
@@ -256,8 +265,62 @@ void HALO_PACKING_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_U
     }
     stopTimer();
 
+    HALO_PACKING_FUSED_DATA_TEARDOWN_OMP_TARGET;
+
   } else {
      getCout() << "\n HALO_PACKING_FUSED : Unknown OMP Target variant id = " << vid << std::endl;
+  }
+}
+
+void HALO_PACKING_FUSED::runOpenMPTargetVariant(VariantID vid, size_t tune_idx)
+{
+  size_t t = 0;
+
+  if (vid == Base_OpenMPTarget) {
+
+    if (tune_idx == t) {
+
+      runOpenMPTargetVariantDirect(vid);
+
+    }
+
+    t += 1;
+
+  }
+
+  if (vid == RAJA_OpenMPTarget) {
+
+    seq_for(workgroup_dispatch_helpers{}, [&](auto dispatch_helper) {
+
+      if (tune_idx == t) {
+
+        runOpenMPTargetVariantWorkGroup<decltype(dispatch_helper)>(vid);
+
+      }
+
+      t += 1;
+
+    });
+
+  }
+}
+
+void HALO_PACKING_FUSED::setOpenMPTargetTuningDefinitions(VariantID vid)
+{
+  if (vid == Base_OpenMPTarget) {
+
+    addVariantTuningName(vid, "direct");
+
+  }
+
+  if (vid == RAJA_OpenMPTarget) {
+
+    seq_for(workgroup_dispatch_helpers{}, [&](auto dispatch_helper) {
+
+      addVariantTuningName(vid, decltype(dispatch_helper)::get_name());
+
+    });
+
   }
 }
 

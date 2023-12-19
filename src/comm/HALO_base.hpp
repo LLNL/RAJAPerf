@@ -39,6 +39,40 @@ namespace rajaperf
 {
 class RunParams;
 
+struct direct_dispatch_helper
+{
+  template < typename... Ts >
+  using dispatch_policy = RAJA::direct_dispatch<Ts...>;
+  static std::string get_name() { return "direct"; }
+};
+
+struct indirect_function_call_dispatch_helper
+{
+  template < typename... Ts >
+  using dispatch_policy = RAJA::indirect_function_call_dispatch;
+  static std::string get_name() { return "funcptr"; }
+};
+
+struct indirect_virtual_function_dispatch_helper
+{
+  template < typename... Ts >
+  using dispatch_policy = RAJA::indirect_virtual_function_dispatch;
+  static std::string get_name() { return "virtfunc"; }
+};
+
+using workgroup_dispatch_helpers = camp::list<
+    direct_dispatch_helper,
+    indirect_function_call_dispatch_helper,
+    indirect_virtual_function_dispatch_helper >;
+
+using hip_workgroup_dispatch_helpers = camp::list<
+    direct_dispatch_helper
+#ifdef RAJA_ENABLE_HIP_INDIRECT_FUNCTION_CALL
+   ,indirect_function_call_dispatch_helper
+   ,indirect_virtual_function_dispatch_helper
+#endif
+    >;
+
 namespace comm
 {
 
@@ -53,6 +87,24 @@ public:
   void setUp_base(const int my_mpi_rank, const int* mpi_dims,
              VariantID vid, size_t tune_idx);
   void tearDown_base(VariantID vid, size_t tune_idx);
+
+  struct Packer {
+    Real_ptr buffer;
+    Real_ptr var;
+    Int_ptr list;
+    RAJA_HOST_DEVICE void operator()(Index_type i) const {
+      HALO_PACK_BODY;
+    }
+  };
+
+  struct UnPacker {
+    Real_ptr buffer;
+    Real_ptr var;
+    Int_ptr list;
+    RAJA_HOST_DEVICE void operator()(Index_type i) const {
+      HALO_UNPACK_BODY;
+    }
+  };
 
 protected:
   enum struct message_type : int

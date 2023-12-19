@@ -20,7 +20,7 @@ namespace comm
 {
 
 
-void HALO_EXCHANGE_FUSED::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+void HALO_EXCHANGE_FUSED::runOpenMPVariantDirect(VariantID vid)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 
@@ -282,6 +282,28 @@ void HALO_EXCHANGE_FUSED::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED
       break;
     }
 
+    default : {
+      getCout() << "\n HALO_EXCHANGE_FUSED : Unknown variant id = " << vid << std::endl;
+    }
+
+  }
+
+#else
+  RAJA_UNUSED_VAR(vid);
+#endif
+}
+
+template < typename dispatch_helper >
+void HALO_EXCHANGE_FUSED::runOpenMPVariantWorkGroup(VariantID vid)
+{
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+
+  const Index_type run_reps = getRunReps();
+
+  HALO_EXCHANGE_FUSED_DATA_SETUP;
+
+  switch ( vid ) {
+
     case RAJA_OpenMP : {
 
       using AllocatorHolder = RAJAPoolAllocatorHolder<
@@ -290,10 +312,17 @@ void HALO_EXCHANGE_FUSED::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED
 
       AllocatorHolder allocatorHolder;
 
+      using range_segment = RAJA::TypedRangeSegment<Index_type>;
+
+      using dispatch_policy = typename dispatch_helper::template dispatch_policy<
+                                camp::list<range_segment, Packer>,
+                                camp::list<range_segment, UnPacker>>;
+
       using workgroup_policy = RAJA::WorkGroupPolicy <
                                    RAJA::omp_work,
                                    RAJA::ordered,
-                                   RAJA::constant_stride_array_of_objects >;
+                                   RAJA::constant_stride_array_of_objects,
+                                   dispatch_policy >;
 
       using workpool = RAJA::WorkPool< workgroup_policy,
                                        Index_type,
@@ -330,12 +359,7 @@ void HALO_EXCHANGE_FUSED::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED
           Index_type  len  = pack_index_list_lengths[l];
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
-            auto HALO_exchange_fused_pack_base_lam = [=](Index_type i) {
-                  HALO_PACK_BODY;
-                };
-            pool_pack.enqueue(
-                RAJA::TypedRangeSegment<Index_type>(0, len),
-                HALO_exchange_fused_pack_base_lam );
+            pool_pack.enqueue(range_segment(0, len), Packer{buffer, var, list});
             buffer += len;
           }
         }
@@ -369,12 +393,7 @@ void HALO_EXCHANGE_FUSED::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED
 
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
-            auto HALO_exchange_fused_unpack_base_lam = [=](Index_type i) {
-                  HALO_UNPACK_BODY;
-                };
-            pool_unpack.enqueue(
-                RAJA::TypedRangeSegment<Index_type>(0, len),
-                HALO_exchange_fused_unpack_base_lam );
+            pool_unpack.enqueue(range_segment(0, len), UnPacker{buffer, var, list});
             buffer += len;
           }
         }
@@ -398,6 +417,58 @@ void HALO_EXCHANGE_FUSED::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED
 #else
   RAJA_UNUSED_VAR(vid);
 #endif
+}
+
+void HALO_EXCHANGE_FUSED::runOpenMPVariant(VariantID vid, size_t tune_idx)
+{
+  size_t t = 0;
+
+  if (vid == Base_OpenMP || vid == Lambda_OpenMP) {
+
+    if (tune_idx == t) {
+
+      runOpenMPVariantDirect(vid);
+
+    }
+
+    t += 1;
+
+  }
+
+  if (vid == RAJA_OpenMP) {
+
+    seq_for(workgroup_dispatch_helpers{}, [&](auto dispatch_helper) {
+
+      if (tune_idx == t) {
+
+        runOpenMPVariantWorkGroup<decltype(dispatch_helper)>(vid);
+
+      }
+
+      t += 1;
+
+    });
+
+  }
+}
+
+void HALO_EXCHANGE_FUSED::setOpenMPTuningDefinitions(VariantID vid)
+{
+  if (vid == Base_OpenMP || vid == Lambda_OpenMP) {
+
+    addVariantTuningName(vid, "direct");
+
+  }
+
+  if (vid == RAJA_OpenMP) {
+
+    seq_for(workgroup_dispatch_helpers{}, [&](auto dispatch_helper) {
+
+      addVariantTuningName(vid, decltype(dispatch_helper)::get_name());
+
+    });
+
+  }
 }
 
 } // end namespace comm

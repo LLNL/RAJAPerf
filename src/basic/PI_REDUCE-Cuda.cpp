@@ -178,7 +178,7 @@ void PI_REDUCE::runCudaVariantBlockAtomicOccGS(VariantID vid)
 
 
 template < size_t block_size >
-void PI_REDUCE::runCudaVariantBlock(VariantID vid)
+void PI_REDUCE::runCudaVariantBlockDevice(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -211,7 +211,7 @@ void PI_REDUCE::runCudaVariantBlock(VariantID vid)
 }
 
 template < size_t block_size >
-void PI_REDUCE::runCudaVariantBlockOccGS(VariantID vid)
+void PI_REDUCE::runCudaVariantBlockDeviceOccGS(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -277,7 +277,7 @@ void PI_REDUCE::runCudaVariant(VariantID vid, size_t tune_idx)
           if (tune_idx == t) {
 
             setBlockSize(block_size);
-            runCudaVariantBlock<block_size>(vid);
+            runCudaVariantBlockDevice<block_size>(vid);
 
           }
 
@@ -286,7 +286,7 @@ void PI_REDUCE::runCudaVariant(VariantID vid, size_t tune_idx)
           if (tune_idx == t) {
 
             setBlockSize(block_size);
-            runCudaVariantBlockOccGS<block_size>(vid);
+            runCudaVariantBlockDeviceOccGS<block_size>(vid);
 
           }
 
@@ -321,9 +321,9 @@ void PI_REDUCE::setCudaTuningDefinitions(VariantID vid)
 
         if ( vid == RAJA_CUDA ) {
 
-          addVariantTuningName(vid, "block_"+std::to_string(block_size));
+          addVariantTuningName(vid, "blkdev_"+std::to_string(block_size));
 
-          addVariantTuningName(vid, "block_occgs_"+std::to_string(block_size));
+          addVariantTuningName(vid, "blkdev_occgs_"+std::to_string(block_size));
 
         }
 

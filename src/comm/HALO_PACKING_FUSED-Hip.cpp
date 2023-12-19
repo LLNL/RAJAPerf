@@ -89,7 +89,7 @@ __global__ void HALO_exchange_fused_unpack(Real_ptr* unpack_buffer_ptrs, Int_ptr
 
 
 template < size_t block_size >
-void HALO_PACKING_FUSED::runHipVariantImpl(VariantID vid)
+void HALO_PACKING_FUSED::runHipVariantDirect(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -177,21 +177,38 @@ void HALO_PACKING_FUSED::runHipVariantImpl(VariantID vid)
 
     HALO_PACKING_FUSED_MANUAL_FUSER_TEARDOWN_HIP;
 
-  } else if ( vid == RAJA_HIP ) {
+  } else {
+     getCout() << "\n HALO_PACKING_FUSED : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+template < size_t block_size, typename dispatch_helper >
+void HALO_PACKING_FUSED::runHipVariantWorkGroup(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+
+  auto res{getHipResource()};
+
+  HALO_PACKING_FUSED_DATA_SETUP;
+
+  if ( vid == RAJA_HIP ) {
 
     using AllocatorHolder = RAJAPoolAllocatorHolder<RAJA::hip::pinned_mempool_type>;
     using Allocator = AllocatorHolder::Allocator<char>;
 
     AllocatorHolder allocatorHolder;
 
+    using range_segment = RAJA::TypedRangeSegment<Index_type>;
+
+    using dispatch_policy = typename dispatch_helper::template dispatch_policy<
+                              camp::list<range_segment, Packer>,
+                              camp::list<range_segment, UnPacker>>;
+
     using workgroup_policy = RAJA::WorkGroupPolicy <
                                  RAJA::hip_work_async<block_size>,
-#if defined(RAJA_ENABLE_HIP_INDIRECT_FUNCTION_CALL)
                                  RAJA::unordered_hip_loop_y_block_iter_x_threadblock_average,
-#else
-                                 RAJA::ordered,
-#endif
-                                 RAJA::constant_stride_array_of_objects >;
+                                 RAJA::constant_stride_array_of_objects,
+                                 dispatch_policy >;
 
     using workpool = RAJA::WorkPool< workgroup_policy,
                                      Index_type,
@@ -222,12 +239,7 @@ void HALO_PACKING_FUSED::runHipVariantImpl(VariantID vid)
         Index_type len = pack_index_list_lengths[l];
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
-          auto HALO_exchange_fused_pack_base_lam = [=] __device__ (Index_type i) {
-                HALO_PACK_BODY;
-              };
-          pool_pack.enqueue(
-              RAJA::TypedRangeSegment<Index_type>(0, len),
-              HALO_exchange_fused_pack_base_lam );
+          pool_pack.enqueue(range_segment(0, len), Packer{buffer, var, list});
           buffer += len;
         }
       }
@@ -255,12 +267,7 @@ void HALO_PACKING_FUSED::runHipVariantImpl(VariantID vid)
 
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
-          auto HALO_exchange_fused_unpack_base_lam = [=] __device__ (Index_type i) {
-                HALO_UNPACK_BODY;
-              };
-          pool_unpack.enqueue(
-              RAJA::TypedRangeSegment<Index_type>(0, len),
-              HALO_exchange_fused_unpack_base_lam );
+          pool_unpack.enqueue(range_segment(0, len), UnPacker{buffer, var, list});
           buffer += len;
         }
       }
@@ -276,7 +283,93 @@ void HALO_PACKING_FUSED::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(HALO_PACKING_FUSED, Hip)
+void HALO_PACKING_FUSED::runHipVariant(VariantID vid, size_t tune_idx)
+{
+  size_t t = 0;
+
+  if (vid == Base_HIP) {
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        if (tune_idx == t) {
+
+          runHipVariantDirect<block_size>(vid);
+
+        }
+
+        t += 1;
+
+      }
+
+    });
+
+  }
+
+  if (vid == RAJA_HIP) {
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        seq_for(hip_workgroup_dispatch_helpers{}, [&](auto dispatch_helper) {
+
+          if (tune_idx == t) {
+
+            runHipVariantWorkGroup<decltype(block_size){}, decltype(dispatch_helper)>(vid);
+
+          }
+
+          t += 1;
+
+        });
+
+      }
+
+    });
+
+  }
+}
+
+void HALO_PACKING_FUSED::setHipTuningDefinitions(VariantID vid)
+{
+  if (vid == Base_HIP) {
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        addVariantTuningName(vid, "direct_"+std::to_string(block_size));
+
+      }
+
+    });
+
+  }
+
+  if (vid == RAJA_HIP) {
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        seq_for(hip_workgroup_dispatch_helpers{}, [&](auto dispatch_helper) {
+
+          addVariantTuningName(vid, decltype(dispatch_helper)::get_name()+"_"+std::to_string(block_size));
+
+        });
+
+      }
+
+    });
+
+  }
+}
 
 } // end namespace comm
 } // end namespace rajaperf

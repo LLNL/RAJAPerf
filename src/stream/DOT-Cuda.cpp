@@ -172,7 +172,7 @@ void DOT::runCudaVariantBlockAtomicOccGS(VariantID vid)
 }
 
 template < size_t block_size >
-void DOT::runCudaVariantBlock(VariantID vid)
+void DOT::runCudaVariantBlockDevice(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -205,7 +205,7 @@ void DOT::runCudaVariantBlock(VariantID vid)
 }
 
 template < size_t block_size >
-void DOT::runCudaVariantBlockOccGS(VariantID vid)
+void DOT::runCudaVariantBlockDeviceOccGS(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -271,7 +271,7 @@ void DOT::runCudaVariant(VariantID vid, size_t tune_idx)
           if (tune_idx == t) {
 
             setBlockSize(block_size);
-            runCudaVariantBlock<block_size>(vid);
+            runCudaVariantBlockDevice<block_size>(vid);
 
           }
 
@@ -280,7 +280,7 @@ void DOT::runCudaVariant(VariantID vid, size_t tune_idx)
           if (tune_idx == t) {
 
             setBlockSize(block_size);
-            runCudaVariantBlockOccGS<block_size>(vid);
+            runCudaVariantBlockDeviceOccGS<block_size>(vid);
 
           }
 
@@ -315,9 +315,9 @@ void DOT::setCudaTuningDefinitions(VariantID vid)
 
         if ( vid == RAJA_CUDA ) {
 
-          addVariantTuningName(vid, "block_"+std::to_string(block_size));
+          addVariantTuningName(vid, "blkdev_"+std::to_string(block_size));
 
-          addVariantTuningName(vid, "block_occgs_"+std::to_string(block_size));
+          addVariantTuningName(vid, "blkdev_occgs_"+std::to_string(block_size));
 
         }
 

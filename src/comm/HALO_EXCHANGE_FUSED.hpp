@@ -157,12 +157,30 @@ public:
   void runHipVariant(VariantID vid, size_t tune_idx);
   void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
 
+  void setSeqTuningDefinitions(VariantID vid);
+  void setOpenMPTuningDefinitions(VariantID vid);
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
+  void setOpenMPTargetTuningDefinitions(VariantID vid);
+
+  void runSeqVariantDirect(VariantID vid);
+  void runOpenMPVariantDirect(VariantID vid);
+  void runOpenMPTargetVariantDirect(VariantID vid);
   template < size_t block_size >
-  void runCudaVariantImpl(VariantID vid);
+  void runCudaVariantDirect(VariantID vid);
   template < size_t block_size >
-  void runHipVariantImpl(VariantID vid);
+  void runHipVariantDirect(VariantID vid);
+
+  template < typename dispatch_helper >
+  void runSeqVariantWorkGroup(VariantID vid);
+  template < typename dispatch_helper >
+  void runOpenMPVariantWorkGroup(VariantID vid);
+  template < typename dispatch_helper >
+  void runOpenMPTargetVariantWorkGroup(VariantID vid);
+  template < size_t block_size, typename dispatch_helper >
+  void runCudaVariantWorkGroup(VariantID vid);
+  template < size_t block_size, typename dispatch_helper >
+  void runHipVariantWorkGroup(VariantID vid);
 
 private:
   static const size_t default_gpu_block_size = 1024;
