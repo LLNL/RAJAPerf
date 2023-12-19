@@ -227,32 +227,17 @@ then
     # in case we want to make them disctinct in the future.
     #
 
-    if echo ${sys_type} | grep -q "blueos" && echo ${spec} | grep -q "cuda" ; then
-        if grep -q -i "CMAKE_BUILD_TYPE.*Release" ${hostconfig_path}
-        then
-            echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
-            echo "lrun -n1 ... ctest --output-on-failure -T test"
-            echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-            lrun -n1 --smpiargs="-disable_gpu_hooks" ctest --output-on-failure -T test
-        else
-            echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
-            echo "lrun -n1 ... ctest --output-on-failure -T test"
-            echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-            lrun -n1 --smpiargs="-disable_gpu_hooks" ctest --output-on-failure -T test
-        fi
+    if grep -q -i "CMAKE_BUILD_TYPE.*Release" ${hostconfig_path}
+    then
+        echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
+        echo "ctest --output-on-failure -T test 2>&1 | tee tests_output.txt"
+        echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        ctest --output-on-failure -T test 2>&1 | tee tests_output.txt
     else
-        if grep -q -i "CMAKE_BUILD_TYPE.*Release" ${hostconfig_path}
-        then
-            echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
-            echo "ctest --output-on-failure -T test 2>&1 | tee tests_output.txt"
-            echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-            ctest --output-on-failure -T test 2>&1 | tee tests_output.txt
-        else
-            echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
-            echo "ctest --output-on-failure -T test 2>&1 | tee tests_output.txt"
-            echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-            ctest --output-on-failure -T test 2>&1 | tee tests_output.txt
-        fi
+        echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
+        echo "ctest --output-on-failure -T test 2>&1 | tee tests_output.txt"
+        echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        ctest --output-on-failure -T test 2>&1 | tee tests_output.txt
     fi
 
     no_test_str="No tests were found!!!"
