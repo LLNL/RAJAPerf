@@ -28,9 +28,11 @@ void EDGE3D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
   EDGE3D_DATA_SETUP;
 
+#if defined(RUN_RAJA_SEQ)
   auto edge3d_lam = [=](Index_type i) {
                      EDGE3D_BODY;
                    };
+#endif
 
   switch ( vid ) {
 
