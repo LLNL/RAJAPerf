@@ -265,8 +265,6 @@ void HALO_PACKING_FUSED::runOpenMPTargetVariantWorkGroup(VariantID vid)
     }
     stopTimer();
 
-    HALO_PACKING_FUSED_DATA_TEARDOWN_OMP_TARGET;
-
   } else {
      getCout() << "\n HALO_PACKING_FUSED : Unknown OMP Target variant id = " << vid << std::endl;
   }

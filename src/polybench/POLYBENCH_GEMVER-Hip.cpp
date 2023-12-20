@@ -41,10 +41,10 @@ namespace polybench
 
 template < size_t j_block_size, size_t i_block_size >
 __launch_bounds__(j_block_size*i_block_size)
-__global__ void poly_gemmver_1(Real_ptr A,
-                               Real_ptr u1, Real_ptr v1,
-                               Real_ptr u2, Real_ptr v2,
-                               Index_type n)
+__global__ void poly_gemver_1(Real_ptr A,
+                              Real_ptr u1, Real_ptr v1,
+                              Real_ptr u2, Real_ptr v2,
+                              Index_type n)
 {
   Index_type i = blockIdx.y * i_block_size + threadIdx.y;
   Index_type j = blockIdx.x * j_block_size + threadIdx.x;
@@ -56,7 +56,7 @@ __global__ void poly_gemmver_1(Real_ptr A,
 
 template < size_t j_block_size, size_t i_block_size, typename Lambda >
 __launch_bounds__(j_block_size*i_block_size)
-__global__ void poly_gemmver_1_lam(Index_type n, Lambda body)
+__global__ void poly_gemver_1_lam(Index_type n, Lambda body)
 {
   Index_type i = blockIdx.y * i_block_size + threadIdx.y;
   Index_type j = blockIdx.x * j_block_size + threadIdx.x;
@@ -68,10 +68,10 @@ __global__ void poly_gemmver_1_lam(Index_type n, Lambda body)
 
 template < size_t block_size >
 __launch_bounds__(block_size)
-__global__ void poly_gemmver_2(Real_ptr A,
-                               Real_ptr x, Real_ptr y,
-                               Real_type beta,
-                               Index_type n)
+__global__ void poly_gemver_2(Real_ptr A,
+                              Real_ptr x, Real_ptr y,
+                              Real_type beta,
+                              Index_type n)
 {
   Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < n) {
@@ -85,8 +85,8 @@ __global__ void poly_gemmver_2(Real_ptr A,
 
 template < size_t block_size >
 __launch_bounds__(block_size)
-__global__ void poly_gemmver_3(Real_ptr x, Real_ptr z,
-                               Index_type n)
+__global__ void poly_gemver_3(Real_ptr x, Real_ptr z,
+                              Index_type n)
 {
   Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < n) {
@@ -96,10 +96,10 @@ __global__ void poly_gemmver_3(Real_ptr x, Real_ptr z,
 
 template < size_t block_size >
 __launch_bounds__(block_size)
-__global__ void poly_gemmver_4(Real_ptr A,
-                               Real_ptr x, Real_ptr w,
-                               Real_type alpha,
-                               Index_type n)
+__global__ void poly_gemver_4(Real_ptr A,
+                              Real_ptr x, Real_ptr w,
+                              Real_type alpha,
+                              Index_type n)
 {
   Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < n) {
@@ -113,7 +113,7 @@ __global__ void poly_gemmver_4(Real_ptr A,
 
 template < size_t block_size, typename Lambda >
 __launch_bounds__(block_size)
-__global__ void poly_gemmver_234_lam(Index_type n, Lambda body)
+__global__ void poly_gemver_234_lam(Index_type n, Lambda body)
 {
   Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < n) {
@@ -140,26 +140,31 @@ void POLYBENCH_GEMVER::runHipVariantImpl(VariantID vid)
       GEMVER_NBLOCKS_HIP;
       constexpr size_t shmem = 0;
 
-      hipLaunchKernelGGL((poly_gemmver_1<GEMVER_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                         dim3(nblocks1), dim3(nthreads_per_block1), shmem, res.get_stream(),
-                         A, u1, v1, u2, v2, n);
+      RPlaunchHipKernel(
+        (poly_gemver_1<GEMVER_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
+        nblocks1, nthreads_per_block1,
+        shmem, res.get_stream(),
+        A, u1, v1, u2, v2, n );
       hipErrchk( hipGetLastError() );
 
       size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_n, block_size);
 
-      hipLaunchKernelGGL((poly_gemmver_2<block_size>),
-                         dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
-                         A, x, y, beta, n);
+      RPlaunchHipKernel( (poly_gemver_2<block_size>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         A, x, y, beta, n );
       hipErrchk( hipGetLastError() );
 
-      hipLaunchKernelGGL((poly_gemmver_3<block_size>),
-                         dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
-                         x, z, n);
+      RPlaunchHipKernel( (poly_gemver_3<block_size>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         x, z, n );
       hipErrchk( hipGetLastError() );
 
-      hipLaunchKernelGGL((poly_gemmver_4<block_size>),
-                         dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
-                         A, x, w, alpha, n);
+      RPlaunchHipKernel( (poly_gemver_4<block_size>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         A, x, w, alpha, n );
       hipErrchk( hipGetLastError() );
 
     }
@@ -174,50 +179,59 @@ void POLYBENCH_GEMVER::runHipVariantImpl(VariantID vid)
       GEMVER_NBLOCKS_HIP;
       constexpr size_t shmem = 0;
 
-      auto poly_gemmver_1_lambda = [=] __device__ (Index_type i, Index_type j) {
-          POLYBENCH_GEMVER_BODY1;
+      auto poly_gemver1_lambda = [=] __device__ (Index_type i, Index_type j) {
+        POLYBENCH_GEMVER_BODY1;
       };
 
-      hipLaunchKernelGGL((poly_gemmver_1_lam<GEMVER_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(poly_gemmver_1_lambda)>),
-                         dim3(nblocks1), dim3(nthreads_per_block1), shmem, res.get_stream(),
-                         n, poly_gemmver_1_lambda);
+      RPlaunchHipKernel(
+       (poly_gemver_1_lam<GEMVER_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP,
+                          decltype(poly_gemver1_lambda)>),
+       nblocks1, nthreads_per_block1,
+       shmem, res.get_stream(),
+       n, poly_gemver1_lambda );
       hipErrchk( hipGetLastError() );
 
       size_t grid_size = RAJA_DIVIDE_CEILING_INT(n, block_size);
 
-      auto poly_gemmver_2_lambda = [=] __device__ (Index_type i) {
-          POLYBENCH_GEMVER_BODY2;
-          for (Index_type j = 0; j < n; ++j) {
-            POLYBENCH_GEMVER_BODY3;
-          }
-          POLYBENCH_GEMVER_BODY4;
+      auto poly_gemver2_lambda = [=] __device__ (Index_type i) {
+        POLYBENCH_GEMVER_BODY2;
+        for (Index_type j = 0; j < n; ++j) {
+          POLYBENCH_GEMVER_BODY3;
+        }
+        POLYBENCH_GEMVER_BODY4;
       };
 
-      hipLaunchKernelGGL((poly_gemmver_234_lam<block_size, decltype(poly_gemmver_2_lambda)>),
-        dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
-        n, poly_gemmver_2_lambda);
+      RPlaunchHipKernel( (poly_gemver_234_lam<block_size,
+                                              decltype(poly_gemver2_lambda)>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         n, poly_gemver2_lambda );
       hipErrchk( hipGetLastError() );
 
-      auto poly_gemmver_3_lambda = [=] __device__ (Index_type i) {
-          POLYBENCH_GEMVER_BODY5;
+      auto poly_gemver3_lambda = [=] __device__ (Index_type i) {
+        POLYBENCH_GEMVER_BODY5;
       };
 
-      hipLaunchKernelGGL((poly_gemmver_234_lam<block_size, decltype(poly_gemmver_3_lambda)>),
-        dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
-        n, poly_gemmver_3_lambda);
+      RPlaunchHipKernel( (poly_gemver_234_lam<block_size,
+                                              decltype(poly_gemver3_lambda)>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         n, poly_gemver3_lambda );
       hipErrchk( hipGetLastError() );
 
-      auto poly_gemmver_4_lambda = [=] __device__ (Index_type i) {
-          POLYBENCH_GEMVER_BODY6;
-          for (Index_type j = 0; j < n; ++j) {
-            POLYBENCH_GEMVER_BODY7;
-          }
-          POLYBENCH_GEMVER_BODY8;
+      auto poly_gemver4_lambda = [=] __device__ (Index_type i) {
+        POLYBENCH_GEMVER_BODY6;
+        for (Index_type j = 0; j < n; ++j) {
+          POLYBENCH_GEMVER_BODY7;
+        }
+        POLYBENCH_GEMVER_BODY8;
       };
 
-      hipLaunchKernelGGL((poly_gemmver_234_lam<block_size, decltype(poly_gemmver_4_lambda)>),
-        dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
-        n, poly_gemmver_4_lambda);
+      RPlaunchHipKernel( (poly_gemver_234_lam<block_size,
+                                              decltype(poly_gemver4_lambda)>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         n, poly_gemver4_lambda );
       hipErrchk( hipGetLastError() );
 
     }
@@ -256,9 +270,10 @@ void POLYBENCH_GEMVER::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel_resource<EXEC_POL1>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
-                                                RAJA::RangeSegment{0, n}),
-                                        res,
+      RAJA::kernel_resource<EXEC_POL1>(
+        RAJA::make_tuple(RAJA::RangeSegment{0, n},
+                         RAJA::RangeSegment{0, n}),
+        res,
         [=] __device__ (Index_type i, Index_type j) {
           POLYBENCH_GEMVER_BODY1_RAJA;
         }

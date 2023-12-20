@@ -148,10 +148,11 @@ void REDUCE_SUM::runCudaVariantBlockAtomic(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = sizeof(Real_type)*block_size;
-      reduce_sum<block_size><<<grid_size, block_size,
-                  shmem, res.get_stream()>>>( x,
-                                                   sum, m_sum_init,
-                                                   iend );
+
+      RPlaunchCudaKernel( (reduce_sum<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          x, sum, m_sum_init, iend );
       cudaErrchk( cudaGetLastError() );
 
       RAJAPERF_CUDA_REDUCER_COPY_BACK(&m_sum, sum, hsum, 1);
@@ -212,10 +213,11 @@ void REDUCE_SUM::runCudaVariantBlockAtomicOccGS(VariantID vid)
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
-      reduce_sum<block_size><<<grid_size, block_size,
-                               shmem, res.get_stream()>>>( x,
-                                                   sum, m_sum_init,
-                                                   iend );
+
+      RPlaunchCudaKernel( (reduce_sum<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          x, sum, m_sum_init, iend );
       cudaErrchk( cudaGetLastError() );
 
       RAJAPERF_CUDA_REDUCER_COPY_BACK(&m_sum, sum, hsum, 1);

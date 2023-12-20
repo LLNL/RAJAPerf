@@ -58,7 +58,13 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      pi_atomic<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( pi, dx, iend );
+
+      RPlaunchCudaKernel( (pi_atomic<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          pi,
+                          dx, 
+                          iend );
       cudaErrchk( cudaGetLastError() );
 
       Real_type rpi;
@@ -75,13 +81,19 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
 
       RAJAPERF_CUDA_REDUCER_INITIALIZE(&m_pi_init, pi, hpi, 1);
 
+      auto pi_atomic_lambda = [=] __device__ (Index_type i) {
+        double x = (double(i) + 0.5) * dx;
+        RAJA::atomicAdd<RAJA::cuda_atomic>(pi, dx / (1.0 + x * x));
+      };
+
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      lambda_cuda_forall<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(
-        ibegin, iend, [=] __device__ (Index_type i) {
-          double x = (double(i) + 0.5) * dx;
-          RAJA::atomicAdd<RAJA::cuda_atomic>(pi, dx / (1.0 + x * x));
-      });
+
+      RPlaunchCudaKernel( (lambda_cuda_forall<block_size,
+                                              decltype(pi_atomic_lambda)>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          ibegin, iend, pi_atomic_lambda );
       cudaErrchk( cudaGetLastError() );
 
       Real_type rpi;

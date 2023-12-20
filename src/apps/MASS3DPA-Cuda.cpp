@@ -99,14 +99,16 @@ void MASS3DPA::runCudaVariantImpl(VariantID vid) {
 
   case Base_CUDA: {
 
-    dim3 nthreads_per_block(MPA_Q1D, MPA_Q1D, 1);
-    constexpr size_t shmem = 0;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      Mass3DPA<block_size><<<NE, nthreads_per_block, shmem, res.get_stream()>>>(B, Bt, D, X, Y);
+      dim3 nthreads_per_block(MPA_Q1D, MPA_Q1D, 1);
+      constexpr size_t shmem = 0;
 
+      RPlaunchCudaKernel( (Mass3DPA<block_size>),
+                          NE, nthreads_per_block,
+                          shmem, res.get_stream(),
+                          B, Bt, D, X, Y );
       cudaErrchk( cudaGetLastError() );
     }
     stopTimer();

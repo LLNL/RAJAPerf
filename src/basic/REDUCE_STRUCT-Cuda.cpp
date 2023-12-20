@@ -121,13 +121,15 @@ void REDUCE_STRUCT::runCudaVariantBlockAtomic(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 6*sizeof(Real_type)*block_size;
-      reduce_struct<block_size><<<grid_size, block_size,
-                                  shmem, res.get_stream()>>>(
-        points.x, points.y,
-        mem, mem+1, mem+2,    // xcenter,xmin,xmax
-        mem+3, mem+4, mem+5,  // ycenter,ymin,ymax
-        m_init_sum, m_init_min, m_init_max,
-        points.N);
+
+      RPlaunchCudaKernel( (reduce_struct<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          points.x, points.y,
+                          mem, mem+1, mem+2,    // xcenter,xmin,xmax
+                          mem+3, mem+4, mem+5,  // ycenter,ymin,ymax
+                          m_init_sum, m_init_min, m_init_max,
+                          points.N );
       cudaErrchk( cudaGetLastError() );
 
       Real_type rmem[6];
@@ -205,13 +207,15 @@ void REDUCE_STRUCT::runCudaVariantBlockAtomicOccGS(VariantID vid)
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
-      reduce_struct<block_size><<<grid_size, block_size,
-                                  shmem, res.get_stream()>>>(
-        points.x, points.y,
-        mem, mem+1, mem+2,    // xcenter,xmin,xmax
-        mem+3, mem+4, mem+5,  // ycenter,ymin,ymax
-        m_init_sum, m_init_min, m_init_max,
-        points.N);
+
+      RPlaunchCudaKernel( (reduce_struct<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          points.x, points.y,
+                          mem, mem+1, mem+2,    // xcenter,xmin,xmax
+                          mem+3, mem+4, mem+5,  // ycenter,ymin,ymax
+                          m_init_sum, m_init_min, m_init_max,
+                          points.N );
       cudaErrchk( cudaGetLastError() );
 
       Real_type rmem[6];

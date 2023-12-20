@@ -51,8 +51,11 @@ void TRIAD::runHipVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      hipLaunchKernelGGL((triad<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  a, b, c, alpha,
-                                        iend );
+
+      RPlaunchHipKernel( (triad<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          a, b, c, alpha, iend );
       hipErrchk( hipGetLastError() );
 
     }
@@ -69,8 +72,12 @@ void TRIAD::runHipVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(triad_lambda)>),
-        grid_size, block_size, shmem, res.get_stream(), ibegin, iend, triad_lambda);
+
+      RPlaunchHipKernel( (lambda_hip_forall<block_size,
+                                             decltype(triad_lambda)>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         ibegin, iend, triad_lambda );
       hipErrchk( hipGetLastError() );
 
     }

@@ -125,15 +125,25 @@ void POLYBENCH_2MM::runCudaVariantImpl(VariantID vid)
       constexpr size_t shmem = 0;
 
       POLY_2MM_1_NBLOCKS_CUDA;
-      poly_2mm_1<POLY_2MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                <<<nblocks1, nthreads_per_block, shmem, res.get_stream()>>>(tmp, A, B, alpha,
-                                                   ni, nj, nk);
+      
+      RPlaunchCudaKernel(
+        (poly_2mm_1<POLY_2MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>),
+        nblocks1, nthreads_per_block,
+        shmem, res.get_stream(),
+        tmp, A, B,
+        alpha,
+        ni, nj, nk );
       cudaErrchk( cudaGetLastError() );
 
       POLY_2MM_2_NBLOCKS_CUDA;
-      poly_2mm_2<POLY_2MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                <<<nblocks2, nthreads_per_block, shmem, res.get_stream()>>>(tmp, C, D, beta,
-                                                   ni, nl, nj);
+
+      RPlaunchCudaKernel(
+        (poly_2mm_2<POLY_2MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>),
+        nblocks2, nthreads_per_block,
+        shmem, res.get_stream(),
+        tmp, C, D,
+        beta,
+        ni, nl, nj );
       cudaErrchk( cudaGetLastError() );
 
     }
@@ -148,29 +158,39 @@ void POLYBENCH_2MM::runCudaVariantImpl(VariantID vid)
       constexpr size_t shmem = 0;
 
       POLY_2MM_1_NBLOCKS_CUDA;
-      poly_2mm_1_lam<POLY_2MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                    <<<nblocks1, nthreads_per_block, shmem, res.get_stream()>>>(ni, nj,
-        [=] __device__ (Index_type i, Index_type j) {
-          POLYBENCH_2MM_BODY1;
-          for (Index_type k=0; k < nk; ++k) {
-            POLYBENCH_2MM_BODY2;
-          }
-          POLYBENCH_2MM_BODY3;
+
+      auto poly_2mm_1_lambda = [=] __device__ (Index_type i, Index_type j) {
+        POLYBENCH_2MM_BODY1;
+        for (Index_type k=0; k < nk; ++k) {
+          POLYBENCH_2MM_BODY2;
         }
-      );
+        POLYBENCH_2MM_BODY3;
+      };
+
+      RPlaunchCudaKernel(
+        (poly_2mm_1_lam<POLY_2MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA,
+                        decltype(poly_2mm_1_lambda)>),
+        nblocks1, nthreads_per_block,
+        shmem, res.get_stream(),
+        ni, nj, poly_2mm_1_lambda );
       cudaErrchk( cudaGetLastError() );
 
       POLY_2MM_2_NBLOCKS_CUDA;
-      poly_2mm_2_lam<POLY_2MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                    <<<nblocks2, nthreads_per_block, shmem, res.get_stream()>>>(ni, nl,
-        [=] __device__ (Index_type i, Index_type l) {
-          POLYBENCH_2MM_BODY4;
-          for (Index_type j=0; j < nj; ++j) {
-            POLYBENCH_2MM_BODY5;
-          }
-          POLYBENCH_2MM_BODY6;
+
+      auto poly_2mm_2_lambda = [=] __device__ (Index_type i, Index_type l) {
+        POLYBENCH_2MM_BODY4;
+        for (Index_type j=0; j < nj; ++j) {
+          POLYBENCH_2MM_BODY5;
         }
-      );
+        POLYBENCH_2MM_BODY6;
+      };
+     
+      RPlaunchCudaKernel( 
+        (poly_2mm_2_lam<POLY_2MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA,
+                        decltype(poly_2mm_2_lambda)>),
+        nblocks2, nthreads_per_block,
+        shmem, res.get_stream(),
+        ni, nl, poly_2mm_2_lambda );
       cudaErrchk( cudaGetLastError() );
 
     }

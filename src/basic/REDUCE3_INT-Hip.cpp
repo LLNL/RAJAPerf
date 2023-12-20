@@ -90,12 +90,15 @@ void REDUCE3_INT::runHipVariantBlockAtomic(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 3*sizeof(Int_type)*block_size;
-      hipLaunchKernelGGL((reduce3int<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
-                                                    vec,
-                                                    vmem + 0, m_vsum_init,
-                                                    vmem + 1, m_vmin_init,
-                                                    vmem + 2, m_vmax_init,
-                                                    iend );
+
+      RPlaunchHipKernel( (reduce3int<block_size>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         vec,
+                         vmem + 0, m_vsum_init,
+                         vmem + 1, m_vmin_init,
+                         vmem + 2, m_vmax_init,
+                         iend );
       hipErrchk( hipGetLastError() );
 
       Int_type rvmem[3];
@@ -162,13 +165,15 @@ void REDUCE3_INT::runHipVariantBlockAtomicOccGS(VariantID vid)
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
-      hipLaunchKernelGGL((reduce3int<block_size>), dim3(grid_size), dim3(block_size),
-                                                   shmem, res.get_stream(),
-                                                    vec,
-                                                    vmem + 0, m_vsum_init,
-                                                    vmem + 1, m_vmin_init,
-                                                    vmem + 2, m_vmax_init,
-                                                    iend );
+
+      RPlaunchHipKernel( (reduce3int<block_size>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         vec,
+                         vmem + 0, m_vsum_init,
+                         vmem + 1, m_vmin_init,
+                         vmem + 2, m_vmax_init,
+                         iend );
       hipErrchk( hipGetLastError() );
 
       Int_type rvmem[3];

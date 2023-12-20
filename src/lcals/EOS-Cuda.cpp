@@ -52,9 +52,13 @@ void EOS::runCudaVariantImpl(VariantID vid)
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
        constexpr size_t shmem = 0;
-       eos<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( x, y, z, u,
-                                       q, r, t,
-                                       iend );
+
+       RPlaunchCudaKernel( (eos<block_size>),
+                           grid_size, block_size,
+                           shmem, res.get_stream(),
+                           x, y, z, u,
+                           q, r, t, 
+                           iend );
        cudaErrchk( cudaGetLastError() );
 
     }

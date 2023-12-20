@@ -66,11 +66,14 @@ void EDGE3D::runCudaVariantImpl(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
 
-      edge3d<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(sum,
-                                       x0, x1, x2, x3, x4, x5, x6, x7,
-                                       y0, y1, y2, y3, y4, y5, y6, y7,
-                                       z0, z1, z2, z3, z4, z5, z6, z7,
-                                       ibegin, iend);
+      RPlaunchCudaKernel( (edge3d<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          sum,
+                          x0, x1, x2, x3, x4, x5, x6, x7,
+                          y0, y1, y2, y3, y4, y5, y6, y7,
+                          z0, z1, z2, z3, z4, z5, z6, z7,
+                          ibegin, iend );
       cudaErrchk( cudaGetLastError() );
 
     }
@@ -81,13 +84,17 @@ void EDGE3D::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+      auto edge3d_lambda = [=] __device__ (Index_type i) { EDGE3D_BODY; };
+
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
 
-      auto edge3d_lam = [=] __device__ (Index_type i) { EDGE3D_BODY; };
-
-      lambda_cuda_forall<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(
-        ibegin, iend, edge3d_lam);
+      RPlaunchCudaKernel( (lambda_cuda_forall<block_size,
+                                              decltype(edge3d_lambda)>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          ibegin, iend, 
+                          edge3d_lambda );
       cudaErrchk( cudaGetLastError() );
 
     }

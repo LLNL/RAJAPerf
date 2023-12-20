@@ -53,9 +53,13 @@ void PLANCKIAN::runCudaVariantImpl(VariantID vid)
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
        constexpr size_t shmem = 0;
-       planckian<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( x, y,
-                                             u, v, w,
-                                             iend );
+
+       RPlaunchCudaKernel( (planckian<block_size>),
+                           grid_size, block_size,
+                           shmem, res.get_stream(),
+                           x, y,
+                           u, v, w,
+                           iend );
        cudaErrchk( cudaGetLastError() );
 
     }

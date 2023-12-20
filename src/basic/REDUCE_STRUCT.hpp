@@ -107,7 +107,7 @@ public:
   void runHipVariantBlockDeviceOccGS(VariantID vid);
 
   struct PointsType {
-    Int_type N;
+    Index_type N;
     Real_ptr x, y;
 
     Real_ptr GetCenter(){return &center[0];};

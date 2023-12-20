@@ -52,8 +52,11 @@ void DAXPY_ATOMIC::runCudaVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      daxpy_atomic<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( y, x, a,
-                                        iend );
+
+      RPlaunchCudaKernel( (daxpy_atomic<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          y, x, a, iend );
       cudaErrchk( cudaGetLastError() );
 
     }
@@ -64,12 +67,18 @@ void DAXPY_ATOMIC::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+      auto daxpy_atomic_lambda = [=] __device__ (Index_type i) {
+        DAXPY_ATOMIC_RAJA_BODY(RAJA::cuda_atomic);
+      }; 
+
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      lambda_cuda_forall<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(
-        ibegin, iend, [=] __device__ (Index_type i) {
-        DAXPY_ATOMIC_RAJA_BODY(RAJA::cuda_atomic);
-      });
+
+      RPlaunchCudaKernel( (lambda_cuda_forall<block_size, 
+                                              decltype(daxpy_atomic_lambda)>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          ibegin, iend, daxpy_atomic_lambda );
       cudaErrchk( cudaGetLastError() );
 
     }

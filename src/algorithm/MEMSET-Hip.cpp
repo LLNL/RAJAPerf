@@ -89,9 +89,11 @@ void MEMSET::runHipVariantBlock(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      hipLaunchKernelGGL( (memset<block_size>),
-          dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
-          x, val, iend );
+
+      RPlaunchHipKernel( (memset<block_size>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         x, val, iend );
       hipErrchk( hipGetLastError() );
 
     }
@@ -108,9 +110,12 @@ void MEMSET::runHipVariantBlock(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(memset_lambda)>),
-          grid_size, block_size, shmem, res.get_stream(),
-          ibegin, iend, memset_lambda);
+
+      RPlaunchHipKernel( (lambda_hip_forall<block_size,
+                                            decltype(memset_lambda)>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         ibegin, iend, memset_lambda );
       hipErrchk( hipGetLastError() );
 
     }

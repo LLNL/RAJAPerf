@@ -111,24 +111,33 @@ void HYDRO_2D::runCudaVariantImpl(VariantID vid)
       HYDRO_2D_THREADS_PER_BLOCK_CUDA;
       HYDRO_2D_NBLOCKS_CUDA;
 
-      hydro_2d1<HYDRO_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-               <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(zadat, zbdat,
-                                                 zpdat, zqdat, zrdat, zmdat,
-                                                 jn, kn);
+      RPlaunchCudaKernel( (hydro_2d1<HYDRO_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>),
+                          nblocks, nthreads_per_block,
+                          shmem, res.get_stream(),
+                          zadat, zbdat,
+                          zpdat, zqdat,
+                          zrdat, zmdat,
+                          jn, kn);
       cudaErrchk( cudaGetLastError() );
 
-      hydro_2d2<HYDRO_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-               <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(zudat, zvdat,
-                                                 zadat, zbdat, zzdat, zrdat,
-                                                 s,
-                                                 jn, kn);
+      RPlaunchCudaKernel( (hydro_2d2<HYDRO_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>),
+                          nblocks, nthreads_per_block,
+                          shmem, res.get_stream(),
+                          zudat, zvdat,
+                          zadat, zbdat,
+                          zzdat, zrdat,
+                          s,
+                          jn, kn);
       cudaErrchk( cudaGetLastError() );
 
-      hydro_2d3<HYDRO_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-               <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(zroutdat, zzoutdat,
-                                                 zrdat, zudat, zzdat, zvdat,
-                                                 t,
-                                                 jn, kn);
+      RPlaunchCudaKernel( (hydro_2d3<HYDRO_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>),
+                          nblocks, nthreads_per_block,
+                          shmem, res.get_stream(),
+                          zroutdat, zzoutdat,
+                          zrdat, zudat,
+                          zzdat, zvdat,
+                          t,
+                          jn, kn);
       cudaErrchk( cudaGetLastError() );
 
     }
