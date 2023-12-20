@@ -75,7 +75,10 @@ void HALO_EXCHANGE::runCudaVariantImpl(VariantID vid)
           dim3 nthreads_per_block(block_size);
           dim3 nblocks((len + block_size-1) / block_size);
           constexpr size_t shmem = 0;
-          HALO_exchange_pack<block_size><<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(buffer, list, var, len);
+          RPlaunchCudaKernel( (HALO_exchange_pack<block_size>),
+                              nblocks, nthreads_per_block,
+                              shmem, res.get_stream(),
+                              buffer, list, var, len);
           cudaErrchk( cudaGetLastError() );
           buffer += len;
         }
@@ -109,7 +112,10 @@ void HALO_EXCHANGE::runCudaVariantImpl(VariantID vid)
           dim3 nthreads_per_block(block_size);
           dim3 nblocks((len + block_size-1) / block_size);
           constexpr size_t shmem = 0;
-          HALO_exchange_unpack<block_size><<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(buffer, list, var, len);
+          RPlaunchCudaKernel( (HALO_exchange_unpack<block_size>),
+                              nblocks, nthreads_per_block,
+                              shmem, res.get_stream(),
+                              buffer, list, var, len);
           cudaErrchk( cudaGetLastError() );
           buffer += len;
         }
