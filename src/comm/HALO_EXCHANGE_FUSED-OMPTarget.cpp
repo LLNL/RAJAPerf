@@ -246,7 +246,7 @@ void HALO_EXCHANGE_FUSED::runOpenMPTargetVariantWorkGroup(VariantID vid)
       for (Index_type l = 0; l < num_neighbors; ++l) {
         Real_ptr buffer = pack_buffers[l];
         Int_ptr list = pack_index_lists[l];
-        Index_type  len  = pack_index_list_lengths[l];
+        Index_type len = pack_index_list_lengths[l];
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
           pool_pack.enqueue(range_segment(0, len), Packer{buffer, var, list});
@@ -274,7 +274,7 @@ void HALO_EXCHANGE_FUSED::runOpenMPTargetVariantWorkGroup(VariantID vid)
       for (Index_type l = 0; l < num_neighbors; ++l) {
         Real_ptr buffer = unpack_buffers[l];
         Int_ptr list = unpack_index_lists[l];
-        Index_type  len  = unpack_index_list_lengths[l];
+        Index_type len = unpack_index_list_lengths[l];
         if (separate_buffers) {
           copyData(dataSpace, unpack_buffers[l],
                    DataSpace::Host, recv_buffers[l],
