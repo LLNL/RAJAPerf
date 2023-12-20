@@ -23,7 +23,7 @@ namespace comm
 
 template < size_t block_size >
 __launch_bounds__(block_size)
-__global__ void HALO_exchange_pack(Real_ptr buffer, Int_ptr list, Real_ptr var,
+__global__ void halo_exchange_pack(Real_ptr buffer, Int_ptr list, Real_ptr var,
                                   Index_type len)
 {
    Index_type i = threadIdx.x + blockIdx.x * block_size;
@@ -35,7 +35,7 @@ __global__ void HALO_exchange_pack(Real_ptr buffer, Int_ptr list, Real_ptr var,
 
 template < size_t block_size >
 __launch_bounds__(block_size)
-__global__ void HALO_exchange_unpack(Real_ptr buffer, Int_ptr list, Real_ptr var,
+__global__ void halo_exchange_unpack(Real_ptr buffer, Int_ptr list, Real_ptr var,
                                     Index_type len)
 {
    Index_type i = threadIdx.x + blockIdx.x * block_size;
@@ -75,7 +75,7 @@ void HALO_EXCHANGE::runHipVariantImpl(VariantID vid)
           dim3 nthreads_per_block(block_size);
           dim3 nblocks((len + block_size-1) / block_size);
           constexpr size_t shmem = 0;
-          RPlaunchHipKernel( (HALO_exchange_pack<block_size>),
+          RPlaunchHipKernel( (halo_exchange_pack<block_size>),
                              nblocks, nthreads_per_block,
                              shmem, res.get_stream(),
                              buffer, list, var, len);
@@ -112,7 +112,7 @@ void HALO_EXCHANGE::runHipVariantImpl(VariantID vid)
           dim3 nthreads_per_block(block_size);
           dim3 nblocks((len + block_size-1) / block_size);
           constexpr size_t shmem = 0;
-          RPlaunchHipKernel( (HALO_exchange_unpack<block_size>),
+          RPlaunchHipKernel( (halo_exchange_unpack<block_size>),
                              nblocks, nthreads_per_block,
                              shmem, res.get_stream(),
                              buffer, list, var, len);
@@ -146,12 +146,12 @@ void HALO_EXCHANGE::runHipVariantImpl(VariantID vid)
         Index_type  len  = pack_index_list_lengths[l];
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
-          auto HALO_exchange_pack_base_lam = [=] __device__ (Index_type i) {
+          auto halo_exchange_pack_base_lam = [=] __device__ (Index_type i) {
                 HALO_PACK_BODY;
               };
           RAJA::forall<EXEC_POL>( res,
               RAJA::TypedRangeSegment<Index_type>(0, len),
-              HALO_exchange_pack_base_lam );
+              halo_exchange_pack_base_lam );
           buffer += len;
         }
 
@@ -181,12 +181,12 @@ void HALO_EXCHANGE::runHipVariantImpl(VariantID vid)
 
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
-          auto HALO_exchange_unpack_base_lam = [=] __device__ (Index_type i) {
+          auto halo_exchange_unpack_base_lam = [=] __device__ (Index_type i) {
                 HALO_UNPACK_BODY;
               };
           RAJA::forall<EXEC_POL>( res,
               RAJA::TypedRangeSegment<Index_type>(0, len),
-              HALO_exchange_unpack_base_lam );
+              halo_exchange_unpack_base_lam );
           buffer += len;
         }
       }
