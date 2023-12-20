@@ -64,9 +64,9 @@ void RPlaunchCudaKernel(void (*kernel)(KernArgs...),
   void* arg_arr[count]{(void*)&args...};
 
   auto k = reinterpret_cast<const void*>(kernel);
-  cudaLaunchKernel(k, numBlocks, dimBlocks,
-                   arg_arr,
-                   sharedMemBytes, stream);
+  cudaErrchk( cudaLaunchKernel(k, numBlocks, dimBlocks,
+                               arg_arr,
+                               sharedMemBytes, stream) );
 }
 
 /*!

@@ -51,9 +51,9 @@ void RPlaunchHipKernel(void (*kernel)(KernArgs...),
   void* arg_arr[count]{(void*)&args...};
 
   auto k = reinterpret_cast<const void*>(kernel);
-  hipLaunchKernel(k, numBlocks, dimBlocks,
-                  arg_arr,
-                  sharedMemBytes, stream);
+  hipErrchk( hipLaunchKernel(k, numBlocks, dimBlocks,
+                             arg_arr,
+                             sharedMemBytes, stream) );
 }
 
 /*!

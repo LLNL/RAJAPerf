@@ -57,7 +57,6 @@ void DAXPY::runCudaVariantImpl(VariantID vid)
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           y, x, a, iend );
-      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -79,7 +78,6 @@ void DAXPY::runCudaVariantImpl(VariantID vid)
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           ibegin, iend, daxpy_lambda );
-      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
