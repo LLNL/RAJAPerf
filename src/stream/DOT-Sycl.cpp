@@ -22,21 +22,8 @@ namespace rajaperf
 namespace stream
 {
 
-  //
-  // Define thread block size for SYCL execution
-  //
-  const size_t block_size = 256;
-
-
-#define DOT_DATA_SETUP_SYCL \
-  allocAndInitSyclDeviceData(a, m_a, iend, qu); \
-  allocAndInitSyclDeviceData(b, m_b, iend, qu);
-
-#define DOT_DATA_TEARDOWN_SYCL \
-  deallocSyclDeviceData(a, qu); \
-  deallocSyclDeviceData(b, qu);
-
-void DOT::runSyclVariant(VariantID vid)
+template <size_t work_group_size >
+void DOT::runSyclVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -45,9 +32,7 @@ void DOT::runSyclVariant(VariantID vid)
   DOT_DATA_SETUP;
 
   if ( vid == Base_SYCL ) {
- 
-    DOT_DATA_SETUP_SYCL;
-
+    if (work_group_size != 0) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -56,13 +41,13 @@ void DOT::runSyclVariant(VariantID vid)
       {
         sycl::buffer<Real_type, 1> buf_dot(&dot, 1);
 
-        const size_t grid_size = block_size * RAJA_DIVIDE_CEILING_INT(iend, block_size);
+        const size_t global_size = work_group_size * RAJA_DIVIDE_CEILING_INT(iend, work_group_size);
 
         qu->submit([&] (sycl::handler& h) {
 
           auto sumReduction = reduction(buf_dot, h, sycl::plus<Real_type>());
 
-          h.parallel_for(sycl::nd_range<1>{grid_size, block_size},
+          h.parallel_for(sycl::nd_range<1>{global_size, work_group_size},
                          sumReduction,
                          [=] (sycl::nd_item<1> item, auto& dot) {
 
@@ -79,19 +64,16 @@ void DOT::runSyclVariant(VariantID vid)
 
     }
     stopTimer();
-
-    DOT_DATA_TEARDOWN_SYCL;
+    }
 
   } else if ( vid == RAJA_SYCL ) {
-
-    DOT_DATA_SETUP_SYCL;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        RAJA::ReduceSum<RAJA::sycl_reduce, Real_type> dot(m_dot_init);
 
-       RAJA::forall< RAJA::sycl_exec_nontrivial<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::sycl_exec<work_group_size, true /*async*/> >(
          RAJA::RangeSegment(ibegin, iend), [=]  (Index_type i) {
          DOT_BODY;
        });
@@ -101,12 +83,12 @@ void DOT::runSyclVariant(VariantID vid)
     }
     stopTimer();
 
-    DOT_DATA_TEARDOWN_SYCL;
-
   } else {
      std::cout << "\n  DOT : Unknown Sycl variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(DOT, Sycl)
 
 } // end namespace stream
 } // end namespace rajaperf

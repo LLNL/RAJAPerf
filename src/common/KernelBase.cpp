@@ -258,10 +258,6 @@ void KernelBase::execute(VariantID vid, size_t tune_idx)
   running_variant = vid;
   running_tuning = tune_idx;
 
-#if defined(RAJA_ENABLE_SYCL)
-  ::RAJA::sycl::detail::setQueue(&sycl_res);
-#endif
-
   resetTimer();
 
   detail::resetDataInitCount();

@@ -29,23 +29,8 @@ namespace rajaperf
 namespace stream
 {
 
-  //
-  // Define thread block size for SYCL execution
-  //
-  const size_t block_size = 256;
-
-#define TRIAD_DATA_SETUP_SYCL \
-  allocAndInitSyclDeviceData(a, m_a, iend, qu); \
-  allocAndInitSyclDeviceData(b, m_b, iend, qu); \
-  allocAndInitSyclDeviceData(c, m_c, iend, qu);
-
-#define TRIAD_DATA_TEARDOWN_SYCL \
-  getSyclDeviceData(m_a, a, iend, qu); \
-  deallocSyclDeviceData(a, qu); \
-  deallocSyclDeviceData(b, qu); \
-  deallocSyclDeviceData(c, qu);
-
-void TRIAD::runSyclVariant(VariantID vid)
+template <size_t work_group_size >
+void TRIAD::runSyclVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -55,14 +40,12 @@ void TRIAD::runSyclVariant(VariantID vid)
 
   if ( vid == Base_SYCL ) {
 
-    TRIAD_DATA_SETUP_SYCL;
-
-    const size_t grid_size = block_size * RAJA_DIVIDE_CEILING_INT(iend, block_size);
+    const size_t global_size = work_group_size * RAJA_DIVIDE_CEILING_INT(iend, work_group_size);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
       qu->submit([&] (sycl::handler& h) {
-        h.parallel_for<class TRIAD>(sycl::nd_range<1> (grid_size, block_size),
+        h.parallel_for(sycl::nd_range<1> (global_size, work_group_size),
                                     [=] (sycl::nd_item<1> item) {
 
           Index_type i = item.get_global_id(0);
@@ -77,16 +60,12 @@ void TRIAD::runSyclVariant(VariantID vid)
     qu->wait();
     stopTimer();
 
-    TRIAD_DATA_TEARDOWN_SYCL;
-
   } else if ( vid == RAJA_SYCL ) {
-
-    TRIAD_DATA_SETUP_SYCL;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::sycl_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::sycl_exec<work_group_size, true /*async*/> >(
          RAJA::RangeSegment(ibegin, iend), [=] (Index_type i) {
          TRIAD_BODY;
        });
@@ -95,13 +74,13 @@ void TRIAD::runSyclVariant(VariantID vid)
     qu->wait();
     stopTimer();
 
-    TRIAD_DATA_TEARDOWN_SYCL;
-
   } else {
       std::cout << "\n  TRIAD : Unknown Sycl variant id = " << vid << std::endl;
   }
 
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(TRIAD, Sycl)
 
 } // end namespace stream
 } // end namespace rajaperf

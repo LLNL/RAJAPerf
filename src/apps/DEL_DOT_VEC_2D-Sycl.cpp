@@ -23,7 +23,6 @@
 
 #include <iostream>
 
-#include <sycl.hpp>
 #include "common/SyclDataUtils.hpp"
 
 namespace rajaperf 
@@ -31,53 +30,32 @@ namespace rajaperf
 namespace apps
 {
 
-  //
-  // Define thread block size for SYCL execution
-  //
-  const size_t block_size = 256;
-
-
-#define DEL_DOT_VEC_2D_DATA_SETUP_SYCL \
-  allocAndInitSyclDeviceData(x, m_x, m_array_length, qu); \
-  allocAndInitSyclDeviceData(y, m_y, m_array_length, qu); \
-  allocAndInitSyclDeviceData(xdot, m_xdot, m_array_length, qu); \
-  allocAndInitSyclDeviceData(ydot, m_ydot, m_array_length, qu); \
-  allocAndInitSyclDeviceData(div, m_div, m_array_length, qu); \
-  allocAndInitSyclDeviceData(real_zones, m_domain->real_zones, iend, qu);
-
-#define DEL_DOT_VEC_2D_DATA_TEARDOWN_SYCL \
-  getSyclDeviceData(m_div, div, m_array_length, qu); \
-  deallocSyclDeviceData(x, qu); \
-  deallocSyclDeviceData(y, qu); \
-  deallocSyclDeviceData(xdot, qu); \
-  deallocSyclDeviceData(ydot, qu); \
-  deallocSyclDeviceData(div, qu); \
-  deallocSyclDeviceData(real_zones, qu);
-
-void DEL_DOT_VEC_2D::runSyclVariant(VariantID vid)
+template <size_t work_group_size >
+void DEL_DOT_VEC_2D::runSyclVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type iend = m_domain->n_real_zones;
 
+  auto res{getSyclResource()};
+
   DEL_DOT_VEC_2D_DATA_SETUP;
 
   if ( vid == Base_SYCL ) {
+    if (work_group_size != 0) {
 
-    DEL_DOT_VEC_2D_DATA_SETUP_SYCL;
-
-    NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
+/*    NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
     NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
     NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
-    NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
+    NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;*/
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      const size_t grid_size = block_size * RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      const size_t grid_size = work_group_size * RAJA_DIVIDE_CEILING_INT(iend, work_group_size);
 
       qu->submit([&] (sycl::handler& h) {
-        h.parallel_for<class DelDotVec>(sycl::nd_range<1> (grid_size, block_size),
-                                        [=] (sycl::nd_item<1> item) {
+        h.parallel_for(sycl::nd_range<1> (grid_size, work_group_size),
+                       [=] (sycl::nd_item<1> item) {
 
           Index_type ii = item.get_global_id(0);
           if (ii < iend) {
@@ -92,23 +70,23 @@ void DEL_DOT_VEC_2D::runSyclVariant(VariantID vid)
     qu->wait(); // Wait for computation to finish before stopping timer
     stopTimer();
 
-    DEL_DOT_VEC_2D_DATA_TEARDOWN_SYCL;
-
+    }
   } else if ( vid == RAJA_SYCL ) {
 
-    DEL_DOT_VEC_2D_DATA_SETUP_SYCL;
 
-    NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
+/*    NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
     NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
     NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
-    NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
+    NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;*/
 
-    RAJA::ListSegment zones(m_domain->real_zones, m_domain->n_real_zones, sycl_res);
+    //RAJA::ListSegment zones(m_domain->real_zones, m_domain->n_real_zones, sycl_res);
+    RAJA::TypedListSegment<Index_type> zones(real_zones, iend,
+                                             res, RAJA::Unowned);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::sycl_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::sycl_exec<work_group_size, true /*async*/> >(
          zones, [=] (Index_type i) {
          DEL_DOT_VEC_2D_BODY;
        });
@@ -117,13 +95,12 @@ void DEL_DOT_VEC_2D::runSyclVariant(VariantID vid)
     qu->wait();
     stopTimer();
 
-    DEL_DOT_VEC_2D_DATA_TEARDOWN_SYCL;
-
-
   } else {
      std::cout << "\n  DEL_DOT_VEC_2D : Unknown Sycl variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(DEL_DOT_VEC_2D, Sycl)
 
 } // end namespace apps
 } // end namespace rajaperf

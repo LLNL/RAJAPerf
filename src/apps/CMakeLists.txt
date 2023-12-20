@@ -21,6 +21,7 @@ blt_add_library(
           DEL_DOT_VEC_2D-Cuda.cpp 
           DEL_DOT_VEC_2D-OMP.cpp 
           DEL_DOT_VEC_2D-OMPTarget.cpp 
+	  DEL_DOT_VEC_2D-Sycl.cpp 
           DIFFUSION3DPA.cpp
           DIFFUSION3DPA-Cuda.cpp
           DIFFUSION3DPA-Hip.cpp
