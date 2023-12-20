@@ -75,8 +75,10 @@ void DOT::runHipVariantBlockAtomic(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = sizeof(Real_type)*block_size;
-      hipLaunchKernelGGL((dot<block_size>), dim3(grid_size), dim3(block_size),
-                                            shmem, res.get_stream(),
+
+      RPlaunchHipKernel( (dot<block_size>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
                          a, b, dprod, m_dot_init, iend );
       hipErrchk( hipGetLastError() );
 
@@ -137,8 +139,10 @@ void DOT::runHipVariantBlockAtomicOccGS(VariantID vid)
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
-      hipLaunchKernelGGL((dot<block_size>), dim3(grid_size), dim3(block_size),
-                                            shmem, res.get_stream(),
+
+      RPlaunchHipKernel( (dot<block_size>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
                          a, b, dprod, m_dot_init, iend );
       hipErrchk( hipGetLastError() );
 

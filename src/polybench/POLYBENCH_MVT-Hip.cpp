@@ -69,16 +69,18 @@ void POLYBENCH_MVT::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
-        constexpr size_t shmem = 0;
+      constexpr size_t shmem = 0;
 
-      hipLaunchKernelGGL((poly_mvt_1<block_size>),
-                         dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
-                         A, x1, y1, N);
+      RPlaunchHipKernel( (poly_mvt_1<block_size>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         A, x1, y1, N );
       hipErrchk( hipGetLastError() );
 
-      hipLaunchKernelGGL((poly_mvt_2<block_size>),
-                         dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
-                         A, x2, y2, N);
+      RPlaunchHipKernel( (poly_mvt_2<block_size>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         A, x2, y2, N );
       hipErrchk( hipGetLastError() );
 
     }

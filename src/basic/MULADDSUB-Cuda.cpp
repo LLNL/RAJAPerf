@@ -53,8 +53,13 @@ void MULADDSUB::runCudaVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      muladdsub<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( out1, out2, out3, in1, in2,
-                                            iend );
+
+      RPlaunchCudaKernel( (muladdsub<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          out1, out2, out3,
+                          in1, in2,
+                          iend );
       cudaErrchk( cudaGetLastError() );
 
     }
@@ -65,12 +70,18 @@ void MULADDSUB::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+      auto muladdsub_lambda = [=] __device__ (Index_type i) {
+        MULADDSUB_BODY;
+      };
+
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      lambda_cuda_forall<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(
-        ibegin, iend, [=] __device__ (Index_type i) {
-        MULADDSUB_BODY;
-      });
+
+      RPlaunchCudaKernel( (lambda_cuda_forall<block_size,
+                                              decltype(muladdsub_lambda)>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          ibegin, iend, muladdsub_lambda );
       cudaErrchk( cudaGetLastError() );
 
     }

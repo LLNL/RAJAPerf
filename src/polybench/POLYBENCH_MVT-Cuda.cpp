@@ -69,12 +69,18 @@ void POLYBENCH_MVT::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
-        constexpr size_t shmem = 0;
+      constexpr size_t shmem = 0;
 
-      poly_mvt_1<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(A, x1, y1, N);
+      RPlaunchCudaKernel( (poly_mvt_1<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          A, x1, y1, N );
       cudaErrchk( cudaGetLastError() );
 
-      poly_mvt_2<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(A, x2, y2, N);
+      RPlaunchCudaKernel( (poly_mvt_2<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          A, x2, y2, N );
       cudaErrchk( cudaGetLastError() );
 
     }

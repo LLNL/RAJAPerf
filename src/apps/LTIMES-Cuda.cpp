@@ -91,10 +91,12 @@ void LTIMES::runCudaVariantImpl(VariantID vid)
       LTIMES_NBLOCKS_CUDA;
       constexpr size_t shmem = 0;
 
-      ltimes<LTIMES_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-            <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(phidat, elldat, psidat,
-                                              num_d,
-                                              num_m, num_g, num_z);
+      RPlaunchCudaKernel(
+        (ltimes<LTIMES_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>),
+        nblocks, nthreads_per_block,
+        shmem, res.get_stream(),
+        phidat, elldat, psidat,
+        num_d, num_m, num_g, num_z );
       cudaErrchk( cudaGetLastError() );
 
     }
@@ -105,18 +107,24 @@ void LTIMES::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+      auto ltimes_lambda = [=] __device__ (Index_type z, Index_type g, 
+                                           Index_type m) {
+        for (Index_type d = 0; d < num_d; ++d ) {
+          LTIMES_BODY;
+        }
+      };
+
       LTIMES_THREADS_PER_BLOCK_CUDA;
       LTIMES_NBLOCKS_CUDA;
       constexpr size_t shmem = 0;
 
-      ltimes_lam<LTIMES_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(num_m, num_g, num_z,
-        [=] __device__ (Index_type z, Index_type g, Index_type m) {
-          for (Index_type d = 0; d < num_d; ++d ) {
-            LTIMES_BODY;
-          }
-        }
-      );
+      RPlaunchCudaKernel(
+        (ltimes_lam<LTIMES_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA,
+                    decltype(ltimes_lambda)>),
+        nblocks, nthreads_per_block,
+        shmem, res.get_stream(),
+        num_m, num_g, num_z,
+        ltimes_lambda );
       cudaErrchk( cudaGetLastError() );
 
     }
@@ -144,14 +152,16 @@ void LTIMES::runCudaVariantImpl(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel_resource<EXEC_POL>( RAJA::make_tuple(IDRange(0, num_d),
-                                                 IZRange(0, num_z),
-                                                 IGRange(0, num_g),
-                                                 IMRange(0, num_m)),
-                                         res,
+        RAJA::kernel_resource<EXEC_POL>(
+          RAJA::make_tuple(IDRange(0, num_d),
+                           IZRange(0, num_z),
+                           IGRange(0, num_g),
+                           IMRange(0, num_m)),
+          res,
           [=] __device__ (ID d, IZ z, IG g, IM m) {
-          LTIMES_BODY_RAJA;
-        });
+            LTIMES_BODY_RAJA;
+          }
+        );
 
       }
       stopTimer();

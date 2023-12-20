@@ -54,8 +54,11 @@ void ARRAY_OF_PTRS::runCudaVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      array_of_ptrs<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(
-          y, x_array, array_size, iend );
+
+      RPlaunchCudaKernel( (array_of_ptrs<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          y, x_array, array_size, iend );
       cudaErrchk( cudaGetLastError() );
 
     }
@@ -66,12 +69,18 @@ void ARRAY_OF_PTRS::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+      auto array_of_ptrs_lambda = [=] __device__ (Index_type i) {
+        ARRAY_OF_PTRS_BODY(x);
+      };
+
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      lambda_cuda_forall<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(
-        ibegin, iend, [=] __device__ (Index_type i) {
-        ARRAY_OF_PTRS_BODY(x);
-      });
+
+      RPlaunchCudaKernel( (lambda_cuda_forall<block_size, 
+                                              decltype(array_of_ptrs_lambda)>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          ibegin, iend, array_of_ptrs_lambda );
       cudaErrchk( cudaGetLastError() );
 
     }

@@ -51,8 +51,10 @@ namespace apps
 
 template < size_t block_size >
 __launch_bounds__(block_size)
-__global__ void haloexchange_fused_pack(Real_ptr* pack_buffer_ptrs, Int_ptr* pack_list_ptrs,
-                                        Real_ptr* pack_var_ptrs, Index_type* pack_len_ptrs)
+__global__ void haloexchange_fused_pack(Real_ptr* pack_buffer_ptrs,
+                                        Int_ptr* pack_list_ptrs,
+                                        Real_ptr* pack_var_ptrs,
+                                        Index_type* pack_len_ptrs)
 {
   Index_type j = blockIdx.y;
 
@@ -70,8 +72,10 @@ __global__ void haloexchange_fused_pack(Real_ptr* pack_buffer_ptrs, Int_ptr* pac
 
 template < size_t block_size >
 __launch_bounds__(block_size)
-__global__ void haloexchange_fused_unpack(Real_ptr* unpack_buffer_ptrs, Int_ptr* unpack_list_ptrs,
-                                          Real_ptr* unpack_var_ptrs, Index_type* unpack_len_ptrs)
+__global__ void haloexchange_fused_unpack(Real_ptr* unpack_buffer_ptrs,
+                                          Int_ptr* unpack_list_ptrs,
+                                          Real_ptr* unpack_var_ptrs,
+                                          Index_type* unpack_len_ptrs)
 {
   Index_type j = blockIdx.y;
 
@@ -127,8 +131,13 @@ void HALOEXCHANGE_FUSED::runHipVariantDirect(VariantID vid)
       Index_type pack_len_ave = (pack_len_sum + pack_index-1) / pack_index;
       dim3 pack_nthreads_per_block(block_size);
       dim3 pack_nblocks((pack_len_ave + block_size-1) / block_size, pack_index);
-      hipLaunchKernelGGL((haloexchange_fused_pack<block_size>), pack_nblocks, pack_nthreads_per_block, shmem, res.get_stream(),
-          pack_buffer_ptrs, pack_list_ptrs, pack_var_ptrs, pack_len_ptrs);
+      RPlaunchHipKernel( (haloexchange_fused_pack<block_size>),
+                         pack_nblocks, pack_nthreads_per_block,
+                         shmem, res.get_stream(),
+                         pack_buffer_ptrs, 
+                         pack_list_ptrs,
+                         pack_var_ptrs, 
+                         pack_len_ptrs );
       hipErrchk( hipGetLastError() );
       hipErrchk( hipStreamSynchronize( res.get_stream() ) );
 
@@ -150,11 +159,18 @@ void HALOEXCHANGE_FUSED::runHipVariantDirect(VariantID vid)
           buffer += len;
         }
       }
-      Index_type unpack_len_ave = (unpack_len_sum + unpack_index-1) / unpack_index;
+      Index_type unpack_len_ave = (unpack_len_sum + unpack_index-1) /
+                                  unpack_index;
       dim3 unpack_nthreads_per_block(block_size);
-      dim3 unpack_nblocks((unpack_len_ave + block_size-1) / block_size, unpack_index);
-      hipLaunchKernelGGL((haloexchange_fused_unpack<block_size>), unpack_nblocks, unpack_nthreads_per_block, shmem, res.get_stream(),
-          unpack_buffer_ptrs, unpack_list_ptrs, unpack_var_ptrs, unpack_len_ptrs);
+      dim3 unpack_nblocks((unpack_len_ave + block_size-1) / block_size,
+                          unpack_index);
+      RPlaunchHipKernel( (haloexchange_fused_unpack<block_size>),
+                         unpack_nblocks, unpack_nthreads_per_block,
+                         shmem, res.get_stream(),
+                         unpack_buffer_ptrs,
+                         unpack_list_ptrs,
+                         unpack_var_ptrs,
+                         unpack_len_ptrs );
       hipErrchk( hipGetLastError() );
       hipErrchk( hipStreamSynchronize( res.get_stream() ) );
 

@@ -83,10 +83,18 @@ void POLYBENCH_ATAX::runCudaVariantImpl(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
       constexpr size_t shmem = 0;
 
-      poly_atax_1<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(A, x, y, tmp, N);
+      RPlaunchCudaKernel( (poly_atax_1<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          A, x, y, tmp,
+                          N );
       cudaErrchk( cudaGetLastError() );
 
-      poly_atax_2<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(A, tmp, y, N);
+      RPlaunchCudaKernel( (poly_atax_2<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          A, tmp, y,
+                          N );
       cudaErrchk( cudaGetLastError() );
 
     }
@@ -100,26 +108,34 @@ void POLYBENCH_ATAX::runCudaVariantImpl(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
       constexpr size_t shmem = 0;
 
-      poly_atax_lam<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(N,
-        [=] __device__ (Index_type i) {
-          POLYBENCH_ATAX_BODY1;
-          for (Index_type j = 0; j < N; ++j ) {
-            POLYBENCH_ATAX_BODY2;
-          }
-          POLYBENCH_ATAX_BODY3;
+      auto poly_atax1_lambda = [=] __device__ (Index_type i) {
+        POLYBENCH_ATAX_BODY1;
+        for (Index_type j = 0; j < N; ++j ) {
+          POLYBENCH_ATAX_BODY2;
         }
-      );
+        POLYBENCH_ATAX_BODY3;
+      };
+
+      RPlaunchCudaKernel( (poly_atax_lam<block_size,
+                                         decltype(poly_atax1_lambda)>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          N, poly_atax1_lambda );
       cudaErrchk( cudaGetLastError() );
 
-      poly_atax_lam<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(N,
-        [=] __device__ (Index_type j) {
-          POLYBENCH_ATAX_BODY4;
-          for (Index_type i = 0; i < N; ++i ) {
-            POLYBENCH_ATAX_BODY5;
-          }
-          POLYBENCH_ATAX_BODY6;
+      auto poly_atax2_lambda = [=] __device__ (Index_type j) {
+        POLYBENCH_ATAX_BODY4;
+        for (Index_type i = 0; i < N; ++i ) {
+          POLYBENCH_ATAX_BODY5;
         }
-      );
+        POLYBENCH_ATAX_BODY6;
+      }; 
+
+      RPlaunchCudaKernel( (poly_atax_lam<block_size,
+                                         decltype(poly_atax2_lambda)>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          N, poly_atax2_lambda );
       cudaErrchk( cudaGetLastError() );
 
     }

@@ -68,12 +68,15 @@ void VOL3D::runHipVariantImpl(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
 
-      hipLaunchKernelGGL((vol3d<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(), vol,
-                                       x0, x1, x2, x3, x4, x5, x6, x7,
-                                       y0, y1, y2, y3, y4, y5, y6, y7,
-                                       z0, z1, z2, z3, z4, z5, z6, z7,
-                                       vnormq,
-                                       ibegin, iend);
+      RPlaunchHipKernel( (vol3d<block_size>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         vol,
+                         x0, x1, x2, x3, x4, x5, x6, x7,
+                         y0, y1, y2, y3, y4, y5, y6, y7,
+                         z0, z1, z2, z3, z4, z5, z6, z7,
+                         vnormq,
+                         ibegin, iend );
       hipErrchk( hipGetLastError() );
 
     }

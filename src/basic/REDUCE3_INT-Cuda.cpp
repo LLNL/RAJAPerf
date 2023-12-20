@@ -90,12 +90,15 @@ void REDUCE3_INT::runCudaVariantBlockAtomic(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 3*sizeof(Int_type)*block_size;
-      reduce3int<block_size><<<grid_size, block_size,
-                   shmem, res.get_stream()>>>(vec,
-                                                    vmem + 0, m_vsum_init,
-                                                    vmem + 1, m_vmin_init,
-                                                    vmem + 2, m_vmax_init,
-                                                    iend );
+
+      RPlaunchCudaKernel( (reduce3int<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          vec,
+                          vmem + 0, m_vsum_init,
+                          vmem + 1, m_vmin_init,
+                          vmem + 2, m_vmax_init,
+                          iend );
       cudaErrchk( cudaGetLastError() );
 
       Int_type rvmem[3];
@@ -162,12 +165,15 @@ void REDUCE3_INT::runCudaVariantBlockAtomicOccGS(VariantID vid)
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
-      reduce3int<block_size><<<grid_size, block_size,
-                               shmem, res.get_stream()>>>(vec,
-                                                    vmem + 0, m_vsum_init,
-                                                    vmem + 1, m_vmin_init,
-                                                    vmem + 2, m_vmax_init,
-                                                    iend );
+
+      RPlaunchCudaKernel( (reduce3int<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          vec,
+                          vmem + 0, m_vsum_init,
+                          vmem + 1, m_vmin_init,
+                          vmem + 2, m_vmax_init,
+                          iend );
       cudaErrchk( cudaGetLastError() );
 
       Int_type rvmem[3];

@@ -52,9 +52,13 @@ void EOS::runHipVariantImpl(VariantID vid)
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
        constexpr size_t shmem = 0;
-       hipLaunchKernelGGL((eos<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  x, y, z, u,
-                                       q, r, t,
-                                       iend );
+
+       RPlaunchHipKernel( (eos<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          x, y, z, u,
+                          q, r, t, 
+                          iend );
        hipErrchk( hipGetLastError() );
 
     }

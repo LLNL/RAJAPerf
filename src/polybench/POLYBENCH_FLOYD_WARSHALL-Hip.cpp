@@ -85,10 +85,11 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariantImpl(VariantID vid)
         POLY_FLOYD_WARSHALL_NBLOCKS_HIP;
         constexpr size_t shmem = 0;
 
-        hipLaunchKernelGGL((poly_floyd_warshall<POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                           dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
-                           pout, pin,
-                           k, N);
+        RPlaunchHipKernel(
+          (poly_floyd_warshall<POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
+          nblocks, nthreads_per_block,
+          shmem, res.get_stream(),
+          pout, pin, k, N );
         hipErrchk( hipGetLastError() );
 
       }
@@ -103,19 +104,21 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariantImpl(VariantID vid)
 
       for (Index_type k = 0; k < N; ++k) {
 
-        auto poly_floyd_warshall_lambda =
-          [=] __device__ (Index_type i, Index_type j) {
-            POLYBENCH_FLOYD_WARSHALL_BODY;
-          };
-
         POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_HIP;
         POLY_FLOYD_WARSHALL_NBLOCKS_HIP;
         constexpr size_t shmem = 0;
 
-        hipLaunchKernelGGL(
-          (poly_floyd_warshall_lam<POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(poly_floyd_warshall_lambda)>),
-          dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
-          N, poly_floyd_warshall_lambda);
+        auto poly_floyd_warshall_lambda = [=] __device__ (Index_type i,
+                                                          Index_type j) {
+          POLYBENCH_FLOYD_WARSHALL_BODY;
+        };
+
+        RPlaunchHipKernel(
+          (poly_floyd_warshall_lam<POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP,
+                                   decltype(poly_floyd_warshall_lambda)>),
+          nblocks, nthreads_per_block,
+          shmem, res.get_stream(),
+          N, poly_floyd_warshall_lambda );
         hipErrchk( hipGetLastError() );
 
       }
@@ -143,10 +146,11 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel_resource<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
-                                               RAJA::RangeSegment{0, N},
-                                               RAJA::RangeSegment{0, N}),
-                                       res,
+      RAJA::kernel_resource<EXEC_POL>(
+        RAJA::make_tuple(RAJA::RangeSegment{0, N},
+                         RAJA::RangeSegment{0, N},
+                         RAJA::RangeSegment{0, N}),
+        res,
         [=] __device__ (Index_type k, Index_type i, Index_type j) {
           POLYBENCH_FLOYD_WARSHALL_BODY_RAJA;
         }

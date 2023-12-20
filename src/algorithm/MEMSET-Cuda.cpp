@@ -89,10 +89,11 @@ void MEMSET::runCudaVariantBlock(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      memset<block_size><<<grid_size, block_size,
-                  shmem, res.get_stream()>>>( x,
-                                                   val,
-                                                   iend );
+
+      RPlaunchCudaKernel( (memset<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          x, val, iend );
       cudaErrchk( cudaGetLastError() );
 
     }
@@ -109,8 +110,12 @@ void MEMSET::runCudaVariantBlock(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      lambda_cuda_forall<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(
-          ibegin, iend, memset_lambda );
+
+      RPlaunchCudaKernel( (lambda_cuda_forall<block_size,
+                                              decltype(memset_lambda)>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          ibegin, iend, memset_lambda );
       cudaErrchk( cudaGetLastError() );
 
     }

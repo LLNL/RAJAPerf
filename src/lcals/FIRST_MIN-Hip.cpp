@@ -81,11 +81,12 @@ void FIRST_MIN::runHipVariantBlockHost(VariantID vid)
       RAJAPERF_HIP_REDUCER_INITIALIZE_VALUE(mymin, dminloc, mymin_block, grid_size);
 
       constexpr size_t shmem = sizeof(MyMinLoc)*block_size;
-      hipLaunchKernelGGL( (first_min<block_size>), grid_size, block_size,
-                           shmem, res.get_stream(), x,
-                           dminloc,
-                           mymin,
-                           iend );
+
+      RPlaunchHipKernel( (first_min<block_size>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         x, dminloc, mymin,
+                         iend );
       hipErrchk( hipGetLastError() );
 
       RAJAPERF_HIP_REDUCER_COPY_BACK_NOFINAL(dminloc, mymin_block, grid_size);
@@ -167,11 +168,11 @@ void FIRST_MIN::runHipVariantBlockHostOccGS(VariantID vid)
       FIRST_MIN_MINLOC_INIT;
       RAJAPERF_HIP_REDUCER_INITIALIZE_VALUE(mymin, dminloc, mymin_block, grid_size);
 
-      hipLaunchKernelGGL( (first_min<block_size>), grid_size, block_size,
-                           shmem, res.get_stream(), x,
-                           dminloc,
-                           mymin,
-                           iend );
+      RPlaunchHipKernel( (first_min<block_size>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         x, dminloc, mymin,
+                         iend );
       hipErrchk( hipGetLastError() );
 
       RAJAPERF_HIP_REDUCER_COPY_BACK_NOFINAL(dminloc, mymin_block, grid_size);

@@ -55,11 +55,16 @@ void INT_PREDICT::runCudaVariantImpl(VariantID vid)
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
        constexpr size_t shmem = 0;
-       int_predict<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( px,
-                                               dm22, dm23, dm24, dm25,
-                                               dm26, dm27, dm28, c0,
-                                               offset,
-                                               iend );
+      
+       RPlaunchCudaKernel( (int_predict<block_size>),
+                           grid_size, block_size,
+                           shmem, res.get_stream(),
+                           px,
+                           dm22, dm23, dm24,
+                           dm25, dm26, dm27,
+                           dm28, c0,
+                           offset,
+                           iend );
        cudaErrchk( cudaGetLastError() );
 
     }

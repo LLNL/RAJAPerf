@@ -73,8 +73,10 @@ void MAT_MAT_SHARED::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      mat_mat_shared<tile_size><<<gridDim, blockDim, shmem, res.get_stream()>>>(N, C, A, B);
-
+      RPlaunchCudaKernel( (mat_mat_shared<tile_size>),
+                          gridDim, blockDim,
+                          shmem, res.get_stream(),
+                          N, C, A, B );
       cudaErrchk( cudaGetLastError() );
     }
     stopTimer();
@@ -84,7 +86,8 @@ void MAT_MAT_SHARED::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      lambda_cuda<tile_size*tile_size><<<gridDim, blockDim, shmem, res.get_stream()>>>([=] __device__() {
+      auto mat_mat_shared_lambda = [=] __device__() {
+
         auto outer_y = [&](Index_type by) {
           auto outer_x = [&](Index_type bx) {
             MAT_MAT_SHARED_BODY_0(tile_size)
@@ -171,8 +174,13 @@ void MAT_MAT_SHARED::runCudaVariantImpl(VariantID vid)
           Index_type by = blockIdx.y;
           if(by < Ny) outer_y(by);
         }
-      });
+      };
 
+      RPlaunchCudaKernel( (lambda_cuda<tile_size*tile_size, 
+                                       decltype(mat_mat_shared_lambda)>),
+                          gridDim, blockDim,
+                          shmem, res.get_stream(),
+                          mat_mat_shared_lambda ); 
       cudaErrchk( cudaGetLastError() );
     }
     stopTimer();

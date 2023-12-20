@@ -61,10 +61,13 @@ void ZONAL_ACCUMULATION_3D::runHipVariantImpl(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
 
-      hipLaunchKernelGGL((zonal_accumulation_3d<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(), vol,
-                                       x0, x1, x2, x3, x4, x5, x6, x7,
-                                       real_zones,
-                                       ibegin, iend);
+      RPlaunchHipKernel( (zonal_accumulation_3d<block_size>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         vol,
+                         x0, x1, x2, x3, x4, x5, x6, x7,
+                         real_zones,
+                         ibegin, iend );
       hipErrchk( hipGetLastError() );
 
     }
