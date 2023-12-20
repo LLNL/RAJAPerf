@@ -52,9 +52,11 @@ void DIFF_PREDICT::runCudaVariantImpl(VariantID vid)
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
        constexpr size_t shmem = 0;
-       diff_predict<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( px, cx,
-                                                offset,
-                                                iend );
+   
+       RPlaunchCudaKernel( (diff_predict<block_size>),
+                           grid_size, block_size,
+                           shmem, res.get_stream(),
+                           px, cx, offset, iend );
        cudaErrchk( cudaGetLastError() );
 
     }

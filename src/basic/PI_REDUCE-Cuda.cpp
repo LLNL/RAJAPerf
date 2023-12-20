@@ -76,10 +76,13 @@ void PI_REDUCE::runCudaVariantBlockAtomic(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = sizeof(Real_type)*block_size;
-      pi_reduce<block_size><<<grid_size, block_size,
-                  shmem, res.get_stream()>>>( dx,
-                                                   pi, m_pi_init,
-                                                   iend );
+
+      RPlaunchCudaKernel( (pi_reduce<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          dx,
+                          pi, m_pi_init,
+                          iend );
       cudaErrchk( cudaGetLastError() );
 
       Real_type rpi;
@@ -139,10 +142,13 @@ void PI_REDUCE::runCudaVariantBlockAtomicOccGS(VariantID vid)
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
-      pi_reduce<block_size><<<grid_size, block_size,
-                              shmem, res.get_stream()>>>( dx,
-                                                   pi, m_pi_init,
-                                                   iend );
+
+      RPlaunchCudaKernel( (pi_reduce<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          dx,
+                          pi, m_pi_init,
+                          iend );
       cudaErrchk( cudaGetLastError() );
 
       Real_type rpi;

@@ -51,8 +51,11 @@ void TRIAD::runCudaVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      triad<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( a, b, c, alpha,
-                                        iend );
+
+      RPlaunchCudaKernel( (triad<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          a, b, c, alpha, iend );
       cudaErrchk( cudaGetLastError() );
 
     }
@@ -63,12 +66,18 @@ void TRIAD::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+      auto triad_lambda = [=] __device__ (Index_type i) {
+        TRIAD_BODY;
+      }; 
+
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      lambda_cuda_forall<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(
-        ibegin, iend, [=] __device__ (Index_type i) {
-        TRIAD_BODY;
-      });
+
+      RPlaunchCudaKernel( (lambda_cuda_forall<block_size,
+                                              decltype(triad_lambda)>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          ibegin, iend, triad_lambda );
       cudaErrchk( cudaGetLastError() );
 
     }

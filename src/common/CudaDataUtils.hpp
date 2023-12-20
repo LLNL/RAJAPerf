@@ -43,6 +43,33 @@ __device__ __forceinline__ unsigned long long device_timer()
 }
 
 /*!
+ * \brief Method for launching a CUDA kernel with given configuration.
+ *
+ *        Note: method checks whether number of args and their types in
+ *              kernel signature matches args passed to this method.
+ */
+template <typename... Args, typename...KernArgs>
+void RPlaunchCudaKernel(void (*kernel)(KernArgs...),
+                        const dim3& numBlocks, const dim3& dimBlocks,
+                        std::uint32_t sharedMemBytes, cudaStream_t stream,
+                        Args const&... args)
+{
+  static_assert(sizeof...(KernArgs) == sizeof...(Args),
+                "Number of kernel args doesn't match what's passed to method");
+
+  static_assert(conjunction<std::is_same<std::decay_t<KernArgs>, std::decay_t<Args>>...>::value,
+                "Kernel arg types don't match what's passed to method");
+
+  constexpr size_t count = sizeof...(Args);
+  void* arg_arr[count]{(void*)&args...};
+
+  auto k = reinterpret_cast<const void*>(kernel);
+  cudaLaunchKernel(k, numBlocks, dimBlocks,
+                   arg_arr,
+                   sharedMemBytes, stream);
+}
+
+/*!
  * \brief Simple forall cuda kernel that runs a lambda.
  */
 template < typename Lambda >

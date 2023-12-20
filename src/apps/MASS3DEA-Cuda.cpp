@@ -69,14 +69,16 @@ void MASS3DEA::runCudaVariantImpl(VariantID vid) {
 
   case Base_CUDA: {
 
-    dim3 nthreads_per_block(MEA_D1D, MEA_D1D, MEA_D1D);
-    constexpr size_t shmem = 0;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      Mass3DEA<block_size><<<NE, nthreads_per_block, shmem, res.get_stream()>>>(B, D, M);
+      dim3 nthreads_per_block(MEA_D1D, MEA_D1D, MEA_D1D);
+      constexpr size_t shmem = 0;
 
+      RPlaunchCudaKernel( (Mass3DEA<block_size>),
+                          NE, nthreads_per_block,
+                          shmem, res.get_stream(),
+                          B, D, M );
       cudaErrchk( cudaGetLastError() );
     }
     stopTimer();

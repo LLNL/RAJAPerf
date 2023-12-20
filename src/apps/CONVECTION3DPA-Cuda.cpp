@@ -138,15 +138,16 @@ void CONVECTION3DPA::runCudaVariantImpl(VariantID vid) {
 
   case Base_CUDA: {
 
-    dim3 nthreads_per_block(CPA_Q1D, CPA_Q1D, CPA_Q1D);
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+      dim3 nthreads_per_block(CPA_Q1D, CPA_Q1D, CPA_Q1D);
       constexpr size_t shmem = 0;
-      Convection3DPA<block_size><<<NE, nthreads_per_block, shmem, res.get_stream()>>>
-        (Basis, tBasis, dBasis, D, X, Y);
 
+      RPlaunchCudaKernel( (Convection3DPA<block_size>),
+                          NE, nthreads_per_block,
+                          shmem, res.get_stream(),
+                          Basis, tBasis, dBasis, D, X, Y );
       cudaErrchk(cudaGetLastError());
     }
     stopTimer();

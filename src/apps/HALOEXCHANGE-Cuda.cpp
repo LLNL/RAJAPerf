@@ -69,7 +69,10 @@ void HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
           dim3 nthreads_per_block(block_size);
           dim3 nblocks((len + block_size-1) / block_size);
           constexpr size_t shmem = 0;
-          haloexchange_pack<block_size><<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(buffer, list, var, len);
+          RPlaunchCudaKernel( (haloexchange_pack<block_size>),
+                              nblocks, nthreads_per_block,
+                              shmem, res.get_stream(),
+                              buffer, list, var, len ); 
           cudaErrchk( cudaGetLastError() );
           buffer += len;
         }
@@ -85,7 +88,10 @@ void HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
           dim3 nthreads_per_block(block_size);
           dim3 nblocks((len + block_size-1) / block_size);
           constexpr size_t shmem = 0;
-          haloexchange_unpack<block_size><<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(buffer, list, var, len);
+          RPlaunchCudaKernel( (haloexchange_unpack<block_size>),
+                              nblocks, nthreads_per_block,
+                              shmem, res.get_stream(),
+                              buffer, list, var, len ); 
           cudaErrchk( cudaGetLastError() );
           buffer += len;
         }
@@ -109,11 +115,11 @@ void HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
           auto haloexchange_pack_base_lam = [=] __device__ (Index_type i) {
-                HALOEXCHANGE_PACK_BODY;
-              };
+            HALOEXCHANGE_PACK_BODY;
+          };
           RAJA::forall<EXEC_POL>( res,
-              RAJA::TypedRangeSegment<Index_type>(0, len),
-              haloexchange_pack_base_lam );
+                                  RAJA::TypedRangeSegment<Index_type>(0, len),
+                                  haloexchange_pack_base_lam );
           buffer += len;
         }
       }
@@ -126,11 +132,11 @@ void HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
           auto haloexchange_unpack_base_lam = [=] __device__ (Index_type i) {
-                HALOEXCHANGE_UNPACK_BODY;
-              };
+            HALOEXCHANGE_UNPACK_BODY;
+          };
           RAJA::forall<EXEC_POL>( res,
-              RAJA::TypedRangeSegment<Index_type>(0, len),
-              haloexchange_unpack_base_lam );
+                                  RAJA::TypedRangeSegment<Index_type>(0, len),
+                                  haloexchange_unpack_base_lam );
           buffer += len;
         }
       }

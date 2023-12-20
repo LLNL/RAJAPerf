@@ -69,16 +69,16 @@ void MASS3DEA::runHipVariantImpl(VariantID vid) {
 
   case Base_HIP: {
 
-    dim3 nblocks(NE);
-    dim3 nthreads_per_block(MEA_D1D, MEA_D1D, MEA_D1D);
-    constexpr size_t shmem = 0;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipLaunchKernelGGL((Mass3DEA<block_size>), dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
-                         B, D, M);
+      dim3 nthreads_per_block(MEA_D1D, MEA_D1D, MEA_D1D);
+      constexpr size_t shmem = 0;
 
+      RPlaunchHipKernel( (Mass3DEA<block_size>),
+                         NE, nthreads_per_block,
+                         shmem, res.get_stream(),
+                         B, D, M );
       hipErrchk( hipGetLastError() );
     }
     stopTimer();

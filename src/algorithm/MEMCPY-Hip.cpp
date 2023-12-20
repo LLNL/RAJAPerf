@@ -48,7 +48,9 @@ void MEMCPY::runHipVariantLibrary(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipErrchk( hipMemcpyAsync(MEMCPY_STD_ARGS, hipMemcpyDefault, res.get_stream()) );
+      hipErrchk( hipMemcpyAsync(MEMCPY_STD_ARGS,
+                                hipMemcpyDefault,
+                                res.get_stream()) );
 
     }
     stopTimer();
@@ -89,9 +91,11 @@ void MEMCPY::runHipVariantBlock(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      hipLaunchKernelGGL( (memcpy<block_size>),
-          dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
-          x, y, iend );
+
+      RPlaunchHipKernel( (memcpy<block_size>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         x, y, iend );
       hipErrchk( hipGetLastError() );
 
     }
@@ -108,9 +112,12 @@ void MEMCPY::runHipVariantBlock(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(memcpy_lambda)>),
-          grid_size, block_size, shmem, res.get_stream(),
-          ibegin, iend, memcpy_lambda);
+
+      RPlaunchHipKernel( (lambda_hip_forall<block_size,
+                                            decltype(memcpy_lambda)>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         ibegin, iend, memcpy_lambda );
       hipErrchk( hipGetLastError() );
 
     }

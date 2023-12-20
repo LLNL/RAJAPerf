@@ -81,8 +81,12 @@ void FIRST_MIN::runCudaVariantBlockHost(VariantID vid)
       RAJAPERF_CUDA_REDUCER_INITIALIZE_VALUE(mymin, dminloc, mymin_block, grid_size);
 
       constexpr size_t shmem = sizeof(MyMinLoc)*block_size;
-      first_min<block_size><<<grid_size, block_size,
-                              shmem, res.get_stream()>>>(x, dminloc, mymin, iend);
+
+      RPlaunchCudaKernel( (first_min<block_size>),
+                           grid_size, block_size,
+                           shmem, res.get_stream(),
+                           x, dminloc, mymin, 
+                           iend );
       cudaErrchk( cudaGetLastError() );
 
       RAJAPERF_CUDA_REDUCER_COPY_BACK_NOFINAL(dminloc, mymin_block, grid_size);
@@ -164,8 +168,11 @@ void FIRST_MIN::runCudaVariantBlockHostOccGS(VariantID vid)
       FIRST_MIN_MINLOC_INIT;
       RAJAPERF_CUDA_REDUCER_INITIALIZE_VALUE(mymin, dminloc, mymin_block, grid_size);
 
-      first_min<block_size><<<grid_size, block_size,
-                              shmem, res.get_stream()>>>(x, dminloc, mymin, iend);
+      RPlaunchCudaKernel( (first_min<block_size>),
+                           grid_size, block_size,
+                           shmem, res.get_stream(),
+                           x, dminloc, mymin, 
+                           iend );
       cudaErrchk( cudaGetLastError() );
 
       RAJAPERF_CUDA_REDUCER_COPY_BACK_NOFINAL(dminloc, mymin_block, grid_size);

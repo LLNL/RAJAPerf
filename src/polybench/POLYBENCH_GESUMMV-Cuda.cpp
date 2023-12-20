@@ -56,10 +56,14 @@ void POLYBENCH_GESUMMV::runCudaVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
       constexpr size_t shmem = 0;
-      poly_gesummv<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(x, y,
-                                              A, B,
-                                              alpha, beta,
-                                              N);
+
+      RPlaunchCudaKernel( (poly_gesummv<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          x, y,
+                          A, B, 
+                          alpha, beta,
+                          N );
       cudaErrchk( cudaGetLastError() );
 
     }

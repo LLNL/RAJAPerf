@@ -16,7 +16,7 @@ else()
 endif()
 
 option(ENABLE_RAJA_SEQUENTIAL "Run sequential variants of RAJA kernels. Disable
-this, and all other variants, to run _only_ raw C loops." On)
+this, and all other variants, to run _only_ base variants." On)
 option(ENABLE_KOKKOS "Include Kokkos implementations of the kernels in the RAJA Perfsuite" Off)
 
 #
