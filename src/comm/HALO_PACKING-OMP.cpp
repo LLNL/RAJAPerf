@@ -90,12 +90,12 @@ void HALO_PACKING::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
           Index_type  len  = pack_index_list_lengths[l];
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
-            auto HALO_exchange_pack_base_lam = [=](Index_type i) {
+            auto halo_packing_pack_base_lam = [=](Index_type i) {
                   HALO_PACK_BODY;
                 };
             #pragma omp parallel for
             for (Index_type i = 0; i < len; i++) {
-              HALO_exchange_pack_base_lam(i);
+              halo_packing_pack_base_lam(i);
             }
             buffer += len;
           }
@@ -119,12 +119,12 @@ void HALO_PACKING::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
 
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
-            auto HALO_exchange_unpack_base_lam = [=](Index_type i) {
+            auto halo_packing_unpack_base_lam = [=](Index_type i) {
                   HALO_UNPACK_BODY;
                 };
             #pragma omp parallel for
             for (Index_type i = 0; i < len; i++) {
-              HALO_exchange_unpack_base_lam(i);
+              halo_packing_unpack_base_lam(i);
             }
             buffer += len;
           }
@@ -149,12 +149,12 @@ void HALO_PACKING::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
           Index_type  len  = pack_index_list_lengths[l];
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
-            auto HALO_exchange_pack_base_lam = [=](Index_type i) {
+            auto halo_packing_pack_base_lam = [=](Index_type i) {
                   HALO_PACK_BODY;
                 };
             RAJA::forall<EXEC_POL>(
                 RAJA::TypedRangeSegment<Index_type>(0, len),
-                HALO_exchange_pack_base_lam );
+                halo_packing_pack_base_lam );
             buffer += len;
           }
 
@@ -177,12 +177,12 @@ void HALO_PACKING::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
 
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
-            auto HALO_exchange_unpack_base_lam = [=](Index_type i) {
+            auto halo_packing_unpack_base_lam = [=](Index_type i) {
                   HALO_UNPACK_BODY;
                 };
             RAJA::forall<EXEC_POL>(
                 RAJA::TypedRangeSegment<Index_type>(0, len),
-                HALO_exchange_unpack_base_lam );
+                halo_packing_unpack_base_lam );
             buffer += len;
           }
         }

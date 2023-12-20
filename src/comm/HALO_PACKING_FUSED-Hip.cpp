@@ -51,7 +51,7 @@ namespace comm
 
 template < size_t block_size >
 __launch_bounds__(block_size)
-__global__ void HALO_exchange_fused_pack(Real_ptr* pack_buffer_ptrs,
+__global__ void halo_packing_fused_pack(Real_ptr* pack_buffer_ptrs,
                                          Int_ptr* pack_list_ptrs,
                                          Real_ptr* pack_var_ptrs,
                                          Index_type* pack_len_ptrs)
@@ -72,7 +72,7 @@ __global__ void HALO_exchange_fused_pack(Real_ptr* pack_buffer_ptrs,
 
 template < size_t block_size >
 __launch_bounds__(block_size)
-__global__ void HALO_exchange_fused_unpack(Real_ptr* unpack_buffer_ptrs,
+__global__ void halo_packing_fused_unpack(Real_ptr* unpack_buffer_ptrs,
                                            Int_ptr* unpack_list_ptrs,
                                            Real_ptr* unpack_var_ptrs,
                                            Index_type* unpack_len_ptrs)
@@ -131,7 +131,7 @@ void HALO_PACKING_FUSED::runHipVariantDirect(VariantID vid)
       Index_type pack_len_ave = (pack_len_sum + pack_index-1) / pack_index;
       dim3 pack_nthreads_per_block(block_size);
       dim3 pack_nblocks((pack_len_ave + block_size-1) / block_size, pack_index);
-      RPlaunchHipKernel( (HALO_exchange_fused_pack<block_size>),
+      RPlaunchHipKernel( (halo_packing_fused_pack<block_size>),
                          pack_nblocks, pack_nthreads_per_block,
                          shmem, res.get_stream(),
                          pack_buffer_ptrs, 
@@ -178,7 +178,7 @@ void HALO_PACKING_FUSED::runHipVariantDirect(VariantID vid)
       dim3 unpack_nthreads_per_block(block_size);
       dim3 unpack_nblocks((unpack_len_ave + block_size-1) / block_size,
                           unpack_index);
-      RPlaunchHipKernel( (HALO_exchange_fused_unpack<block_size>),
+      RPlaunchHipKernel( (halo_packing_fused_unpack<block_size>),
                          unpack_nblocks, unpack_nthreads_per_block,
                          shmem, res.get_stream(),
                          unpack_buffer_ptrs,
