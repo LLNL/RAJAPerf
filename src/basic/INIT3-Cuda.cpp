@@ -60,7 +60,6 @@ void INIT3::runCudaVariantImpl(VariantID vid)
                           out1, out2, out3,
                           in1, in2,
                           iend );
-      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -82,7 +81,6 @@ void INIT3::runCudaVariantImpl(VariantID vid)
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           ibegin, iend, init3_lambda );
-      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

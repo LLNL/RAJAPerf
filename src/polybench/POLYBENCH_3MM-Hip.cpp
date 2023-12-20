@@ -165,7 +165,6 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
         shmem, res.get_stream(),
         E, A, B,
         ni, nj, nk );
-      hipErrchk( hipGetLastError() );
 
       POLY_3MM_2_NBLOCKS_HIP;
 
@@ -175,7 +174,6 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
         shmem, res.get_stream(),
         F, C, D,
         nj, nl, nm );
-      hipErrchk( hipGetLastError() );
 
       POLY_3MM_3_NBLOCKS_HIP;
 
@@ -185,7 +183,6 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
         shmem, res.get_stream(),
         G, E, F,
         ni, nl, nj );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -214,7 +211,6 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
         nblocks1, nthreads_per_block,
         shmem, res.get_stream(),
         ni, nj, poly_3mm_1_lambda );
-      hipErrchk( hipGetLastError() );
 
       POLY_3MM_2_NBLOCKS_HIP;
 
@@ -232,7 +228,6 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
         nblocks2, nthreads_per_block,
         shmem, res.get_stream(),
         nj, nl, poly_3mm_2_lambda );
-      hipErrchk( hipGetLastError() );
 
       POLY_3MM_3_NBLOCKS_HIP;
 
@@ -250,7 +245,6 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
         nblocks3, nthreads_per_block,
         shmem, res.get_stream(),
         ni, nl, poly_3mm_3_lambda );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

@@ -75,13 +75,11 @@ void POLYBENCH_MVT::runHipVariantImpl(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          A, x1, y1, N );
-      hipErrchk( hipGetLastError() );
 
       RPlaunchHipKernel( (poly_mvt_2<block_size>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          A, x2, y2, N );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

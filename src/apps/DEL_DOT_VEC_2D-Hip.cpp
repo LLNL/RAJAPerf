@@ -78,7 +78,6 @@ void DEL_DOT_VEC_2D::runHipVariantImpl(VariantID vid)
                          real_zones,
                          half, ptiny,
                          iend );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -102,7 +101,6 @@ void DEL_DOT_VEC_2D::runHipVariantImpl(VariantID vid)
                          shmem, res.get_stream(),
                          ibegin, iend,
                          deldotvec2d_lambda );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

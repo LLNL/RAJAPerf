@@ -101,14 +101,12 @@ void POLYBENCH_JACOBI_2D::runCudaVariantImpl(VariantID vid)
           nblocks, nthreads_per_block,
           shmem, res.get_stream(),
           A, B, N );
-        cudaErrchk( cudaGetLastError() );
 
         RPlaunchCudaKernel( 
           (poly_jacobi_2D_2<JACOBI_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>),
           nblocks, nthreads_per_block,
           shmem, res.get_stream(),
           A, B, N );
-        cudaErrchk( cudaGetLastError() );
 
       }
 
@@ -137,7 +135,6 @@ void POLYBENCH_JACOBI_2D::runCudaVariantImpl(VariantID vid)
           nblocks, nthreads_per_block,
           shmem, res.get_stream(),
           N, poly_jacobi_2D_1_lambda );
-        cudaErrchk( cudaGetLastError() );
 
         auto poly_jacobi_2D_2_lambda = [=] __device__ (Index_type i,
                                                        Index_type j) {
@@ -150,7 +147,6 @@ void POLYBENCH_JACOBI_2D::runCudaVariantImpl(VariantID vid)
           nblocks, nthreads_per_block,
           shmem, res.get_stream(),
           N, poly_jacobi_2D_2_lambda );
-        cudaErrchk( cudaGetLastError() );
 
       }
 

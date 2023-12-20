@@ -94,7 +94,6 @@ void NESTED_INIT::runCudaVariantImpl(VariantID vid)
         nblocks, nthreads_per_block,
         shmem, res.get_stream(),
         array, ni, nj, nk );
-      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -121,7 +120,6 @@ void NESTED_INIT::runCudaVariantImpl(VariantID vid)
         shmem, res.get_stream(),
         ni, nj, nk,
         nested_init_lambda );
-      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

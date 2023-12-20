@@ -138,7 +138,6 @@ void HALOEXCHANGE_FUSED::runHipVariantDirect(VariantID vid)
                          pack_list_ptrs,
                          pack_var_ptrs, 
                          pack_len_ptrs );
-      hipErrchk( hipGetLastError() );
       hipErrchk( hipStreamSynchronize( res.get_stream() ) );
 
       Index_type unpack_index = 0;
@@ -171,7 +170,6 @@ void HALOEXCHANGE_FUSED::runHipVariantDirect(VariantID vid)
                          unpack_list_ptrs,
                          unpack_var_ptrs,
                          unpack_len_ptrs );
-      hipErrchk( hipGetLastError() );
       hipErrchk( hipStreamSynchronize( res.get_stream() ) );
 
     }

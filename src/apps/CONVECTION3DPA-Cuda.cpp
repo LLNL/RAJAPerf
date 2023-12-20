@@ -148,7 +148,6 @@ void CONVECTION3DPA::runCudaVariantImpl(VariantID vid) {
                           NE, nthreads_per_block,
                           shmem, res.get_stream(),
                           Basis, tBasis, dBasis, D, X, Y );
-      cudaErrchk(cudaGetLastError());
     }
     stopTimer();
 

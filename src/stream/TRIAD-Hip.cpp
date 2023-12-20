@@ -56,7 +56,6 @@ void TRIAD::runHipVariantImpl(VariantID vid)
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           a, b, c, alpha, iend );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -74,11 +73,10 @@ void TRIAD::runHipVariantImpl(VariantID vid)
       constexpr size_t shmem = 0;
 
       RPlaunchHipKernel( (lambda_hip_forall<block_size,
-                                             decltype(triad_lambda)>),
+                                            decltype(triad_lambda)>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          ibegin, iend, triad_lambda );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

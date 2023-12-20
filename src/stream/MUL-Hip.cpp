@@ -56,7 +56,6 @@ void MUL::runHipVariantImpl(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          b, c, alpha, iend );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -78,7 +77,6 @@ void MUL::runHipVariantImpl(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          ibegin, iend, mul_lambda );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

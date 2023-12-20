@@ -99,7 +99,6 @@ void REDUCE3_INT::runCudaVariantBlockAtomic(VariantID vid)
                           vmem + 1, m_vmin_init,
                           vmem + 2, m_vmax_init,
                           iend );
-      cudaErrchk( cudaGetLastError() );
 
       Int_type rvmem[3];
       RAJAPERF_CUDA_REDUCER_COPY_BACK(rvmem, vmem, hvmem, 3);
@@ -174,7 +173,6 @@ void REDUCE3_INT::runCudaVariantBlockAtomicOccGS(VariantID vid)
                           vmem + 1, m_vmin_init,
                           vmem + 2, m_vmax_init,
                           iend );
-      cudaErrchk( cudaGetLastError() );
 
       Int_type rvmem[3];
       RAJAPERF_CUDA_REDUCER_COPY_BACK(rvmem, vmem, hvmem, 3);

@@ -105,14 +105,12 @@ void POLYBENCH_HEAT_3D::runHipVariantImpl(VariantID vid)
           nblocks, nthreads_per_block,
           shmem, res.get_stream(),
           A, B, N );
-        hipErrchk( hipGetLastError() );
 
         RPlaunchHipKernel(
           (poly_heat_3D_2<HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
           nblocks, nthreads_per_block,
           shmem, res.get_stream(),
           A, B, N );
-        hipErrchk( hipGetLastError() );
 
       }
 
@@ -142,7 +140,6 @@ void POLYBENCH_HEAT_3D::runHipVariantImpl(VariantID vid)
           nblocks, nthreads_per_block,
           shmem, res.get_stream(),
           N, poly_heat_3D_1_lambda );
-        hipErrchk( hipGetLastError() );
 
         auto poly_heat_3D_2_lambda = [=] __device__ (Index_type i,
                                                      Index_type j,
@@ -156,7 +153,6 @@ void POLYBENCH_HEAT_3D::runHipVariantImpl(VariantID vid)
           nblocks, nthreads_per_block,
           shmem, res.get_stream(),
           N, poly_heat_3D_2_lambda );
-        hipErrchk( hipGetLastError() );
 
       }
 

@@ -108,7 +108,6 @@ void FIR::runCudaVariantImpl(VariantID vid)
                           out, in,
                           coefflen,
                           iend ); 
-      cudaErrchk( cudaGetLastError() );
 #else
       RPlaunchCudaKernel( (fir<block_size>),
                           grid_size, block_size,
@@ -117,7 +116,6 @@ void FIR::runCudaVariantImpl(VariantID vid)
                           coeff,
                           coefflen,
                           iend );
-      udaErrchk( cudaGetLastError() );
 #endif
 
     }

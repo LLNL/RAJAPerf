@@ -57,7 +57,6 @@ void FIRST_DIFF::runCudaVariantImpl(VariantID vid)
                            shmem, res.get_stream(),
                            x, y,
                            iend );
-       cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

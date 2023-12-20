@@ -132,7 +132,6 @@ void ENERGY::runHipVariantImpl(VariantID vid)
                          e_new, e_old, delvc,
                          p_old, q_old, work,
                          iend );
-      hipErrchk( hipGetLastError() );
 
       RPlaunchHipKernel( (energycalc2<block_size>),
                          grid_size, block_size,
@@ -143,7 +142,6 @@ void ENERGY::runHipVariantImpl(VariantID vid)
                          ql_old, qq_old,
                          rho0,
                          iend );
-      hipErrchk( hipGetLastError() );
 
       RPlaunchHipKernel( (energycalc3<block_size>),
                          grid_size, block_size,
@@ -152,7 +150,6 @@ void ENERGY::runHipVariantImpl(VariantID vid)
                          p_old, q_old,
                          pHalfStep, q_new,
                          iend );
-      hipErrchk( hipGetLastError() );
 
       RPlaunchHipKernel( (energycalc4<block_size>),
                          grid_size, block_size,
@@ -160,7 +157,6 @@ void ENERGY::runHipVariantImpl(VariantID vid)
                          e_new, work,
                          e_cut, emin,
                          iend ); 
-      hipErrchk( hipGetLastError() );
 
       RPlaunchHipKernel( (energycalc5<block_size>),
                          grid_size, block_size,
@@ -173,7 +169,6 @@ void ENERGY::runHipVariantImpl(VariantID vid)
                          pHalfStep, q_new,
                          rho0, e_cut, emin,
                          iend );
-      hipErrchk( hipGetLastError() );
 
       RPlaunchHipKernel( (energycalc6<block_size>),
                          grid_size, block_size,
@@ -185,7 +180,6 @@ void ENERGY::runHipVariantImpl(VariantID vid)
                          ql_old, qq_old,
                          rho0, q_cut,
                          iend );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

@@ -57,7 +57,6 @@ void DAXPY_ATOMIC::runHipVariantImpl(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          y, x, a, iend );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -79,7 +78,6 @@ void DAXPY_ATOMIC::runHipVariantImpl(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          ibegin, iend, daxpy_atomic_lambda );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

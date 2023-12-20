@@ -106,7 +106,6 @@ void FIR::runHipVariantImpl(VariantID vid)
                          out, in,
                          coefflen,
                          iend ); 
-      hipErrchk( hipGetLastError() );
 #else
       RPlaunchHipKernel( (fir<block_size>),
                          grid_size, block_size,
@@ -115,7 +114,6 @@ void FIR::runHipVariantImpl(VariantID vid)
                          coeff,
                          coefflen,
                          iend ); 
-      hipErrchk( hipGetLastError() );
 #endif
 
     }
