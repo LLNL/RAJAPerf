@@ -75,13 +75,11 @@ void POLYBENCH_MVT::runCudaVariantImpl(VariantID vid)
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           A, x1, y1, N );
-      cudaErrchk( cudaGetLastError() );
 
       RPlaunchCudaKernel( (poly_mvt_2<block_size>),
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           A, x2, y2, N );
-      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

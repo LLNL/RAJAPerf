@@ -65,7 +65,6 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
                          pi,
                          dx,
                          iend );
-      hipErrchk( hipGetLastError() );
 
       Real_type rpi;
       RAJAPERF_HIP_REDUCER_COPY_BACK(&rpi, pi, hpi, 1);

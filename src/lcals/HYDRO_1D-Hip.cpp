@@ -59,7 +59,6 @@ void HYDRO_1D::runHipVariantImpl(VariantID vid)
                           x, y, z,
                           q, r, t,
                           iend );
-       hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

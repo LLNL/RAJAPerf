@@ -58,7 +58,6 @@ void INIT_VIEW1D::runHipVariantImpl(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          a, v, iend );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -80,7 +79,6 @@ void INIT_VIEW1D::runHipVariantImpl(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          ibegin, iend, initview1d_lambda );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

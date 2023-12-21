@@ -153,7 +153,6 @@ void REDUCE_SUM::runCudaVariantBlockAtomic(VariantID vid)
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           x, sum, m_sum_init, iend );
-      cudaErrchk( cudaGetLastError() );
 
       RAJAPERF_CUDA_REDUCER_COPY_BACK(&m_sum, sum, hsum, 1);
 
@@ -218,7 +217,6 @@ void REDUCE_SUM::runCudaVariantBlockAtomicOccGS(VariantID vid)
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           x, sum, m_sum_init, iend );
-      cudaErrchk( cudaGetLastError() );
 
       RAJAPERF_CUDA_REDUCER_COPY_BACK(&m_sum, sum, hsum, 1);
 

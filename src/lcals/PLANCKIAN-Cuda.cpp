@@ -60,7 +60,6 @@ void PLANCKIAN::runCudaVariantImpl(VariantID vid)
                            x, y,
                            u, v, w,
                            iend );
-       cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

@@ -83,7 +83,6 @@ void PI_REDUCE::runCudaVariantBlockAtomic(VariantID vid)
                           dx,
                           pi, m_pi_init,
                           iend );
-      cudaErrchk( cudaGetLastError() );
 
       Real_type rpi;
       RAJAPERF_CUDA_REDUCER_COPY_BACK(&rpi, pi, hpi, 1);
@@ -149,7 +148,6 @@ void PI_REDUCE::runCudaVariantBlockAtomicOccGS(VariantID vid)
                           dx,
                           pi, m_pi_init,
                           iend );
-      cudaErrchk( cudaGetLastError() );
 
       Real_type rpi;
       RAJAPERF_CUDA_REDUCER_COPY_BACK(&rpi, pi, hpi, 1);

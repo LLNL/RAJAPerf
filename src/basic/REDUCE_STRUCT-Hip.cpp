@@ -131,7 +131,6 @@ void REDUCE_STRUCT::runHipVariantBlockAtomic(VariantID vid)
                          mem+3, mem+4, mem+5,  // ycenter,ymin,ymax
                          m_init_sum, m_init_min, m_init_max,
                          points.N );
-      hipErrchk( hipGetLastError() );
 
       Real_type rmem[6];
       RAJAPERF_HIP_REDUCER_COPY_BACK(rmem, mem, hmem, 6);
@@ -216,7 +215,6 @@ void REDUCE_STRUCT::runHipVariantBlockAtomicOccGS(VariantID vid)
                          mem+3, mem+4, mem+5,  // ycenter,ymin,ymax
                          m_init_sum, m_init_min, m_init_max,
                          points.N ); 
-      hipErrchk( hipGetLastError() );
 
       Real_type rmem[6];
       RAJAPERF_HIP_REDUCER_COPY_BACK(rmem, mem, hmem, 6);

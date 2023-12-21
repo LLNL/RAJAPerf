@@ -96,7 +96,6 @@ void MEMCPY::runHipVariantBlock(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          x, y, iend );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -118,7 +117,6 @@ void MEMCPY::runHipVariantBlock(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          ibegin, iend, memcpy_lambda );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

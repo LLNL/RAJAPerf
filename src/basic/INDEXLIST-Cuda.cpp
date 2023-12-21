@@ -276,7 +276,6 @@ void INDEXLIST::runCudaVariantImpl(VariantID vid)
                           x+ibegin, list+ibegin,
                           block_counts, grid_counts, block_readys,
                           len, iend-ibegin );
-      cudaErrchk( cudaGetLastError() );
 
       cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
       m_len = *len;

@@ -87,7 +87,6 @@ void FIRST_MIN::runHipVariantBlockHost(VariantID vid)
                          shmem, res.get_stream(),
                          x, dminloc, mymin,
                          iend );
-      hipErrchk( hipGetLastError() );
 
       RAJAPERF_HIP_REDUCER_COPY_BACK_NOFINAL(dminloc, mymin_block, grid_size);
       for (Index_type i = 0; i < static_cast<Index_type>(grid_size); i++) {
@@ -173,7 +172,6 @@ void FIRST_MIN::runHipVariantBlockHostOccGS(VariantID vid)
                          shmem, res.get_stream(),
                          x, dminloc, mymin,
                          iend );
-      hipErrchk( hipGetLastError() );
 
       RAJAPERF_HIP_REDUCER_COPY_BACK_NOFINAL(dminloc, mymin_block, grid_size);
       for (Index_type i = 0; i < static_cast<Index_type>(grid_size); i++) {

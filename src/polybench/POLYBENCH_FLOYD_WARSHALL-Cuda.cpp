@@ -90,7 +90,6 @@ void POLYBENCH_FLOYD_WARSHALL::runCudaVariantImpl(VariantID vid)
           nblocks, nthreads_per_block,
           shmem, res.get_stream(),
           pout, pin, k, N );
-        cudaErrchk( cudaGetLastError() );
 
       }
 
@@ -119,7 +118,6 @@ void POLYBENCH_FLOYD_WARSHALL::runCudaVariantImpl(VariantID vid)
           nblocks, nthreads_per_block,
           shmem, res.get_stream(),
           N, poly_floyd_warshall_lambda );
-        cudaErrchk( cudaGetLastError() );
 
       }
 

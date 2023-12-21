@@ -145,7 +145,6 @@ void POLYBENCH_GEMVER::runHipVariantImpl(VariantID vid)
         nblocks1, nthreads_per_block1,
         shmem, res.get_stream(),
         A, u1, v1, u2, v2, n );
-      hipErrchk( hipGetLastError() );
 
       size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_n, block_size);
 
@@ -153,19 +152,16 @@ void POLYBENCH_GEMVER::runHipVariantImpl(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          A, x, y, beta, n );
-      hipErrchk( hipGetLastError() );
 
       RPlaunchHipKernel( (poly_gemver_3<block_size>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          x, z, n );
-      hipErrchk( hipGetLastError() );
 
       RPlaunchHipKernel( (poly_gemver_4<block_size>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          A, x, w, alpha, n );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -189,7 +185,6 @@ void POLYBENCH_GEMVER::runHipVariantImpl(VariantID vid)
        nblocks1, nthreads_per_block1,
        shmem, res.get_stream(),
        n, poly_gemver1_lambda );
-      hipErrchk( hipGetLastError() );
 
       size_t grid_size = RAJA_DIVIDE_CEILING_INT(n, block_size);
 
@@ -206,7 +201,6 @@ void POLYBENCH_GEMVER::runHipVariantImpl(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          n, poly_gemver2_lambda );
-      hipErrchk( hipGetLastError() );
 
       auto poly_gemver3_lambda = [=] __device__ (Index_type i) {
         POLYBENCH_GEMVER_BODY5;
@@ -217,7 +211,6 @@ void POLYBENCH_GEMVER::runHipVariantImpl(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          n, poly_gemver3_lambda );
-      hipErrchk( hipGetLastError() );
 
       auto poly_gemver4_lambda = [=] __device__ (Index_type i) {
         POLYBENCH_GEMVER_BODY6;
@@ -232,7 +225,6 @@ void POLYBENCH_GEMVER::runHipVariantImpl(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          n, poly_gemver4_lambda );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

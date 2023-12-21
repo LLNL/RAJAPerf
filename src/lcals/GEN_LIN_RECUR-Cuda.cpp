@@ -73,7 +73,6 @@ void GEN_LIN_RECUR::runCudaVariantImpl(VariantID vid)
                            sa, sb,
                            kb5i,
                            N );
-       cudaErrchk( cudaGetLastError() );
 
        const size_t grid_size2 = RAJA_DIVIDE_CEILING_INT(N+1, block_size);
 
@@ -84,7 +83,6 @@ void GEN_LIN_RECUR::runCudaVariantImpl(VariantID vid)
                            sa, sb,
                            kb5i,
                            N );
-       cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

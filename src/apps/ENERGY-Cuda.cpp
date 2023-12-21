@@ -132,7 +132,6 @@ void ENERGY::runCudaVariantImpl(VariantID vid)
                           e_new, e_old, delvc,
                           p_old, q_old, work,
                           iend );
-      cudaErrchk( cudaGetLastError() );
 
       RPlaunchCudaKernel( (energycalc2<block_size>),
                           grid_size, block_size,
@@ -143,7 +142,6 @@ void ENERGY::runCudaVariantImpl(VariantID vid)
                           ql_old, qq_old,
                           rho0,
                           iend );
-      cudaErrchk( cudaGetLastError() );
 
       RPlaunchCudaKernel( (energycalc3<block_size>),
                           grid_size, block_size,
@@ -152,7 +150,6 @@ void ENERGY::runCudaVariantImpl(VariantID vid)
                           p_old, q_old,
                           pHalfStep, q_new,
                           iend );
-      cudaErrchk( cudaGetLastError() );
 
       RPlaunchCudaKernel( (energycalc4<block_size>),
                           grid_size, block_size,
@@ -160,7 +157,6 @@ void ENERGY::runCudaVariantImpl(VariantID vid)
                           e_new, work,
                           e_cut, emin,
                           iend );
-      cudaErrchk( cudaGetLastError() );
 
       RPlaunchCudaKernel( (energycalc5<block_size>),
                           grid_size, block_size,
@@ -173,7 +169,6 @@ void ENERGY::runCudaVariantImpl(VariantID vid)
                           pHalfStep, q_new,
                           rho0, e_cut, emin,
                           iend );
-      cudaErrchk( cudaGetLastError() );
 
       RPlaunchCudaKernel( (energycalc6<block_size>),
                           grid_size, block_size,
@@ -185,7 +180,6 @@ void ENERGY::runCudaVariantImpl(VariantID vid)
                           ql_old, qq_old,
                           rho0, q_cut,
                           iend );
-      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

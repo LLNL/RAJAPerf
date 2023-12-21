@@ -56,7 +56,6 @@ void TRIAD::runCudaVariantImpl(VariantID vid)
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           a, b, c, alpha, iend );
-      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -78,7 +77,6 @@ void TRIAD::runCudaVariantImpl(VariantID vid)
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           ibegin, iend, triad_lambda );
-      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

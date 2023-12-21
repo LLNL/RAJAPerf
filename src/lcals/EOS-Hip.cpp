@@ -59,7 +59,6 @@ void EOS::runHipVariantImpl(VariantID vid)
                           x, y, z, u,
                           q, r, t, 
                           iend );
-       hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

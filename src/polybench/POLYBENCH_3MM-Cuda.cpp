@@ -166,7 +166,6 @@ void POLYBENCH_3MM::runCudaVariantImpl(VariantID vid)
         shmem, res.get_stream(),
         E, A, B,
         ni, nj, nk );
-      cudaErrchk( cudaGetLastError() );
 
       POLY_3MM_2_NBLOCKS_CUDA;
 
@@ -176,7 +175,6 @@ void POLYBENCH_3MM::runCudaVariantImpl(VariantID vid)
         shmem, res.get_stream(),
         F, C, D,
         nj, nl, nm );
-      cudaErrchk( cudaGetLastError() );
 
       POLY_3MM_3_NBLOCKS_CUDA;
 
@@ -186,7 +184,6 @@ void POLYBENCH_3MM::runCudaVariantImpl(VariantID vid)
         shmem, res.get_stream(),
         G, E, F,
         ni, nl, nj );
-      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -215,7 +212,6 @@ void POLYBENCH_3MM::runCudaVariantImpl(VariantID vid)
         nblocks1, nthreads_per_block,
         shmem, res.get_stream(),
         ni, nj, poly_3mm_1_lambda );
-      cudaErrchk( cudaGetLastError() );
 
       POLY_3MM_2_NBLOCKS_CUDA;
 
@@ -233,7 +229,6 @@ void POLYBENCH_3MM::runCudaVariantImpl(VariantID vid)
         nblocks2, nthreads_per_block,
         shmem, res.get_stream(),
         nj, nl, poly_3mm_2_lambda );
-      cudaErrchk( cudaGetLastError() );
 
       POLY_3MM_3_NBLOCKS_CUDA;
 
@@ -251,7 +246,6 @@ void POLYBENCH_3MM::runCudaVariantImpl(VariantID vid)
         nblocks3, nthreads_per_block,
         shmem, res.get_stream(),
         ni, nl, poly_3mm_3_lambda );
-      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

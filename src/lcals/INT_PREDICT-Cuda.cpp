@@ -65,7 +65,6 @@ void INT_PREDICT::runCudaVariantImpl(VariantID vid)
                            dm28, c0,
                            offset,
                            iend );
-       cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

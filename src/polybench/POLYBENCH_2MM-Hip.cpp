@@ -133,7 +133,6 @@ void POLYBENCH_2MM::runHipVariantImpl(VariantID vid)
         tmp, A, B,
         alpha,
         ni, nj, nk );
-      hipErrchk( hipGetLastError() );
 
       POLY_2MM_2_NBLOCKS_HIP;
 
@@ -144,7 +143,6 @@ void POLYBENCH_2MM::runHipVariantImpl(VariantID vid)
         tmp, C, D,
         beta,
         ni, nl, nj );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -173,7 +171,6 @@ void POLYBENCH_2MM::runHipVariantImpl(VariantID vid)
         nblocks1, nthreads_per_block,
         shmem, res.get_stream(),
         ni, nj, poly_2mm_1_lambda );
-      hipErrchk( hipGetLastError() );
 
       POLY_2MM_2_NBLOCKS_HIP;
 
@@ -191,7 +188,6 @@ void POLYBENCH_2MM::runHipVariantImpl(VariantID vid)
         nblocks2, nthreads_per_block,
         shmem, res.get_stream(),
         ni, nl, poly_2mm_2_lambda );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

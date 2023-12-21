@@ -79,7 +79,6 @@ void MASS3DEA::runHipVariantImpl(VariantID vid) {
                          NE, nthreads_per_block,
                          shmem, res.get_stream(),
                          B, D, M );
-      hipErrchk( hipGetLastError() );
     }
     stopTimer();
 

@@ -97,7 +97,6 @@ void POLYBENCH_GEMM::runCudaVariantImpl(VariantID vid)
           C, A, B,
           alpha, beta,
           ni, nj, nk );
-      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -126,7 +125,6 @@ void POLYBENCH_GEMM::runCudaVariantImpl(VariantID vid)
        nblocks, nthreads_per_block,
        shmem, res.get_stream(),
        ni, nj, poly_gemm_lambda );
-      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

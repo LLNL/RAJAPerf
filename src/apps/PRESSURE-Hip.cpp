@@ -72,7 +72,6 @@ void PRESSURE::runHipVariantImpl(VariantID vid)
                          shmem, res.get_stream(),
                          bvc, compression, cls, 
                          iend );
-      hipErrchk( hipGetLastError() );
 
       RPlaunchHipKernel( (pressurecalc2<block_size>),
                          grid_size, block_size,
@@ -81,7 +80,6 @@ void PRESSURE::runHipVariantImpl(VariantID vid)
                          vnewc,
                          p_cut, eosvmax, pmin,
                          iend );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

@@ -65,7 +65,6 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
                           pi,
                           dx, 
                           iend );
-      cudaErrchk( cudaGetLastError() );
 
       Real_type rpi;
       RAJAPERF_CUDA_REDUCER_COPY_BACK(&rpi, pi, hpi, 1);
@@ -94,7 +93,6 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           ibegin, iend, pi_atomic_lambda );
-      cudaErrchk( cudaGetLastError() );
 
       Real_type rpi;
       RAJAPERF_CUDA_REDUCER_COPY_BACK(&rpi, pi, hpi, 1);

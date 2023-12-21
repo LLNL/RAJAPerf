@@ -88,14 +88,12 @@ void POLYBENCH_ATAX::runHipVariantImpl(VariantID vid)
                         shmem, res.get_stream(),
                         A, x, y, tmp,
                         N );
-      hipErrchk( hipGetLastError() );
 
       RPlaunchHipKernel( (poly_atax_2<block_size>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          A, tmp, y,
                          N );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -121,7 +119,6 @@ void POLYBENCH_ATAX::runHipVariantImpl(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          N, poly_atax1_lambda );
-      hipErrchk( hipGetLastError() );
 
       auto poly_atax2_lambda = [=] __device__ (Index_type j) {
         POLYBENCH_ATAX_BODY4;
@@ -136,7 +133,6 @@ void POLYBENCH_ATAX::runHipVariantImpl(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          N, poly_atax2_lambda );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

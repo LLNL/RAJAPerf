@@ -77,7 +77,6 @@ void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
                          gridDim, blockDim,
                          shmem, res.get_stream(),
                          N, C, A, B );
-      hipErrchk( hipGetLastError() );
     }
     stopTimer();
 
@@ -181,7 +180,6 @@ void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
                          gridDim, blockDim,
                          shmem, res.get_stream(),
                          mat_mat_shared_lambda );
-      hipErrchk( hipGetLastError() );
     }
     stopTimer();
 

@@ -94,7 +94,6 @@ void MEMSET::runCudaVariantBlock(VariantID vid)
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           x, val, iend );
-      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -116,7 +115,6 @@ void MEMSET::runCudaVariantBlock(VariantID vid)
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           ibegin, iend, memset_lambda );
-      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

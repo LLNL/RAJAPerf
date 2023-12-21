@@ -94,7 +94,6 @@ void NESTED_INIT::runHipVariantImpl(VariantID vid)
         nblocks, nthreads_per_block,
         shmem, res.get_stream(),
         array, ni, nj, nk );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -121,7 +120,6 @@ void NESTED_INIT::runHipVariantImpl(VariantID vid)
         shmem, res.get_stream(),
         ni, nj, nk,
         nested_init_lambda );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

@@ -67,13 +67,11 @@ void POLYBENCH_JACOBI_1D::runHipVariantImpl(VariantID vid)
                            grid_size, block_size,
                            shmem, res.get_stream(),
                            A, B, N );
-        hipErrchk( hipGetLastError() );
 
         RPlaunchHipKernel( (poly_jacobi_1D_2<block_size>),
                            grid_size, block_size,
                            shmem, res.get_stream(),
                            A, B, N );
-        hipErrchk( hipGetLastError() );
 
       }
 

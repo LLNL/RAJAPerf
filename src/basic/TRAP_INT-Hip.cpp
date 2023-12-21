@@ -104,7 +104,6 @@ void TRAP_INT::runHipVariantBlockAtomic(VariantID vid)
                          h,
                          sumx,
                          iend);
-      hipErrchk( hipGetLastError() );
 
       Real_type rsumx;
       RAJAPERF_HIP_REDUCER_COPY_BACK(&rsumx, sumx, hsumx, 1);
@@ -172,7 +171,6 @@ void TRAP_INT::runHipVariantBlockAtomicOccGS(VariantID vid)
                          h,
                          sumx,
                          iend);
-      hipErrchk( hipGetLastError() );
 
       Real_type rsumx;
       RAJAPERF_HIP_REDUCER_COPY_BACK(&rsumx, sumx, hsumx, 1);

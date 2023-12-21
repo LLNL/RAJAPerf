@@ -72,7 +72,6 @@ void PRESSURE::runCudaVariantImpl(VariantID vid)
                           shmem, res.get_stream(),
                           bvc, compression, cls,
                           iend );
-      cudaErrchk( cudaGetLastError() );
 
       RPlaunchCudaKernel( (pressurecalc2<block_size>),
                           grid_size, block_size,
@@ -81,7 +80,6 @@ void PRESSURE::runCudaVariantImpl(VariantID vid)
                           vnewc,
                           p_cut, eosvmax, pmin,
                           iend );
-      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

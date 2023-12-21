@@ -57,7 +57,6 @@ void FIRST_SUM::runCudaVariantImpl(VariantID vid)
                            shmem, res.get_stream(),
                            x, y,
                            iend );
-      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

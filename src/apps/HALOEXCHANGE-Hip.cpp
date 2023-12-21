@@ -73,7 +73,6 @@ void HALOEXCHANGE::runHipVariantImpl(VariantID vid)
                              nblocks, nthreads_per_block,
                              shmem, res.get_stream(),
                              buffer, list, var, len );
-          hipErrchk( hipGetLastError() );
           buffer += len;
         }
       }
@@ -92,7 +91,6 @@ void HALOEXCHANGE::runHipVariantImpl(VariantID vid)
                              nblocks, nthreads_per_block,
                              shmem, res.get_stream(),
                              buffer, list, var, len );
-          hipErrchk( hipGetLastError() );
           buffer += len;
         }
       }

@@ -65,7 +65,6 @@ void INT_PREDICT::runHipVariantImpl(VariantID vid)
                           dm28, c0,
                           offset,
                           iend );
-       hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

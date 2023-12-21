@@ -62,7 +62,6 @@ void COPY8::runHipVariantImpl(VariantID vid)
                          y0, y1, y2, y3, y4, y5, y6, y7,
                          x0, x1, x2, x3, x4, x5, x6, x7,
                          iend );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -84,7 +83,6 @@ void COPY8::runHipVariantImpl(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          ibegin, iend, copy8_lambda );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

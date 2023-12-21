@@ -96,7 +96,6 @@ void LTIMES::runHipVariantImpl(VariantID vid)
         shmem, res.get_stream(),
         phidat, elldat, psidat,
         num_d, num_m, num_g, num_z );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -124,7 +123,6 @@ void LTIMES::runHipVariantImpl(VariantID vid)
         shmem, res.get_stream(),
         num_m, num_g, num_z,
         ltimes_lambda );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

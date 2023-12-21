@@ -60,7 +60,6 @@ void IF_QUAD::runCudaVariantImpl(VariantID vid)
                           x1, x2,
                           a, b, c,
                           iend );
-      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -81,7 +80,6 @@ void IF_QUAD::runCudaVariantImpl(VariantID vid)
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           ibegin, iend, ifquad_lambda );
-      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

@@ -60,7 +60,6 @@ void INIT_VIEW1D_OFFSET::runHipVariantImpl(VariantID vid)
                          shmem, res.get_stream(),
                          a, v,
                          ibegin, iend );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -82,7 +81,6 @@ void INIT_VIEW1D_OFFSET::runHipVariantImpl(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          ibegin, iend, initview1d_offset_lambda );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
