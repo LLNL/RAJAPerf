@@ -51,6 +51,12 @@ if (ENABLE_TESTS)
 endif()
 
 cmake_dependent_option(RAJA_PERFSUITE_ENABLE_MPI "Build with MPI" On "ENABLE_MPI" Off)
+if (RAJA_PERFSUITE_ENABLE_MPI)
+set(RAJA_PERFSUITE_NUM_MPI_TASKS 4 CACHE STRING "Number of MPI tasks in tests")
+else()
+set(RAJA_PERFSUITE_NUM_MPI_TASKS 0 CACHE INTERNAL "Number of MPI tasks in tests")
+endif()
+message(STATUS "Using RAJA_PERFSUITE_NUM_MPI_TASKS: ${RAJA_PERFSUITE_NUM_MPI_TASKS}")
 
 cmake_dependent_option(RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN "Build OpenMP scan variants" Off "ENABLE_OPENMP" Off)
 

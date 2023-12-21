@@ -262,11 +262,19 @@ public:
 
   DataSpace getDataSpace(VariantID vid) const;
   DataSpace getReductionDataSpace(VariantID vid) const;
+  DataSpace getMPIDataSpace(VariantID vid) const;
 
   template <typename T>
   void allocData(DataSpace dataSpace, T& ptr, Size_type len)
   {
     rajaperf::allocData(dataSpace,
+        ptr, len, getDataAlignment());
+  }
+
+  template <typename T>
+  void allocAndInitData(DataSpace dataSpace, T*& ptr, Size_type len)
+  {
+    rajaperf::allocAndInitData(dataSpace,
         ptr, len, getDataAlignment());
   }
 
@@ -339,6 +347,13 @@ public:
   {
     (void)vid;
     rajaperf::detail::initData(d);
+  }
+
+  template <typename T>
+  long double calcChecksum(DataSpace dataSpace, T* ptr, Size_type len, VariantID RAJAPERF_UNUSED_ARG(vid))
+  {
+    return rajaperf::calcChecksum(dataSpace,
+      ptr, len, getDataAlignment(), 1.0);
   }
 
   template <typename T>
