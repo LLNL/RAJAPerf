@@ -7,25 +7,27 @@
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
 
-if [[ $# -lt 3 ]]; then
+if [[ $# -lt 4 ]]; then
   echo
-  echo "You must pass 3 arguments to the script (in this order): "
-  echo "   1) compiler version number for nvcc"
-  echo "   2) CUDA compute architecture (number only, not 'sm_70' for example)"
-  echo "   3) compiler version number for clang. "
+  echo "You must pass 4 arguments to the script (in this order): "
+  echo "   1) compiler version number for spectrum mpi"
+  echo "   2) compiler version number for nvcc (number only, not 'sm_70' for example)"
+  echo "   3) CUDA compute architecture"
+  echo "   4) compiler version number for gcc. "
   echo
   echo "For example: "
-  echo "    blueos_nvcc_clang.sh 10.2.89 70 10.0.1"
+  echo "    blueos_spectrum_nvcc_gcc.sh rolling-release 10.2.89 70 8.3.1"
   exit
 fi
 
-COMP_NVCC_VER=$1
-COMP_ARCH=$2
-COMP_CLANG_VER=$3
-shift 3
+COMP_MPI_VER=$1
+COMP_NVCC_VER=$2
+COMP_ARCH=$3
+COMP_GCC_VER=$4
+shift 4
 
-BUILD_SUFFIX=lc_blueos-nvcc-${COMP_NVCC_VER}-${COMP_ARCH}-clang-${COMP_CLANG_VER}
-RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/blueos/nvcc_clang_X.cmake
+BUILD_SUFFIX=lc_blueos-spectrum-${COMP_MPI_VER}-nvcc-${COMP_NVCC_VER}-${COMP_ARCH}-gcc-${COMP_GCC_VER}
+RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/blueos/nvcc_gcc_X.cmake
 
 echo
 echo "Creating build directory build_${BUILD_SUFFIX} and generating configuration in it"
@@ -40,9 +42,11 @@ module load cmake/3.20.2
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_CXX_COMPILER=/usr/tce/packages/clang/clang-${COMP_CLANG_VER}/bin/clang++ \
+  -DMPI_CXX_COMPILER=/usr/tce/packages/spectrum-mpi/spectrum-mpi-${COMP_MPI_VER}-gcc-${COMP_GCC_VER}/bin/mpig++ \
+  -DCMAKE_CXX_COMPILER=/usr/tce/packages/gcc/gcc-${COMP_GCC_VER}/bin/g++ \
   -DBLT_CXX_STD=c++14 \
   -C ${RAJA_HOSTCONFIG} \
+  -DENABLE_MPI=On \
   -DENABLE_OPENMP=On \
   -DENABLE_CUDA=On \
   -DCUDA_SEPARABLE_COMPILATION=On \
@@ -58,9 +62,9 @@ echo "***********************************************************************"
 echo
 echo "cd into directory build_${BUILD_SUFFIX} and run make to build RAJA Perf Suite"
 echo
-echo "  Please note that you have to disable CUDA GPU hooks when you run"
+echo "  Please note that you have to run with mpi when you run"
 echo "  the RAJA Perf Suite; for example,"
 echo
-echo "    lrun -1 --smpiargs="-disable_gpu_hooks" ./bin/raja-perf.exe"
+echo "    lrun -n4 ./bin/raja-perf.exe"
 echo
 echo "***********************************************************************"

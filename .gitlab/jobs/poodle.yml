@@ -40,3 +40,9 @@ intel_2022_1_0:
 # We do not recommend using ${PROJECT_<MACHINE>_VARIANTS} and
 # ${PROJECT_<MACHINE>_DEPS} in the extra jobs. There is no reason not to fully
 # describe the spec here.
+
+intel_2022_1_0_mpi:
+  variables:
+    SPEC: "~shared +openmp +mpi %intel@2022.1.0 ^mvapich2 ^blt@git.a7f0a6ecc4fdfa1724399b1454c3909b9ee02e81=develop"
+  allow_failure: true
+  extends: .job_on_poodle
