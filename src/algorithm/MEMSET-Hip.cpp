@@ -94,7 +94,6 @@ void MEMSET::runHipVariantBlock(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          x, val, iend );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -116,7 +115,6 @@ void MEMSET::runHipVariantBlock(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          ibegin, iend, memset_lambda );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

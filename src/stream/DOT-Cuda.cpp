@@ -80,7 +80,6 @@ void DOT::runCudaVariantBlockAtomic(VariantID vid)
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           a, b, dprod, m_dot_init, iend );
-      cudaErrchk( cudaGetLastError() );
 
       Real_type rdprod;
       RAJAPERF_CUDA_REDUCER_COPY_BACK(&rdprod, dprod, hdprod, 1);
@@ -144,7 +143,6 @@ void DOT::runCudaVariantBlockAtomicOccGS(VariantID vid)
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           a, b, dprod, m_dot_init, iend );
-      cudaErrchk( cudaGetLastError() );
 
       Real_type rdprod;
       RAJAPERF_CUDA_REDUCER_COPY_BACK(&rdprod, dprod, hdprod, 1);

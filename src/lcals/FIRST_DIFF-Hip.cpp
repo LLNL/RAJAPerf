@@ -57,7 +57,6 @@ void FIRST_DIFF::runHipVariantImpl(VariantID vid)
                           shmem, res.get_stream(),
                           x, y, 
                           iend );
-       hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

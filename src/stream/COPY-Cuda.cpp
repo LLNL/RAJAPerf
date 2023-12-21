@@ -56,7 +56,6 @@ void COPY::runCudaVariantImpl(VariantID vid)
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           c, a, iend );
-      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -78,7 +77,6 @@ void COPY::runCudaVariantImpl(VariantID vid)
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           ibegin, iend, copy_lambda );
-      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

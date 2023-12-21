@@ -52,9 +52,11 @@ void DAXPY_ATOMIC::runHipVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      hipLaunchKernelGGL((daxpy_atomic<block_size>),dim3(grid_size), dim3(block_size), shmem, res.get_stream(), y, x, a,
-                                        iend );
-      hipErrchk( hipGetLastError() );
+
+      RPlaunchHipKernel( (daxpy_atomic<block_size>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         y, x, a, iend );
 
     }
     stopTimer();
@@ -70,9 +72,12 @@ void DAXPY_ATOMIC::runHipVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(daxpy_atomic_lambda)>),
-        grid_size, block_size, shmem, res.get_stream(), ibegin, iend, daxpy_atomic_lambda);
-      hipErrchk( hipGetLastError() );
+
+      RPlaunchHipKernel( (lambda_hip_forall<block_size,
+                                            decltype(daxpy_atomic_lambda)>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         ibegin, iend, daxpy_atomic_lambda );
 
     }
     stopTimer();

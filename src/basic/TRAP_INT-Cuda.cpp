@@ -104,7 +104,6 @@ void TRAP_INT::runCudaVariantBlockAtomic(VariantID vid)
                           h,
                           sumx,
                           iend);
-      cudaErrchk( cudaGetLastError() );
 
       Real_type rsumx;
       RAJAPERF_CUDA_REDUCER_COPY_BACK(&rsumx, sumx, hsumx, 1);
@@ -172,7 +171,6 @@ void TRAP_INT::runCudaVariantBlockAtomicOccGS(VariantID vid)
                           h,
                           sumx,
                           iend);
-      cudaErrchk( cudaGetLastError() );
 
       Real_type rsumx;
       RAJAPERF_CUDA_REDUCER_COPY_BACK(&rsumx, sumx, hsumx, 1);

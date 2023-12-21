@@ -59,7 +59,6 @@ void EOS::runCudaVariantImpl(VariantID vid)
                            x, y, z, u,
                            q, r, t, 
                            iend );
-       cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

@@ -83,7 +83,6 @@ void PI_REDUCE::runHipVariantBlockAtomic(VariantID vid)
                          dx,
                          pi, m_pi_init,
                          iend );
-      hipErrchk( hipGetLastError() );
 
       Real_type rpi;
       RAJAPERF_HIP_REDUCER_COPY_BACK(&rpi, pi, hpi, 1);
@@ -149,7 +148,6 @@ void PI_REDUCE::runHipVariantBlockAtomicOccGS(VariantID vid)
                          dx,
                          pi, m_pi_init,
                          iend );
-      hipErrchk( hipGetLastError() );
 
       Real_type rpi;
       RAJAPERF_HIP_REDUCER_COPY_BACK(&rpi, pi, hpi, 1);

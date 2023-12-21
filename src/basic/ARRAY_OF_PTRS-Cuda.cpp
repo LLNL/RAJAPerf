@@ -59,7 +59,6 @@ void ARRAY_OF_PTRS::runCudaVariantImpl(VariantID vid)
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           y, x_array, array_size, iend );
-      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -81,7 +80,6 @@ void ARRAY_OF_PTRS::runCudaVariantImpl(VariantID vid)
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           ibegin, iend, array_of_ptrs_lambda );
-      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

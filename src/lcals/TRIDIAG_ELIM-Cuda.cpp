@@ -59,7 +59,6 @@ void TRIDIAG_ELIM::runCudaVariantImpl(VariantID vid)
                            xout, xin,
                            y, z,
                            iend );
-       cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

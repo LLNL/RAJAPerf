@@ -60,7 +60,6 @@ void PLANCKIAN::runHipVariantImpl(VariantID vid)
                           x, y,
                           u, v, w,
                           iend );
-       hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

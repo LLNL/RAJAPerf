@@ -73,7 +73,6 @@ void HALO_PACKING::runCudaVariantImpl(VariantID vid)
                               nblocks, nthreads_per_block,
                               shmem, res.get_stream(),
                               buffer, list, var, len ); 
-          cudaErrchk( cudaGetLastError() );
           buffer += len;
         }
 
@@ -105,7 +104,6 @@ void HALO_PACKING::runCudaVariantImpl(VariantID vid)
                               nblocks, nthreads_per_block,
                               shmem, res.get_stream(),
                               buffer, list, var, len ); 
-          cudaErrchk( cudaGetLastError() );
           buffer += len;
         }
       }

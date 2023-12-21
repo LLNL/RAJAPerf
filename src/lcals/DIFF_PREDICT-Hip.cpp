@@ -58,7 +58,6 @@ void DIFF_PREDICT::runHipVariantImpl(VariantID vid)
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           px, cx, offset, iend );
-       hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

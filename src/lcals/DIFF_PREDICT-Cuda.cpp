@@ -57,7 +57,6 @@ void DIFF_PREDICT::runCudaVariantImpl(VariantID vid)
                            grid_size, block_size,
                            shmem, res.get_stream(),
                            px, cx, offset, iend );
-       cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

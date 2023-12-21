@@ -60,7 +60,6 @@ void MULADDSUB::runHipVariantImpl(VariantID vid)
                          out1, out2, out3,
                          in1, in2,
                          iend );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -82,7 +81,6 @@ void MULADDSUB::runHipVariantImpl(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          ibegin, iend, muladdsub_lambda );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

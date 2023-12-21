@@ -99,7 +99,6 @@ void REDUCE3_INT::runHipVariantBlockAtomic(VariantID vid)
                          vmem + 1, m_vmin_init,
                          vmem + 2, m_vmax_init,
                          iend );
-      hipErrchk( hipGetLastError() );
 
       Int_type rvmem[3];
       RAJAPERF_HIP_REDUCER_COPY_BACK(rvmem, vmem, hvmem, 3);
@@ -174,7 +173,6 @@ void REDUCE3_INT::runHipVariantBlockAtomicOccGS(VariantID vid)
                          vmem + 1, m_vmin_init,
                          vmem + 2, m_vmax_init,
                          iend );
-      hipErrchk( hipGetLastError() );
 
       Int_type rvmem[3];
       RAJAPERF_HIP_REDUCER_COPY_BACK(rvmem, vmem, hvmem, 3);

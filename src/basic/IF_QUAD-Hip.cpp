@@ -60,7 +60,6 @@ void IF_QUAD::runHipVariantImpl(VariantID vid)
                          x1, x2,
                          a, b, c,
                          iend );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -82,7 +81,6 @@ void IF_QUAD::runHipVariantImpl(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          ibegin, iend, ifquad_lambda );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

@@ -118,7 +118,6 @@ void HYDRO_2D::runHipVariantImpl(VariantID vid)
                          zpdat, zqdat,
                          zrdat, zmdat,
                          jn, kn);
-       hipErrchk( hipGetLastError() );
 
        RPlaunchHipKernel( (hydro_2d2<HYDRO_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
                           nblocks, nthreads_per_block,
@@ -128,7 +127,6 @@ void HYDRO_2D::runHipVariantImpl(VariantID vid)
                           zzdat, zrdat,
                           s,
                           jn, kn);
-       hipErrchk( hipGetLastError() );
 
        RPlaunchHipKernel( (hydro_2d3<HYDRO_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
                           nblocks, nthreads_per_block,
@@ -138,7 +136,6 @@ void HYDRO_2D::runHipVariantImpl(VariantID vid)
                           zzdat, zvdat,
                           t,
                           jn, kn);
-       hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

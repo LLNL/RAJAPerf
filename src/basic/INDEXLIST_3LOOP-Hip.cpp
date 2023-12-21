@@ -117,7 +117,6 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
                          grid_size, block_size,
                          shmem, stream,
                          x, counts, iend );
-      hipErrchk( hipGetLastError() );
 
 #if defined(__HIPCC__)
       hipErrchk(::rocprim::exclusive_scan(d_temp_storage,
@@ -143,7 +142,6 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
                          grid_size, block_size,
                          shmem, stream,
                          list, counts, len, iend );
-      hipErrchk( hipGetLastError() );
 
       hipErrchk( hipStreamSynchronize(stream) );
       m_len = *len;

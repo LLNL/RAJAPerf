@@ -74,7 +74,6 @@ void EDGE3D::runHipVariantImpl(VariantID vid)
                          y0, y1, y2, y3, y4, y5, y6, y7,
                          z0, z1, z2, z3, z4, z5, z6, z7,
                          ibegin, iend );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -95,7 +94,6 @@ void EDGE3D::runHipVariantImpl(VariantID vid)
                          shmem, res.get_stream(),
                          ibegin, iend,
                          edge3d_lambda );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

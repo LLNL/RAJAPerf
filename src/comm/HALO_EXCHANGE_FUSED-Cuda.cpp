@@ -140,7 +140,6 @@ void HALO_EXCHANGE_FUSED::runCudaVariantDirect(VariantID vid)
                           pack_list_ptrs,
                           pack_var_ptrs,
                           pack_len_ptrs);
-      cudaErrchk( cudaGetLastError() );
       if (separate_buffers) {
         for (Index_type l = 0; l < num_neighbors; ++l) {
           Index_type len = pack_index_list_lengths[l];
@@ -192,7 +191,6 @@ void HALO_EXCHANGE_FUSED::runCudaVariantDirect(VariantID vid)
                           unpack_list_ptrs,
                           unpack_var_ptrs,
                           unpack_len_ptrs);
-      cudaErrchk( cudaGetLastError() );
       cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
 
       MPI_Waitall(num_neighbors, pack_mpi_requests.data(), MPI_STATUSES_IGNORE);

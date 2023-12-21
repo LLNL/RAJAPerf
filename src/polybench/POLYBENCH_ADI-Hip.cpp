@@ -99,7 +99,6 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
                            a, b, c,
                            d, f,
                            P, Q, U, V );
-        hipErrchk( hipGetLastError() );
 
         RPlaunchHipKernel( (poly_adi2<block_size>),
                            grid_size, block_size,
@@ -108,7 +107,6 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
                            a, c, d,
                            e, f,
                            P, Q, U, V );
-        hipErrchk( hipGetLastError() );
 
       }  // tstep loop
 
@@ -141,7 +139,6 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
                            grid_size, block_size,
                            shmem, res.get_stream(),
                            n, poly_adi1_lambda );
-        hipErrchk( hipGetLastError() );
 
         auto poly_adi2_lambda = [=] __device__ (Index_type i) {
           POLYBENCH_ADI_BODY6;
@@ -159,7 +156,6 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
                            grid_size, block_size,
                            shmem, res.get_stream(),
                            n, poly_adi2_lambda );
-        hipErrchk( hipGetLastError() );
 
       }  // tstep loop
 

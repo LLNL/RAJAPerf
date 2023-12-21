@@ -60,7 +60,6 @@ void INIT_VIEW1D_OFFSET::runCudaVariantImpl(VariantID vid)
                           shmem, res.get_stream(),
                           a, v, 
                           ibegin, iend );
-      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -82,7 +81,6 @@ void INIT_VIEW1D_OFFSET::runCudaVariantImpl(VariantID vid)
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           ibegin, iend, initview1d_offset_lambda ); 
-      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

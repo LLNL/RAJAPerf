@@ -109,7 +109,6 @@ void MASS3DPA::runCudaVariantImpl(VariantID vid) {
                           NE, nthreads_per_block,
                           shmem, res.get_stream(),
                           B, Bt, D, X, Y );
-      cudaErrchk( cudaGetLastError() );
     }
     stopTimer();
 

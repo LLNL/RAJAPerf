@@ -106,7 +106,6 @@ void INDEXLIST_3LOOP::runCudaVariantImpl(VariantID vid)
                           grid_size, block_size,
                           shmem, stream,
                           x, counts, iend );
-      cudaErrchk( cudaGetLastError() );
 
       cudaErrchk(::cub::DeviceScan::ExclusiveScan(d_temp_storage,
                                                   temp_storage_bytes,
@@ -121,7 +120,6 @@ void INDEXLIST_3LOOP::runCudaVariantImpl(VariantID vid)
                           grid_size, block_size,
                           shmem, stream,
                           list, counts, len, iend );
-      cudaErrchk( cudaGetLastError() );
 
       cudaErrchk( cudaStreamSynchronize(stream) );
       m_len = *len;

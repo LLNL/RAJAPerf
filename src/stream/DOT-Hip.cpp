@@ -80,7 +80,6 @@ void DOT::runHipVariantBlockAtomic(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          a, b, dprod, m_dot_init, iend );
-      hipErrchk( hipGetLastError() );
 
       Real_type rdprod;
       RAJAPERF_HIP_REDUCER_COPY_BACK(&rdprod, dprod, hdprod, 1);
@@ -144,7 +143,6 @@ void DOT::runHipVariantBlockAtomicOccGS(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          a, b, dprod, m_dot_init, iend );
-      hipErrchk( hipGetLastError() );
 
       Real_type rdprod;
       RAJAPERF_HIP_REDUCER_COPY_BACK(&rdprod, dprod, hdprod, 1);

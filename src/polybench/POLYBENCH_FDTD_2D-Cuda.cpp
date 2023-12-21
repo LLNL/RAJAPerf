@@ -165,7 +165,6 @@ void POLYBENCH_FDTD_2D::runCudaVariantImpl(VariantID vid)
                             grid_size1, block_size,
                             shmem, res.get_stream(),
                             ey, fict, ny, t );
-        cudaErrchk( cudaGetLastError() );
 
         FDTD_2D_THREADS_PER_BLOCK_CUDA;
         FDTD_2D_NBLOCKS_CUDA;
@@ -175,21 +174,18 @@ void POLYBENCH_FDTD_2D::runCudaVariantImpl(VariantID vid)
           nblocks234, nthreads_per_block234,
           shmem, res.get_stream(),
           ey, hz, nx, ny );
-        cudaErrchk( cudaGetLastError() );
 
         RPlaunchCudaKernel( 
           (poly_fdtd2d_3<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>),
           nblocks234, nthreads_per_block234,
           shmem, res.get_stream(),
           ex, hz, nx, ny );
-        cudaErrchk( cudaGetLastError() );
 
         RPlaunchCudaKernel(
           (poly_fdtd2d_4<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>),
           nblocks234, nthreads_per_block234,
           shmem, res.get_stream(),
           hz, ex, ey, nx, ny );
-        cudaErrchk( cudaGetLastError() );
 
       } // tstep loop
 
@@ -216,7 +212,6 @@ void POLYBENCH_FDTD_2D::runCudaVariantImpl(VariantID vid)
                             grid_size1, block_size,
                             shmem, res.get_stream(),
                             ny, poly_fdtd2d_1_lambda );
-        cudaErrchk( cudaGetLastError() );
 
         FDTD_2D_THREADS_PER_BLOCK_CUDA;
         FDTD_2D_NBLOCKS_CUDA;
@@ -232,7 +227,6 @@ void POLYBENCH_FDTD_2D::runCudaVariantImpl(VariantID vid)
           nblocks234, nthreads_per_block234,
           shmem, res.get_stream(),
           nx, ny, poly_fdtd2d_2_lambda );
-        cudaErrchk( cudaGetLastError() );
 
         auto poly_fdtd2d_3_lambda = [=] __device__ (Index_type i, 
                                                     Index_type j) {
@@ -245,7 +239,6 @@ void POLYBENCH_FDTD_2D::runCudaVariantImpl(VariantID vid)
           nblocks234, nthreads_per_block234,
           shmem, res.get_stream(),
           nx, ny, poly_fdtd2d_3_lambda );
-        cudaErrchk( cudaGetLastError() );
 
         auto poly_fdtd2d_4_lambda = [=] __device__ (Index_type i,
                                                     Index_type j) {
@@ -258,7 +251,6 @@ void POLYBENCH_FDTD_2D::runCudaVariantImpl(VariantID vid)
           nblocks234, nthreads_per_block234,
           shmem, res.get_stream(),
           nx, ny, poly_fdtd2d_4_lambda );
-        cudaErrchk( cudaGetLastError() );
 
       } // tstep loop
 

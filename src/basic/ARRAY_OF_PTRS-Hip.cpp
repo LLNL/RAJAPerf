@@ -59,7 +59,6 @@ void ARRAY_OF_PTRS::runHipVariantImpl(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          y, x_array, array_size, iend );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -81,7 +80,6 @@ void ARRAY_OF_PTRS::runHipVariantImpl(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          ibegin, iend, array_of_ptrs_lambda );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

@@ -138,7 +138,6 @@ void HALO_PACKING_FUSED::runHipVariantDirect(VariantID vid)
                          pack_list_ptrs,
                          pack_var_ptrs, 
                          pack_len_ptrs );
-      hipErrchk( hipGetLastError() );
       if (separate_buffers) {
         for (Index_type l = 0; l < num_neighbors; ++l) {
           Index_type len = pack_index_list_lengths[l];
@@ -185,7 +184,6 @@ void HALO_PACKING_FUSED::runHipVariantDirect(VariantID vid)
                          unpack_list_ptrs,
                          unpack_var_ptrs,
                          unpack_len_ptrs );
-      hipErrchk( hipGetLastError() );
       hipErrchk( hipStreamSynchronize( res.get_stream() ) );
 
     }

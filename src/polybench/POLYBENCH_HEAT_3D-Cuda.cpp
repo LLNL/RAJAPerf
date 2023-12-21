@@ -105,14 +105,12 @@ void POLYBENCH_HEAT_3D::runCudaVariantImpl(VariantID vid)
           nblocks, nthreads_per_block,
           shmem, res.get_stream(),
           A, B, N );
-        cudaErrchk( cudaGetLastError() );
 
         RPlaunchCudaKernel(
           (poly_heat_3D_2<HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>),
           nblocks, nthreads_per_block,
           shmem, res.get_stream(),
           A, B, N );
-        cudaErrchk( cudaGetLastError() );
 
       }
 
@@ -142,7 +140,6 @@ void POLYBENCH_HEAT_3D::runCudaVariantImpl(VariantID vid)
           nblocks, nthreads_per_block,
           shmem, res.get_stream(),
           N, poly_heat_3D_1_lambda );
-        cudaErrchk( cudaGetLastError() );
 
         auto poly_heat_3D_2_lambda = [=] __device__ (Index_type i,
                                                      Index_type j,
@@ -156,7 +153,6 @@ void POLYBENCH_HEAT_3D::runCudaVariantImpl(VariantID vid)
           nblocks, nthreads_per_block,
           shmem, res.get_stream(),
           N, poly_heat_3D_2_lambda );
-        cudaErrchk( cudaGetLastError() );
 
       }
 

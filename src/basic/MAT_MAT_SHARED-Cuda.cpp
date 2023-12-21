@@ -77,7 +77,6 @@ void MAT_MAT_SHARED::runCudaVariantImpl(VariantID vid)
                           gridDim, blockDim,
                           shmem, res.get_stream(),
                           N, C, A, B );
-      cudaErrchk( cudaGetLastError() );
     }
     stopTimer();
 
@@ -181,7 +180,6 @@ void MAT_MAT_SHARED::runCudaVariantImpl(VariantID vid)
                           gridDim, blockDim,
                           shmem, res.get_stream(),
                           mat_mat_shared_lambda ); 
-      cudaErrchk( cudaGetLastError() );
     }
     stopTimer();
 

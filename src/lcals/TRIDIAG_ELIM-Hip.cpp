@@ -59,7 +59,6 @@ void TRIDIAG_ELIM::runHipVariantImpl(VariantID vid)
                           xout, xin,
                           y, z,
                           iend );
-       hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

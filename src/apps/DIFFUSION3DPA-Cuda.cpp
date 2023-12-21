@@ -127,7 +127,6 @@ void DIFFUSION3DPA::runCudaVariantImpl(VariantID vid) {
                           NE, nthreads_per_block,
                           shmem, res.get_stream(),
                           Basis, dBasis, D, X, Y, symmetric );
-      cudaErrchk(cudaGetLastError());
     }
     stopTimer();
 

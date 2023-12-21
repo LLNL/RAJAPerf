@@ -97,7 +97,6 @@ void LTIMES::runCudaVariantImpl(VariantID vid)
         shmem, res.get_stream(),
         phidat, elldat, psidat,
         num_d, num_m, num_g, num_z );
-      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -125,7 +124,6 @@ void LTIMES::runCudaVariantImpl(VariantID vid)
         shmem, res.get_stream(),
         num_m, num_g, num_z,
         ltimes_lambda );
-      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

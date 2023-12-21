@@ -56,7 +56,6 @@ void ADD::runHipVariantImpl(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          c, a, b, iend );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -78,7 +77,6 @@ void ADD::runHipVariantImpl(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          ibegin, iend, add_lambda );
-      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
