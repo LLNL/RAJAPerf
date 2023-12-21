@@ -236,7 +236,7 @@ void FIRST_MIN::runCudaVariant(VariantID vid, size_t tune_idx)
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
 
-        if ( vid == Base_HIP ) {
+        if ( vid == Base_CUDA ) {
 
           if (tune_idx == t) {
 
@@ -258,7 +258,7 @@ void FIRST_MIN::runCudaVariant(VariantID vid, size_t tune_idx)
 
         }
 
-        if ( vid == RAJA_HIP ) {
+        if ( vid == RAJA_CUDA ) {
 
           if (tune_idx == t) {
 
@@ -301,17 +301,17 @@ void FIRST_MIN::setCudaTuningDefinitions(VariantID vid)
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
 
-        if ( vid == Base_HIP ) {
+        if ( vid == Base_CUDA ) {
 
-          addVariantTuningName(vid, "blkhst"+std::to_string(block_size));
+          addVariantTuningName(vid, "blkhst_"+std::to_string(block_size));
 
           addVariantTuningName(vid, "blkhst_occgs_"+std::to_string(block_size));
 
         }
 
-        if ( vid == RAJA_HIP ) {
+        if ( vid == RAJA_CUDA ) {
 
-          addVariantTuningName(vid, "blkdev"+std::to_string(block_size));
+          addVariantTuningName(vid, "blkdev_"+std::to_string(block_size));
 
           addVariantTuningName(vid, "blkdev_occgs_"+std::to_string(block_size));
 

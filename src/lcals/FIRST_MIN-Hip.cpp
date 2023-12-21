@@ -302,7 +302,7 @@ void FIRST_MIN::setHipTuningDefinitions(VariantID vid)
 
         if ( vid == Base_HIP ) {
 
-          addVariantTuningName(vid, "blkhst"+std::to_string(block_size));
+          addVariantTuningName(vid, "blkhst_"+std::to_string(block_size));
 
           addVariantTuningName(vid, "blkhst_occgs_"+std::to_string(block_size));
 
@@ -310,7 +310,7 @@ void FIRST_MIN::setHipTuningDefinitions(VariantID vid)
 
         if ( vid == RAJA_HIP ) {
 
-          addVariantTuningName(vid, "blkdev"+std::to_string(block_size));
+          addVariantTuningName(vid, "blkdev_"+std::to_string(block_size));
 
           addVariantTuningName(vid, "blkdev_occgs_"+std::to_string(block_size));
 
