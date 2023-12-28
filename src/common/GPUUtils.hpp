@@ -140,6 +140,52 @@ using make_list_type =
 
 } // closing brace for gpu_block_size namespace
 
+namespace gpu_algorithm {
+
+struct block_atomic_helper
+{
+  static constexpr bool atomic = true;
+  static std::string get_name() { return "blkatm"; }
+};
+
+struct block_device_helper
+{
+  static constexpr bool atomic = false;
+  static std::string get_name() { return "blkdev"; }
+};
+
+struct block_host_helper
+{
+  static constexpr bool atomic = false;
+  static std::string get_name() { return "blkhst"; }
+};
+
+using reducer_helpers = camp::list<
+    block_atomic_helper,
+    block_device_helper >;
+
+} // closing brace for gpu_mapping namespace
+
+namespace gpu_mapping {
+
+struct global_direct_helper
+{
+  static constexpr bool direct = true;
+  static std::string get_name() { return "direct"; }
+};
+
+struct global_loop_occupancy_grid_stride_helper
+{
+  static constexpr bool direct = false;
+  static std::string get_name() { return "occgs"; }
+};
+
+using reducer_helpers = camp::list<
+    global_direct_helper,
+    global_loop_occupancy_grid_stride_helper >;
+
+} // closing brace for gpu_mapping namespace
+
 } // closing brace for rajaperf namespace
 
 // allocate pointer of pointer_type with length
