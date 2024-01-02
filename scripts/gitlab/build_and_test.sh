@@ -7,7 +7,7 @@ then
 fi
 
 ###############################################################################
-# Copyright (c) 2017-23, Lawrence Livermore National Security, LLC and RAJA
+# Copyright (c) 2017-24, Lawrence Livermore National Security, LLC and RAJA
 # project contributors. See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
