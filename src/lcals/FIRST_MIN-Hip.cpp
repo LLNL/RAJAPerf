@@ -60,7 +60,7 @@ __global__ void first_min(Real_ptr x,
 }
 
 
-template < size_t block_size, bool direct >
+template < size_t block_size, typename MappingHelper >
 void FIRST_MIN::runHipVariantBase(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
@@ -73,7 +73,7 @@ void FIRST_MIN::runHipVariantBase(VariantID vid)
   if ( vid == Base_HIP ) {
 
     constexpr size_t shmem = sizeof(MyMinLoc)*block_size;
-    const size_t max_grid_size = direct
+    const size_t max_grid_size = MappingHelper::direct
         ? std::numeric_limits<size_t>::max()
         : detail::getHipOccupancyMaxBlocks(
               (first_min<block_size>), block_size, shmem);
@@ -113,12 +113,12 @@ void FIRST_MIN::runHipVariantBase(VariantID vid)
   }
 }
 
-template < size_t block_size, bool direct >
+template < size_t block_size, typename MappingHelper >
 void FIRST_MIN::runHipVariantRAJA(VariantID vid)
 {
   using reduction_policy = RAJA::hip_reduce;
 
-  using exec_policy = std::conditional_t<direct,
+  using exec_policy = std::conditional_t<MappingHelper::direct,
       RAJA::hip_exec<block_size, true /*async*/>,
       RAJA::hip_exec_occ_calc<block_size, true /*async*/>>;
 
@@ -172,7 +172,7 @@ void FIRST_MIN::runHipVariant(VariantID vid, size_t tune_idx)
 
               setBlockSize(block_size);
               runHipVariantBase<decltype(block_size){},
-                                decltype(mapping_helper)::direct>(vid);
+                                decltype(mapping_helper)>(vid);
 
             }
 
@@ -184,7 +184,7 @@ void FIRST_MIN::runHipVariant(VariantID vid, size_t tune_idx)
 
               setBlockSize(block_size);
               runHipVariantRAJA<decltype(block_size){},
-                                decltype(mapping_helper)::direct>(vid);
+                                decltype(mapping_helper)>(vid);
 
             }
 

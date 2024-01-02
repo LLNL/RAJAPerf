@@ -68,7 +68,7 @@ __global__ void reduce3int(Int_ptr vec,
 }
 
 
-template < size_t block_size, bool direct >
+template < size_t block_size, typename MappingHelper >
 void REDUCE3_INT::runCudaVariantBase(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
@@ -83,7 +83,7 @@ void REDUCE3_INT::runCudaVariantBase(VariantID vid)
     RAJAPERF_CUDA_REDUCER_SETUP(Int_ptr, vmem, hvmem, 3);
 
     constexpr size_t shmem = 3*sizeof(Int_type)*block_size;
-    const size_t max_grid_size = direct
+    const size_t max_grid_size = MappingHelper::direct
         ? std::numeric_limits<size_t>::max()
         : detail::getCudaOccupancyMaxBlocks(
               (reduce3int<block_size>), block_size, shmem);
@@ -122,14 +122,14 @@ void REDUCE3_INT::runCudaVariantBase(VariantID vid)
   }
 }
 
-template < size_t block_size, bool atomic, bool direct >
+template < size_t block_size, typename AlgorithmHelper, typename MappingHelper >
 void REDUCE3_INT::runCudaVariantRAJA(VariantID vid)
 {
-  using reduction_policy = std::conditional_t<atomic,
+  using reduction_policy = std::conditional_t<AlgorithmHelper::atomic,
       RAJA::cuda_reduce_atomic,
       RAJA::cuda_reduce>;
 
-  using exec_policy = std::conditional_t<direct,
+  using exec_policy = std::conditional_t<MappingHelper::direct,
       RAJA::cuda_exec<block_size, true /*async*/>,
       RAJA::cuda_exec_occ_calc<block_size, true /*async*/>>;
 
@@ -186,7 +186,7 @@ void REDUCE3_INT::runCudaVariant(VariantID vid, size_t tune_idx)
 
               setBlockSize(block_size);
               runCudaVariantBase<decltype(block_size){},
-                                 decltype(mapping_helper)::direct>(vid);
+                                 decltype(mapping_helper)>(vid);
 
             }
 
@@ -200,8 +200,8 @@ void REDUCE3_INT::runCudaVariant(VariantID vid, size_t tune_idx)
 
                 setBlockSize(block_size);
                 runCudaVariantRAJA<decltype(block_size){},
-                                   decltype(algorithm_helper)::atomic,
-                                   decltype(mapping_helper)::direct>(vid);
+                                   decltype(algorithm_helper),
+                                   decltype(mapping_helper)>(vid);
 
               }
 
