@@ -70,10 +70,8 @@ void PI_REDUCE::runCudaVariantBase(VariantID vid)
     RAJAPERF_CUDA_REDUCER_SETUP(Real_ptr, pi, hpi, 1);
 
     constexpr size_t shmem = sizeof(Real_type)*block_size;
-    const size_t max_grid_size = MappingHelper::direct
-        ? std::numeric_limits<size_t>::max()
-        : detail::getCudaOccupancyMaxBlocks(
-              (pi_reduce<block_size>), block_size, shmem);
+    const size_t max_grid_size = RAJAPERF_CUDA_GET_MAX_BLOCKS(
+        MappingHelper, (pi_reduce<block_size>), block_size, shmem);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

@@ -188,6 +188,21 @@ using reducer_helpers = camp::list<
 
 } // closing brace for rajaperf namespace
 
+// Get the max number of blocks to launch with the given MappingHelper
+// for kernel func with the given block_size and shmem.
+// This will use the occupancy calculator if MappingHelper::direct is false
+#define RAJAPERF_CUDA_GET_MAX_BLOCKS(MappingHelper, func, block_size, shmem)   \
+  MappingHelper::direct                                                        \
+      ? std::numeric_limits<size_t>::max()                                     \
+      : detail::getCudaOccupancyMaxBlocks(                                     \
+            (func), (block_size), (shmem));
+///
+#define RAJAPERF_HIP_GET_MAX_BLOCKS(MappingHelper, func, block_size, shmem)    \
+  MappingHelper::direct                                                        \
+      ? std::numeric_limits<size_t>::max()                                     \
+      : detail::getHipOccupancyMaxBlocks(                                      \
+            (func), (block_size), (shmem));
+
 // allocate pointer of pointer_type with length
 // device_ptr_name gets memory in the reduction data space for the current variant
 // host_ptr_name is set to either device_ptr_name if the reduction data space is

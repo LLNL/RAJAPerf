@@ -143,10 +143,8 @@ void REDUCE_SUM::runCudaVariantBase(VariantID vid)
     RAJAPERF_CUDA_REDUCER_SETUP(Real_ptr, sum, hsum, 1);
 
     constexpr size_t shmem = sizeof(Real_type)*block_size;
-    const size_t max_grid_size = MappingHelper::direct
-        ? std::numeric_limits<size_t>::max()
-        : detail::getCudaOccupancyMaxBlocks(
-              (reduce_sum<block_size>), block_size, shmem);
+    const size_t max_grid_size = RAJAPERF_CUDA_GET_MAX_BLOCKS(
+        MappingHelper, (reduce_sum<block_size>), block_size, shmem);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

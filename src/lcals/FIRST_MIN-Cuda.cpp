@@ -73,10 +73,8 @@ void FIRST_MIN::runCudaVariantBase(VariantID vid)
   if ( vid == Base_CUDA ) {
 
     constexpr size_t shmem = sizeof(MyMinLoc)*block_size;
-    const size_t max_grid_size = MappingHelper::direct
-        ? std::numeric_limits<size_t>::max()
-        : detail::getCudaOccupancyMaxBlocks(
-              (first_min<block_size>), block_size, shmem);
+    const size_t max_grid_size = RAJAPERF_CUDA_GET_MAX_BLOCKS(
+        MappingHelper, (first_min<block_size>), block_size, shmem);
 
     const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
     const size_t grid_size = std::min(normal_grid_size, max_grid_size);
