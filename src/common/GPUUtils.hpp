@@ -140,7 +140,68 @@ using make_list_type =
 
 } // closing brace for gpu_block_size namespace
 
+namespace gpu_algorithm {
+
+struct block_atomic_helper
+{
+  static constexpr bool atomic = true;
+  static std::string get_name() { return "blkatm"; }
+};
+
+struct block_device_helper
+{
+  static constexpr bool atomic = false;
+  static std::string get_name() { return "blkdev"; }
+};
+
+struct block_host_helper
+{
+  static constexpr bool atomic = false;
+  static std::string get_name() { return "blkhst"; }
+};
+
+using reducer_helpers = camp::list<
+    block_atomic_helper,
+    block_device_helper >;
+
+} // closing brace for gpu_algorithm namespace
+
+namespace gpu_mapping {
+
+struct global_direct_helper
+{
+  static constexpr bool direct = true;
+  static std::string get_name() { return "direct"; }
+};
+
+struct global_loop_occupancy_grid_stride_helper
+{
+  static constexpr bool direct = false;
+  static std::string get_name() { return "occgs"; }
+};
+
+using reducer_helpers = camp::list<
+    global_direct_helper,
+    global_loop_occupancy_grid_stride_helper >;
+
+} // closing brace for gpu_mapping namespace
+
 } // closing brace for rajaperf namespace
+
+// Get the max number of blocks to launch with the given MappingHelper
+// for kernel func with the given block_size and shmem.
+// This will use the occupancy calculator if MappingHelper::direct is false
+#define RAJAPERF_CUDA_GET_MAX_BLOCKS(MappingHelper, func, block_size, shmem)   \
+  MappingHelper::direct                                                        \
+      ? std::numeric_limits<size_t>::max()                                     \
+      : detail::getCudaOccupancyMaxBlocks(                                     \
+            (func), (block_size), (shmem));
+///
+#define RAJAPERF_HIP_GET_MAX_BLOCKS(MappingHelper, func, block_size, shmem)    \
+  MappingHelper::direct                                                        \
+      ? std::numeric_limits<size_t>::max()                                     \
+      : detail::getHipOccupancyMaxBlocks(                                      \
+            (func), (block_size), (shmem));
 
 // allocate pointer of pointer_type with length
 // device_ptr_name gets memory in the reduction data space for the current variant

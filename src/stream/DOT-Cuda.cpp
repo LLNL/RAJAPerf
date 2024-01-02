@@ -16,6 +16,8 @@
 
 #include <iostream>
 #include <utility>
+#include <type_traits>
+#include <limits>
 
 
 namespace rajaperf
@@ -52,71 +54,10 @@ __global__ void dot(Real_ptr a, Real_ptr b,
 }
 
 
-
-template < size_t block_size >
-void DOT::runCudaVariantBlockAtomic(VariantID vid)
+template < size_t block_size, typename MappingHelper >
+void DOT::runCudaVariantBase(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
-  const Index_type iend = getActualProblemSize();
-
-  auto res{getCudaResource()};
-
-  DOT_DATA_SETUP;
-
-  if ( vid == Base_CUDA ) {
-
-    RAJAPERF_CUDA_REDUCER_SETUP(Real_ptr, dprod, hdprod, 1);
-
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      RAJAPERF_CUDA_REDUCER_INITIALIZE(&m_dot_init, dprod, hdprod, 1);
-
-      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      constexpr size_t shmem = sizeof(Real_type)*block_size;
-
-      RPlaunchCudaKernel( (dot<block_size>),
-                          grid_size, block_size,
-                          shmem, res.get_stream(),
-                          a, b, dprod, m_dot_init, iend );
-
-      Real_type rdprod;
-      RAJAPERF_CUDA_REDUCER_COPY_BACK(&rdprod, dprod, hdprod, 1);
-      m_dot += rdprod;
-
-    }
-    stopTimer();
-
-    RAJAPERF_CUDA_REDUCER_TEARDOWN(dprod, hdprod);
-
-  } else if ( vid == RAJA_CUDA ) {
-
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-       RAJA::ReduceSum<RAJA::cuda_reduce_atomic, Real_type> dot(m_dot_init);
-
-       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
-         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-         DOT_BODY;
-       });
-
-       m_dot += static_cast<Real_type>(dot.get());
-
-    }
-    stopTimer();
-
-  } else {
-     getCout() << "\n  DOT : Unknown Cuda variant id = " << vid << std::endl;
-  }
-}
-
-template < size_t block_size >
-void DOT::runCudaVariantBlockAtomicOccGS(VariantID vid)
-{
-  const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
   auto res{getCudaResource()};
@@ -128,8 +69,8 @@ void DOT::runCudaVariantBlockAtomicOccGS(VariantID vid)
     RAJAPERF_CUDA_REDUCER_SETUP(Real_ptr, dprod, hdprod, 1);
 
     constexpr size_t shmem = sizeof(Real_type)*block_size;
-    const size_t max_grid_size = detail::getCudaOccupancyMaxBlocks(
-        (dot<block_size>), block_size, shmem);
+    const size_t max_grid_size = RAJAPERF_CUDA_GET_MAX_BLOCKS(
+        MappingHelper, (dot<block_size>), block_size, shmem);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -153,31 +94,22 @@ void DOT::runCudaVariantBlockAtomicOccGS(VariantID vid)
 
     RAJAPERF_CUDA_REDUCER_TEARDOWN(dprod, hdprod);
 
-  } else if ( vid == RAJA_CUDA ) {
-
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-       RAJA::ReduceSum<RAJA::cuda_reduce_atomic, Real_type> dot(m_dot_init);
-
-       RAJA::forall< RAJA::cuda_exec_occ_calc<block_size, true /*async*/> >( res,
-         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-         DOT_BODY;
-       });
-
-       m_dot += static_cast<Real_type>(dot.get());
-
-    }
-    stopTimer();
-
   } else {
      getCout() << "\n  DOT : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-template < size_t block_size >
-void DOT::runCudaVariantBlockDevice(VariantID vid)
+template < size_t block_size, typename AlgorithmHelper, typename MappingHelper >
+void DOT::runCudaVariantRAJA(VariantID vid)
 {
+  using reduction_policy = std::conditional_t<AlgorithmHelper::atomic,
+      RAJA::cuda_reduce_atomic,
+      RAJA::cuda_reduce>;
+
+  using exec_policy = std::conditional_t<MappingHelper::direct,
+      RAJA::cuda_exec<block_size, true /*async*/>,
+      RAJA::cuda_exec_occ_calc<block_size, true /*async*/>>;
+
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
@@ -191,42 +123,9 @@ void DOT::runCudaVariantBlockDevice(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> dot(m_dot_init);
+       RAJA::ReduceSum<reduction_policy, Real_type> dot(m_dot_init);
 
-       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
-         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-         DOT_BODY;
-       });
-
-       m_dot += static_cast<Real_type>(dot.get());
-
-    }
-    stopTimer();
-
-  } else {
-     getCout() << "\n  DOT : Unknown Cuda variant id = " << vid << std::endl;
-  }
-}
-
-template < size_t block_size >
-void DOT::runCudaVariantBlockDeviceOccGS(VariantID vid)
-{
-  const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
-  const Index_type iend = getActualProblemSize();
-
-  auto res{getCudaResource()};
-
-  DOT_DATA_SETUP;
-
-  if ( vid == RAJA_CUDA ) {
-
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-       RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> dot(m_dot_init);
-
-       RAJA::forall< RAJA::cuda_exec_occ_calc<block_size, true /*async*/> >( res,
+       RAJA::forall<exec_policy>( res,
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          DOT_BODY;
        });
@@ -252,45 +151,40 @@ void DOT::runCudaVariant(VariantID vid, size_t tune_idx)
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
 
-        if (tune_idx == t) {
+        seq_for(gpu_mapping::reducer_helpers{}, [&](auto mapping_helper) {
 
-          setBlockSize(block_size);
-          runCudaVariantBlockAtomic<block_size>(vid);
+          if ( vid == Base_CUDA ) {
 
-        }
+            if (tune_idx == t) {
 
-        t += 1;
+              setBlockSize(block_size);
+              runCudaVariantBase<decltype(block_size){},
+                                 decltype(mapping_helper)>(vid);
 
-        if (tune_idx == t) {
+            }
 
-          setBlockSize(block_size);
-          runCudaVariantBlockAtomicOccGS<block_size>(vid);
+            t += 1;
 
-        }
+          } else if ( vid == RAJA_CUDA ) {
 
-        t += 1;
+            seq_for(gpu_algorithm::reducer_helpers{}, [&](auto algorithm_helper) {
 
-        if ( vid == RAJA_CUDA ) {
+              if (tune_idx == t) {
 
-          if (tune_idx == t) {
+                setBlockSize(block_size);
+                runCudaVariantRAJA<decltype(block_size){},
+                                   decltype(algorithm_helper),
+                                   decltype(mapping_helper)>(vid);
 
-            setBlockSize(block_size);
-            runCudaVariantBlockDevice<block_size>(vid);
+              }
 
-          }
+              t += 1;
 
-          t += 1;
-
-          if (tune_idx == t) {
-
-            setBlockSize(block_size);
-            runCudaVariantBlockDeviceOccGS<block_size>(vid);
+            });
 
           }
 
-          t += 1;
-
-        }
+        });
 
       }
 
@@ -313,23 +207,36 @@ void DOT::setCudaTuningDefinitions(VariantID vid)
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
 
-        addVariantTuningName(vid, "blkatm_"+std::to_string(block_size));
+        seq_for(gpu_mapping::reducer_helpers{}, [&](auto mapping_helper) {
 
-        addVariantTuningName(vid, "blkatm_occgs_"+std::to_string(block_size));
+          if ( vid == Base_CUDA ) {
 
-        if ( vid == RAJA_CUDA ) {
+            auto algorithm_helper = gpu_algorithm::block_atomic_helper{};
 
-          addVariantTuningName(vid, "blkdev_"+std::to_string(block_size));
+            addVariantTuningName(vid, decltype(algorithm_helper)::get_name()+"_"+
+                                      decltype(mapping_helper)::get_name()+"_"+
+                                      std::to_string(block_size));
 
-          addVariantTuningName(vid, "blkdev_occgs_"+std::to_string(block_size));
+          } else if ( vid == RAJA_CUDA ) {
 
-        }
+            seq_for(gpu_algorithm::reducer_helpers{}, [&](auto algorithm_helper) {
+
+              addVariantTuningName(vid, decltype(algorithm_helper)::get_name()+"_"+
+                                        decltype(mapping_helper)::get_name()+"_"+
+                                        std::to_string(block_size));
+
+            });
+
+          }
+
+        });
 
       }
 
     });
 
   }
+
 }
 
 } // end namespace stream

@@ -59,22 +59,14 @@ public:
 
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
-  template < size_t block_size >
-  void runCudaVariantBlockAtomic(VariantID vid);
-  template < size_t block_size >
-  void runHipVariantBlockAtomic(VariantID vid);
-  template < size_t block_size >
-  void runCudaVariantBlockAtomicOccGS(VariantID vid);
-  template < size_t block_size >
-  void runHipVariantBlockAtomicOccGS(VariantID vid);
-  template < size_t block_size >
-  void runCudaVariantBlockDevice(VariantID vid);
-  template < size_t block_size >
-  void runHipVariantBlockDevice(VariantID vid);
-  template < size_t block_size >
-  void runCudaVariantBlockDeviceOccGS(VariantID vid);
-  template < size_t block_size >
-  void runHipVariantBlockDeviceOccGS(VariantID vid);
+  template < size_t block_size, typename MappingHelper >
+  void runCudaVariantBase(VariantID vid);
+  template < size_t block_size, typename MappingHelper >
+  void runHipVariantBase(VariantID vid);
+  template < size_t block_size, typename AlgorithmHelper, typename MappingHelper >
+  void runCudaVariantRAJA(VariantID vid);
+  template < size_t block_size, typename AlgorithmHelper, typename MappingHelper >
+  void runHipVariantRAJA(VariantID vid);
 
 private:
   static const size_t default_gpu_block_size = 256;

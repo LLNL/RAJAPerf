@@ -24,6 +24,8 @@
 
 #include <iostream>
 #include <utility>
+#include <type_traits>
+#include <limits>
 
 
 namespace rajaperf
@@ -153,71 +155,10 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
 
 }
 
-template < size_t block_size >
-void REDUCE_SUM::runHipVariantBlockAtomic(VariantID vid)
+template < size_t block_size, typename MappingHelper >
+void REDUCE_SUM::runHipVariantBase(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
-  const Index_type iend = getActualProblemSize();
-
-  auto res{getHipResource()};
-
-  REDUCE_SUM_DATA_SETUP;
-
-  if ( vid == Base_HIP ) {
-
-    RAJAPERF_HIP_REDUCER_SETUP(Real_ptr, sum, hsum, 1);
-
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      RAJAPERF_HIP_REDUCER_INITIALIZE(&m_sum_init, sum, hsum, 1);
-
-      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      constexpr size_t shmem = sizeof(Real_type)*block_size;
-
-      RPlaunchHipKernel( (reduce_sum<block_size>),
-                         grid_size, block_size,
-                         shmem, res.get_stream(),
-                         x, sum, m_sum_init, iend );
-
-      RAJAPERF_HIP_REDUCER_COPY_BACK(&m_sum, sum, hsum, 1);
-
-    }
-    stopTimer();
-
-    RAJAPERF_HIP_REDUCER_TEARDOWN(sum, hsum);
-
-  } else if ( vid == RAJA_HIP ) {
-
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      RAJA::ReduceSum<RAJA::hip_reduce_atomic, Real_type> sum(m_sum_init);
-
-      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
-        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-          REDUCE_SUM_BODY;
-      });
-
-      m_sum = sum.get();
-
-    }
-    stopTimer();
-
-  } else {
-
-    getCout() << "\n  REDUCE_SUM : Unknown Hip variant id = " << vid << std::endl;
-
-  }
-
-}
-
-template < size_t block_size >
-void REDUCE_SUM::runHipVariantBlockAtomicOccGS(VariantID vid)
-{
-  const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
   auto res{getHipResource()};
@@ -229,8 +170,8 @@ void REDUCE_SUM::runHipVariantBlockAtomicOccGS(VariantID vid)
     RAJAPERF_HIP_REDUCER_SETUP(Real_ptr, sum, hsum, 1);
 
     constexpr size_t shmem = sizeof(Real_type)*block_size;
-    const size_t max_grid_size = detail::getHipOccupancyMaxBlocks(
-        (reduce_sum<block_size>), block_size, shmem);
+    const size_t max_grid_size = RAJAPERF_HIP_GET_MAX_BLOCKS(
+        MappingHelper, (reduce_sum<block_size>), block_size, shmem);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -252,23 +193,6 @@ void REDUCE_SUM::runHipVariantBlockAtomicOccGS(VariantID vid)
 
     RAJAPERF_HIP_REDUCER_TEARDOWN(sum, hsum);
 
-  } else if ( vid == RAJA_HIP ) {
-
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      RAJA::ReduceSum<RAJA::hip_reduce_atomic, Real_type> sum(m_sum_init);
-
-      RAJA::forall< RAJA::hip_exec_occ_calc<block_size, true /*async*/> >( res,
-        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-          REDUCE_SUM_BODY;
-      });
-
-      m_sum = sum.get();
-
-    }
-    stopTimer();
-
   } else {
 
     getCout() << "\n  REDUCE_SUM : Unknown Hip variant id = " << vid << std::endl;
@@ -277,9 +201,17 @@ void REDUCE_SUM::runHipVariantBlockAtomicOccGS(VariantID vid)
 
 }
 
-template < size_t block_size >
-void REDUCE_SUM::runHipVariantBlockDevice(VariantID vid)
+template < size_t block_size, typename AlgorithmHelper, typename MappingHelper >
+void REDUCE_SUM::runHipVariantRAJA(VariantID vid)
 {
+  using reduction_policy = std::conditional_t<AlgorithmHelper::atomic,
+      RAJA::hip_reduce_atomic,
+      RAJA::hip_reduce>;
+
+  using exec_policy = std::conditional_t<MappingHelper::direct,
+      RAJA::hip_exec<block_size, true /*async*/>,
+      RAJA::hip_exec_occ_calc<block_size, true /*async*/>>;
+
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
@@ -293,45 +225,9 @@ void REDUCE_SUM::runHipVariantBlockDevice(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::hip_reduce, Real_type> sum(m_sum_init);
+      RAJA::ReduceSum<reduction_policy, Real_type> sum(m_sum_init);
 
-      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
-        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-          REDUCE_SUM_BODY;
-      });
-
-      m_sum = sum.get();
-
-    }
-    stopTimer();
-
-  } else {
-
-    getCout() << "\n  REDUCE_SUM : Unknown Hip variant id = " << vid << std::endl;
-
-  }
-
-}
-
-template < size_t block_size >
-void REDUCE_SUM::runHipVariantBlockDeviceOccGS(VariantID vid)
-{
-  const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
-  const Index_type iend = getActualProblemSize();
-
-  auto res{getHipResource()};
-
-  REDUCE_SUM_DATA_SETUP;
-
-  if ( vid == RAJA_HIP ) {
-
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      RAJA::ReduceSum<RAJA::hip_reduce, Real_type> sum(m_sum_init);
-
-      RAJA::forall< RAJA::hip_exec_occ_calc<block_size, true /*async*/> >( res,
+      RAJA::forall<exec_policy>( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           REDUCE_SUM_BODY;
       });
@@ -372,45 +268,41 @@ void REDUCE_SUM::runHipVariant(VariantID vid, size_t tune_idx)
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
 
-        if (tune_idx == t) {
+        seq_for(gpu_mapping::reducer_helpers{}, [&](auto mapping_helper) {
 
-          setBlockSize(block_size);
-          runHipVariantBlockAtomic<block_size>(vid);
+          if ( vid == Base_HIP ) {
 
-        }
+            if (tune_idx == t) {
 
-        t += 1;
+              setBlockSize(block_size);
+              runHipVariantBase<decltype(block_size){},
+                                decltype(mapping_helper)>(vid);
 
-        if (tune_idx == t) {
+            }
 
-          setBlockSize(block_size);
-          runHipVariantBlockAtomicOccGS<block_size>(vid);
+            t += 1;
 
-        }
+          } else if ( vid == RAJA_HIP ) {
 
-        t += 1;
+            seq_for(gpu_algorithm::reducer_helpers{}, [&](auto algorithm_helper) {
 
-        if ( vid == RAJA_HIP ) {
+              if (tune_idx == t) {
 
-          if (tune_idx == t) {
+                setBlockSize(block_size);
+                runHipVariantRAJA<decltype(block_size){},
+                                  decltype(algorithm_helper),
+                                  decltype(mapping_helper)>(vid);
 
-            setBlockSize(block_size);
-            runHipVariantBlockDevice<block_size>(vid);
+              }
 
-          }
+              t += 1;
 
-          t += 1;
-
-          if (tune_idx == t) {
-
-            setBlockSize(block_size);
-            runHipVariantBlockDeviceOccGS<block_size>(vid);
+            });
 
           }
 
-          t += 1;
+        });
 
-        }
       }
 
     });
@@ -442,17 +334,29 @@ void REDUCE_SUM::setHipTuningDefinitions(VariantID vid)
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
 
-        addVariantTuningName(vid, "blkatm_"+std::to_string(block_size));
+        seq_for(gpu_mapping::reducer_helpers{}, [&](auto mapping_helper) {
 
-        addVariantTuningName(vid, "blkatm_occgs_"+std::to_string(block_size));
+          if ( vid == Base_HIP ) {
 
-        if ( vid == RAJA_HIP ) {
+            auto algorithm_helper = gpu_algorithm::block_atomic_helper{};
 
-          addVariantTuningName(vid, "blkdev_"+std::to_string(block_size));
+            addVariantTuningName(vid, decltype(algorithm_helper)::get_name()+"_"+
+                                      decltype(mapping_helper)::get_name()+"_"+
+                                      std::to_string(block_size));
 
-          addVariantTuningName(vid, "blkdev_occgs_"+std::to_string(block_size));
+          } else if ( vid == RAJA_HIP ) {
 
-        }
+            seq_for(gpu_algorithm::reducer_helpers{}, [&](auto algorithm_helper) {
+
+              addVariantTuningName(vid, decltype(algorithm_helper)::get_name()+"_"+
+                                        decltype(mapping_helper)::get_name()+"_"+
+                                        std::to_string(block_size));
+
+            });
+
+          }
+
+        });
 
       }
 
