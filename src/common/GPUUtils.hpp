@@ -164,7 +164,7 @@ using reducer_helpers = camp::list<
     block_atomic_helper,
     block_device_helper >;
 
-} // closing brace for gpu_mapping namespace
+} // closing brace for gpu_algorithm namespace
 
 namespace gpu_mapping {
 
