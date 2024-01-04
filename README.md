@@ -1,5 +1,5 @@
 [comment]: # (#################################################################)
-[comment]: # (Copyright 2017-23, Lawrence Livermore National Security, LLC)
+[comment]: # (Copyright 2017-24, Lawrence Livermore National Security, LLC)
 [comment]: # (and RAJA Performance Suite project contributors.)
 [comment]: # (See the RAJAPerf/LICENSE file for details.)
 [comment]: #
