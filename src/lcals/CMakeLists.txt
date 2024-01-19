@@ -14,18 +14,21 @@ blt_add_library(
           DIFF_PREDICT-Cuda.cpp
           DIFF_PREDICT-OMP.cpp
           DIFF_PREDICT-OMPTarget.cpp
+	  DIFF_PREDICT-Sycl.cpp
           EOS.cpp
           EOS-Seq.cpp
           EOS-Hip.cpp
           EOS-Cuda.cpp
           EOS-OMP.cpp
           EOS-OMPTarget.cpp
+	  EOS-Sycl.cpp
           FIRST_DIFF.cpp
           FIRST_DIFF-Seq.cpp
           FIRST_DIFF-Hip.cpp
           FIRST_DIFF-Cuda.cpp
           FIRST_DIFF-OMP.cpp
           FIRST_DIFF-OMPTarget.cpp
+	  FIRST_DIFF-Sycl.cpp
           FIRST_MIN.cpp
           FIRST_MIN-Seq.cpp
           FIRST_MIN-Hip.cpp
@@ -44,35 +47,41 @@ blt_add_library(
           GEN_LIN_RECUR-Cuda.cpp
           GEN_LIN_RECUR-OMP.cpp
           GEN_LIN_RECUR-OMPTarget.cpp
+	  GEN_LIN_RECUR-Sycl.cpp
           HYDRO_1D.cpp
           HYDRO_1D-Seq.cpp
           HYDRO_1D-Hip.cpp
           HYDRO_1D-Cuda.cpp
           HYDRO_1D-OMP.cpp
           HYDRO_1D-OMPTarget.cpp
+	  HYDRO_1D-Sycl.cpp
           HYDRO_2D.cpp
           HYDRO_2D-Seq.cpp
           HYDRO_2D-Hip.cpp
           HYDRO_2D-Cuda.cpp
           HYDRO_2D-OMP.cpp
           HYDRO_2D-OMPTarget.cpp
+	  HYDRO_2D-Sycl.cpp
           INT_PREDICT.cpp
           INT_PREDICT-Seq.cpp
           INT_PREDICT-Hip.cpp
           INT_PREDICT-Cuda.cpp
           INT_PREDICT-OMP.cpp
           INT_PREDICT-OMPTarget.cpp
+	  INT_PREDICT-Sycl.cpp
           PLANCKIAN.cpp
           PLANCKIAN-Seq.cpp
           PLANCKIAN-Hip.cpp
           PLANCKIAN-Cuda.cpp
           PLANCKIAN-OMP.cpp
           PLANCKIAN-OMPTarget.cpp
+	  PLANCKIAN-Sycl.cpp
           TRIDIAG_ELIM.cpp
           TRIDIAG_ELIM-Seq.cpp
           TRIDIAG_ELIM-Hip.cpp
           TRIDIAG_ELIM-Cuda.cpp
           TRIDIAG_ELIM-OMP.cpp
           TRIDIAG_ELIM-OMPTarget.cpp
+	  TRIDIAG_ELIM-Sycl.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

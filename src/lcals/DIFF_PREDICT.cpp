@@ -50,6 +50,9 @@ DIFF_PREDICT::DIFF_PREDICT(const RunParams& params)
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
 
+  setVariantDefined( Base_SYCL );
+  setVariantDefined( RAJA_SYCL );
+
   setVariantDefined( Kokkos_Lambda );
 }
 

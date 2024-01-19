@@ -21,26 +21,8 @@ namespace rajaperf
 namespace lcals
 {
 
-  //
-  // Define thread block size for SYCL execution
-  //
-  const size_t block_size = 256;
-
-
-#define GEN_LIN_RECUR_DATA_SETUP_SYCL \
-  allocAndInitSyclDeviceData(b5, m_b5, m_N, qu); \
-  allocAndInitSyclDeviceData(stb5, m_stb5, m_N, qu); \
-  allocAndInitSyclDeviceData(sa, m_sa, m_N, qu); \
-  allocAndInitSyclDeviceData(sb, m_sb, m_N, qu);
-
-#define GEN_LIN_RECUR_DATA_TEARDOWN_SYCL \
-  getSyclDeviceData(m_b5, b5, m_N, qu); \
-  deallocSyclDeviceData(b5, qu); \
-  deallocSyclDeviceData(stb5, qu); \
-  deallocSyclDeviceData(sa, qu); \
-  deallocSyclDeviceData(sb, qu);
-
-void GEN_LIN_RECUR::runSyclVariant(VariantID vid)
+template <size_t work_group_size >
+void GEN_LIN_RECUR::runSyclVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -48,15 +30,13 @@ void GEN_LIN_RECUR::runSyclVariant(VariantID vid)
 
   if ( vid == Base_SYCL ) {
 
-    GEN_LIN_RECUR_DATA_SETUP_SYCL;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      const size_t grid_size1 = block_size * RAJA_DIVIDE_CEILING_INT(N, block_size);
+      const size_t global_size1 = work_group_size * RAJA_DIVIDE_CEILING_INT(N, work_group_size);
       qu->submit([&] (sycl::handler& h) {
-        h.parallel_for<class GenLin1>(sycl::nd_range<1> (grid_size1, block_size),
-                                      [=] (sycl::nd_item<1> item) {
+        h.parallel_for(sycl::nd_range<1> (global_size1, work_group_size),
+                       [=] (sycl::nd_item<1> item) {
 
           Index_type k = item.get_global_id(0);
           if (k < N) {
@@ -66,10 +46,10 @@ void GEN_LIN_RECUR::runSyclVariant(VariantID vid)
         });
       });
 
-      const size_t grid_size2 = block_size * RAJA_DIVIDE_CEILING_INT(N+1, block_size);
+      const size_t global_size2 = work_group_size * RAJA_DIVIDE_CEILING_INT(N+1, work_group_size);
       qu->submit([&] (sycl::handler& h) {
-        h.parallel_for<class GenLin2>(sycl::nd_range<1> (grid_size2, block_size),
-                                      [=] (sycl::nd_item<1> item) {
+        h.parallel_for(sycl::nd_range<1> (global_size2, work_group_size),
+                       [=] (sycl::nd_item<1> item) {
 
           Index_type i = item.get_global_id(0);
           if (i > 0 && i < N+1) {
@@ -82,21 +62,17 @@ void GEN_LIN_RECUR::runSyclVariant(VariantID vid)
     qu->wait();
     stopTimer();
 
-    GEN_LIN_RECUR_DATA_TEARDOWN_SYCL;
-
   } else if ( vid == RAJA_SYCL ) {
-
-    GEN_LIN_RECUR_DATA_SETUP_SYCL;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::sycl_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::sycl_exec<work_group_size, true /*async*/> >(
          RAJA::RangeSegment(0, N), [=] (Index_type k) {
          GEN_LIN_RECUR_BODY1;
        });
 
-       RAJA::forall< RAJA::sycl_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::sycl_exec<work_group_size, true /*async*/> >(
          RAJA::RangeSegment(1, N+1), [=] (Index_type i) {
          GEN_LIN_RECUR_BODY2;
        });
@@ -105,12 +81,12 @@ void GEN_LIN_RECUR::runSyclVariant(VariantID vid)
     qu->wait();
     stopTimer();
 
-    GEN_LIN_RECUR_DATA_TEARDOWN_SYCL;
-
   } else {
      std::cout << "\n  GEN_LIN_RECUR : Unknown Sycl variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(GEN_LIN_RECUR, Sycl)
 
 } // end namespace lcals
 } // end namespace rajaperf
