@@ -97,6 +97,8 @@ public:
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
   template < size_t block_size >
+  void runCudaVariantGraphReuse(VariantID vid);
+  template < size_t block_size >
   void runCudaVariantSOA2dSync(VariantID vid);
   template < size_t block_size >
   void runHipVariantSOA2dSync(VariantID vid);

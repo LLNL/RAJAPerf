@@ -22,6 +22,17 @@ namespace rajaperf
 namespace stream
 {
 
+template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void triad_parted_graph(Real_ptr a, Real_ptr b, Real_ptr c, Real_type alpha,
+                                   Index_type ibegin, Index_type iend)
+{
+  Index_type i = blockIdx.x * block_size + threadIdx.x + ibegin;
+  if (i < iend) {
+    TRIAD_PARTED_FUSED_BODY;
+  }
+}
+
 #define TRIAD_PARTED_FUSED_MANUAL_FUSER_SOA_SETUP_CUDA \
   Index_type* len_ptrs; \
   Real_ptr*   a_ptrs; \
@@ -133,6 +144,66 @@ __global__ void triad_parted_fused_scan_aos(scan_index_type* first_blocks, scan_
   }
 }
 
+
+template < size_t block_size >
+void TRIAD_PARTED_FUSED::runCudaVariantGraphReuse(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+
+  auto res{getCudaResource()};
+
+  TRIAD_PARTED_FUSED_DATA_SETUP;
+
+  if ( vid == Base_CUDA ) {
+
+    const size_t num_holders = parts.size()-1;
+
+    cudaGraph_t graph;
+    cudaErrchk(cudaGraphCreate(&graph, 0));
+
+    for (size_t p = 1; p < parts.size(); ++p ) {
+      const Index_type ibegin = parts[p-1];
+      const Index_type iend = parts[p];
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend-ibegin, block_size);
+      constexpr size_t shmem = 0;
+      void* kernelArgs[] {(void*)&a, (void*)&b, (void*)&c, (void*)&alpha, (void*)&ibegin, (void*)&iend};
+
+      cudaKernelNodeParams params{};
+      params.func = (void *)triad_parted_graph<block_size>;
+      params.gridDim = dim3(grid_size);
+      params.blockDim = dim3(block_size);
+      params.sharedMemBytes = shmem;
+      params.kernelParams = kernelArgs;
+
+      cudaGraphNode_t node;
+      cudaErrchk(cudaGraphAddKernelNode(&node, graph, nullptr, 0, &params));
+    }
+
+
+    cudaGraphExec_t graphexec;
+    {
+      constexpr size_t errbufsize = 256;
+      cudaGraphNode_t errnode = nullptr;
+      char errbuf[errbufsize];
+      cudaErrchk(cudaGraphInstantiate(&graphexec, graph, &errnode, errbuf, errbufsize));
+    }
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      cudaErrchk( cudaGraphLaunch(graphexec, 0) );
+
+    }
+    stopTimer();
+
+    cudaErrchk(cudaGraphExecDestroy(graphexec));
+    cudaErrchk(cudaGraphDestroy(graph));
+
+  } else {
+      getCout() << "\n  TRIAD_PARTED_FUSED : Unknown Cuda variant id = " << vid << std::endl;
+  }
+}
 
 template < size_t block_size >
 void TRIAD_PARTED_FUSED::runCudaVariantSOA2dSync(VariantID vid)
@@ -624,6 +695,15 @@ void TRIAD_PARTED_FUSED::runCudaVariant(VariantID vid, size_t tune_idx)
           if (tune_idx == t) {
 
             setBlockSize(block_size);
+            runCudaVariantGraphReuse<block_size>(vid);
+
+          }
+
+          t += 1;
+
+          if (tune_idx == t) {
+
+            setBlockSize(block_size);
             runCudaVariantSOA2dSync<block_size>(vid);
 
           }
@@ -698,6 +778,8 @@ void TRIAD_PARTED_FUSED::setCudaTuningDefinitions(VariantID vid)
           run_params.validGPUBlockSize(block_size)) {
 
         if ( vid == Base_CUDA ) {
+          addVariantTuningName(vid, "graph_reuse_"+std::to_string(block_size));
+
           addVariantTuningName(vid, "SOA_2d_sync_"+std::to_string(block_size));
 
           addVariantTuningName(vid, "SOA_2d_reuse_"+std::to_string(block_size));
