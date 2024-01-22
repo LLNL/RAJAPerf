@@ -97,29 +97,29 @@ public:
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
   template < size_t block_size >
-  void runCudaVariantSOASync(VariantID vid);
+  void runCudaVariantSOA2dSync(VariantID vid);
   template < size_t block_size >
-  void runHipVariantSOASync(VariantID vid);
+  void runHipVariantSOA2dSync(VariantID vid);
   template < size_t block_size >
-  void runCudaVariantSOAReuse(VariantID vid);
+  void runCudaVariantSOA2dReuse(VariantID vid);
   template < size_t block_size >
-  void runHipVariantSOAReuse(VariantID vid);
+  void runHipVariantSOA2dReuse(VariantID vid);
   template < size_t block_size >
-  void runCudaVariantAOSSync(VariantID vid);
+  void runCudaVariantAOS2dSync(VariantID vid);
   template < size_t block_size >
-  void runHipVariantAOSSync(VariantID vid);
+  void runHipVariantAOS2dSync(VariantID vid);
   template < size_t block_size >
-  void runCudaVariantAOSPoolSync(VariantID vid);
+  void runCudaVariantAOS2dPoolSync(VariantID vid);
   template < size_t block_size >
-  void runHipVariantAOSPoolSync(VariantID vid);
+  void runHipVariantAOS2dPoolSync(VariantID vid);
   template < size_t block_size >
-  void runCudaVariantAOSReuse(VariantID vid);
+  void runCudaVariantAOS2dReuse(VariantID vid);
   template < size_t block_size >
-  void runHipVariantAOSReuse(VariantID vid);
+  void runHipVariantAOS2dReuse(VariantID vid);
   template < size_t block_size >
-  void runCudaVariantScanAOSReuse(VariantID vid);
+  void runCudaVariantAOSScanReuse(VariantID vid);
   template < size_t block_size >
-  void runHipVariantScanAOSReuse(VariantID vid);
+  void runHipVariantAOSScanReuse(VariantID vid);
   template < size_t block_size >
   void runCudaVariantImpl(VariantID vid);
   template < size_t block_size >

@@ -135,7 +135,7 @@ __global__ void triad_parted_fused_scan_aos(scan_index_type* first_blocks, scan_
 
 
 template < size_t block_size >
-void TRIAD_PARTED_FUSED::runHipVariantSOASync(VariantID vid)
+void TRIAD_PARTED_FUSED::runHipVariantSOA2dSync(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -186,7 +186,7 @@ void TRIAD_PARTED_FUSED::runHipVariantSOASync(VariantID vid)
 }
 
 template < size_t block_size >
-void TRIAD_PARTED_FUSED::runHipVariantSOAReuse(VariantID vid)
+void TRIAD_PARTED_FUSED::runHipVariantSOA2dReuse(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -237,7 +237,7 @@ void TRIAD_PARTED_FUSED::runHipVariantSOAReuse(VariantID vid)
 }
 
 template < size_t block_size >
-void TRIAD_PARTED_FUSED::runHipVariantAOSSync(VariantID vid)
+void TRIAD_PARTED_FUSED::runHipVariantAOS2dSync(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -341,7 +341,7 @@ void TRIAD_PARTED_FUSED::runHipVariantAOSSync(VariantID vid)
 }
 
 template < size_t block_size >
-void TRIAD_PARTED_FUSED::runHipVariantAOSPoolSync(VariantID vid)
+void TRIAD_PARTED_FUSED::runHipVariantAOS2dPoolSync(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -454,7 +454,7 @@ void TRIAD_PARTED_FUSED::runHipVariantAOSPoolSync(VariantID vid)
 }
 
 template < size_t block_size >
-void TRIAD_PARTED_FUSED::runHipVariantAOSReuse(VariantID vid)
+void TRIAD_PARTED_FUSED::runHipVariantAOS2dReuse(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -557,7 +557,7 @@ void TRIAD_PARTED_FUSED::runHipVariantAOSReuse(VariantID vid)
 }
 
 template < size_t block_size >
-void TRIAD_PARTED_FUSED::runHipVariantScanAOSReuse(VariantID vid)
+void TRIAD_PARTED_FUSED::runHipVariantAOSScanReuse(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -624,7 +624,7 @@ void TRIAD_PARTED_FUSED::runHipVariant(VariantID vid, size_t tune_idx)
           if (tune_idx == t) {
 
             setBlockSize(block_size);
-            runHipVariantSOASync<block_size>(vid);
+            runHipVariantSOA2dSync<block_size>(vid);
 
           }
 
@@ -633,7 +633,7 @@ void TRIAD_PARTED_FUSED::runHipVariant(VariantID vid, size_t tune_idx)
           if (tune_idx == t) {
 
             setBlockSize(block_size);
-            runHipVariantSOAReuse<block_size>(vid);
+            runHipVariantSOA2dReuse<block_size>(vid);
 
           }
 
@@ -642,7 +642,7 @@ void TRIAD_PARTED_FUSED::runHipVariant(VariantID vid, size_t tune_idx)
           if (tune_idx == t) {
 
             setBlockSize(block_size);
-            runHipVariantScanAOSReuse<block_size>(vid);
+            runHipVariantAOSScanReuse<block_size>(vid);
 
           }
 
@@ -652,7 +652,7 @@ void TRIAD_PARTED_FUSED::runHipVariant(VariantID vid, size_t tune_idx)
         if (tune_idx == t) {
 
           setBlockSize(block_size);
-          runHipVariantAOSSync<block_size>(vid);
+          runHipVariantAOS2dSync<block_size>(vid);
 
         }
 
@@ -661,7 +661,7 @@ void TRIAD_PARTED_FUSED::runHipVariant(VariantID vid, size_t tune_idx)
         if (tune_idx == t) {
 
           setBlockSize(block_size);
-          runHipVariantAOSPoolSync<block_size>(vid);
+          runHipVariantAOS2dPoolSync<block_size>(vid);
 
         }
 
@@ -670,7 +670,7 @@ void TRIAD_PARTED_FUSED::runHipVariant(VariantID vid, size_t tune_idx)
         if (tune_idx == t) {
 
           setBlockSize(block_size);
-          runHipVariantAOSReuse<block_size>(vid);
+          runHipVariantAOS2dReuse<block_size>(vid);
 
         }
 
@@ -698,18 +698,18 @@ void TRIAD_PARTED_FUSED::setHipTuningDefinitions(VariantID vid)
           run_params.validGPUBlockSize(block_size)) {
 
         if ( vid == Base_HIP ) {
-          addVariantTuningName(vid, "SOAsync_"+std::to_string(block_size));
+          addVariantTuningName(vid, "SOA_2d_sync_"+std::to_string(block_size));
 
-          addVariantTuningName(vid, "SOAreuse_"+std::to_string(block_size));
+          addVariantTuningName(vid, "SOA_2d_reuse_"+std::to_string(block_size));
 
-          addVariantTuningName(vid, "scanAOSreuse_"+std::to_string(block_size));
+          addVariantTuningName(vid, "AOS_scan_reuse_"+std::to_string(block_size));
         }
 
-        addVariantTuningName(vid, "AOSsync_"+std::to_string(block_size));
+        addVariantTuningName(vid, "AOS_2d_sync_"+std::to_string(block_size));
 
-        addVariantTuningName(vid, "AOSpoolsync_"+std::to_string(block_size));
+        addVariantTuningName(vid, "AOS_2d_poolsync_"+std::to_string(block_size));
 
-        addVariantTuningName(vid, "AOSreuse_"+std::to_string(block_size));
+        addVariantTuningName(vid, "AOS_2d_reuse_"+std::to_string(block_size));
 
       }
 
