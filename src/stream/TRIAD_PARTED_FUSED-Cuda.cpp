@@ -470,7 +470,9 @@ void TRIAD_PARTED_FUSED::runCudaVariantAOS2dPoolSync(VariantID vid)
           TRIAD_PARTED_FUSED_BODY;
         };
 
-    using AllocatorHolder = RAJAPoolAllocatorHolder<rajaperf::basic_mempool::MemPool<RAJA::cuda::PinnedAllocator, camp::resources::Cuda>>;
+    using AllocatorHolder = RAJAPoolAllocatorHolder<
+        rajaperf::basic_mempool::LaggedMemPool<
+          dataspace_allocator<DataSpace::CudaPinned>, camp::resources::Cuda>>;
     using Allocator = AllocatorHolder::Allocator<char>;
 
     AllocatorHolder allocatorHolder(pool_size, res);

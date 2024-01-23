@@ -399,7 +399,9 @@ void TRIAD_PARTED_FUSED::runHipVariantAOS2dPoolSync(VariantID vid)
           TRIAD_PARTED_FUSED_BODY;
         };
 
-    using AllocatorHolder = RAJAPoolAllocatorHolder<rajaperf::basic_mempool::MemPool<RAJA::hip::PinnedAllocator, camp::resources::Hip>>;
+    using AllocatorHolder = RAJAPoolAllocatorHolder<
+        rajaperf::basic_mempool::LaggedMemPool<
+          dataspace_allocator<DataSpace::HipPinnedCoarse>, camp::resources::Hip>>;
     using Allocator = AllocatorHolder::Allocator<char>;
 
     AllocatorHolder allocatorHolder(pool_size, res);
