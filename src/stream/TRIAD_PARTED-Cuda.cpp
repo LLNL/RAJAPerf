@@ -512,6 +512,7 @@ void TRIAD_PARTED::runCudaVariant(VariantID vid, size_t tune_idx)
 
       t += 1;
 
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
       if (tune_idx == t) {
 
         setBlockSize(block_size);
@@ -520,6 +521,7 @@ void TRIAD_PARTED::runCudaVariant(VariantID vid, size_t tune_idx)
       }
 
       t += 1;
+#endif
 
       if (tune_idx == t) {
 
@@ -530,6 +532,7 @@ void TRIAD_PARTED::runCudaVariant(VariantID vid, size_t tune_idx)
 
       t += 1;
 
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
       if (tune_idx == t) {
 
         setBlockSize(block_size);
@@ -538,6 +541,7 @@ void TRIAD_PARTED::runCudaVariant(VariantID vid, size_t tune_idx)
       }
 
       t += 1;
+#endif
 
     }
 
@@ -555,11 +559,15 @@ void TRIAD_PARTED::setCudaTuningDefinitions(VariantID vid)
 
       addVariantTuningName(vid, "stream_"+std::to_string(block_size));
 
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
       addVariantTuningName(vid, "stream_omp_"+std::to_string(block_size));
+#endif
 
       addVariantTuningName(vid, "stream_event_"+std::to_string(block_size));
 
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
       addVariantTuningName(vid, "stream_event_omp_"+std::to_string(block_size));
+#endif
 
     }
 
