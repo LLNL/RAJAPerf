@@ -13,6 +13,7 @@
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
 
 #include "common/OpenMPTargetDataUtils.hpp"
+#include "common/MemPool.hpp"
 
 #include <iostream>
 

@@ -12,6 +12,8 @@
 
 #if defined(RAJA_PERFSUITE_ENABLE_MPI)
 
+#include "common/MemPool.hpp"
+
 #include <iostream>
 
 namespace rajaperf

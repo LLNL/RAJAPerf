@@ -13,6 +13,7 @@
 #if defined(RAJA_PERFSUITE_ENABLE_MPI) && defined(RAJA_ENABLE_HIP)
 
 #include "common/HipDataUtils.hpp"
+#include "common/MemPool.hpp"
 
 #include <iostream>
 

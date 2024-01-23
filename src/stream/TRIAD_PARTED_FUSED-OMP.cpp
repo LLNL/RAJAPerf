@@ -10,6 +10,8 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include "common/MemPool.hpp"
+
 #include <iostream>
 
 namespace rajaperf
