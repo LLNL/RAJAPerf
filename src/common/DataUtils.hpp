@@ -406,7 +406,7 @@ inline long double calcChecksum(DataSpace dataSpace, T* ptr, Size_type len, Size
 /*!
  * \brief Allocator type for basic_mempool using DataSpaces.
  */
-template < DataSpace dataspace >
+template < DataSpace dataSpace >
 struct dataspace_allocator {
 
   // returns a valid pointer on success, nullptr on failure
