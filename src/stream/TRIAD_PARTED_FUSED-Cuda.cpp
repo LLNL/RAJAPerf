@@ -357,7 +357,7 @@ void TRIAD_PARTED_FUSED::runCudaVariantAOS2dSync(VariantID vid)
         };
 
     using AllocatorHolder = RAJAPoolAllocatorHolder<
-        rajaperf::basic_mempool::MemPool<dataspace_allocator<DataSpace::CudaPinned>>>;
+        rajaperf::basic_mempool::MemPool<dataspace_allocator<getFuserDataSpace(RAJA_CUDA)>>>;
     using Allocator = AllocatorHolder::Allocator<char>;
 
     AllocatorHolder allocatorHolder;
@@ -473,7 +473,7 @@ void TRIAD_PARTED_FUSED::runCudaVariantAOS2dPoolSync(VariantID vid)
 
     using AllocatorHolder = RAJAPoolAllocatorHolder<
         rajaperf::basic_mempool::LaggedMemPool<
-          dataspace_allocator<DataSpace::CudaPinned>, camp::resources::Cuda>>;
+          dataspace_allocator<getFuserDataSpace(RAJA_CUDA)>, camp::resources::Cuda>>;
     using Allocator = AllocatorHolder::Allocator<char>;
 
     AllocatorHolder allocatorHolder(pool_size, res);
@@ -576,7 +576,7 @@ void TRIAD_PARTED_FUSED::runCudaVariantAOS2dReuse(VariantID vid)
         };
 
     using AllocatorHolder = RAJAPoolAllocatorHolder<
-        rajaperf::basic_mempool::MemPool<dataspace_allocator<DataSpace::CudaPinned>>>;
+        rajaperf::basic_mempool::MemPool<dataspace_allocator<getFuserDataSpace(RAJA_CUDA)>>>;
     using Allocator = AllocatorHolder::Allocator<char>;
 
     AllocatorHolder allocatorHolder;
@@ -647,7 +647,7 @@ void TRIAD_PARTED_FUSED::runCudaVariantAOS2dReuseFunctionPointer(VariantID vid)
         };
 
     using AllocatorHolder = RAJAPoolAllocatorHolder<
-        rajaperf::basic_mempool::MemPool<dataspace_allocator<DataSpace::CudaPinned>>>;
+        rajaperf::basic_mempool::MemPool<dataspace_allocator<getFuserDataSpace(RAJA_CUDA)>>>;
     using Allocator = AllocatorHolder::Allocator<char>;
 
     AllocatorHolder allocatorHolder;
@@ -716,7 +716,7 @@ void TRIAD_PARTED_FUSED::runCudaVariantAOS2dReuseVirtualFunction(VariantID vid)
         };
 
     using AllocatorHolder = RAJAPoolAllocatorHolder<
-        rajaperf::basic_mempool::MemPool<dataspace_allocator<DataSpace::CudaPinned>>>;
+        rajaperf::basic_mempool::MemPool<dataspace_allocator<getFuserDataSpace(RAJA_CUDA)>>>;
     using Allocator = AllocatorHolder::Allocator<char>;
 
     AllocatorHolder allocatorHolder;

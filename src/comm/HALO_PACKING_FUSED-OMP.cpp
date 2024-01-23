@@ -277,7 +277,7 @@ void HALO_PACKING_FUSED::runOpenMPVariantWorkGroup(VariantID vid)
     case RAJA_OpenMP : {
 
       using AllocatorHolder = RAJAPoolAllocatorHolder<
-        rajaperf::basic_mempool::MemPool<dataspace_allocator<DataSpace::Host>>>;
+        rajaperf::basic_mempool::MemPool<dataspace_allocator<getFuserDataSpace(RAJA_OpenMP)>>>;
       using Allocator = AllocatorHolder::Allocator<char>;
 
       AllocatorHolder allocatorHolder;

@@ -104,7 +104,7 @@ void TRIAD_PARTED_FUSED::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
     case RAJA_Seq : {
 
       using AllocatorHolder = RAJAPoolAllocatorHolder<
-        rajaperf::basic_mempool::MemPool<dataspace_allocator<DataSpace::Host>>>;
+        rajaperf::basic_mempool::MemPool<dataspace_allocator<getFuserDataSpace(RAJA_Seq)>>>;
       using Allocator = AllocatorHolder::Allocator<char>;
 
       AllocatorHolder allocatorHolder;

@@ -209,7 +209,7 @@ void HALO_PACKING_FUSED::runHipVariantWorkGroup(VariantID vid)
   if ( vid == RAJA_HIP ) {
 
     using AllocatorHolder = RAJAPoolAllocatorHolder<
-        rajaperf::basic_mempool::MemPool<dataspace_allocator<DataSpace::HipPinnedCoarse>>>;
+        rajaperf::basic_mempool::MemPool<dataspace_allocator<getFuserDataSpace(RAJA_HIP)>>>;
     using Allocator = AllocatorHolder::Allocator<char>;
 
     AllocatorHolder allocatorHolder;

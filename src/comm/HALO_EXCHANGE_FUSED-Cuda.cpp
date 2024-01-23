@@ -218,7 +218,7 @@ void HALO_EXCHANGE_FUSED::runCudaVariantWorkGroup(VariantID vid)
   if ( vid == RAJA_CUDA ) {
 
     using AllocatorHolder = RAJAPoolAllocatorHolder<
-        rajaperf::basic_mempool::MemPool<dataspace_allocator<DataSpace::CudaPinned>>>;
+        rajaperf::basic_mempool::MemPool<dataspace_allocator<getFuserDataSpace(RAJA_CUDA)>>>;
     using Allocator = AllocatorHolder::Allocator<char>;
 
     AllocatorHolder allocatorHolder;

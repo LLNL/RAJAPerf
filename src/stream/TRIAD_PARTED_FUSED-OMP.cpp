@@ -143,7 +143,7 @@ void TRIAD_PARTED_FUSED::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_
     case RAJA_OpenMP : {
 
       using AllocatorHolder = RAJAPoolAllocatorHolder<
-        rajaperf::basic_mempool::MemPool<dataspace_allocator<DataSpace::Host>>>;
+        rajaperf::basic_mempool::MemPool<dataspace_allocator<getFuserDataSpace(RAJA_OpenMP)>>>;
       using Allocator = AllocatorHolder::Allocator<char>;
 
       AllocatorHolder allocatorHolder;
