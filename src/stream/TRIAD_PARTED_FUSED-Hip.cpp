@@ -557,6 +557,143 @@ void TRIAD_PARTED_FUSED::runHipVariantAOS2dReuse(VariantID vid)
 }
 
 template < size_t block_size >
+void TRIAD_PARTED_FUSED::runHipVariantAOS2dReuseFunctionPointer(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+
+  auto res{getHipResource()};
+
+  TRIAD_PARTED_FUSED_DATA_SETUP;
+
+  if ( vid == RAJA_HIP ) {
+
+    auto triad_parted_fused_lam = [=] __device__ (Index_type i) {
+          TRIAD_PARTED_FUSED_BODY;
+        };
+
+    using AllocatorHolder = RAJAPoolAllocatorHolder<RAJA::hip::pinned_mempool_type>;
+    using Allocator = AllocatorHolder::Allocator<char>;
+
+    AllocatorHolder allocatorHolder;
+
+    using workgroup_policy = RAJA::WorkGroupPolicy <
+                                 RAJA::hip_work_async<block_size>,
+                                 RAJA::unordered_hip_loop_y_block_iter_x_threadblock_average,
+                                 RAJA::constant_stride_array_of_objects,
+                                 RAJA::indirect_function_call_dispatch
+                                 // RAJA::indirect_virtual_function_dispatch
+                                >;
+
+    using workpool = RAJA::WorkPool< workgroup_policy,
+                                     Index_type,
+                                     RAJA::xargs<>,
+                                     Allocator >;
+
+    using workgroup = RAJA::WorkGroup< workgroup_policy,
+                                       Index_type,
+                                       RAJA::xargs<>,
+                                       Allocator >;
+
+    using worksite = RAJA::WorkSite< workgroup_policy,
+                                     Index_type,
+                                     RAJA::xargs<>,
+                                     Allocator >;
+
+    workpool pool(allocatorHolder.template getAllocator<char>());
+    pool.reserve(parts.size()-1, 1024ull*1024ull);
+
+    for (size_t p = 1; p < parts.size(); ++p ) {
+      const Index_type ibegin = parts[p-1];
+      const Index_type iend = parts[p];
+
+      pool.enqueue(
+          RAJA::TypedRangeSegment<Index_type>(ibegin, iend),
+          triad_parted_fused_lam );
+    }
+    workgroup group = pool.instantiate();
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      worksite site = group.run(res);
+
+    }
+    stopTimer();
+
+  } else {
+      getCout() << "\n  TRIAD_PARTED_FUSED : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+template < size_t block_size >
+void TRIAD_PARTED_FUSED::runHipVariantAOS2dReuseVirtualFunction(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+
+  auto res{getHipResource()};
+
+  TRIAD_PARTED_FUSED_DATA_SETUP;
+
+  if ( vid == RAJA_HIP ) {
+
+    auto triad_parted_fused_lam = [=] __device__ (Index_type i) {
+          TRIAD_PARTED_FUSED_BODY;
+        };
+
+    using AllocatorHolder = RAJAPoolAllocatorHolder<RAJA::hip::pinned_mempool_type>;
+    using Allocator = AllocatorHolder::Allocator<char>;
+
+    AllocatorHolder allocatorHolder;
+
+    using workgroup_policy = RAJA::WorkGroupPolicy <
+                                 RAJA::hip_work_async<block_size>,
+                                 RAJA::unordered_hip_loop_y_block_iter_x_threadblock_average,
+                                 RAJA::constant_stride_array_of_objects,
+                                 RAJA::indirect_virtual_function_dispatch
+                                >;
+
+    using workpool = RAJA::WorkPool< workgroup_policy,
+                                     Index_type,
+                                     RAJA::xargs<>,
+                                     Allocator >;
+
+    using workgroup = RAJA::WorkGroup< workgroup_policy,
+                                       Index_type,
+                                       RAJA::xargs<>,
+                                       Allocator >;
+
+    using worksite = RAJA::WorkSite< workgroup_policy,
+                                     Index_type,
+                                     RAJA::xargs<>,
+                                     Allocator >;
+
+    workpool pool(allocatorHolder.template getAllocator<char>());
+    pool.reserve(parts.size()-1, 1024ull*1024ull);
+
+    for (size_t p = 1; p < parts.size(); ++p ) {
+      const Index_type ibegin = parts[p-1];
+      const Index_type iend = parts[p];
+
+      pool.enqueue(
+          RAJA::TypedRangeSegment<Index_type>(ibegin, iend),
+          triad_parted_fused_lam );
+    }
+    workgroup group = pool.instantiate();
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      worksite site = group.run(res);
+
+    }
+    stopTimer();
+
+  } else {
+      getCout() << "\n  TRIAD_PARTED_FUSED : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+template < size_t block_size >
 void TRIAD_PARTED_FUSED::runHipVariantAOSScanReuse(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
@@ -676,6 +813,27 @@ void TRIAD_PARTED_FUSED::runHipVariant(VariantID vid, size_t tune_idx)
 
         t += 1;
 
+        if ( vid == RAJA_HIP ) {
+
+          if (tune_idx == t) {
+
+            setBlockSize(block_size);
+            runHipVariantAOS2dReuseFunctionPointer<block_size>(vid);
+
+          }
+
+          t += 1;
+
+          if (tune_idx == t) {
+
+            setBlockSize(block_size);
+            runHipVariantAOS2dReuseVirtualFunction<block_size>(vid);
+
+          }
+
+          t += 1;
+        }
+
       }
 
     });
@@ -711,6 +869,12 @@ void TRIAD_PARTED_FUSED::setHipTuningDefinitions(VariantID vid)
 
         addVariantTuningName(vid, "AOS_2d_reuse_"+std::to_string(block_size));
 
+        if ( vid == RAJA_HIP ) {
+
+          addVariantTuningName(vid, "AOS_2d_reuse_funcptr_"+std::to_string(block_size));
+          addVariantTuningName(vid, "AOS_2d_reuse_virtfunc_"+std::to_string(block_size));
+
+        }
       }
 
     });

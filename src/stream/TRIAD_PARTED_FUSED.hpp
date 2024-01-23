@@ -119,6 +119,14 @@ public:
   template < size_t block_size >
   void runHipVariantAOS2dReuse(VariantID vid);
   template < size_t block_size >
+  void runCudaVariantAOS2dReuseFunctionPointer(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantAOS2dReuseFunctionPointer(VariantID vid);
+  template < size_t block_size >
+  void runCudaVariantAOS2dReuseVirtualFunction(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantAOS2dReuseVirtualFunction(VariantID vid);
+  template < size_t block_size >
   void runCudaVariantAOSScanReuse(VariantID vid);
   template < size_t block_size >
   void runHipVariantAOSScanReuse(VariantID vid);
