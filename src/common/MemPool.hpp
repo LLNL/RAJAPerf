@@ -238,23 +238,27 @@ private:
 } /* end namespace detail */
 
 
-/*! \class MemPool
+template <typename allocator_t>
+using MemPool = ::RAJA::basic_mempool::MemPool<allocator_t>;
+
+
+/*! \class LaggedMemPool
  ******************************************************************************
  *
- * \brief  MemPool pre-allocates a large chunk of memory and provides generic
+ * \brief  LaggedMemPool pre-allocates a large chunk of memory and provides generic
  * malloc/free for the user to allocate aligned data within the pool
  *
- * MemPool uses MemoryArena to do the heavy lifting of maintaining access to
+ * LaggedMemPool uses MemoryArena to do the heavy lifting of maintaining access to
  * the used/free space.
  *
- * MemPool provides an example generic_allocator which can guide more
+ * LaggedMemPool provides an example generic_allocator which can guide more
  *specialized
  * allocators. The following are some examples
  *
- * using device_mempool_type = basic_mempool::MemPool<cuda::DeviceAllocator>;
+ * using device_mempool_type = basic_mempool::LaggedMemPool<cuda::DeviceAllocator>;
  * using device_zeroed_mempool_type =
- *basic_mempool::MemPool<cuda::DeviceZeroedAllocator>;
- * using pinned_mempool_type = basic_mempool::MemPool<cuda::PinnedAllocator>;
+ *basic_mempool::LaggedMemPool<cuda::DeviceZeroedAllocator>;
+ * using pinned_mempool_type = basic_mempool::LaggedMemPool<cuda::PinnedAllocator>;
  *
  * The user provides the specialized allocator, for example :
  * struct DeviceAllocator {
@@ -279,29 +283,29 @@ private:
  ******************************************************************************
  */
 template <typename allocator_t, typename lagged_res>
-class MemPool
+class LaggedMemPool
 {
 public:
   using allocator_type = allocator_t;
 
-  static inline MemPool<allocator_t, lagged_res>& getInstance()
+  static inline LaggedMemPool<allocator_t, lagged_res>& getInstance()
   {
-    static MemPool<allocator_t, lagged_res> pool{};
+    static LaggedMemPool<allocator_t, lagged_res> pool{};
     return pool;
   }
 
   static const size_t default_default_arena_size = 32ull * 1024ull * 1024ull;
 
-  MemPool(size_t default_arena_size = default_default_arena_size,
+  LaggedMemPool(size_t default_arena_size = default_default_arena_size,
           lagged_res const& lag_res = lagged_res::get_default())
       : m_arenas(), m_default_arena_size(default_arena_size),
         m_alloc(), m_lagged_frees(), m_lag_res(lag_res)
   {
   }
 
-  ~MemPool()
+  ~LaggedMemPool()
   {
-    // This is here for the case that MemPool is used as a static object.
+    // This is here for the case that LaggedMemPool is used as a static object.
     // If allocator_t uses cudaFree then it will fail with
     // cudaErrorCudartUnloading when called after main.
   }
@@ -435,20 +439,6 @@ private:
       }
       m_lagged_frees.clear();
     }
-  }
-};
-
-//! example allocator for basic_mempool using malloc/free
-struct generic_allocator {
-
-  // returns a valid pointer on success, nullptr on failure
-  void* malloc(size_t nbytes) { return std::malloc(nbytes); }
-
-  // returns true on success, false on failure
-  bool free(void* ptr)
-  {
-    std::free(ptr);
-    return true;
   }
 };
 
