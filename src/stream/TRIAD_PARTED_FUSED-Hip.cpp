@@ -285,7 +285,8 @@ void TRIAD_PARTED_FUSED::runHipVariantAOS2dSync(VariantID vid)
           TRIAD_PARTED_FUSED_BODY;
         };
 
-    using AllocatorHolder = RAJAPoolAllocatorHolder<RAJA::hip::pinned_mempool_type>;
+    using AllocatorHolder = RAJAPoolAllocatorHolder<
+        rajaperf::basic_mempool::MemPool<dataspace_allocator<DataSpace::HipPinnedCoarse>>>;
     using Allocator = AllocatorHolder::Allocator<char>;
 
     AllocatorHolder allocatorHolder;
@@ -503,7 +504,8 @@ void TRIAD_PARTED_FUSED::runHipVariantAOS2dReuse(VariantID vid)
           TRIAD_PARTED_FUSED_BODY;
         };
 
-    using AllocatorHolder = RAJAPoolAllocatorHolder<RAJA::hip::pinned_mempool_type>;
+    using AllocatorHolder = RAJAPoolAllocatorHolder<
+        rajaperf::basic_mempool::MemPool<dataspace_allocator<DataSpace::HipPinnedCoarse>>>;
     using Allocator = AllocatorHolder::Allocator<char>;
 
     AllocatorHolder allocatorHolder;
@@ -573,7 +575,8 @@ void TRIAD_PARTED_FUSED::runHipVariantAOS2dReuseFunctionPointer(VariantID vid)
           TRIAD_PARTED_FUSED_BODY;
         };
 
-    using AllocatorHolder = RAJAPoolAllocatorHolder<RAJA::hip::pinned_mempool_type>;
+    using AllocatorHolder = RAJAPoolAllocatorHolder<
+        rajaperf::basic_mempool::MemPool<dataspace_allocator<DataSpace::HipPinnedCoarse>>>;
     using Allocator = AllocatorHolder::Allocator<char>;
 
     AllocatorHolder allocatorHolder;
@@ -642,7 +645,8 @@ void TRIAD_PARTED_FUSED::runHipVariantAOS2dReuseVirtualFunction(VariantID vid)
           TRIAD_PARTED_FUSED_BODY;
         };
 
-    using AllocatorHolder = RAJAPoolAllocatorHolder<RAJA::hip::pinned_mempool_type>;
+    using AllocatorHolder = RAJAPoolAllocatorHolder<
+        rajaperf::basic_mempool::MemPool<dataspace_allocator<DataSpace::HipPinnedCoarse>>>;
     using Allocator = AllocatorHolder::Allocator<char>;
 
     AllocatorHolder allocatorHolder;

@@ -356,7 +356,8 @@ void TRIAD_PARTED_FUSED::runCudaVariantAOS2dSync(VariantID vid)
           TRIAD_PARTED_FUSED_BODY;
         };
 
-    using AllocatorHolder = RAJAPoolAllocatorHolder<RAJA::cuda::pinned_mempool_type>;
+    using AllocatorHolder = RAJAPoolAllocatorHolder<
+        rajaperf::basic_mempool::MemPool<dataspace_allocator<DataSpace::CudaPinned>>>;
     using Allocator = AllocatorHolder::Allocator<char>;
 
     AllocatorHolder allocatorHolder;
@@ -574,7 +575,8 @@ void TRIAD_PARTED_FUSED::runCudaVariantAOS2dReuse(VariantID vid)
           TRIAD_PARTED_FUSED_BODY;
         };
 
-    using AllocatorHolder = RAJAPoolAllocatorHolder<RAJA::cuda::pinned_mempool_type>;
+    using AllocatorHolder = RAJAPoolAllocatorHolder<
+        rajaperf::basic_mempool::MemPool<dataspace_allocator<DataSpace::CudaPinned>>>;
     using Allocator = AllocatorHolder::Allocator<char>;
 
     AllocatorHolder allocatorHolder;
@@ -644,7 +646,8 @@ void TRIAD_PARTED_FUSED::runCudaVariantAOS2dReuseFunctionPointer(VariantID vid)
           TRIAD_PARTED_FUSED_BODY;
         };
 
-    using AllocatorHolder = RAJAPoolAllocatorHolder<RAJA::cuda::pinned_mempool_type>;
+    using AllocatorHolder = RAJAPoolAllocatorHolder<
+        rajaperf::basic_mempool::MemPool<dataspace_allocator<DataSpace::CudaPinned>>>;
     using Allocator = AllocatorHolder::Allocator<char>;
 
     AllocatorHolder allocatorHolder;
@@ -712,7 +715,8 @@ void TRIAD_PARTED_FUSED::runCudaVariantAOS2dReuseVirtualFunction(VariantID vid)
           TRIAD_PARTED_FUSED_BODY;
         };
 
-    using AllocatorHolder = RAJAPoolAllocatorHolder<RAJA::cuda::pinned_mempool_type>;
+    using AllocatorHolder = RAJAPoolAllocatorHolder<
+        rajaperf::basic_mempool::MemPool<dataspace_allocator<DataSpace::CudaPinned>>>;
     using Allocator = AllocatorHolder::Allocator<char>;
 
     AllocatorHolder allocatorHolder;

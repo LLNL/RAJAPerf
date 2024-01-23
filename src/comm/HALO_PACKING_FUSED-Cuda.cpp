@@ -207,7 +207,8 @@ void HALO_PACKING_FUSED::runCudaVariantWorkGroup(VariantID vid)
 
   if ( vid == RAJA_CUDA ) {
 
-    using AllocatorHolder = RAJAPoolAllocatorHolder<RAJA::cuda::pinned_mempool_type>;
+    using AllocatorHolder = RAJAPoolAllocatorHolder<
+        rajaperf::basic_mempool::MemPool<dataspace_allocator<DataSpace::CudaPinned>>>;
     using Allocator = AllocatorHolder::Allocator<char>;
 
     AllocatorHolder allocatorHolder;

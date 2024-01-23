@@ -92,7 +92,7 @@ void TRIAD_PARTED_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_U
   } else if ( vid == RAJA_OpenMPTarget ) {
 
     using AllocatorHolder = RAJAPoolAllocatorHolder<
-        RAJA::basic_mempool::MemPool<RAJA::basic_mempool::generic_allocator>>;
+        rajaperf::basic_mempool::MemPool<dataspace_allocator<DataSpace::Host>>>;
     using Allocator = AllocatorHolder::Allocator<char>;
 
     AllocatorHolder allocatorHolder;
