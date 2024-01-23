@@ -404,6 +404,26 @@ inline long double calcChecksum(DataSpace dataSpace, T* ptr, Size_type len, Size
 
 
 /*!
+ * \brief Allocator type for basic_mempool using DataSpaces.
+ */
+template < DataSpace dataspace >
+struct dataspace_allocator {
+
+  // returns a valid pointer on success, nullptr on failure
+  void* malloc(size_t nbytes)
+  {
+    return detail::allocData(dataSpace, nbytes, alignof(std::max_align_t));
+  }
+
+  // returns true on success, false on failure
+  bool free(void* ptr)
+  {
+    detail::deallocData(dataSpace, ptr);
+    return true;
+  }
+};
+
+/*!
  * \brief Holds a RajaPool object and provides access to it via a
  *        std allocator compliant type.
  */
