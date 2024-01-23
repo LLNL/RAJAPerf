@@ -22,27 +22,27 @@ namespace rajaperf
 namespace stream
 {
 
-#define TRIAD_PARTED_FUSED_MANUAL_FUSER_SOA_SETUP_HIP \
+#define TRIAD_PARTED_FUSED_MANUAL_FUSER_SOA_SETUP_HIP(vid) \
   Index_type* len_ptrs; \
   Real_ptr*   a_ptrs; \
   Real_ptr*   b_ptrs; \
   Real_ptr*   c_ptrs; \
   Real_type*  alpha_ptrs; \
   Index_type* ibegin_ptrs; \
-  allocData(DataSpace::HipDevice, len_ptrs, parts.size()-1); \
-  allocData(DataSpace::HipDevice, a_ptrs, parts.size()-1); \
-  allocData(DataSpace::HipDevice, b_ptrs, parts.size()-1); \
-  allocData(DataSpace::HipDevice, c_ptrs, parts.size()-1); \
-  allocData(DataSpace::HipDevice, alpha_ptrs, parts.size()-1); \
-  allocData(DataSpace::HipDevice, ibegin_ptrs, parts.size()-1);
+  allocData(getFuserDataSpace(vid), len_ptrs, parts.size()-1); \
+  allocData(getFuserDataSpace(vid), a_ptrs, parts.size()-1); \
+  allocData(getFuserDataSpace(vid), b_ptrs, parts.size()-1); \
+  allocData(getFuserDataSpace(vid), c_ptrs, parts.size()-1); \
+  allocData(getFuserDataSpace(vid), alpha_ptrs, parts.size()-1); \
+  allocData(getFuserDataSpace(vid), ibegin_ptrs, parts.size()-1);
 
-#define TRIAD_PARTED_FUSED_MANUAL_FUSER_SOA_TEARDOWN_HIP \
-  deallocData(DataSpace::HipDevice, len_ptrs); \
-  deallocData(DataSpace::HipDevice, a_ptrs); \
-  deallocData(DataSpace::HipDevice, b_ptrs); \
-  deallocData(DataSpace::HipDevice, c_ptrs); \
-  deallocData(DataSpace::HipDevice, alpha_ptrs); \
-  deallocData(DataSpace::HipDevice, ibegin_ptrs);
+#define TRIAD_PARTED_FUSED_MANUAL_FUSER_SOA_TEARDOWN_HIP(vid) \
+  deallocData(getFuserDataSpace(vid), len_ptrs); \
+  deallocData(getFuserDataSpace(vid), a_ptrs); \
+  deallocData(getFuserDataSpace(vid), b_ptrs); \
+  deallocData(getFuserDataSpace(vid), c_ptrs); \
+  deallocData(getFuserDataSpace(vid), alpha_ptrs); \
+  deallocData(getFuserDataSpace(vid), ibegin_ptrs);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -68,12 +68,12 @@ __global__ void triad_parted_fused_soa(Index_type* len_ptrs, Real_ptr* a_ptrs,
 }
 
 
-#define TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_SETUP_HIP(num_holders) \
+#define TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_SETUP_HIP(vid, num_holders) \
   triad_holder* triad_holders; \
-  allocData(DataSpace::HipDevice, triad_holders, (num_holders));
+  allocData(getFuserDataSpace(vid), triad_holders, (num_holders));
 
-#define TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_TEARDOWN_HIP \
-  deallocData(DataSpace::HipDevice, triad_holders);
+#define TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_TEARDOWN_HIP(vid) \
+  deallocData(getFuserDataSpace(vid), triad_holders);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -145,7 +145,7 @@ void TRIAD_PARTED_FUSED::runHipVariantSOA2dSync(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    TRIAD_PARTED_FUSED_MANUAL_FUSER_SOA_SETUP_HIP
+    TRIAD_PARTED_FUSED_MANUAL_FUSER_SOA_SETUP_HIP(Base_HIP)
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -178,7 +178,7 @@ void TRIAD_PARTED_FUSED::runHipVariantSOA2dSync(VariantID vid)
     }
     stopTimer();
 
-    TRIAD_PARTED_FUSED_MANUAL_FUSER_SOA_TEARDOWN_HIP
+    TRIAD_PARTED_FUSED_MANUAL_FUSER_SOA_TEARDOWN_HIP(Base_HIP)
 
   } else {
       getCout() << "\n  TRIAD_PARTED_FUSED : Unknown Hip variant id = " << vid << std::endl;
@@ -196,7 +196,7 @@ void TRIAD_PARTED_FUSED::runHipVariantSOA2dReuse(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    TRIAD_PARTED_FUSED_MANUAL_FUSER_SOA_SETUP_HIP
+    TRIAD_PARTED_FUSED_MANUAL_FUSER_SOA_SETUP_HIP(Base_HIP)
 
     Index_type index = 0;
     Index_type len_sum = 0;
@@ -229,7 +229,7 @@ void TRIAD_PARTED_FUSED::runHipVariantSOA2dReuse(VariantID vid)
     }
     stopTimer();
 
-    TRIAD_PARTED_FUSED_MANUAL_FUSER_SOA_TEARDOWN_HIP
+    TRIAD_PARTED_FUSED_MANUAL_FUSER_SOA_TEARDOWN_HIP(Base_HIP)
 
   } else {
       getCout() << "\n  TRIAD_PARTED_FUSED : Unknown Hip variant id = " << vid << std::endl;
@@ -248,7 +248,7 @@ void TRIAD_PARTED_FUSED::runHipVariantAOS2dSync(VariantID vid)
   if ( vid == Base_HIP ) {
 
     const size_t num_holders = parts.size()-1;
-    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_SETUP_HIP(num_holders)
+    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_SETUP_HIP(Base_HIP, num_holders)
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -277,7 +277,7 @@ void TRIAD_PARTED_FUSED::runHipVariantAOS2dSync(VariantID vid)
     }
     stopTimer();
 
-    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_TEARDOWN_HIP
+    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_TEARDOWN_HIP(Base_HIP)
 
   } else if ( vid == RAJA_HIP ) {
 
@@ -355,7 +355,7 @@ void TRIAD_PARTED_FUSED::runHipVariantAOS2dPoolSync(VariantID vid)
   if ( vid == Base_HIP ) {
 
     const size_t num_holders = std::max(parts.size()-1, pool_size / sizeof(triad_holder));
-    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_SETUP_HIP(num_holders)
+    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_SETUP_HIP(Base_HIP, num_holders)
 
     Index_type holder_start = 0;
 
@@ -392,7 +392,7 @@ void TRIAD_PARTED_FUSED::runHipVariantAOS2dPoolSync(VariantID vid)
     }
     stopTimer();
 
-    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_TEARDOWN_HIP
+    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_TEARDOWN_HIP(Base_HIP)
 
   } else if ( vid == RAJA_HIP ) {
 
@@ -468,7 +468,7 @@ void TRIAD_PARTED_FUSED::runHipVariantAOS2dReuse(VariantID vid)
   if ( vid == Base_HIP ) {
 
     const size_t num_holders = parts.size()-1;
-    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_SETUP_HIP(num_holders)
+    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_SETUP_HIP(Base_HIP, num_holders)
 
     Index_type index = 0;
     Index_type len_sum = 0;
@@ -496,7 +496,7 @@ void TRIAD_PARTED_FUSED::runHipVariantAOS2dReuse(VariantID vid)
     }
     stopTimer();
 
-    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_TEARDOWN_HIP
+    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_TEARDOWN_HIP(Base_HIP)
 
   } else if ( vid == RAJA_HIP ) {
 
@@ -711,9 +711,9 @@ void TRIAD_PARTED_FUSED::runHipVariantAOSScanReuse(VariantID vid)
   if ( vid == Base_HIP ) {
 
     const size_t num_holders = parts.size()-1;
-    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_SETUP_HIP(num_holders)
+    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_SETUP_HIP(Base_HIP, num_holders)
     scan_index_type* first_blocks;
-    allocData(DataSpace::HipDevice, first_blocks, (num_holders));
+    allocData(getFuserDataSpace(Base_HIP), first_blocks, (num_holders));
 
     Index_type num_fused = 0;
     scan_index_type num_blocks = 0;
@@ -743,8 +743,8 @@ void TRIAD_PARTED_FUSED::runHipVariantAOSScanReuse(VariantID vid)
     }
     stopTimer();
 
-    deallocData(DataSpace::HipDevice, first_blocks);
-    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_TEARDOWN_HIP
+    deallocData(getFuserDataSpace(Base_HIP), first_blocks);
+    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_TEARDOWN_HIP(Base_HIP)
 
   } else {
       getCout() << "\n  TRIAD_PARTED_FUSED : Unknown Hip variant id = " << vid << std::endl;

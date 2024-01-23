@@ -33,27 +33,27 @@ __global__ void triad_parted_graph(Real_ptr a, Real_ptr b, Real_ptr c, Real_type
   }
 }
 
-#define TRIAD_PARTED_FUSED_MANUAL_FUSER_SOA_SETUP_CUDA \
+#define TRIAD_PARTED_FUSED_MANUAL_FUSER_SOA_SETUP_CUDA(vid) \
   Index_type* len_ptrs; \
   Real_ptr*   a_ptrs; \
   Real_ptr*   b_ptrs; \
   Real_ptr*   c_ptrs; \
   Real_type*  alpha_ptrs; \
   Index_type* ibegin_ptrs; \
-  allocData(DataSpace::CudaManagedDevicePreferredHostAccessed, len_ptrs, parts.size()-1); \
-  allocData(DataSpace::CudaManagedDevicePreferredHostAccessed, a_ptrs, parts.size()-1); \
-  allocData(DataSpace::CudaManagedDevicePreferredHostAccessed, b_ptrs, parts.size()-1); \
-  allocData(DataSpace::CudaManagedDevicePreferredHostAccessed, c_ptrs, parts.size()-1); \
-  allocData(DataSpace::CudaManagedDevicePreferredHostAccessed, alpha_ptrs, parts.size()-1); \
-  allocData(DataSpace::CudaManagedDevicePreferredHostAccessed, ibegin_ptrs, parts.size()-1);
+  allocData(getFuserDataSpace(vid), len_ptrs, parts.size()-1); \
+  allocData(getFuserDataSpace(vid), a_ptrs, parts.size()-1); \
+  allocData(getFuserDataSpace(vid), b_ptrs, parts.size()-1); \
+  allocData(getFuserDataSpace(vid), c_ptrs, parts.size()-1); \
+  allocData(getFuserDataSpace(vid), alpha_ptrs, parts.size()-1); \
+  allocData(getFuserDataSpace(vid), ibegin_ptrs, parts.size()-1);
 
-#define TRIAD_PARTED_FUSED_MANUAL_FUSER_SOA_TEARDOWN_CUDA \
-  deallocData(DataSpace::CudaManagedDevicePreferredHostAccessed, len_ptrs); \
-  deallocData(DataSpace::CudaManagedDevicePreferredHostAccessed, a_ptrs); \
-  deallocData(DataSpace::CudaManagedDevicePreferredHostAccessed, b_ptrs); \
-  deallocData(DataSpace::CudaManagedDevicePreferredHostAccessed, c_ptrs); \
-  deallocData(DataSpace::CudaManagedDevicePreferredHostAccessed, alpha_ptrs); \
-  deallocData(DataSpace::CudaManagedDevicePreferredHostAccessed, ibegin_ptrs);
+#define TRIAD_PARTED_FUSED_MANUAL_FUSER_SOA_TEARDOWN_CUDA(vid) \
+  deallocData(getFuserDataSpace(vid), len_ptrs); \
+  deallocData(getFuserDataSpace(vid), a_ptrs); \
+  deallocData(getFuserDataSpace(vid), b_ptrs); \
+  deallocData(getFuserDataSpace(vid), c_ptrs); \
+  deallocData(getFuserDataSpace(vid), alpha_ptrs); \
+  deallocData(getFuserDataSpace(vid), ibegin_ptrs);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -79,12 +79,12 @@ __global__ void triad_parted_fused_soa(Index_type* len_ptrs, Real_ptr* a_ptrs,
 }
 
 
-#define TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_SETUP_CUDA(num_holders) \
+#define TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_SETUP_CUDA(vid, num_holders) \
   triad_holder* triad_holders; \
-  allocData(DataSpace::CudaManagedDevicePreferredHostAccessed, triad_holders, (num_holders));
+  allocData(getFuserDataSpace(vid), triad_holders, (num_holders));
 
-#define TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_TEARDOWN_CUDA \
-  deallocData(DataSpace::CudaManagedDevicePreferredHostAccessed, triad_holders);
+#define TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_TEARDOWN_CUDA(vid) \
+  deallocData(getFuserDataSpace(vid), triad_holders);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -216,7 +216,7 @@ void TRIAD_PARTED_FUSED::runCudaVariantSOA2dSync(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    TRIAD_PARTED_FUSED_MANUAL_FUSER_SOA_SETUP_CUDA
+    TRIAD_PARTED_FUSED_MANUAL_FUSER_SOA_SETUP_CUDA(Base_CUDA)
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -249,7 +249,7 @@ void TRIAD_PARTED_FUSED::runCudaVariantSOA2dSync(VariantID vid)
     }
     stopTimer();
 
-    TRIAD_PARTED_FUSED_MANUAL_FUSER_SOA_TEARDOWN_CUDA
+    TRIAD_PARTED_FUSED_MANUAL_FUSER_SOA_TEARDOWN_CUDA(Base_CUDA)
 
   } else {
       getCout() << "\n  TRIAD_PARTED_FUSED : Unknown Cuda variant id = " << vid << std::endl;
@@ -267,7 +267,7 @@ void TRIAD_PARTED_FUSED::runCudaVariantSOA2dReuse(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    TRIAD_PARTED_FUSED_MANUAL_FUSER_SOA_SETUP_CUDA
+    TRIAD_PARTED_FUSED_MANUAL_FUSER_SOA_SETUP_CUDA(Base_CUDA)
 
     Index_type index = 0;
     Index_type len_sum = 0;
@@ -300,7 +300,7 @@ void TRIAD_PARTED_FUSED::runCudaVariantSOA2dReuse(VariantID vid)
     }
     stopTimer();
 
-    TRIAD_PARTED_FUSED_MANUAL_FUSER_SOA_TEARDOWN_CUDA
+    TRIAD_PARTED_FUSED_MANUAL_FUSER_SOA_TEARDOWN_CUDA(Base_CUDA)
 
   } else {
       getCout() << "\n  TRIAD_PARTED_FUSED : Unknown Cuda variant id = " << vid << std::endl;
@@ -319,7 +319,7 @@ void TRIAD_PARTED_FUSED::runCudaVariantAOS2dSync(VariantID vid)
   if ( vid == Base_CUDA ) {
 
     const size_t num_holders = parts.size()-1;
-    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_SETUP_CUDA(num_holders)
+    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_SETUP_CUDA(Base_CUDA, num_holders)
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -348,7 +348,7 @@ void TRIAD_PARTED_FUSED::runCudaVariantAOS2dSync(VariantID vid)
     }
     stopTimer();
 
-    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_TEARDOWN_CUDA
+    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_TEARDOWN_CUDA(Base_CUDA)
 
   } else if ( vid == RAJA_CUDA ) {
 
@@ -426,7 +426,7 @@ void TRIAD_PARTED_FUSED::runCudaVariantAOS2dPoolSync(VariantID vid)
   if ( vid == Base_CUDA ) {
 
     const size_t num_holders = std::max(parts.size()-1, pool_size / sizeof(triad_holder));
-    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_SETUP_CUDA(num_holders)
+    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_SETUP_CUDA(Base_CUDA, num_holders)
 
     Index_type holder_start = 0;
 
@@ -463,7 +463,7 @@ void TRIAD_PARTED_FUSED::runCudaVariantAOS2dPoolSync(VariantID vid)
     }
     stopTimer();
 
-    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_TEARDOWN_CUDA
+    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_TEARDOWN_CUDA(Base_CUDA)
 
   } else if ( vid == RAJA_CUDA ) {
 
@@ -539,7 +539,7 @@ void TRIAD_PARTED_FUSED::runCudaVariantAOS2dReuse(VariantID vid)
   if ( vid == Base_CUDA ) {
 
     const size_t num_holders = parts.size()-1;
-    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_SETUP_CUDA(num_holders)
+    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_SETUP_CUDA(Base_CUDA, num_holders)
 
     Index_type index = 0;
     Index_type len_sum = 0;
@@ -567,7 +567,7 @@ void TRIAD_PARTED_FUSED::runCudaVariantAOS2dReuse(VariantID vid)
     }
     stopTimer();
 
-    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_TEARDOWN_CUDA
+    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_TEARDOWN_CUDA(Base_CUDA)
 
   } else if ( vid == RAJA_CUDA ) {
 
@@ -781,9 +781,9 @@ void TRIAD_PARTED_FUSED::runCudaVariantAOSScanReuse(VariantID vid)
   if ( vid == Base_CUDA ) {
 
     const size_t num_holders = parts.size()-1;
-    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_SETUP_CUDA(num_holders)
+    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_SETUP_CUDA(Base_CUDA, num_holders)
     scan_index_type* first_blocks;
-    allocData(DataSpace::CudaManagedDevicePreferredHostAccessed, first_blocks, (num_holders));
+    allocData(getFuserDataSpace(Base_CUDA), first_blocks, (num_holders));
 
     Index_type num_fused = 0;
     scan_index_type num_blocks = 0;
@@ -813,8 +813,8 @@ void TRIAD_PARTED_FUSED::runCudaVariantAOSScanReuse(VariantID vid)
     }
     stopTimer();
 
-    deallocData(DataSpace::CudaManagedDevicePreferredHostAccessed, first_blocks);
-    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_TEARDOWN_CUDA
+    deallocData(getFuserDataSpace(Base_CUDA), first_blocks);
+    TRIAD_PARTED_FUSED_MANUAL_FUSER_AOS_TEARDOWN_CUDA(Base_CUDA)
 
   } else {
       getCout() << "\n  TRIAD_PARTED_FUSED : Unknown Cuda variant id = " << vid << std::endl;
