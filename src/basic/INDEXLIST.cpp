@@ -46,13 +46,9 @@ INDEXLIST::INDEXLIST(const RunParams& params)
   setVariantDefined( Base_OpenMPTarget );
 #endif
 
-  if (params.getAllowProblematicImplementations()) {
-    // these may deadlock depending on the order that blocks are scheduled
+  setVariantDefined( Base_CUDA );
 
-    setVariantDefined( Base_CUDA );
-
-    setVariantDefined( Base_HIP );
-  }
+  setVariantDefined( Base_HIP );
 }
 
 INDEXLIST::~INDEXLIST()

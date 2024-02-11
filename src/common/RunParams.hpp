@@ -181,9 +181,6 @@ public:
 
   bool getDisableWarmup() const { return disable_warmup; }
 
-  bool getAllowProblematicImplementations() const
-  { return allow_problematic_implementations; }
-
   const std::set<KernelID>& getKernelIDsToRun() const { return run_kernels; }
   const std::set<VariantID>& getVariantIDsToRun() const { return run_variants; }
   VariantID getReferenceVariantID() const { return reference_vid; }
@@ -302,8 +299,6 @@ private:
 #endif
 
   bool disable_warmup;
-
-  bool allow_problematic_implementations;
 
   std::set<KernelID>  run_kernels;
   std::set<VariantID> run_variants;

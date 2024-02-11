@@ -71,7 +71,6 @@ RunParams::RunParams(int argc, char** argv)
    add_to_spot_config(),
 #endif
    disable_warmup(false),
-   allow_problematic_implementations(false),
    run_kernels(),
    run_variants()
 {
@@ -142,8 +141,6 @@ void RunParams::print(std::ostream& str) const
 #endif
 
   str << "\n disable_warmup = " << disable_warmup;
-  str << "\n allow_problematic_implementations = "
-      << allow_problematic_implementations;
 
   str << "\n seq data space = " << getDataSpaceName(seqDataSpace);
   str << "\n omp data space = " << getDataSpaceName(ompDataSpace);
@@ -799,11 +796,6 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
       disable_warmup = true;
 
-    } else if ( std::string(argv[i]) ==
-                std::string("--allow-problematic-implementations") ) {
-
-      allow_problematic_implementations = true;
-
     } else if ( std::string(argv[i]) == std::string("--checkrun") ) {
 
       input_state = CheckRun;
@@ -992,9 +984,6 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t ========================================\n\n";;
 
   str << "\t --disable-warmup (disable warmup kernels) [Default is run warmup kernels that are relevant to kernels selected to run]\n\n";
-
-  str << "\t --allow-problematic-implementations (allow problematic kernel implementations) [Default is to not allow problematic kernel implementations to run]\n"
-      << "\t      These implementations may deadlock causing the code to hang indefinitely.\n\n";
 
   str << "\t --kernels, -k <space-separated strings> [Default is run all]\n"
       << "\t      (names of individual kernels and/or groups of kernels to run)\n"
