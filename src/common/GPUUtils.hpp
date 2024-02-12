@@ -138,6 +138,19 @@ using make_gpu_block_size_list_type =
         >::type
       >::type;
 
+// A camp::list of camp::integral_constant<size_t, I> types.
+// If atomic_replications from the configuration is not empty it is those atomic_replications,
+// otherwise it is a list containing just default_atomic_replication.
+// Invalid entries are removed according to validity_checker in either case.
+template < size_t default_atomic_replication, typename validity_checker = AllowAny >
+using make_atomic_replication_list_type =
+      typename detail::remove_invalid<validity_checker,
+        typename std::conditional< (camp::size<rajaperf::configuration::atomic_replications>::value > 0),
+          rajaperf::configuration::atomic_replications,
+          list_type<default_atomic_replication>
+        >::type
+      >::type;
+
 } // closing brace for integer namespace
 
 namespace gpu_algorithm {

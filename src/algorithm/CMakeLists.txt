@@ -42,5 +42,11 @@ blt_add_library(
           MEMCPY-Cuda.cpp
           MEMCPY-OMP.cpp
           MEMCPY-OMPTarget.cpp
+          ATOMIC.cpp
+          ATOMIC-Seq.cpp
+          ATOMIC-Hip.cpp
+          ATOMIC-Cuda.cpp
+          ATOMIC-OMP.cpp
+          ATOMIC-OMPTarget.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )
