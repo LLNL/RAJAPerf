@@ -53,13 +53,13 @@ inline void RAJAPERF_UNUSED_VAR(Ts&&...) { }
 
 namespace rajaperf {
 
-namespace gpu_block_size {
+namespace integer {
 
 // helper alias to convert comma separated integer literals into list
 template < size_t... Is >
 using list_type = camp::list< camp::integral_constant<size_t, Is>... >;
 
-} // closing brace for gpu_block_size namespace
+} // closing brace for integer namespace
 
 struct configuration {
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
@@ -110,7 +110,7 @@ const adiak::catstring adiak_machine_build = std::string("@RAJAPERF_BUILD_HOST@"
 #endif
 
 // List of GPU block sizes
-using gpu_block_sizes = gpu_block_size::list_type<@RAJA_PERFSUITE_GPU_BLOCKSIZES@>;
+using gpu_block_sizes = integer::list_type<@RAJA_PERFSUITE_GPU_BLOCKSIZES@>;
 
 // Name of user who ran code
 std::string user_run;

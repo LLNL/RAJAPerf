@@ -19,7 +19,7 @@
 namespace rajaperf
 {
 
-namespace gpu_block_size
+namespace integer
 {
 
 namespace detail
@@ -130,7 +130,7 @@ struct ExactSqrt
 // otherwise it is a list containing just default_block_size.
 // Invalid entries are removed according to validity_checker in either case.
 template < size_t default_block_size, typename validity_checker = AllowAny >
-using make_list_type =
+using make_gpu_block_size_list_type =
       typename detail::remove_invalid<validity_checker,
         typename std::conditional< (camp::size<rajaperf::configuration::gpu_block_sizes>::value > 0),
           rajaperf::configuration::gpu_block_sizes,
@@ -138,7 +138,7 @@ using make_list_type =
         >::type
       >::type;
 
-} // closing brace for gpu_block_size namespace
+} // closing brace for integer namespace
 
 namespace gpu_algorithm {
 
