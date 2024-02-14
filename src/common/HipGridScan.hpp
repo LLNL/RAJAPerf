@@ -31,6 +31,7 @@ const size_t max_static_shmem = 65536;
 // grid scan tunings are in (block_size, items_per_thread)
 // these tunings maximize throughput while minimizing items_per_thread
 // gfx90a: (64, 6), (128, 4), (256, 4), (512, 4), (1024, 2)
+// gfx942: (64, 22), (128, 22), (256, 19), (512, 13), (1024, 7)
 const size_t grid_scan_default_items_per_thread = 4;
 
 
