@@ -174,6 +174,9 @@ Executor::Executor(int argc, char** argv)
   if (cc.adiak_atomic_replications.size() > 0) {
     adiak::value("atomic_replications", cc.adiak_atomic_replications);
   }
+  if (cc.adiak_gpu_items_per_thread.size() > 0) {
+    adiak::value("gpu_items_per_thread", cc.adiak_gpu_items_per_thread);
+  }
   if (cc.adiak_raja_hipcc_flags.size() > 0) {
     adiak::value("raja_hipcc_flags", cc.adiak_raja_hipcc_flags);
   }

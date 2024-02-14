@@ -77,6 +77,8 @@ set(RAJA_PERFSUITE_GPU_BLOCKSIZES "" CACHE STRING "Comma separated list of GPU b
 
 set(RAJA_PERFSUITE_ATOMIC_REPLICATIONS "" CACHE STRING "Comma separated list of atomic replications, ex '1,256,4096'")
 
+set(RAJA_PERFSUITE_GPU_ITEMS_PER_THREAD "" CACHE STRING "Comma separated list of atomic replications, ex '1,256,4096'")
+
 set(RAJA_RANGE_ALIGN 4)
 set(RAJA_RANGE_MIN_LENGTH 32)
 set(RAJA_DATA_ALIGN 64)
@@ -93,6 +95,13 @@ if (ATOMIC_REPLICATIONS_LENGTH GREATER 0)
   message(STATUS "Using atomic replication(s): ${RAJA_PERFSUITE_ATOMIC_REPLICATIONS}")
 else()
   message(STATUS "Using default atomic replication(s)")
+endif()
+
+string(LENGTH "${RAJA_PERFSUITE_GPU_ITEMS_PER_THREAD}" GPU_ITEMS_PER_THREAD_LENGTH)
+if (GPU_ITEMS_PER_THREAD_LENGTH GREATER 0)
+  message(STATUS "Using gpu items per thread(s): ${RAJA_PERFSUITE_GPU_ITEMS_PER_THREAD}")
+else()
+  message(STATUS "Using default gpu items per thread(s)")
 endif()
 
 # exclude RAJA make targets from top-level build...

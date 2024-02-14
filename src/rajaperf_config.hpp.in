@@ -104,6 +104,7 @@ constexpr static const char* adiak_gpu_targets = "@GPU_TARGETS@";
 constexpr static const char* adiak_cmake_hip_architectures = "@CMAKE_HIP_ARCHIECTURES@";
 const std::vector<int> adiak_gpu_block_sizes = {@RAJA_PERFSUITE_GPU_BLOCKSIZES@};
 const std::vector<int> adiak_atomic_replications = {@RAJA_PERFSUITE_ATOMIC_REPLICATIONS@};
+const std::vector<int> adiak_gpu_items_per_thread = {@RAJA_PERFSUITE_GPU_ITEMS_PER_THREAD@};
 const std::vector<adiak::catstring> adiak_raja_hipcc_flags = str_to_list<adiak::catstring>(std::string("@RAJA_HIPCC_FLAGS@"));
 const adiak::catstring adiak_mpi_cxx_compiler = std::string("@MPI_CXX_COMPILER@");
 const adiak::catstring adiak_systype_build = std::string("@RAJAPERF_BUILD_SYSTYPE@");
@@ -115,6 +116,9 @@ using gpu_block_sizes = integer::list_type<@RAJA_PERFSUITE_GPU_BLOCKSIZES@>;
 
 // List of GPU atomic replications
 using atomic_replications = integer::list_type<@RAJA_PERFSUITE_ATOMIC_REPLICATIONS@>;
+
+// List of GPU items per thread
+using gpu_items_per_thread = integer::list_type<@RAJA_PERFSUITE_GPU_ITEMS_PER_THREAD@>;
 
 // Name of user who ran code
 std::string user_run;

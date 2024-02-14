@@ -125,6 +125,12 @@ struct ExactSqrt
   static constexpr bool valid(size_t i) { return sqrt(i)*sqrt(i) == i; }
 };
 
+template < size_t N >
+struct LessEqual
+{
+  static constexpr bool valid(size_t i) { return i <= N; }
+};
+
 // A camp::list of camp::integral_constant<size_t, I> types.
 // If gpu_block_sizes from the configuration is not empty it is those gpu_block_sizes,
 // otherwise it is a list containing just default_block_size.
@@ -148,6 +154,19 @@ using make_atomic_replication_list_type =
         typename std::conditional< (camp::size<rajaperf::configuration::atomic_replications>::value > 0),
           rajaperf::configuration::atomic_replications,
           list_type<default_atomic_replication>
+        >::type
+      >::type;
+
+// A camp::list of camp::integral_constant<size_t, I> types.
+// If gpu_items_per_thread from the configuration is not empty it is those gpu_items_per_thread,
+// otherwise it is a list containing just default_gpu_items_per_thread.
+// Invalid entries are removed according to validity_checker in either case.
+template < size_t default_gpu_items_per_thread, typename validity_checker = AllowAny >
+using make_gpu_items_per_thread_list_type =
+      typename detail::remove_invalid<validity_checker,
+        typename std::conditional< (camp::size<rajaperf::configuration::gpu_items_per_thread>::value > 0),
+          rajaperf::configuration::gpu_items_per_thread,
+          list_type<default_gpu_items_per_thread>
         >::type
       >::type;
 

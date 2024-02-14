@@ -64,16 +64,16 @@ public:
 
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
-  void runCudaVariantCub(VariantID vid);
-  void runHipVariantRocprim(VariantID vid);
-  template < size_t block_size >
+  void runCudaVariantLibrary(VariantID vid);
+  void runHipVariantLibrary(VariantID vid);
+  template < size_t block_size, size_t items_per_thread >
   void runCudaVariantImpl(VariantID vid);
-  template < size_t block_size >
+  template < size_t block_size, size_t items_per_thread >
   void runHipVariantImpl(VariantID vid);
 
 private:
   static const size_t default_gpu_block_size = 256;
-  using gpu_block_sizes_type = integer::list_type<default_gpu_block_size>;
+  using gpu_block_sizes_type = integer::make_gpu_block_size_list_type<default_gpu_block_size>;
 
   Real_ptr m_x;
   Real_ptr m_y;
