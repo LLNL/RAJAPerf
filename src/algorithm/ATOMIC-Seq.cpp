@@ -35,7 +35,7 @@ void ATOMIC::runSeqVariantReplicate(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (Index_type i = ibegin; i < iend; ++i ) {
-          ATOMIC_BODY(i);
+          ATOMIC_BODY(i, ATOMIC_VALUE);
         }
 
       }
@@ -48,7 +48,7 @@ void ATOMIC::runSeqVariantReplicate(VariantID vid)
     case Lambda_Seq : {
 
       auto atomic_base_lam = [=](Index_type i) {
-                                 ATOMIC_BODY(i);
+                                 ATOMIC_BODY(i, ATOMIC_VALUE);
                                };
 
       startTimer();
@@ -71,7 +71,7 @@ void ATOMIC::runSeqVariantReplicate(VariantID vid)
 
         RAJA::forall<RAJA::seq_exec>( RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
-            ATOMIC_RAJA_BODY(RAJA::seq_atomic, i);
+            ATOMIC_RAJA_BODY(RAJA::seq_atomic, i, ATOMIC_VALUE);
         });
 
       }

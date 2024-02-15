@@ -44,7 +44,7 @@ void ATOMIC::runOpenMPTargetReplicate(VariantID vid)
       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         #pragma omp atomic
-        ATOMIC_BODY(i);
+        ATOMIC_BODY(i, ATOMIC_VALUE);
       }
 
     }
@@ -57,7 +57,7 @@ void ATOMIC::runOpenMPTargetReplicate(VariantID vid)
 
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
         RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          ATOMIC_RAJA_BODY(RAJA::omp_atomic, i);
+          ATOMIC_RAJA_BODY(RAJA::omp_atomic, i, ATOMIC_VALUE);
       });
 
     }

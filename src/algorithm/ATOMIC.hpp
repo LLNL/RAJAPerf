@@ -33,11 +33,13 @@
   } \
   deallocData(atomic, vid);
 
-#define ATOMIC_BODY(i) \
-  atomic[(i)%replication] += 1.0
+#define ATOMIC_VALUE 1.0
 
-#define ATOMIC_RAJA_BODY(policy, i) \
-  RAJA::atomicAdd<policy>(&atomic[(i)%replication], 1.0)
+#define ATOMIC_BODY(i, val) \
+  atomic[(i)%replication] += (val)
+
+#define ATOMIC_RAJA_BODY(policy, i, val) \
+  RAJA::atomicAdd<policy>(&atomic[(i)%replication], (val))
 
 
 #include "common/KernelBase.hpp"
@@ -81,9 +83,13 @@ public:
   template < size_t block_size, size_t replication >
   void runCudaVariantReplicateGlobal(VariantID vid);
   template < size_t block_size, size_t replication >
-  void runCudaVariantReplicateBlock(VariantID vid);
-  template < size_t block_size, size_t replication >
   void runHipVariantReplicateGlobal(VariantID vid);
+  template < size_t block_size, size_t replication >
+  void runCudaVariantReplicateWarp(VariantID vid);
+  template < size_t block_size, size_t replication >
+  void runHipVariantReplicateWarp(VariantID vid);
+  template < size_t block_size, size_t replication >
+  void runCudaVariantReplicateBlock(VariantID vid);
   template < size_t block_size, size_t replication >
   void runHipVariantReplicateBlock(VariantID vid);
   template < size_t replication >
