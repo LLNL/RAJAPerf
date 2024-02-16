@@ -28,39 +28,6 @@ namespace hip
 const size_t warp_size = 64;
 const size_t max_static_shmem = 65536;
 
-const size_t default_arch = 910;
-
-// grid scan tunings that maximize throughput while minimizing items_per_thread
-template < size_t block_size, size_t hip_arch >
-struct grid_scan_default_items_per_thread
-{
-  static constexpr size_t value = 1;
-};
-
-// tuning for gfx90a
-template < size_t block_size >
-struct grid_scan_default_items_per_thread<block_size, 910>
-{
-  static constexpr size_t value =
-      (block_size <= 64) ? 6 :
-      (block_size <= 128) ? 4 :
-      (block_size <= 256) ? 4 :
-      (block_size <= 512) ? 4 :
-      (block_size <= 1024) ? 2 : 1;
-};
-
-// tuning for gfx942
-template < size_t block_size >
-struct grid_scan_default_items_per_thread<block_size, 942>
-{
-  static constexpr size_t value =
-      (block_size <= 64) ? 22 :
-      (block_size <= 128) ? 22 :
-      (block_size <= 256) ? 19 :
-      (block_size <= 512) ? 13 :
-      (block_size <= 1024) ? 7 : 1;
-};
-
 
 // perform a grid scan on val and returns the result at each thread
 // in exclusive and inclusive, note that val is used as scratch space
@@ -247,6 +214,43 @@ template < typename T, size_t block_size >
 struct grid_scan_max_items_per_thread
   : detail::grid_scan_max_items_per_thread<T, block_size, 1>
 {
+};
+
+
+// tune grid scan to maximize throughput while minimizing items_per_thread
+
+// default tuning for unknown DataType or hip_arch
+template < typename DataType, size_t block_size, size_t hip_arch, typename enable = void >
+struct grid_scan_default_items_per_thread
+{
+  static constexpr size_t value =
+      grid_scan_max_items_per_thread<DataType, block_size>::value / 2;
+};
+
+// tuning for gfx90a
+template < typename DataType, size_t block_size >
+struct grid_scan_default_items_per_thread<
+    DataType, block_size, 910, std::enable_if_t<sizeof(DataType) == sizeof(double)> >
+{
+  static constexpr size_t value =
+      (block_size <= 64) ? 6 :
+      (block_size <= 128) ? 4 :
+      (block_size <= 256) ? 4 :
+      (block_size <= 512) ? 4 :
+      (block_size <= 1024) ? 2 : 1;
+};
+
+// tuning for gfx942
+template < typename DataType, size_t block_size >
+struct grid_scan_default_items_per_thread<
+    DataType, block_size, 942, std::enable_if_t<sizeof(DataType) == sizeof(double)>>
+{
+  static constexpr size_t value =
+      (block_size <= 64) ? 22 :
+      (block_size <= 128) ? 22 :
+      (block_size <= 256) ? 19 :
+      (block_size <= 512) ? 13 :
+      (block_size <= 1024) ? 7 : 1;
 };
 
 } // end namespace hip

@@ -168,6 +168,12 @@ Executor::Executor(int argc, char** argv)
   if (strlen(cc.adiak_cmake_hip_architectures) > 0) {
     adiak::value("cmake_hip_architectures", cc.adiak_cmake_hip_architectures);
   }
+  if (strlen(cc.adiak_tuning_cuda_arch) > 0) {
+    adiak::value("tuning_cuda_arch", cc.adiak_tuning_cuda_arch);
+  }
+  if (strlen(cc.adiak_tuning_hip_arch) > 0) {
+    adiak::value("tuning_hip_arch", cc.adiak_tuning_hip_arch);
+  }
   if (cc.adiak_gpu_block_sizes.size() > 0) {
     adiak::value("gpu_block_sizes", cc.adiak_gpu_block_sizes);
   }

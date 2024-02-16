@@ -30,7 +30,12 @@
 #cmakedefine RAJA_PERFSUITE_ENABLE_MPI
 #cmakedefine RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN
 
+#if defined(RAJA_ENABLE_CUDA)
+#define RAJA_PERFSUITE_TUNING_CUDA_ARCH @RAJA_PERFSUITE_TUNING_CUDA_ARCH@
+#endif
+
 #if defined(RAJA_ENABLE_HIP)
+#define RAJA_PERFSUITE_TUNING_HIP_ARCH @RAJA_PERFSUITE_TUNING_HIP_ARCH@
 #include <hip/hip_version.h>
 #if (HIP_VERSION_MAJOR > 5) || \
     (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR >= 2)
@@ -102,6 +107,8 @@ const adiak::version adiak_compiler_version = std::string("@CMAKE_CXX_COMPILER_V
 const adiak::version adiak_cuda_compiler_version = std::string("@CMAKE_CUDA_COMPILER_VERSION@");
 constexpr static const char* adiak_gpu_targets = "@GPU_TARGETS@";
 constexpr static const char* adiak_cmake_hip_architectures = "@CMAKE_HIP_ARCHIECTURES@";
+constexpr static const char* adiak_tuning_cuda_arch = "@RAJA_PERFSUITE_TUNING_CUDA_ARCH@";
+constexpr static const char* adiak_tuning_hip_arch = "@RAJA_PERFSUITE_TUNING_HIP_ARCH@";
 const std::vector<int> adiak_gpu_block_sizes = {@RAJA_PERFSUITE_GPU_BLOCKSIZES@};
 const std::vector<int> adiak_atomic_replications = {@RAJA_PERFSUITE_ATOMIC_REPLICATIONS@};
 const std::vector<int> adiak_gpu_items_per_thread = {@RAJA_PERFSUITE_GPU_ITEMS_PER_THREAD@};

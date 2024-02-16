@@ -26,27 +26,6 @@ namespace cuda
 const size_t warp_size = 32;
 const size_t max_static_shmem = 49154;
 
-const size_t default_arch = 700;
-
-// grid scan tunings that maximize throughput while minimizing items_per_thread
-template < size_t block_size, size_t cuda_arch >
-struct grid_scan_default_items_per_thread
-{
-  static constexpr size_t value = 1;
-};
-
-// tuning for sm_70
-template < size_t block_size >
-struct grid_scan_default_items_per_thread<block_size, 700>
-{
-  static constexpr size_t value =
-      (block_size <= 64) ? 13 :
-      (block_size <= 128) ? 9 :
-      (block_size <= 256) ? 6 :
-      (block_size <= 512) ? 5 :
-      (block_size <= 1024) ? 5 : 1;
-};
-
 
 // perform a grid scan on val and returns the result at each thread
 // in exclusive and inclusive, note that val is used as scratch space
@@ -233,6 +212,30 @@ template < typename T, size_t block_size >
 struct grid_scan_max_items_per_thread
   : detail::grid_scan_max_items_per_thread<T, block_size, 1>
 {
+};
+
+
+// tune grid scan to maximize throughput while minimizing items_per_thread
+
+// default tuning for unknown DataType or cuda_arch
+template < typename DataType, size_t block_size, size_t cuda_arch, typename enable = void >
+struct grid_scan_default_items_per_thread
+{
+  static constexpr size_t value =
+      grid_scan_max_items_per_thread<DataType, block_size>::value / 2;
+};
+
+// tuning for sm_70
+template < typename DataType, size_t block_size >
+struct grid_scan_default_items_per_thread<
+    DataType, block_size, 700, std::enable_if_t<sizeof(DataType) == sizeof(double)> >
+{
+  static constexpr size_t value =
+      (block_size <= 64) ? 13 :
+      (block_size <= 128) ? 9 :
+      (block_size <= 256) ? 6 :
+      (block_size <= 512) ? 5 :
+      (block_size <= 1024) ? 5 : 1;
 };
 
 } // end namespace cuda

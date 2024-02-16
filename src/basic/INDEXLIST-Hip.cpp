@@ -24,7 +24,7 @@ namespace basic
 
 template < size_t block_size >
 using hip_items_per_thread_type = integer::make_gpu_items_per_thread_list_type<
-    detail::hip::grid_scan_default_items_per_thread<block_size, detail::hip::default_arch>::value,
+    detail::hip::grid_scan_default_items_per_thread<Index_type, block_size, RAJA_PERFSUITE_TUNING_HIP_ARCH>::value,
     integer::LessEqual<detail::hip::grid_scan_max_items_per_thread<Index_type, block_size>::value>>;
 
 

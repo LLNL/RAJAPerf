@@ -24,7 +24,7 @@ namespace basic
 
 template < size_t block_size >
 using cuda_items_per_thread_type = integer::make_gpu_items_per_thread_list_type<
-    detail::cuda::grid_scan_default_items_per_thread<block_size, detail::cuda::default_arch>::value,
+    detail::cuda::grid_scan_default_items_per_thread<Index_type, block_size, RAJA_PERFSUITE_TUNING_CUDA_ARCH>::value,
     integer::LessEqual<detail::cuda::grid_scan_max_items_per_thread<Index_type, block_size>::value>>;
 
 

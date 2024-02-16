@@ -73,6 +73,9 @@ set(ENABLE_TBB Off CACHE BOOL "")
 
 set(RAJA_USE_CHRONO On CACHE BOOL "")
 
+set(RAJA_PERFSUITE_TUNING_CUDA_ARCH "0" CACHE STRING "CUDA arch to tune the execution for, ex '700' for sm_70")
+set(RAJA_PERFSUITE_TUNING_HIP_ARCH "0" CACHE STRING "HIP arch to tune the execution for, ex '910' for gfx90a, '942' for gfx942")
+
 set(RAJA_PERFSUITE_GPU_BLOCKSIZES "" CACHE STRING "Comma separated list of GPU block sizes, ex '256,1024'")
 
 set(RAJA_PERFSUITE_ATOMIC_REPLICATIONS "" CACHE STRING "Comma separated list of atomic replications, ex '1,256,4096'")
@@ -82,6 +85,20 @@ set(RAJA_PERFSUITE_GPU_ITEMS_PER_THREAD "" CACHE STRING "Comma separated list of
 set(RAJA_RANGE_ALIGN 4)
 set(RAJA_RANGE_MIN_LENGTH 32)
 set(RAJA_DATA_ALIGN 64)
+
+string(LENGTH "${RAJA_PERFSUITE_TUNING_CUDA_ARCH}" CUDA_ARCH_LENGTH)
+if (CUDA_ARCH_LENGTH GREATER 1)
+  message(STATUS "Using cuda tunings for arch: ${RAJA_PERFSUITE_TUNING_CUDA_ARCH}")
+else()
+  message(STATUS "Using default cuda arch tunings")
+endif()
+
+string(LENGTH "${RAJA_PERFSUITE_TUNING_HIP_ARCH}" HIP_ARCH_LENGTH)
+if (HIP_ARCH_LENGTH GREATER 1)
+  message(STATUS "Using hip tunings for arch: ${RAJA_PERFSUITE_TUNING_HIP_ARCH}")
+else()
+  message(STATUS "Using default hip arch tunings")
+endif()
 
 string(LENGTH "${RAJA_PERFSUITE_GPU_BLOCKSIZES}" BLOCKSIZES_LENGTH)
 if (BLOCKSIZES_LENGTH GREATER 0)
