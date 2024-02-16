@@ -205,7 +205,7 @@ void ATOMIC::runHipVariant(VariantID vid, size_t tune_idx)
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
 
-        seq_for(atomic_replications_type{}, [&](auto replication) {
+        seq_for(gpu_atomic_replications_type{}, [&](auto replication) {
 
           if (run_params.numValidAtomicReplication() == 0u ||
               run_params.validAtomicReplication(replication)) {
@@ -225,7 +225,7 @@ void ATOMIC::runHipVariant(VariantID vid, size_t tune_idx)
 
         if ( vid == Base_HIP ) {
 
-          seq_for(atomic_replications_type{}, [&](auto replication) {
+          seq_for(gpu_atomic_replications_type{}, [&](auto replication) {
 
             if (run_params.numValidAtomicReplication() == 0u ||
                 run_params.validAtomicReplication(replication)) {
@@ -243,7 +243,7 @@ void ATOMIC::runHipVariant(VariantID vid, size_t tune_idx)
 
           });
 
-          seq_for(atomic_replications_type{}, [&](auto replication) {
+          seq_for(gpu_atomic_replications_type{}, [&](auto replication) {
 
             if (run_params.numValidAtomicReplication() == 0u ||
                 run_params.validAtomicReplication(replication)) {
@@ -284,7 +284,7 @@ void ATOMIC::setHipTuningDefinitions(VariantID vid)
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
 
-        seq_for(atomic_replications_type{}, [&](auto replication) {
+        seq_for(gpu_atomic_replications_type{}, [&](auto replication) {
 
           if (run_params.numValidAtomicReplication() == 0u ||
               run_params.validAtomicReplication(replication)) {
@@ -298,7 +298,7 @@ void ATOMIC::setHipTuningDefinitions(VariantID vid)
 
         if ( vid == Base_HIP ) {
 
-          seq_for(atomic_replications_type{}, [&](auto replication) {
+          seq_for(gpu_atomic_replications_type{}, [&](auto replication) {
 
             if (run_params.numValidAtomicReplication() == 0u ||
                 run_params.validAtomicReplication(replication)) {
@@ -310,7 +310,7 @@ void ATOMIC::setHipTuningDefinitions(VariantID vid)
 
           });
 
-          seq_for(atomic_replications_type{}, [&](auto replication) {
+          seq_for(gpu_atomic_replications_type{}, [&](auto replication) {
 
             if (run_params.numValidAtomicReplication() == 0u ||
                 run_params.validAtomicReplication(replication)) {

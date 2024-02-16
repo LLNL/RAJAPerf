@@ -77,7 +77,7 @@ void ATOMIC::runOpenMPTargetVariant(VariantID vid, size_t tune_idx)
 
   if ( vid == Base_OpenMPTarget || vid == RAJA_OpenMPTarget ) {
 
-    seq_for(atomic_replications_type{}, [&](auto replication) {
+    seq_for(gpu_atomic_replications_type{}, [&](auto replication) {
 
       if (run_params.numValidAtomicReplication() == 0u ||
           run_params.validAtomicReplication(replication)) {
@@ -106,7 +106,7 @@ void ATOMIC::setOpenMPTargetTuningDefinitions(VariantID vid)
 {
   if ( vid == Base_OpenMPTarget || vid == RAJA_OpenMPTarget ) {
 
-    seq_for(atomic_replications_type{}, [&](auto replication) {
+    seq_for(gpu_atomic_replications_type{}, [&](auto replication) {
 
       if (run_params.numValidAtomicReplication() == 0u ||
           run_params.validAtomicReplication(replication)) {

@@ -101,7 +101,7 @@ private:
   static const size_t default_cpu_atomic_replication = 64;
   using cpu_atomic_replications_type = integer::make_atomic_replication_list_type<default_cpu_atomic_replication>;
   static const size_t default_atomic_replication = 4096;
-  using atomic_replications_type = integer::make_atomic_replication_list_type<default_atomic_replication>;
+  using gpu_atomic_replications_type = integer::make_atomic_replication_list_type<default_atomic_replication>;
 
   Real_type m_init;
   Real_type m_final;
