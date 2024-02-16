@@ -32,7 +32,7 @@ namespace algorithm
 
 template < size_t block_size >
 using hip_items_per_thread_type = integer::make_gpu_items_per_thread_list_type<
-    detail::hip::grid_scan_default_items_per_thread,
+    detail::hip::grid_scan_default_items_per_thread<block_size, detail::hip::default_arch>::value,
     integer::LessEqual<detail::hip::grid_scan_max_items_per_thread<Real_type, block_size>::value>>;
 
 

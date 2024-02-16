@@ -26,10 +26,26 @@ namespace cuda
 const size_t warp_size = 32;
 const size_t max_static_shmem = 49154;
 
-// grid scan tunings are in (block_size, items_per_thread)
-// these tunings maximize throughput while minimizing items_per_thread
-// sm_70: (64, 13), (128, 9), (256, 6), (512, 5), (1024, 5)
-const size_t grid_scan_default_items_per_thread = 7;
+const size_t default_arch = 700;
+
+// grid scan tunings that maximize throughput while minimizing items_per_thread
+template < size_t block_size, size_t cuda_arch >
+struct grid_scan_default_items_per_thread
+{
+  static constexpr size_t value = 1;
+};
+
+// tuning for sm_70
+template < size_t block_size >
+struct grid_scan_default_items_per_thread<block_size, 700>
+{
+  static constexpr size_t value =
+      (block_size <= 64) ? 13 :
+      (block_size <= 128) ? 9 :
+      (block_size <= 256) ? 6 :
+      (block_size <= 512) ? 5 :
+      (block_size <= 1024) ? 5 : 1;
+};
 
 
 // perform a grid scan on val and returns the result at each thread
