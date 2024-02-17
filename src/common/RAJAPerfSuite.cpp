@@ -35,6 +35,7 @@
 #include "basic/REDUCE3_INT.hpp"
 #include "basic/REDUCE_STRUCT.hpp"
 #include "basic/TRAP_INT.hpp"
+#include "basic/MULTI_REDUCE.hpp"
 
 //
 // Lcals kernels...
@@ -186,6 +187,7 @@ static const std::string KernelNames [] =
   std::string("Basic_REDUCE3_INT"),
   std::string("Basic_REDUCE_STRUCT"),
   std::string("Basic_TRAP_INT"),
+  std::string("Basic_MULTI_REDUCE"),
 
 //
 // Lcals kernels...
@@ -769,6 +771,10 @@ KernelBase* getKernelObject(KernelID kid,
     } 	
     case Basic_TRAP_INT : {
        kernel = new basic::TRAP_INT(run_params);
+       break;
+    }
+    case Basic_MULTI_REDUCE : {
+       kernel = new basic::MULTI_REDUCE(run_params);
        break;
     }
 
