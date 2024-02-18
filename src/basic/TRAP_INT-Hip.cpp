@@ -86,7 +86,7 @@ void TRAP_INT::runHipVariantBase(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    RAJAPERF_HIP_REDUCER_SETUP(Real_ptr, sumx, hsumx, 1);
+    RAJAPERF_HIP_REDUCER_SETUP(Real_ptr, sumx, hsumx, 1, 1);
 
     constexpr size_t shmem = sizeof(Real_type)*block_size;
     const size_t max_grid_size = RAJAPERF_HIP_GET_MAX_BLOCKS(
@@ -95,7 +95,7 @@ void TRAP_INT::runHipVariantBase(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJAPERF_HIP_REDUCER_INITIALIZE(&m_sumx_init, sumx, hsumx, 1);
+      RAJAPERF_HIP_REDUCER_INITIALIZE(&m_sumx_init, sumx, hsumx, 1, 1);
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
@@ -109,9 +109,8 @@ void TRAP_INT::runHipVariantBase(VariantID vid)
                          sumx,
                          iend);
 
-      Real_type rsumx;
-      RAJAPERF_HIP_REDUCER_COPY_BACK(&rsumx, sumx, hsumx, 1);
-      m_sumx += rsumx * h;
+      RAJAPERF_HIP_REDUCER_COPY_BACK(sumx, hsumx, 1, 1);
+      m_sumx += hsumx[0] * h;
 
     }
     stopTimer();

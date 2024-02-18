@@ -67,7 +67,7 @@ void PI_REDUCE::runCudaVariantBase(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    RAJAPERF_CUDA_REDUCER_SETUP(Real_ptr, pi, hpi, 1);
+    RAJAPERF_CUDA_REDUCER_SETUP(Real_ptr, pi, hpi, 1, 1);
 
     constexpr size_t shmem = sizeof(Real_type)*block_size;
     const size_t max_grid_size = RAJAPERF_CUDA_GET_MAX_BLOCKS(
@@ -76,7 +76,7 @@ void PI_REDUCE::runCudaVariantBase(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJAPERF_CUDA_REDUCER_INITIALIZE(&m_pi_init, pi, hpi, 1);
+      RAJAPERF_CUDA_REDUCER_INITIALIZE(&m_pi_init, pi, hpi, 1, 1);
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
@@ -88,9 +88,8 @@ void PI_REDUCE::runCudaVariantBase(VariantID vid)
                           pi, m_pi_init,
                           iend );
 
-      Real_type rpi;
-      RAJAPERF_CUDA_REDUCER_COPY_BACK(&rpi, pi, hpi, 1);
-      m_pi = rpi * static_cast<Real_type>(4);
+      RAJAPERF_CUDA_REDUCER_COPY_BACK(pi, hpi, 1, 1);
+      m_pi = hpi[0] * static_cast<Real_type>(4);
 
     }
     stopTimer();

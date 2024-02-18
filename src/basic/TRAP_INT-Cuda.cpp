@@ -86,7 +86,7 @@ void TRAP_INT::runCudaVariantBase(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    RAJAPERF_CUDA_REDUCER_SETUP(Real_ptr, sumx, hsumx, 1);
+    RAJAPERF_CUDA_REDUCER_SETUP(Real_ptr, sumx, hsumx, 1, 1);
 
     constexpr size_t shmem = sizeof(Real_type)*block_size;
     const size_t max_grid_size = RAJAPERF_CUDA_GET_MAX_BLOCKS(
@@ -95,7 +95,7 @@ void TRAP_INT::runCudaVariantBase(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJAPERF_CUDA_REDUCER_INITIALIZE(&m_sumx_init, sumx, hsumx, 1);
+      RAJAPERF_CUDA_REDUCER_INITIALIZE(&m_sumx_init, sumx, hsumx, 1, 1);
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
@@ -109,9 +109,8 @@ void TRAP_INT::runCudaVariantBase(VariantID vid)
                           sumx,
                           iend);
 
-      Real_type rsumx;
-      RAJAPERF_CUDA_REDUCER_COPY_BACK(&rsumx, sumx, hsumx, 1);
-      m_sumx += rsumx * h;
+      RAJAPERF_CUDA_REDUCER_COPY_BACK(sumx, hsumx, 1, 1);
+      m_sumx += hsumx[0] * h;
 
     }
     stopTimer();

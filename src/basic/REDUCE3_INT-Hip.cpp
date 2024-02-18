@@ -80,7 +80,7 @@ void REDUCE3_INT::runHipVariantBase(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    RAJAPERF_HIP_REDUCER_SETUP(Int_ptr, vmem, hvmem, 3);
+    RAJAPERF_HIP_REDUCER_SETUP(Int_ptr, vmem, hvmem, 3, 1);
 
     constexpr size_t shmem = 3*sizeof(Int_type)*block_size;
     const size_t max_grid_size = RAJAPERF_HIP_GET_MAX_BLOCKS(
@@ -90,7 +90,7 @@ void REDUCE3_INT::runHipVariantBase(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       Int_type ivmem[3] {m_vsum_init, m_vmin_init, m_vmax_init};
-      RAJAPERF_HIP_REDUCER_INITIALIZE(ivmem, vmem, hvmem, 3);
+      RAJAPERF_HIP_REDUCER_INITIALIZE(ivmem, vmem, hvmem, 3, 1);
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
@@ -104,11 +104,10 @@ void REDUCE3_INT::runHipVariantBase(VariantID vid)
                          vmem + 2, m_vmax_init,
                          iend );
 
-      Int_type rvmem[3];
-      RAJAPERF_HIP_REDUCER_COPY_BACK(rvmem, vmem, hvmem, 3);
-      m_vsum += rvmem[0];
-      m_vmin = RAJA_MIN(m_vmin, rvmem[1]);
-      m_vmax = RAJA_MAX(m_vmax, rvmem[2]);
+      RAJAPERF_HIP_REDUCER_COPY_BACK(vmem, hvmem, 3, 1);
+      m_vsum += hvmem[0];
+      m_vmin = RAJA_MIN(m_vmin, hvmem[1]);
+      m_vmax = RAJA_MAX(m_vmax, hvmem[2]);
 
     }
     stopTimer();
