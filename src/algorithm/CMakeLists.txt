@@ -48,5 +48,11 @@ blt_add_library(
           ATOMIC-Cuda.cpp
           ATOMIC-OMP.cpp
           ATOMIC-OMPTarget.cpp
+          HISTOGRAM.cpp
+          HISTOGRAM-Seq.cpp
+          HISTOGRAM-Hip.cpp
+          HISTOGRAM-Cuda.cpp
+          HISTOGRAM-OMP.cpp
+          HISTOGRAM-OMPTarget.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

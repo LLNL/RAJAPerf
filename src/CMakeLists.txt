@@ -250,6 +250,9 @@ blt_add_executable(
   algorithm/ATOMIC.cpp
   algorithm/ATOMIC-Seq.cpp
   algorithm/ATOMIC-OMPTarget.cpp
+  algorithm/HISTOGRAM.cpp
+  algorithm/HISTOGRAM-Seq.cpp
+  algorithm/HISTOGRAM-OMPTarget.cpp
   comm/HALO_base.cpp
   comm/HALO_PACKING.cpp
   comm/HALO_PACKING-Seq.cpp
