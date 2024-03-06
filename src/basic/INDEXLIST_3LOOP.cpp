@@ -28,14 +28,14 @@ INDEXLIST_3LOOP::INDEXLIST_3LOOP(const RunParams& params)
 
   setItsPerRep( 3 * getActualProblemSize() + 1 );
   setKernelsPerRep(3);
-  setBytesPerRep( (1*sizeof(Int_type) + 0*sizeof(Int_type)) * getActualProblemSize() +
+  setBytesPerRep( (1*sizeof(Idx_type) + 0*sizeof(Idx_type)) * getActualProblemSize() +
                   (0*sizeof(Real_type) + 1*sizeof(Real_type)) * getActualProblemSize() +
 
-                  (1*sizeof(Index_type) + 1*sizeof(Index_type)) +
-                  (1*sizeof(Int_type) + 1*sizeof(Int_type)) * (getActualProblemSize()+1) +
+                  (1*sizeof(Idx_type) + 1*sizeof(Idx_type)) +
+                  (1*sizeof(Idx_type) + 1*sizeof(Idx_type)) * (getActualProblemSize()+1) +
 
-                  (0*sizeof(Int_type) + 1*sizeof(Int_type)) * (getActualProblemSize()+1) +
-                  (1*sizeof(Int_type) + 0*sizeof(Int_type)) * getActualProblemSize() / 2 ); // about 50% output
+                  (0*sizeof(Idx_type) + 1*sizeof(Idx_type)) * (getActualProblemSize()+1) +
+                  (1*sizeof(Idx_type) + 0*sizeof(Idx_type)) * getActualProblemSize() / 2 ); // about 50% output
   setFLOPsPerRep(0);
 
   setUsesFeature(Forall);

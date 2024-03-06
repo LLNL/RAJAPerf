@@ -13,9 +13,9 @@
 ///   counts[i] = (x[i] < 0.0) ? 1 : 0;
 /// }
 ///
-/// Index_type count = 0;
+/// Idx_type count = 0;
 /// for (Index_type i = ibegin; i < iend+1; ++i ) {
-///   Index_type inc = counts[i];
+///   Idx_type inc = counts[i];
 ///   counts[i] = count;
 ///   count += inc;
 /// }
@@ -26,7 +26,7 @@
 ///   }
 /// }
 ///
-/// Index_type len = counts[iend];
+/// Idx_type len = counts[iend];
 ///
 
 #ifndef RAJAPerf_Basic_INDEXLIST_3LOOP_HPP
@@ -34,7 +34,7 @@
 
 #define INDEXLIST_3LOOP_DATA_SETUP \
   Real_ptr x = m_x; \
-  Int_ptr list = m_list;
+  Idx_ptr list = m_list;
 
 #define INDEXLIST_3LOOP_CONDITIONAL \
   x[i] < 0.0
@@ -57,6 +57,8 @@ namespace basic
 class INDEXLIST_3LOOP : public KernelBase
 {
 public:
+  using Idx_type = Index_type;
+  using Idx_ptr = Index_ptr;
 
   INDEXLIST_3LOOP(const RunParams& params);
 
@@ -84,8 +86,8 @@ private:
   using gpu_block_sizes_type = integer::list_type<default_gpu_block_size>;
 
   Real_ptr m_x;
-  Int_ptr m_list;
-  Index_type m_len;
+  Idx_ptr m_list;
+  Idx_type m_len;
 };
 
 } // end namespace basic

@@ -28,8 +28,8 @@ INDEXLIST::INDEXLIST(const RunParams& params)
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Index_type) + 1*sizeof(Index_type)) +
-                  (1*sizeof(Int_type) + 0*sizeof(Int_type)) * getActualProblemSize() / 2 + // about 50% output
+  setBytesPerRep( (1*sizeof(Idx_type) + 1*sizeof(Idx_type)) +
+                  (1*sizeof(Idx_type) + 0*sizeof(Idx_type)) * getActualProblemSize() / 2 + // about 50% output
                   (0*sizeof(Real_type) + 1*sizeof(Real_type)) * getActualProblemSize() );
   setFLOPsPerRep(0);
 

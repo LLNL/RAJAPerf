@@ -18,7 +18,7 @@ namespace basic
 {
 
 #define INDEXLIST_3LOOP_DATA_SETUP_Seq \
-  Index_type* counts = new Index_type[iend+1];
+  Idx_type* counts = new Idx_type[iend+1];
 
 #define INDEXLIST_3LOOP_DATA_TEARDOWN_Seq \
   delete[] counts; counts = nullptr;
@@ -46,10 +46,10 @@ void INDEXLIST_3LOOP::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
           counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
         }
 
-        Index_type count = 0;
+        Idx_type count = 0;
 
         for (Index_type i = ibegin; i < iend+1; ++i ) {
-          Index_type inc = counts[i];
+          Idx_type inc = counts[i];
           counts[i] = count;
           count += inc;
         }
@@ -88,10 +88,10 @@ void INDEXLIST_3LOOP::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
           indexlist_conditional_lam(i);
         }
 
-        Index_type count = 0;
+        Idx_type count = 0;
 
         for (Index_type i = ibegin; i < iend+1; ++i ) {
-          Index_type inc = counts[i];
+          Idx_type inc = counts[i];
           counts[i] = count;
           count += inc;
         }

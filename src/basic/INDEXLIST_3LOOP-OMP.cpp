@@ -18,7 +18,7 @@ namespace basic
 {
 
 #define INDEXLIST_3LOOP_DATA_SETUP_OMP \
-  Index_type* counts = new Index_type[iend+1];
+  Idx_type* counts = new Idx_type[iend+1];
 
 #define INDEXLIST_3LOOP_DATA_TEARDOWN_OMP \
   delete[] counts; counts = nullptr;
@@ -44,7 +44,7 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
 #else
       const Index_type n = iend+1 - ibegin;
       const int p0 = static_cast<int>(std::min(n, static_cast<Index_type>(omp_get_max_threads())));
-      ::std::vector<Index_type> thread_counts(p0);
+      ::std::vector<Idx_type> thread_counts(p0);
 #endif
 
       startTimer();
@@ -56,10 +56,10 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
         }
 
 #if _OPENMP >= 201811 && defined(RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN)
-        Index_type count = 0;
+        Idx_type count = 0;
         #pragma omp parallel for reduction(inscan, +:count)
         for (Index_type i = ibegin; i < iend+1; ++i ) {
-          Index_type inc = counts[i];
+          Idx_type inc = counts[i];
           counts[i] = count;
           #pragma omp scan exclusive(count)
           count += inc;
@@ -73,9 +73,9 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
           const Index_type local_begin = pid * step + ibegin;
           const Index_type local_end = (pid == p-1) ? iend+1 : (pid+1) * step + ibegin;
 
-          Index_type local_count = 0;
+          Idx_type local_count = 0;
           for (Index_type i = local_begin; i < local_end; ++i ) {
-            Index_type inc = counts[i];
+            Idx_type inc = counts[i];
             counts[i] = local_count;
             local_count += inc;
           }
@@ -85,7 +85,7 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
 
           if (pid != 0) {
 
-            Index_type prev_count = 0;
+            Idx_type prev_count = 0;
             for (int ip = 0; ip < pid; ++ip) {
               prev_count += thread_counts[ip];
             }
@@ -128,7 +128,7 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
 #else
       const Index_type n = iend+1 - ibegin;
       const int p0 = static_cast<int>(std::min(n, static_cast<Index_type>(omp_get_max_threads())));
-      ::std::vector<Index_type> thread_counts(p0);
+      ::std::vector<Idx_type> thread_counts(p0);
 #endif
 
       startTimer();
@@ -140,10 +140,10 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
         }
 
 #if _OPENMP >= 201811 && defined(RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN)
-        Index_type count = 0;
+        Idx_type count = 0;
         #pragma omp parallel for reduction(inscan, +:count)
         for (Index_type i = ibegin; i < iend+1; ++i ) {
-          Index_type inc = counts[i];
+          Idx_type inc = counts[i];
           counts[i] = count;
           #pragma omp scan exclusive(count)
           count += inc;
@@ -157,9 +157,9 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
           const Index_type local_begin = pid * step + ibegin;
           const Index_type local_end = (pid == p-1) ? iend+1 : (pid+1) * step + ibegin;
 
-          Index_type local_count = 0;
+          Idx_type local_count = 0;
           for (Index_type i = local_begin; i < local_end; ++i ) {
-            Index_type inc = counts[i];
+            Idx_type inc = counts[i];
             counts[i] = local_count;
             local_count += inc;
           }
@@ -169,7 +169,7 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
 
           if (pid != 0) {
 
-            Index_type prev_count = 0;
+            Idx_type prev_count = 0;
             for (int ip = 0; ip < pid; ++ip) {
               prev_count += thread_counts[ip];
             }

@@ -9,13 +9,13 @@
 ///
 /// INDEXLIST kernel reference implementation:
 ///
-/// Index_type count = 0;
+/// Idx_type count = 0;
 /// for (Index_type i = ibegin; i < iend; ++i ) {
 ///   if (x[i] < 0.0) {
 ///     list[count++] = i ;
 ///   }
 /// }
-/// Index_type len = count;
+/// Idx_type len = count;
 ///
 
 #ifndef RAJAPerf_Basic_INDEXLIST_HPP
@@ -23,7 +23,7 @@
 
 #define INDEXLIST_DATA_SETUP \
   Real_ptr x = m_x; \
-  Int_ptr list = m_list;
+  Idx_ptr list = m_list;
 
 #define INDEXLIST_CONDITIONAL  \
   x[i] < 0.0
@@ -46,6 +46,8 @@ namespace basic
 class INDEXLIST : public KernelBase
 {
 public:
+  using Idx_type = Index_type;
+  using Idx_ptr = Index_ptr;
 
   INDEXLIST(const RunParams& params);
 
@@ -73,8 +75,8 @@ private:
   using gpu_block_sizes_type = integer::make_gpu_block_size_list_type<default_gpu_block_size>;
 
   Real_ptr m_x;
-  Int_ptr m_list;
-  Index_type m_len;
+  Idx_ptr m_list;
+  Idx_type m_len;
 };
 
 } // end namespace basic

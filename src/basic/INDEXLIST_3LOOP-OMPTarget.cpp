@@ -26,7 +26,7 @@ namespace basic
   const size_t threads_per_team = 256;
 
 #define INDEXLIST_3LOOP_DATA_SETUP_OMP_TARGET \
-  Index_type* counts = nullptr; \
+  Idx_type* counts = nullptr; \
   allocData(DataSpace::OmpTarget, counts, iend+1);
 
 #define INDEXLIST_3LOOP_DATA_TEARDOWN_OMP_TARGET \
@@ -63,12 +63,12 @@ void INDEXLIST_3LOOP::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUS
           counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
         }
 
-        Index_type count = 0;
+        Idx_type count = 0;
         #pragma omp target is_device_ptr(counts) device( did )
         #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1) \
                                                   reduction(inscan, +:count)
         for (Index_type i = ibegin; i < iend+1; ++i ) {
-          Index_type inc = counts[i];
+          Idx_type inc = counts[i];
           counts[i] = count;
           #pragma omp scan exclusive(count)
           count += inc;

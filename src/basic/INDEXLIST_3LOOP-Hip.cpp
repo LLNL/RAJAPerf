@@ -22,7 +22,7 @@ namespace basic
 {
 
 #define INDEXLIST_3LOOP_DATA_SETUP_HIP \
-  Index_type* counts; \
+  Idx_type* counts; \
   allocData(DataSpace::HipDevice, counts, iend+1);
 
 #define INDEXLIST_3LOOP_DATA_TEARDOWN_HIP \
@@ -32,7 +32,7 @@ namespace basic
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void indexlist_conditional(Real_ptr x,
-                                      Index_type* counts,
+                                      Idx_type* counts,
                                       Index_type iend)
 {
   Index_type i = blockIdx.x * block_size + threadIdx.x;
@@ -43,9 +43,9 @@ __global__ void indexlist_conditional(Real_ptr x,
 
 template < size_t block_size >
 __launch_bounds__(block_size)
-__global__ void indexlist_make_list(Int_ptr list,
-                                    Index_type* counts,
-                                    Index_type* len,
+__global__ void indexlist_make_list(Idx_ptr list,
+                                    Idx_type* counts,
+                                    Idx_type* len,
                                     Index_type iend)
 {
   Index_type i = blockIdx.x * block_size + threadIdx.x;
@@ -73,13 +73,13 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
 
     INDEXLIST_3LOOP_DATA_SETUP_HIP;
 
-    Index_type* len;
+    Idx_type* len;
     allocData(DataSpace::HipPinnedCoarse, len, 1);
 
     hipStream_t stream = res.get_stream();
 
-    RAJA::operators::plus<Index_type> binary_op;
-    Index_type init_val = 0;
+    RAJA::operators::plus<Idx_type> binary_op;
+    Idx_type init_val = 0;
     int scan_size = iend+1 - ibegin;
     void* d_temp_storage = nullptr;
     size_t temp_storage_bytes = 0;
@@ -158,7 +158,7 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
 
     INDEXLIST_3LOOP_DATA_SETUP_HIP;
 
-    Index_type* len;
+    Idx_type* len;
     allocData(DataSpace::HipPinnedCoarse, len, 1);
 
     startTimer();

@@ -33,7 +33,7 @@ void INDEXLIST::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        Index_type count = 0;
+        Idx_type count = 0;
 
         for (Index_type i = ibegin; i < iend; ++i ) {
           INDEXLIST_BODY;
@@ -50,14 +50,14 @@ void INDEXLIST::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
-      auto indexlist_base_lam = [=](Index_type i, Index_type& count) {
+      auto indexlist_base_lam = [=](Index_type i, Idx_type& count) {
                                  INDEXLIST_BODY
                                };
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        Index_type count = 0;
+        Idx_type count = 0;
 
         for (Index_type i = ibegin; i < iend; ++i ) {
           indexlist_base_lam(i, count);
