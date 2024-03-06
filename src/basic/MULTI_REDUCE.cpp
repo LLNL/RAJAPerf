@@ -30,8 +30,8 @@ MULTI_REDUCE::MULTI_REDUCE(const RunParams& params)
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type))*m_num_bins +
-                  (1*sizeof(Real_type) + 0*sizeof(Real_type) +
+  setBytesPerRep( (1*sizeof(Data_type) + 1*sizeof(Data_type))*m_num_bins +
+                  (1*sizeof(Data_type) + 0*sizeof(Data_type) +
                    1*sizeof(Index_type) + 0*sizeof(Index_type)) * getActualProblemSize() );
   setFLOPsPerRep(1 * getActualProblemSize());
 

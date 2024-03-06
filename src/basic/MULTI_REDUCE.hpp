@@ -21,10 +21,10 @@
 #define MULTI_REDUCE_DATA_SETUP \
   Index_type num_bins = m_num_bins; \
   Index_ptr bins = m_bins; \
-  Real_ptr data = m_data; \
-  Real_ptr values_init = m_values_init.data(); \
-  Real_ptr values_final = m_values_final.data(); \
-  Real_ptr values; \
+  Data_ptr data = m_data; \
+  Data_ptr values_init = m_values_init.data(); \
+  Data_ptr values_final = m_values_final.data(); \
+  Data_ptr values; \
   allocData(getReductionDataSpace(vid), values, num_bins);
 
 #define MULTI_REDUCE_DATA_TEARDOWN \
@@ -33,9 +33,9 @@
 #define MULTI_REDUCE_GPU_DATA_SETUP \
   Index_type num_bins = m_num_bins; \
   Index_ptr bins = m_bins; \
-  Real_ptr data = m_data; \
-  Real_ptr values_init = m_values_init.data(); \
-  Real_ptr values_final = m_values_final.data();
+  Data_ptr data = m_data; \
+  Data_ptr values_init = m_values_init.data(); \
+  Data_ptr values_final = m_values_final.data();
 
 #define MULTI_REDUCE_BODY \
   values[bins[i]] += data[i];
@@ -58,7 +58,7 @@
 
 #define MULTI_REDUCE_GPU_FINALIZE_VALUES(hvalues, num_bins, replication) \
   for (Index_type b = 0; b < (num_bins); ++b) { \
-    Real_type val_final = 0.0; \
+    Data_type val_final = 0; \
     for (size_t r = 0; r < (replication); ++r) { \
       val_final += (hvalues)[b*(replication) + r]; \
     } \
@@ -78,6 +78,8 @@ namespace basic
 class MULTI_REDUCE : public KernelBase
 {
 public:
+  using Data_type = Real_type;
+  using Data_ptr = Real_ptr;
 
   MULTI_REDUCE(const RunParams& params);
 
@@ -104,14 +106,14 @@ public:
 private:
   static const size_t default_gpu_block_size = 256;
   using gpu_block_sizes_type = integer::make_gpu_block_size_list_type<default_gpu_block_size>;
-  static const size_t default_atomic_replication = 4096;
+  static const size_t default_atomic_replication = 2048; // 512, 512
   using gpu_atomic_replications_type = integer::make_atomic_replication_list_type<default_atomic_replication>;
 
   Index_type m_num_bins;
   Index_ptr m_bins;
-  Real_ptr m_data;
-  std::vector<Real_type> m_values_init;
-  std::vector<Real_type> m_values_final;
+  Data_ptr m_data;
+  std::vector<Data_type> m_values_init;
+  std::vector<Data_type> m_values_final;
 };
 
 } // end namespace basic
