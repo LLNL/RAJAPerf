@@ -32,7 +32,7 @@ namespace basic
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void indexlist_conditional(Real_ptr x,
-                                      Idx_type* counts,
+                                      INDEXLIST_3LOOP::Idx_type* counts,
                                       Index_type iend)
 {
   Index_type i = blockIdx.x * block_size + threadIdx.x;
@@ -43,9 +43,9 @@ __global__ void indexlist_conditional(Real_ptr x,
 
 template < size_t block_size >
 __launch_bounds__(block_size)
-__global__ void indexlist_make_list(Idx_ptr list,
-                                    Idx_type* counts,
-                                    Idx_type* len,
+__global__ void indexlist_make_list(INDEXLIST_3LOOP::Idx_ptr list,
+                                    INDEXLIST_3LOOP::Idx_type* counts,
+                                    INDEXLIST_3LOOP::Idx_type* len,
                                     Index_type iend)
 {
   Index_type i = blockIdx.x * block_size + threadIdx.x;

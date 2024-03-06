@@ -24,18 +24,18 @@ namespace basic
 
 template < size_t block_size >
 using cuda_items_per_thread_type = integer::make_gpu_items_per_thread_list_type<
-    detail::cuda::grid_scan_default_items_per_thread<Idx_type, block_size, RAJA_PERFSUITE_TUNING_CUDA_ARCH>::value,
-    integer::LessEqual<detail::cuda::grid_scan_max_items_per_thread<Idx_type, block_size>::value>>;
+    detail::cuda::grid_scan_default_items_per_thread<INDEXLIST::Idx_type, block_size, RAJA_PERFSUITE_TUNING_CUDA_ARCH>::value,
+    integer::LessEqual<detail::cuda::grid_scan_max_items_per_thread<INDEXLIST::Idx_type, block_size>::value>>;
 
 
 template < size_t block_size, size_t items_per_thread >
 __launch_bounds__(block_size)
 __global__ void indexlist(Real_ptr x,
-                          Idx_ptr list,
-                          Idx_type* block_counts,
-                          Idx_type* grid_counts,
+                          INDEXLIST::Idx_ptr list,
+                          INDEXLIST::Idx_type* block_counts,
+                          INDEXLIST::Idx_type* grid_counts,
                           unsigned* block_readys,
-                          Idx_type* len,
+                          INDEXLIST::Idx_type* len,
                           Index_type iend)
 {
   // blocks do start running in order in cuda, so a block with a higher
@@ -43,11 +43,11 @@ __global__ void indexlist(Real_ptr x,
   // (replace with an atomicInc if this changes)
   const int block_id = blockIdx.x;
 
-  Idx_type vals[items_per_thread];
+  INDEXLIST::Idx_type vals[items_per_thread];
 
   for (size_t ti = 0; ti < items_per_thread; ++ti) {
     Index_type i = block_id * block_size * items_per_thread + ti * block_size + threadIdx.x;
-    Idx_type val = 0;
+    INDEXLIST::Idx_type val = 0;
     if (i < iend) {
       if (INDEXLIST_CONDITIONAL) {
         val = 1;
@@ -56,15 +56,15 @@ __global__ void indexlist(Real_ptr x,
     vals[ti] = val;
   }
 
-  Idx_type exclusives[items_per_thread];
-  Idx_type inclusives[items_per_thread];
-  detail::cuda::GridScan<Idx_type, block_size, items_per_thread>::grid_scan(
+  INDEXLIST::Idx_type exclusives[items_per_thread];
+  INDEXLIST::Idx_type inclusives[items_per_thread];
+  detail::cuda::GridScan<INDEXLIST::Idx_type, block_size, items_per_thread>::grid_scan(
       block_id, vals, exclusives, inclusives, block_counts, grid_counts, block_readys);
 
   for (size_t ti = 0; ti < items_per_thread; ++ti) {
     Index_type i = block_id * block_size * items_per_thread + ti * block_size + threadIdx.x;
-    Idx_type exclusive = exclusives[ti];
-    Idx_type inclusive = inclusives[ti];
+    INDEXLIST::Idx_type exclusive = exclusives[ti];
+    INDEXLIST::Idx_type inclusive = inclusives[ti];
     if (i < iend) {
       if (exclusive != inclusive) {
         list[exclusive] = i;
