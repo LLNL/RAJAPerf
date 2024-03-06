@@ -36,7 +36,7 @@ void SCAN::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 #else
       const Index_type n = iend - ibegin;
       const int p0 = static_cast<int>(std::min(n, static_cast<Index_type>(omp_get_max_threads())));
-      ::std::vector<Real_type> thread_sums(p0);
+      ::std::vector<Data_type> thread_sums(p0);
 #endif
 
       startTimer();
@@ -60,7 +60,7 @@ void SCAN::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
           const Index_type local_begin = pid * step + ibegin;
           const Index_type local_end = (pid == p-1) ? iend : (pid+1) * step + ibegin;
 
-          Real_type local_scan_var = (pid == 0) ? scan_var : 0;
+          Data_type local_scan_var = (pid == 0) ? scan_var : 0;
           for (Index_type i = local_begin; i < local_end; ++i ) {
             y[i] = local_scan_var;
             local_scan_var += x[i];
@@ -71,7 +71,7 @@ void SCAN::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
           if (pid != 0) {
 
-            Real_type prev_sum = 0;
+            Data_type prev_sum = 0;
             for (int ip = 0; ip < pid; ++ip) {
               prev_sum += thread_sums[ip];
             }
@@ -92,7 +92,7 @@ void SCAN::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
     case Lambda_OpenMP : {
 
 #if _OPENMP >= 201811 && defined(RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN)
-        auto scan_lam = [=](Index_type i, Real_type scan_var) {
+        auto scan_lam = [=](Index_type i, Data_type scan_var) {
                           y[i] = scan_var;
                           return x[i];
                         };
@@ -100,16 +100,16 @@ void SCAN::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
         auto scan_lam_input = [=](Index_type i) {
                           return x[i];
                         };
-        auto scan_lam_sum_output = [=](Index_type i, Real_type sum_var) {
+        auto scan_lam_sum_output = [=](Index_type i, Data_type sum_var) {
                           y[i] += sum_var;
                         };
-        auto scan_lam_output = [=](Index_type i, Real_type scan_var) {
+        auto scan_lam_output = [=](Index_type i, Data_type scan_var) {
                           y[i] = scan_var;
                         };
 
         const Index_type n = iend - ibegin;
         const int p0 = static_cast<int>(std::min(n, static_cast<Index_type>(omp_get_max_threads())));
-        ::std::vector<Real_type> thread_sums(p0);
+        ::std::vector<Data_type> thread_sums(p0);
 #endif
 
       startTimer();
@@ -133,7 +133,7 @@ void SCAN::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
           const Index_type local_begin = pid * step + ibegin;
           const Index_type local_end = (pid == p-1) ? iend : (pid+1) * step + ibegin;
 
-          Real_type local_scan_var = (pid == 0) ? scan_var : 0;
+          Data_type local_scan_var = (pid == 0) ? scan_var : 0;
           for (Index_type i = local_begin; i < local_end; ++i ) {
             scan_lam_output(i, local_scan_var);
             local_scan_var += scan_lam_input(i);
@@ -143,7 +143,7 @@ void SCAN::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
           #pragma omp barrier
 
           if (pid != 0) {
-            Real_type prev_sum = 0;
+            Data_type prev_sum = 0;
             for (int ip = 0; ip < pid; ++ip) {
               prev_sum += thread_sums[ip];
             }

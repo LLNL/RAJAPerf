@@ -27,16 +27,16 @@ namespace algorithm
 
 template < size_t block_size >
 using cuda_items_per_thread_type = integer::make_gpu_items_per_thread_list_type<
-    detail::cuda::grid_scan_default_items_per_thread<Real_type, block_size, RAJA_PERFSUITE_TUNING_CUDA_ARCH>::value,
-    integer::LessEqual<detail::cuda::grid_scan_max_items_per_thread<Real_type, block_size>::value>>;
+    detail::cuda::grid_scan_default_items_per_thread<Data_type, block_size, RAJA_PERFSUITE_TUNING_CUDA_ARCH>::value,
+    integer::LessEqual<detail::cuda::grid_scan_max_items_per_thread<Data_type, block_size>::value>>;
 
 
 template < size_t block_size, size_t items_per_thread >
 __launch_bounds__(block_size)
-__global__ void scan(Real_ptr x,
-                     Real_ptr y,
-                     Real_ptr block_counts,
-                     Real_ptr grid_counts,
+__global__ void scan(Data_ptr x,
+                     Data_ptr y,
+                     Data_ptr block_counts,
+                     Data_ptr grid_counts,
                      unsigned* block_readys,
                      Index_type iend)
 {
@@ -45,7 +45,7 @@ __global__ void scan(Real_ptr x,
   // (replace with an atomicInc if this changes)
   const int block_id = blockIdx.x;
 
-  Real_type vals[items_per_thread];
+  Data_type vals[items_per_thread];
 
   for (size_t ti = 0; ti < items_per_thread; ++ti) {
     Index_type i = block_id * block_size * items_per_thread + ti * block_size + threadIdx.x;
@@ -56,9 +56,9 @@ __global__ void scan(Real_ptr x,
     }
   }
 
-  Real_type exclusives[items_per_thread];
-  Real_type inclusives[items_per_thread];
-  detail::cuda::GridScan<Real_type, block_size, items_per_thread>::grid_scan(
+  Data_type exclusives[items_per_thread];
+  Data_type inclusives[items_per_thread];
+  detail::cuda::GridScan<Data_type, block_size, items_per_thread>::grid_scan(
       block_id, vals, exclusives, inclusives, block_counts, grid_counts, block_readys);
 
   for (size_t ti = 0; ti < items_per_thread; ++ti) {
@@ -84,8 +84,8 @@ void SCAN::runCudaVariantLibrary(VariantID vid)
 
     cudaStream_t stream = res.get_stream();
 
-    RAJA::operators::plus<Real_type> binary_op;
-    Real_type init_val = 0.0;
+    RAJA::operators::plus<Data_type> binary_op;
+    Data_type init_val = 0;
 
     int len = iend - ibegin;
 
@@ -156,9 +156,9 @@ void SCAN::runCudaVariantImpl(VariantID vid)
     const size_t grid_size = RAJA_DIVIDE_CEILING_INT((iend-ibegin), block_size*items_per_thread);
     const size_t shmem_size = 0;
 
-    Real_ptr block_counts;
+    Data_ptr block_counts;
     allocData(DataSpace::CudaDevice, block_counts, grid_size);
-    Real_ptr grid_counts;
+    Data_ptr grid_counts;
     allocData(DataSpace::CudaDevice, grid_counts, grid_size);
     unsigned* block_readys;
     allocData(DataSpace::CudaDevice, block_readys, grid_size);

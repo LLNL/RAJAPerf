@@ -20,11 +20,11 @@
 #define RAJAPerf_Algorithm_SCAN_HPP
 
 #define SCAN_DATA_SETUP \
-  Real_ptr x = m_x; \
-  Real_ptr y = m_y;
+  Data_ptr x = m_x; \
+  Data_ptr y = m_y;
 
 #define SCAN_PROLOGUE \
-  Real_type scan_var = 0.0;
+  Data_type scan_var = 0;
 
 #define SCAN_BODY \
   y[i] = scan_var; \
@@ -47,6 +47,8 @@ namespace algorithm
 class SCAN : public KernelBase
 {
 public:
+  using Data_type = Real_type;
+  using Data_ptr = Real_ptr;
 
   SCAN(const RunParams& params);
 
@@ -75,8 +77,8 @@ private:
   static const size_t default_gpu_block_size = 256;
   using gpu_block_sizes_type = integer::make_gpu_block_size_list_type<default_gpu_block_size>;
 
-  Real_ptr m_x;
-  Real_ptr m_y;
+  Data_ptr m_x;
+  Data_ptr m_y;
 };
 
 } // end namespace algorithm

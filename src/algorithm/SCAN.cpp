@@ -28,7 +28,7 @@ SCAN::SCAN(const RunParams& params)
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getActualProblemSize() );
+  setBytesPerRep( (1*sizeof(Data_type) + 1*sizeof(Data_type)) * getActualProblemSize() );
   setFLOPsPerRep(1 * getActualProblemSize());
 
   checksum_scale_factor = 1e-2 *
