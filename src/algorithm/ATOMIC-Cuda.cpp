@@ -28,7 +28,7 @@ const size_t warp_size = 32;
 
 template < size_t block_size, size_t replication >
 __launch_bounds__(block_size)
-__global__ void atomic_replicate_thread(Data_ptr atomic,
+__global__ void atomic_replicate_thread(ATOMIC::Data_ptr atomic,
                           Index_type iend)
 {
   Index_type i = blockIdx.x * block_size + threadIdx.x;
@@ -39,17 +39,17 @@ __global__ void atomic_replicate_thread(Data_ptr atomic,
 
 template < size_t block_size, size_t replication >
 __launch_bounds__(block_size)
-__global__ void atomic_replicate_warp(Data_ptr atomic,
+__global__ void atomic_replicate_warp(ATOMIC::Data_ptr atomic,
                           Index_type iend)
 {
-  Data_type val = 0;
+  ATOMIC::Data_type val = 0;
 
   Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < iend) {
     val = ATOMIC_VALUE;
   }
 
-  using WarpReduce = cub::WarpReduce<Data_type, warp_size>;
+  using WarpReduce = cub::WarpReduce<ATOMIC::Data_type, warp_size>;
   __shared__ typename WarpReduce::TempStorage warp_reduce_storage;
   val = WarpReduce(warp_reduce_storage).Sum(val);
   if ((threadIdx.x % warp_size) == 0) {
@@ -59,17 +59,17 @@ __global__ void atomic_replicate_warp(Data_ptr atomic,
 
 template < size_t block_size, size_t replication >
 __launch_bounds__(block_size)
-__global__ void atomic_replicate_block(Data_ptr atomic,
+__global__ void atomic_replicate_block(ATOMIC::Data_ptr atomic,
                           Index_type iend)
 {
-  Data_type val = 0;
+  ATOMIC::Data_type val = 0;
 
   Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < iend) {
     val = ATOMIC_VALUE;
   }
 
-  using BlockReduce = cub::BlockReduce<Data_type, block_size>;
+  using BlockReduce = cub::BlockReduce<ATOMIC::Data_type, block_size>;
   __shared__ typename BlockReduce::TempStorage block_reduce_storage;
   val = BlockReduce(block_reduce_storage).Sum(val);
   if (threadIdx.x == 0) {
