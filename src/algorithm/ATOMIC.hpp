@@ -19,8 +19,8 @@
 #define RAJAPerf_Algorithm_ATOMIC_HPP
 
 #define ATOMIC_DATA_SETUP(replication) \
-  Real_type init = m_init; \
-  Real_ptr atomic; \
+  Data_type init = m_init; \
+  Data_ptr atomic; \
   allocAndInitDataConst(atomic, replication, init, vid);
 
 #define ATOMIC_DATA_TEARDOWN(replication) \
@@ -54,6 +54,8 @@ namespace algorithm
 class ATOMIC : public KernelBase
 {
 public:
+  using Data_type = Real_type;
+  using Data_ptr = Real_ptr;
 
   ATOMIC(const RunParams& params);
 
@@ -100,11 +102,11 @@ private:
   using gpu_block_sizes_type = integer::make_gpu_block_size_list_type<default_gpu_block_size>;
   static const size_t default_cpu_atomic_replication = 64;
   using cpu_atomic_replications_type = integer::make_atomic_replication_list_type<default_cpu_atomic_replication>;
-  static const size_t default_atomic_replication = 4096;
+  static const size_t default_atomic_replication = 4096; // 1024, 8192
   using gpu_atomic_replications_type = integer::make_atomic_replication_list_type<default_atomic_replication>;
 
-  Real_type m_init;
-  Real_type m_final;
+  Data_type m_init;
+  Data_type m_final;
 };
 
 } // end namespace algorithm
