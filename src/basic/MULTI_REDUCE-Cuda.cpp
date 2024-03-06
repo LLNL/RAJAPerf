@@ -23,9 +23,9 @@ namespace basic
 
 template < size_t block_size, size_t replication >
 __launch_bounds__(block_size)
-__global__ void multi_reduce(Data_ptr values,
+__global__ void multi_reduce(MULTI_REDUCE::Data_ptr values,
                              Index_ptr bins,
-                             Data_ptr data,
+                             MULTI_REDUCE::Data_ptr data,
                              Index_type iend)
 {
   Index_type i = blockIdx.x * block_size + threadIdx.x;
