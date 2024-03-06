@@ -23,9 +23,9 @@ namespace basic
 
 template < size_t block_size, size_t replication >
 __launch_bounds__(block_size)
-__global__ void multi_reduce(Real_ptr values,
+__global__ void multi_reduce(Data_ptr values,
                              Index_ptr bins,
-                             Real_ptr data,
+                             Data_ptr data,
                              Index_type iend)
 {
   Index_type i = blockIdx.x * block_size + threadIdx.x;
@@ -47,7 +47,7 @@ void MULTI_REDUCE::runCudaVariantReplicateGlobal(VariantID vid)
 
   MULTI_REDUCE_GPU_DATA_SETUP;
 
-  RAJAPERF_CUDA_REDUCER_SETUP(Real_ptr, values, hvalues, num_bins, replication);
+  RAJAPERF_CUDA_REDUCER_SETUP(Data_ptr, values, hvalues, num_bins, replication);
 
   if ( vid == Base_CUDA ) {
 
