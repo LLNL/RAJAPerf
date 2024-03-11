@@ -28,11 +28,11 @@ if (PERFSUITE_ENABLE_WARNINGS)
 endif()
 
 if (ENABLE_KOKKOS)
-  set(CMAKE_CXX_STANDARD 17)
-  set(BLT_CXX_STD c++17)
-else()
-  set(CMAKE_CXX_STANDARD 14)
-  set(BLT_CXX_STD c++14)
+  if (BLT_CXX_STD STREQUAL c++14 OR
+      ((NOT CMAKE_CXX_STANDARD STREQUAL "") AND
+       "${CMAKE_CXX_STANDARD}" LESS 17))
+    message(FATAL_ERROR "KOKKOS requires C++17 support or higher.")
+  endif()
 endif()
 
 include(blt/SetupBLT.cmake)
@@ -197,12 +197,12 @@ set(RAJAPERF_BUILD_SYSTYPE $ENV{SYS_TYPE})
 set(RAJAPERF_BUILD_HOST $ENV{HOSTNAME})
 
 if (ENABLE_CUDA)
-  if (ENABLE_KOKKOS)
-    set(CMAKE_CUDA_STANDARD 17)
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -restrict --extended-lambda --expt-relaxed-constexpr")
-  else()
-    set(CMAKE_CUDA_STANDARD 14)
+
+  set(CMAKE_CUDA_STANDARD ${CMAKE_CXX_STANDARD})
+  if (CMAKE_CUDA_STANDARD STREQUAL 14)
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -restrict --expt-extended-lambda --expt-relaxed-constexpr")
+  else()
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -restrict --extended-lambda --expt-relaxed-constexpr")
   endif()
 
   set(RAJAPERF_COMPILER "${CUDA_NVCC_EXECUTABLE}")
