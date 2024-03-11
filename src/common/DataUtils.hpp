@@ -558,10 +558,85 @@ constexpr size_t log2(size_t v) noexcept
   return result;
 }
 
+
 template < typename ... Ts >
 struct PackNumBytes
 {
   static constexpr size_t value = (0 + ... + sizeof(Ts));
+};
+
+/*!
+ * \brief Pack 2-bit integer into least significant 2 bits of double precision
+ * floating point number's significand.
+ */
+struct DoubleChar2Bits
+{
+  static_assert(sizeof(double) == 8, "");
+  static_assert(sizeof(unsigned long long) == 8, "");
+
+  static constexpr bool packable = true;
+  using type = unsigned long long;
+
+  // little endian bit layout of double
+  struct BitLayout
+  {
+    unsigned long long char2 : 2; // least-significant 2 bits of significand
+    unsigned long long significand : 50;
+    unsigned long long exponent : 11;
+    unsigned long long sign : 1;
+  };
+
+  RAJA_PERFSUITE_HOST_DEVICE
+  static inline type pack(double const& d, char const& c)
+  {
+    BitLayout bit_val;
+    memcpy(&bit_val, &d, sizeof(double));
+    bit_val.char2 = c;
+    type packed_val;
+    memcpy(&packed_val, &bit_val, sizeof(double));
+    return packed_val;
+  }
+
+  RAJA_PERFSUITE_HOST_DEVICE
+  static inline void unpack(type const& packed_val, double& d, char& c)
+  {
+    BitLayout bit_val;
+    memcpy(&bit_val, &packed_val, sizeof(double));
+    c = bit_val.char2;
+    bit_val.char2 = 0;
+    memcpy(&d, &bit_val, sizeof(double));
+  }
+};
+
+/*!
+ * \brief Pack 2-bit integer into most significant 2 bits of 64-bit integer.
+ */
+template < typename Integral >
+struct IntegralChar2bits
+{
+  static_assert(sizeof(Integral) == 8, "");
+  static_assert(sizeof(unsigned long long) == 8, "");
+
+  static constexpr bool packable = true;
+  using type = unsigned long long;
+
+  RAJA_PERFSUITE_HOST_DEVICE
+  static inline type pack(Integral const& i, char const& c)
+  {
+    Integral packed_tmp = (i << 2) | (c & 0x3);
+    type packed_val;
+    memcpy(&packed_val, &packed_tmp, sizeof(type));
+    return packed_val;
+  }
+
+  RAJA_PERFSUITE_HOST_DEVICE
+  static inline void unpack(type const& packed_val, Integral& i, char& c)
+  {
+    Integral packed_tmp;
+    memcpy(&packed_tmp, &packed_val, sizeof(type));
+    c = static_cast<char>(packed_tmp & 0x3);
+    i = packed_tmp >> 2;
+  }
 };
 
 
@@ -614,6 +689,31 @@ struct AtomicDataPackerImpl<std::enable_if_t<(PackNumBytes<Ts...>::value <= 8)>,
     ignore_unused(in_order_expansion);
   }
 };
+///
+template < >
+struct AtomicDataPackerImpl<void, double, char> :
+    DoubleChar2Bits
+{ };
+///
+template < >
+struct AtomicDataPackerImpl<void, long, char> :
+    IntegralChar2bits<long>
+{ };
+///
+template < >
+struct AtomicDataPackerImpl<void, unsigned long, char> :
+    IntegralChar2bits<unsigned long>
+{ };
+///
+template < >
+struct AtomicDataPackerImpl<void, long long, char> :
+    IntegralChar2bits<long long>
+{ };
+///
+template < >
+struct AtomicDataPackerImpl<void, unsigned long long, char> :
+    IntegralChar2bits<unsigned long long>
+{ };
 
 template < typename ... Ts >
 using AtomicDataPacker = AtomicDataPackerImpl<void, Ts...>;
