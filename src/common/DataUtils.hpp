@@ -719,6 +719,67 @@ template < typename ... Ts >
 using AtomicDataPacker = AtomicDataPackerImpl<void, Ts...>;
 
 
+/*!
+ * \brief Map positive indices to [0, size) reordering such that most are
+ * separated by stride.
+ * This by mapping groups of indices (i) to i * stride + group
+ * where group = (i / (size / stride)) % stride
+ *   [0, stride,   2*stride, ...,
+ *    1, stride+1, 2*stride+1, ...)
+ */
+template < size_t stride, size_t size >
+struct StridedReorderStatic
+{
+  static_assert(stride == next_pow2(stride),
+                "stride must be a power of 2");
+  static_assert(size == next_pow2(size),
+                "size must be a power of 2");
+
+  static constexpr size_t stride_shift = log2(stride);
+  static constexpr size_t stride_mask = stride - 1;
+
+  static constexpr size_t num_groups = (size > stride) ? (size / stride) : 1;
+  static constexpr size_t group_shift = log2(num_groups);
+  static constexpr size_t group_mask = num_groups - 1;
+
+  RAJA_PERFSUITE_HOST_DEVICE
+  constexpr size_t operator()(size_t i) const noexcept
+  {
+    return ((i >> group_shift) & stride_mask) |
+           ((i & group_mask) << stride_shift);
+  }
+};
+///
+template < size_t stride >
+struct StridedReorder
+{
+  static_assert(stride == next_pow2(stride),
+                "stride must be a power of 2");
+
+  static constexpr size_t stride_shift = log2(stride);
+  static constexpr size_t stride_mask = stride - 1;
+
+  constexpr void setup(size_t size)
+  {
+    assert(size == next_pow2(size));
+
+    size_t num_groups = (size > stride) ? (size / stride) : 1;
+    group_shift = log2(num_groups);
+    group_mask = num_groups - 1;
+  }
+
+  RAJA_PERFSUITE_HOST_DEVICE
+  constexpr size_t operator()(size_t i) const noexcept
+  {
+    return ((i >> group_shift) & stride_mask) |
+           ((i & group_mask) << stride_shift);
+  }
+
+  size_t group_shift;
+  size_t group_mask;
+};
+
+
 // store block and grid counts in separate places
 // because they can not be stored together with the ready flag
 template < typename DataType >
@@ -756,27 +817,19 @@ struct AtomicDeviceStoragePackable
       (atomic_destructive_interference_size > sizeof(DataType))
       ? atomic_destructive_interference_size / sizeof(DataType)
       : 1;
-  static_assert(atomic_stride == next_pow2(atomic_stride),
-                "atomic_stride must be a power of 2");
 
   struct strided_pointer
   {
     DataType* ptr;
-    size_t group_shift;
-    size_t group_mask;
+    StridedReorder<atomic_stride> reorder;
 
     RAJA_PERFSUITE_HOST_DEVICE
     constexpr DataType& operator[](size_t i) noexcept
     {
-      return ptr[index(i)];
-    }
-
-    RAJA_PERFSUITE_HOST_DEVICE
-    constexpr size_t index(size_t i) const noexcept
-    {
-      return (i >> group_shift) | ((i & group_mask) * atomic_stride);
+      return ptr[reorder(i)];
     }
   };
+
   strided_pointer count_readys;
 
   template < typename Allocator >
@@ -784,12 +837,9 @@ struct AtomicDeviceStoragePackable
                 size_t grid_size, Allocator&& aloc)
   {
     size_t aloc_size = next_pow2(grid_size);
-    size_t num_groups = (aloc_size > atomic_stride)
-                        ? (aloc_size / atomic_stride)
-                        : 1;
+
     aloc(count_readys.ptr, aloc_size);
-    count_readys.group_shift = log2(num_groups);
-    count_readys.group_mask = num_groups - 1;
+    count_readys.reorder.setup(aloc_size);
 
     storage_to_zero = count_readys.ptr;
     storage_size = sizeof(DataType)*aloc_size;
