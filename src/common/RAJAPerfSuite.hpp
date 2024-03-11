@@ -453,6 +453,9 @@ std::ostream& getNullStream();
  *******************************************************************************
  */
 template < typename... Ts >
+#if defined(RAJA_ENABLE_CUDA) || defined(RAJA_ENABLE_HIP)
+  __host__ __device__
+#endif
 inline void ignore_unused(Ts&&...) { }
 
 }  // closing brace for rajaperf namespace

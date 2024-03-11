@@ -35,14 +35,17 @@ using hip_items_per_thread_type = integer::make_gpu_items_per_thread_list_type<
     detail::hip::grid_scan_default_items_per_thread<SCAN::Data_type, block_size, RAJA_PERFSUITE_TUNING_HIP_ARCH>::value,
     integer::LessEqual<detail::hip::grid_scan_max_items_per_thread<SCAN::Data_type, block_size>::value>>;
 
+template < size_t block_size, size_t items_per_thread >
+using GridScan = detail::hip::GridScan<SCAN::Data_type, block_size, items_per_thread>;
+
+template < size_t block_size, size_t items_per_thread >
+using GridScanDeviceStorage = typename GridScan<block_size, items_per_thread>::DeviceStorage;
 
 template < size_t block_size, size_t items_per_thread >
 __launch_bounds__(block_size)
 __global__ void scan(SCAN::Data_ptr x,
                      SCAN::Data_ptr y,
-                     SCAN::Data_ptr block_counts,
-                     SCAN::Data_ptr grid_counts,
-                     unsigned* block_readys,
+                     GridScanDeviceStorage<block_size, items_per_thread> device_storage,
                      Index_type iend)
 {
   // It looks like blocks do not start running in order in hip, so a block
@@ -63,8 +66,8 @@ __global__ void scan(SCAN::Data_ptr x,
 
   SCAN::Data_type exclusives[items_per_thread];
   SCAN::Data_type inclusives[items_per_thread];
-  detail::hip::GridScan<SCAN::Data_type, block_size, items_per_thread>::grid_scan(
-      block_id, vals, exclusives, inclusives, block_counts, grid_counts, block_readys);
+  GridScan<block_size, items_per_thread>::grid_scan(
+      block_id, vals, exclusives, inclusives, device_storage);
 
   for (size_t ti = 0; ti < items_per_thread; ++ti) {
     Index_type i = block_id * block_size * items_per_thread + ti * block_size + threadIdx.x;
@@ -180,35 +183,40 @@ void SCAN::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
+    using GridScan = GridScan<block_size, items_per_thread>;
+    using GridScanDeviceStorage = typename GridScan::DeviceStorage;
+
     const size_t grid_size = RAJA_DIVIDE_CEILING_INT((iend-ibegin), block_size*items_per_thread);
     const size_t shmem_size = 0;
 
-    Data_ptr block_counts;
-    allocData(DataSpace::HipDevice, block_counts, grid_size);
-    Data_ptr grid_counts;
-    allocData(DataSpace::HipDevice, grid_counts, grid_size);
-    unsigned* block_readys;
-    allocData(DataSpace::HipDevice, block_readys, grid_size);
+    GridScanDeviceStorage device_storage;
+    void* storage_to_zero = nullptr;
+    size_t storage_size = 0;
+    device_storage.allocate(storage_to_zero, storage_size,
+        grid_size, [&](auto& ptr, size_t size) {
+          allocData(DataSpace::HipDevice, ptr, size);
+        });
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipErrchk( hipMemsetAsync(block_readys, 0, sizeof(unsigned)*grid_size,
-                                res.get_stream()) );
+      if (storage_to_zero) {
+        hipErrchk( hipMemsetAsync(storage_to_zero, 0, storage_size, res.get_stream()) );
+      }
 
       RPlaunchHipKernel( (scan<block_size, items_per_thread>),
                          grid_size, block_size,
                          shmem_size, res.get_stream(),
                          x+ibegin, y+ibegin,
-                         block_counts, grid_counts, block_readys,
+                         device_storage,
                          iend-ibegin );
 
     }
     stopTimer();
 
-    deallocData(DataSpace::HipDevice, block_counts);
-    deallocData(DataSpace::HipDevice, grid_counts);
-    deallocData(DataSpace::HipDevice, block_readys);
+    device_storage.deallocate([&](auto& ptr) {
+          deallocData(DataSpace::HipDevice, ptr);
+        });
 
   } else {
      getCout() << "\n  SCAN : Unknown Hip variant id = " << vid << std::endl;

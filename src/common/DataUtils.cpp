@@ -405,7 +405,8 @@ void deallocData(DataSpace dataSpace, void* ptr)
  * \brief Initialize Int_type data array to
  * randomly signed positive and negative values.
  */
-void initData(Int_ptr& ptr, Size_type len)
+template < typename IntegerPtr >
+void initDataIntegerImpl(IntegerPtr& ptr, Size_type len)
 {
   srand(4793);
 
@@ -425,6 +426,16 @@ void initData(Int_ptr& ptr, Size_type len)
   ptr[ihi] = 19;
 
   incDataInitCount();
+}
+///
+void initData(Int_ptr& ptr, Size_type len)
+{
+  initDataIntegerImpl(ptr, len);
+}
+///
+void initData(Index_ptr& ptr, Size_type len)
+{
+  initDataIntegerImpl(ptr, len);
 }
 
 /*
@@ -552,6 +563,14 @@ long double calcChecksumImpl(Data_getter data, Size_type len,
 }
 
 long double calcChecksum(Int_ptr ptr, Size_type len,
+                         Real_type scale_factor)
+{
+  return calcChecksumImpl([=](Size_type j) {
+    return static_cast<long double>(ptr[j]);
+  }, len, scale_factor);
+}
+
+long double calcChecksum(Index_ptr ptr, Size_type len,
                          Real_type scale_factor)
 {
   return calcChecksumImpl([=](Size_type j) {

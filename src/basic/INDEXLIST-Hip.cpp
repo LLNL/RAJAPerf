@@ -29,12 +29,16 @@ using hip_items_per_thread_type = integer::make_gpu_items_per_thread_list_type<
 
 
 template < size_t block_size, size_t items_per_thread >
+using GridScan = detail::hip::GridScan<INDEXLIST::Idx_type, block_size, items_per_thread>;
+
+template < size_t block_size, size_t items_per_thread >
+using GridScanDeviceStorage = typename GridScan<block_size, items_per_thread>::DeviceStorage;
+
+template < size_t block_size, size_t items_per_thread >
 __launch_bounds__(block_size)
 __global__ void indexlist(Real_ptr x,
                           INDEXLIST::Idx_ptr list,
-                          INDEXLIST::Idx_type* block_counts,
-                          INDEXLIST::Idx_type* grid_counts,
-                          unsigned* block_readys,
+                          GridScanDeviceStorage<block_size, items_per_thread> device_storage,
                           INDEXLIST::Idx_type* len,
                           Index_type iend)
 {
@@ -58,8 +62,8 @@ __global__ void indexlist(Real_ptr x,
 
   INDEXLIST::Idx_type exclusives[items_per_thread];
   INDEXLIST::Idx_type inclusives[items_per_thread];
-  detail::hip::GridScan<INDEXLIST::Idx_type, block_size, items_per_thread>::grid_scan(
-      block_id, vals, exclusives, inclusives, block_counts, grid_counts, block_readys);
+  GridScan<block_size, items_per_thread>::grid_scan(
+      block_id, vals, exclusives, inclusives, device_storage);
 
   for (size_t ti = 0; ti < items_per_thread; ++ti) {
     Index_type i = block_id * block_size * items_per_thread + ti * block_size + threadIdx.x;
@@ -76,6 +80,7 @@ __global__ void indexlist(Real_ptr x,
   }
 }
 
+
 template < size_t block_size, size_t items_per_thread >
 void INDEXLIST::runHipVariantImpl(VariantID vid)
 {
@@ -89,29 +94,35 @@ void INDEXLIST::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
+    using GridScan = GridScan<block_size, items_per_thread>;
+    using GridScanDeviceStorage = typename GridScan::DeviceStorage;
+
     const size_t grid_size = RAJA_DIVIDE_CEILING_INT((iend-ibegin), block_size*items_per_thread);
     const size_t shmem_size = 0;
 
     Idx_type* len;
     allocData(DataSpace::HipPinnedCoarse, len, 1);
-    Idx_type* block_counts;
-    allocData(DataSpace::HipDevice, block_counts, grid_size);
-    Idx_type* grid_counts;
-    allocData(DataSpace::HipDevice, grid_counts, grid_size);
-    unsigned* block_readys;
-    allocData(DataSpace::HipDevice, block_readys, grid_size);
+
+    GridScanDeviceStorage device_storage;
+    void* storage_to_zero = nullptr;
+    size_t storage_size = 0;
+    device_storage.allocate(storage_to_zero, storage_size,
+        grid_size, [&](auto& ptr, size_t size) {
+          allocData(DataSpace::HipDevice, ptr, size);
+        });
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipErrchk( hipMemsetAsync(block_readys, 0, sizeof(unsigned)*grid_size,
-                                res.get_stream()) );
+      if (storage_to_zero) {
+        hipErrchk( hipMemsetAsync(storage_to_zero, 0, storage_size, res.get_stream()) );
+      }
 
       RPlaunchHipKernel( (indexlist<block_size, items_per_thread>),
                          grid_size, block_size,
                          shmem_size, res.get_stream(),
                          x+ibegin, list+ibegin,
-                         block_counts, grid_counts, block_readys,
+                         device_storage,
                          len, iend-ibegin );
 
       hipErrchk( hipStreamSynchronize( res.get_stream() ) );
@@ -121,9 +132,9 @@ void INDEXLIST::runHipVariantImpl(VariantID vid)
     stopTimer();
 
     deallocData(DataSpace::HipPinnedCoarse, len);
-    deallocData(DataSpace::HipDevice, block_counts);
-    deallocData(DataSpace::HipDevice, grid_counts);
-    deallocData(DataSpace::HipDevice, block_readys);
+    device_storage.deallocate([&](auto& ptr) {
+          deallocData(DataSpace::HipDevice, ptr);
+        });
 
   } else {
     getCout() << "\n  INDEXLIST : Unknown variant id = " << vid << std::endl;

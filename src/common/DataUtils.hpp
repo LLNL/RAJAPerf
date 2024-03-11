@@ -28,6 +28,12 @@
 #include "RAJA/policy/hip/MemUtils_HIP.hpp"
 #endif
 
+#if defined(RAJA_ENABLE_CUDA) || defined(RAJA_ENABLE_HIP)
+#define RAJA_PERFSUITE_HOST_DEVICE __host__ __device__
+#else
+#define RAJA_PERFSUITE_HOST_DEVICE
+#endif
+
 namespace rajaperf
 {
 
@@ -83,6 +89,15 @@ void deallocData(DataSpace dataSpace, void* ptr);
  * a value > 1, one to a value < -1.
  */
 void initData(Int_ptr& ptr, Size_type len);
+
+/*!
+ * \brief Initialize Index_type data array.
+ *
+ * Array entries are randomly initialized to +/-1.
+ * Then, two randomly-chosen entries are reset, one to
+ * a value > 1, one to a value < -1.
+ */
+void initData(Index_ptr& ptr, Size_type len);
 
 /*!
  * \brief Initialize Real_type data array.
@@ -148,6 +163,9 @@ void initData(Real_type& d);
  * Checksumn is multiplied by given scale factor.
  */
 long double calcChecksum(Int_ptr d, Size_type len,
+                         Real_type scale_factor);
+///
+long double calcChecksum(Index_ptr d, Size_type len,
                          Real_type scale_factor);
 ///
 long double calcChecksum(unsigned long long* d, Size_type len,
@@ -515,6 +533,176 @@ struct RAJAPoolAllocatorHolder
 private:
   RajaPool m_pool;
 };
+
+
+namespace detail {
+
+constexpr size_t next_pow2(size_t v) noexcept
+{
+  static_assert(sizeof(size_t) == 8, "");
+  v--;
+  v |= v >> 1;
+  v |= v >> 2;
+  v |= v >> 4;
+  v |= v >> 8;
+  v |= v >> 16;
+  v |= v >> 32;
+  v++;
+  return v;
+}
+
+constexpr size_t log2(size_t v) noexcept
+{
+  size_t result = 0;
+  while(v >>= 1) { result++; }
+  return result;
+}
+
+template < typename ... Ts >
+struct PackNumBytes
+{
+  static constexpr size_t value = (0 + ... + sizeof(Ts));
+};
+
+
+/*!
+ * \brief Atomic Data Packer, packs data into a single type that can be used
+ * with atomics.
+ */
+template < typename, typename ... Ts >
+struct AtomicDataPackerImpl;
+
+template < typename ... Ts >
+struct AtomicDataPackerImpl<std::enable_if_t<(PackNumBytes<Ts...>::value > 8)>, Ts...>
+{
+  static constexpr bool packable = false;
+  using type = void;
+};
+///
+template < typename ... Ts >
+struct AtomicDataPackerImpl<std::enable_if_t<(PackNumBytes<Ts...>::value <= 8)>, Ts...>
+{
+  static_assert(PackNumBytes<Ts...>::value <= 8, "");
+  static_assert(sizeof(unsigned) == 4, "");
+  static_assert(sizeof(unsigned long long) == 8, "");
+
+  static constexpr bool packable = true;
+  using type = std::conditional_t< (PackNumBytes<Ts...>::value <= 4),
+                                   unsigned, unsigned long long >;
+
+  RAJA_PERFSUITE_HOST_DEVICE
+  static inline type pack(Ts const&... args)
+  {
+    type packed_val = 0;
+    auto ptr = reinterpret_cast<char*>(&packed_val);
+    int in_order_expansion[]{(
+        memcpy(ptr, &args, sizeof(Ts)),
+        ptr += sizeof(Ts),
+    0)...};
+    ignore_unused(in_order_expansion);
+    return packed_val;
+  }
+
+  RAJA_PERFSUITE_HOST_DEVICE
+  static inline void unpack(type const& packed_val, Ts&... args)
+  {
+    auto ptr = reinterpret_cast<const char*>(&packed_val);
+    int in_order_expansion[]{(
+        memcpy(&args, ptr, sizeof(Ts)),
+        ptr += sizeof(Ts),
+    0)...};
+    ignore_unused(in_order_expansion);
+  }
+};
+
+template < typename ... Ts >
+using AtomicDataPacker = AtomicDataPackerImpl<void, Ts...>;
+
+
+// store block and grid counts in separate places
+// because they can not be stored together with the ready flag
+template < typename DataType >
+struct AtomicDeviceStorageUnpackable
+{
+  DataType* block_counts;
+  DataType* grid_counts;
+  unsigned* block_readys;
+
+  template < typename Allocator >
+  void allocate(void*& storage_to_zero, size_t& storage_size,
+                size_t grid_size, Allocator&& aloc)
+  {
+    aloc(block_counts, grid_size);
+    aloc(grid_counts, grid_size);
+    aloc(block_readys, grid_size);
+    storage_to_zero = block_readys;
+    storage_size = sizeof(unsigned)*grid_size;
+  }
+
+  template < typename Deallocator >
+  void deallocate(Deallocator&& dealoc)
+  {
+    dealoc(block_counts);
+    dealoc(grid_counts);
+    dealoc(block_readys);
+  }
+};
+
+// store the block/grid count together with the ready flag
+template < typename DataType, size_t atomic_destructive_interference_size >
+struct AtomicDeviceStoragePackable
+{
+  static constexpr size_t atomic_stride =
+      (atomic_destructive_interference_size > sizeof(DataType))
+      ? atomic_destructive_interference_size / sizeof(DataType)
+      : 1;
+  static_assert(atomic_stride == next_pow2(atomic_stride),
+                "atomic_stride must be a power of 2");
+
+  struct strided_pointer
+  {
+    DataType* ptr;
+    size_t group_shift;
+    size_t group_mask;
+
+    RAJA_PERFSUITE_HOST_DEVICE
+    constexpr DataType& operator[](size_t i) noexcept
+    {
+      return ptr[index(i)];
+    }
+
+    RAJA_PERFSUITE_HOST_DEVICE
+    constexpr size_t index(size_t i) const noexcept
+    {
+      return (i >> group_shift) | ((i & group_mask) * atomic_stride);
+    }
+  };
+  strided_pointer count_readys;
+
+  template < typename Allocator >
+  void allocate(void*& storage_to_zero, size_t& storage_size,
+                size_t grid_size, Allocator&& aloc)
+  {
+    size_t aloc_size = next_pow2(grid_size);
+    size_t num_groups = (aloc_size > atomic_stride)
+                        ? (aloc_size / atomic_stride)
+                        : 1;
+    aloc(count_readys.ptr, aloc_size);
+    count_readys.group_shift = log2(num_groups);
+    count_readys.group_mask = num_groups - 1;
+
+    storage_to_zero = count_readys.ptr;
+    storage_size = sizeof(DataType)*aloc_size;
+  }
+
+  template < typename Deallocator >
+  void deallocate(Deallocator&& dealoc)
+  {
+    dealoc(count_readys.ptr);
+  }
+};
+
+}  // closing brace for detail namespace
 
 }  // closing brace for rajaperf namespace
 
