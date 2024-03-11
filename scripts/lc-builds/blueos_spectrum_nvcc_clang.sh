@@ -44,7 +44,7 @@ cmake \
   -DCMAKE_BUILD_TYPE=Release \
   -DMPI_CXX_COMPILER=/usr/tce/packages/spectrum-mpi/spectrum-mpi-${COMP_MPI_VER}-clang-${COMP_CLANG_VER}/bin/mpiclang++ \
   -DCMAKE_CXX_COMPILER=/usr/tce/packages/clang/clang-${COMP_CLANG_VER}/bin/clang++ \
-  -DBLT_CXX_STD=c++14 \
+  -DBLT_CXX_STD=c++17 \
   -C ${RAJA_HOSTCONFIG} \
   -DENABLE_MPI=On \
   -DENABLE_OPENMP=On \

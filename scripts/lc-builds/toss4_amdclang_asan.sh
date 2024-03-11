@@ -79,7 +79,7 @@ cmake \
   -DAMDGPU_TARGETS="${COMP_ARCH}:xnack+" \
   -DCMAKE_C_FLAGS="-fsanitize=address -shared-libsan" \
   -DCMAKE_CXX_FLAGS="-fsanitize=address -shared-libsan" \
-  -DBLT_CXX_STD=c++14 \
+  -DBLT_CXX_STD=c++17 \
   -C ${RAJA_HOSTCONFIG} \
   -DENABLE_HIP=ON \
   -DENABLE_OPENMP=ON \
