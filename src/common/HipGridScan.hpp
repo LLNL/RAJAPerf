@@ -84,10 +84,6 @@ struct GridScan
       inclusive[ti] = exclusive[ti] + val[ti];
     }
 
-    BlockExchange().blocked_to_striped(exclusive, exclusive, s_temp_storage.block_exchange_storage);
-    __syncthreads();
-    BlockExchange().blocked_to_striped(inclusive, inclusive, s_temp_storage.block_exchange_storage);
-    __syncthreads();
     if (first_block) {
 
       if (!last_block && last_thread) {
@@ -115,6 +111,15 @@ struct GridScan
           atomicExch(&device_storage.block_readys[block_id], 1u); // write block_counts is ready
         }
       }
+
+    }
+
+    BlockExchange().blocked_to_striped(exclusive, exclusive, s_temp_storage.block_exchange_storage);
+    __syncthreads();
+    BlockExchange().blocked_to_striped(inclusive, inclusive, s_temp_storage.block_exchange_storage);
+    __syncthreads();
+
+    if (!first_block) {
 
       // get prev_grid_count using last warp in block
       if (last_warp) {
