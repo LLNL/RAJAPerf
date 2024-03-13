@@ -22,6 +22,23 @@ namespace detail
 namespace cuda
 {
 
+template < typename T >
+  __device__
+inline T atomicLoad(const T* ptr) noexcept
+{
+#if 0
+  return atomicCAS(const_cast<T*>(ptr), static_cast<T>(11), static_cast<T>(11));
+#else
+  return atomicAdd(const_cast<T*>(ptr), static_cast<T>(0));
+#endif
+}
+
+template < typename T >
+__device__
+inline void atomicStore(T* ptr, T val) noexcept
+{
+  atomicExch(ptr, val);
+}
 
 
 // perform a grid scan on val and returns the result at each thread
@@ -85,12 +102,12 @@ struct GridScan
       if (!last_block && last_thread) {
         DataType grid_count = inclusive[items_per_thread-1];
         if constexpr(atomic_packable) {
-          atomicExch(&device_storage.count_readys[block_id],
+          atomicStore(&device_storage.count_readys[block_id],
                      AtomicPacker::pack(grid_count, 2)); // write grid count with grid ready (relaxed)
         } else {
           device_storage.grid_counts[block_id] = grid_count;  // write inclusive scan result for grid through block
           __threadfence();                         // ensure block_counts, grid_counts ready (release)
-          atomicExch(&device_storage.block_readys[block_id], 2u); // write block_counts, grid_counts are ready
+          atomicStore(&device_storage.block_readys[block_id], 2u); // write block_counts, grid_counts are ready
         }
       }
 
@@ -99,12 +116,12 @@ struct GridScan
       if (!last_block && last_thread) {
         DataType block_count = inclusive[items_per_thread-1];
         if constexpr(atomic_packable) {
-          atomicExch(&device_storage.count_readys[block_id],
+          atomicStore(&device_storage.count_readys[block_id],
                      AtomicPacker::pack(block_count, 1)); // write block count with block ready (relaxed)
         } else {
           device_storage.block_counts[block_id] = block_count; // write inclusive scan result for block
           __threadfence();                         // ensure block_counts ready (release)
-          atomicExch(&device_storage.block_readys[block_id], 1u); // write block_counts is ready
+          atomicStore(&device_storage.block_readys[block_id], 1u); // write block_counts is ready
         }
       }
 
@@ -140,10 +157,10 @@ struct GridScan
           // ensure previous block_counts are ready
           do {
             if constexpr(atomic_packable) {
-              AtomicPackedType pack = atomicCAS(&device_storage.count_readys[prev_block_id], 11u, 11u);
+              AtomicPackedType pack = atomicLoad(&device_storage.count_readys[prev_block_id]);
               AtomicPacker::unpack(pack, prev_count, prev_block_ready);
             } else {
-              prev_block_ready = atomicCAS(&device_storage.block_readys[prev_block_id], 11u, 11u);
+              prev_block_ready = atomicLoad(&device_storage.block_readys[prev_block_id]);
             }
 
             prev_blocks_ready_ballot = __ballot_sync(0xffffffffu, prev_block_ready >= 1);
@@ -177,10 +194,10 @@ struct GridScan
 
           if (prev_block_id >= 0) {
             if constexpr(atomic_packable) {
-              AtomicPackedType pack = atomicCAS(&device_storage.count_readys[prev_block_id], 11u, 11u);
+              AtomicPackedType pack = atomicLoad(&device_storage.count_readys[prev_block_id]);
               AtomicPacker::unpack(pack, prev_count, prev_block_ready);
             } else {
-              prev_block_ready = atomicCAS(&device_storage.block_readys[prev_block_id], 11u, 11u);
+              prev_block_ready = atomicLoad(&device_storage.block_readys[prev_block_id]);
             }
           }
 
@@ -223,12 +240,12 @@ struct GridScan
           if (!last_block) {
             DataType grid_count = prev_grid_count + inclusive[items_per_thread-1];
             if constexpr(atomic_packable) {
-              atomicExch(&device_storage.count_readys[block_id],
+              atomicStore(&device_storage.count_readys[block_id],
                      AtomicPacker::pack(grid_count, 2)); // write grid count with grid ready (relaxed)
             } else {
               device_storage.grid_counts[block_id] = grid_count;   // write inclusive scan result for grid through block
               __threadfence();                        // ensure grid_counts ready (release)
-              atomicExch(&device_storage.block_readys[block_id], 2u); // write grid_counts is ready
+              atomicStore(&device_storage.block_readys[block_id], 2u); // write grid_counts is ready
             }
           }
 
