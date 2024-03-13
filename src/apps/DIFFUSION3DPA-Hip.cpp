@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -117,18 +117,16 @@ void DIFFUSION3DPA::runHipVariantImpl(VariantID vid) {
 
   case Base_HIP: {
 
-    dim3 nblocks(NE);
-    dim3 nthreads_per_block(DPA_Q1D, DPA_Q1D, DPA_Q1D);
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+      dim3 nthreads_per_block(DPA_Q1D, DPA_Q1D, DPA_Q1D);
       constexpr size_t shmem = 0;
-      hipLaunchKernelGGL((Diffusion3DPA<block_size>),
-          dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
-          Basis, dBasis, D, X, Y, symmetric);
 
-      hipErrchk(hipGetLastError());
+      RPlaunchHipKernel( (Diffusion3DPA<block_size>),
+                         NE, nthreads_per_block,
+                         shmem, res.get_stream(),
+                         Basis, dBasis, D, X, Y, symmetric );
     }
     stopTimer();
 

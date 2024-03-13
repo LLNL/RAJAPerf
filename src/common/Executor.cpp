@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -24,7 +24,10 @@
 #include "basic/REDUCE3_INT.hpp"
 #include "basic/INDEXLIST_3LOOP.hpp"
 #include "algorithm/SORT.hpp"
-#include "apps/HALOEXCHANGE_FUSED.hpp"
+#include "comm/HALO_PACKING_FUSED.hpp"
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+#include "comm/HALO_EXCHANGE_FUSED.hpp"
+#endif
 
 #include <list>
 #include <vector>
@@ -396,6 +399,13 @@ void Executor::reportRunSummary(ostream& str) const
     str << "\t Kernel rep factor = " << run_params.getRepFactor() << endl;
     str << "\t Output files will be named " << ofiles << endl;
 
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+    str << "\nRunning with " << run_params.getMPISize() << " MPI procs" << endl;
+    auto div3d = run_params.getMPI3DDivision();
+    const char* valid3d = run_params.validMPI3DDivision() ? "" : "invalid";
+    str << "\t 3D division = " << div3d[0] << " x " << div3d[1] << " x " << div3d[2] << " " << valid3d << endl;
+#endif
+
     str << "\nThe following kernels and variants (when available for a kernel) will be run:" << endl;
 
     str << "\nData Spaces"
@@ -420,6 +430,47 @@ void Executor::reportRunSummary(ostream& str) const
       str << "\nKokkos - " << getDataSpaceName(run_params.getKokkosDataSpace());
     }
     str << endl;
+
+    str << "\nReduction Data Spaces"
+        << "\n--------";
+    str << "\nSeq - " << getDataSpaceName(run_params.getSeqReductionDataSpace());
+    if (isVariantAvailable(VariantID::Base_OpenMP)) {
+      str << "\nOpenMP - " << getDataSpaceName(run_params.getOmpReductionDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Base_OpenMPTarget)) {
+      str << "\nOpenMP Target - " << getDataSpaceName(run_params.getOmpTargetReductionDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Base_CUDA)) {
+      str << "\nCuda - " << getDataSpaceName(run_params.getCudaReductionDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Base_HIP)) {
+      str << "\nHip - " << getDataSpaceName(run_params.getHipReductionDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Kokkos_Lambda)) {
+      str << "\nKokkos - " << getDataSpaceName(run_params.getKokkosReductionDataSpace());
+    }
+    str << endl;
+
+    str << "\nMPI Data Spaces"
+        << "\n--------";
+    str << "\nSeq - " << getDataSpaceName(run_params.getSeqMPIDataSpace());
+    if (isVariantAvailable(VariantID::Base_OpenMP)) {
+      str << "\nOpenMP - " << getDataSpaceName(run_params.getOmpMPIDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Base_OpenMPTarget)) {
+      str << "\nOpenMP Target - " << getDataSpaceName(run_params.getOmpTargetMPIDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Base_CUDA)) {
+      str << "\nCuda - " << getDataSpaceName(run_params.getCudaMPIDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Base_HIP)) {
+      str << "\nHip - " << getDataSpaceName(run_params.getHipMPIDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Kokkos_Lambda)) {
+      str << "\nKokkos - " << getDataSpaceName(run_params.getKokkosMPIDataSpace());
+    }
+    str << endl;
+
 
     str << "\nVariants and Tunings"
         << "\n--------\n";
@@ -674,7 +725,7 @@ void Executor::runWarmupKernels()
         kernel_ids.insert(Basic_INDEXLIST_3LOOP); break;
 
       case Workgroup:
-        kernel_ids.insert(Apps_HALOEXCHANGE_FUSED); break;
+        kernel_ids.insert(Comm_HALO_PACKING_FUSED); break;
 
       case Reduction:
         kernel_ids.insert(Basic_REDUCE3_INT); break;
@@ -684,7 +735,12 @@ void Executor::runWarmupKernels()
 
       case View:
         break;
-  
+
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+      case MPI:
+        kernel_ids.insert(Comm_HALO_EXCHANGE_FUSED); break;
+#endif
+
       default:
         break;
 

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -55,12 +55,16 @@ void INT_PREDICT::runHipVariantImpl(VariantID vid)
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
        constexpr size_t shmem = 0;
-       hipLaunchKernelGGL((int_predict<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  px,
-                                               dm22, dm23, dm24, dm25,
-                                               dm26, dm27, dm28, c0,
-                                               offset,
-                                               iend );
-       hipErrchk( hipGetLastError() );
+
+       RPlaunchHipKernel( (int_predict<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          px,
+                          dm22, dm23, dm24,
+                          dm25, dm26, dm27,
+                          dm28, c0,
+                          offset,
+                          iend );
 
     }
     stopTimer();

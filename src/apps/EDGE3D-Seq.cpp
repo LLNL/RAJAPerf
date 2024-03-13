@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -28,9 +28,11 @@ void EDGE3D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
   EDGE3D_DATA_SETUP;
 
+#if defined(RUN_RAJA_SEQ)
   auto edge3d_lam = [=](Index_type i) {
                      EDGE3D_BODY;
                    };
+#endif
 
   switch ( vid ) {
 

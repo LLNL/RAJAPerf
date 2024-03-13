@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -69,17 +69,17 @@ void POLYBENCH_MVT::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
-        constexpr size_t shmem = 0;
+      constexpr size_t shmem = 0;
 
-      hipLaunchKernelGGL((poly_mvt_1<block_size>),
-                         dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
-                         A, x1, y1, N);
-      hipErrchk( hipGetLastError() );
+      RPlaunchHipKernel( (poly_mvt_1<block_size>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         A, x1, y1, N );
 
-      hipLaunchKernelGGL((poly_mvt_2<block_size>),
-                         dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
-                         A, x2, y2, N);
-      hipErrchk( hipGetLastError() );
+      RPlaunchHipKernel( (poly_mvt_2<block_size>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         A, x2, y2, N );
 
     }
     stopTimer();

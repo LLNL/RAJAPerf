@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -40,6 +40,9 @@ RunParams::RunParams(int argc, char** argv)
    data_alignment(RAJA::DATA_ALIGN),
    gpu_stream(1),
    gpu_block_sizes(),
+   mpi_size(1),
+   mpi_rank(0),
+   mpi_3d_division({-1, -1, -1}),
    pf_tol(0.1),
    checkrun_reps(1),
    reference_variant(),
@@ -68,7 +71,6 @@ RunParams::RunParams(int argc, char** argv)
    add_to_spot_config(),
 #endif
    disable_warmup(false),
-   allow_problematic_implementations(false),
    run_kernels(),
    run_variants()
 {
@@ -121,6 +123,11 @@ void RunParams::print(std::ostream& str) const
   for (size_t j = 0; j < gpu_block_sizes.size(); ++j) {
     str << "\n\t" << gpu_block_sizes[j];
   }
+  str << "\n mpi_size = " << mpi_size;
+  str << "\n mpi_3d_division = ";
+  for (size_t j = 0; j < 3; ++j) {
+    str << "\n\t" << mpi_3d_division[j];
+  }
   str << "\n pf_tol = " << pf_tol;
   str << "\n checkrun_reps = " << checkrun_reps;
   str << "\n reference_variant = " << reference_variant;
@@ -134,8 +141,6 @@ void RunParams::print(std::ostream& str) const
 #endif
 
   str << "\n disable_warmup = " << disable_warmup;
-  str << "\n allow_problematic_implementations = "
-      << allow_problematic_implementations;
 
   str << "\n seq data space = " << getDataSpaceName(seqDataSpace);
   str << "\n omp data space = " << getDataSpaceName(ompDataSpace);
@@ -144,6 +149,20 @@ void RunParams::print(std::ostream& str) const
   str << "\n hip data space = " << getDataSpaceName(hipDataSpace);
   str << "\n kokkos data space = " << getDataSpaceName(kokkosDataSpace);
   str << "\n sycl data space = " << getDataSpaceName(syclDataSpace);
+
+  str << "\n seq reduction data space = " << getDataSpaceName(seqReductionDataSpace);
+  str << "\n omp reduction data space = " << getDataSpaceName(ompReductionDataSpace);
+  str << "\n omp target reduction data space = " << getDataSpaceName(ompTargetReductionDataSpace);
+  str << "\n cuda reduction data space = " << getDataSpaceName(cudaReductionDataSpace);
+  str << "\n hip reduction data space = " << getDataSpaceName(hipReductionDataSpace);
+  str << "\n kokkos reduction data space = " << getDataSpaceName(kokkosReductionDataSpace);
+
+  str << "\n seq MPI data space = " << getDataSpaceName(seqMPIDataSpace);
+  str << "\n omp MPI data space = " << getDataSpaceName(ompMPIDataSpace);
+  str << "\n omp target MPI data space = " << getDataSpaceName(ompTargetMPIDataSpace);
+  str << "\n cuda MPI data space = " << getDataSpaceName(cudaMPIDataSpace);
+  str << "\n hip MPI data space = " << getDataSpaceName(hipMPIDataSpace);
+  str << "\n kokkos MPI data space = " << getDataSpaceName(kokkosMPIDataSpace);
 
   str << "\n kernel_input = ";
   for (size_t j = 0; j < kernel_input.size(); ++j) {
@@ -235,6 +254,11 @@ void RunParams::print(std::ostream& str) const
 void RunParams::parseCommandLineOptions(int argc, char** argv)
 {
   getCout() << "\n\nReading command line input..." << std::endl;
+
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+  MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+  MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+#endif
 
   for (int i = 1; i < argc; ++i) {
 
@@ -442,6 +466,37 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         input_state = BadInput;
       }
 
+    } else if ( opt == std::string("--mpi_3d_division") ) {
+
+      int num_got = 0;
+      bool done = false;
+      i++;
+      while ( i < argc && !done ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+          done = true;
+        } else {
+          num_got += 1;
+          int number = ::atoi( opt.c_str() );
+          if ( number <= 0 ) {
+            getCout() << "\nBad input:"
+                      << " must give --mpi_3d_division POSITIVE values (int)"
+                      << std::endl;
+            input_state = BadInput;
+          } else if (num_got <= 3) {
+            mpi_3d_division[num_got-1] = number;
+          }
+          ++i;
+        }
+      }
+      if (num_got != 3) {
+        getCout() << "\nBad input:"
+                  << " must give --mpi_3d_division three values (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
     } else if ( opt == std::string("--pass-fail-tol") ||
                 opt == std::string("-pftol") ) {
 
@@ -529,13 +584,28 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
                 opt == std::string("-cds") ||
                 opt == std::string("--hip-data-space") ||
                 opt == std::string("-hds") ||
+		opt == std::string("--sycl-data-space") ||
+                opt == std::string("-syds"))
                 opt == std::string("--kokkos-data-space") ||
                 opt == std::string("-kds") ||
-		opt == std::string("--sycl-data-space") ||
-                opt == std::string("-syds")) {
+                opt == std::string("--seq-reduction-data-space") ||
+                opt == std::string("--omp-reduction-data-space") ||
+                opt == std::string("--omptarget-reduction-data-space") ||
+                opt == std::string("--cuda-reduction-data-space") ||
+                opt == std::string("--hip-reduction-data-space") ||
+                opt == std::string("--sycl-reduction-data-space") ||
+                opt == std::string("--kokkos-reduction-data-space") ||
+                opt == std::string("--seq-mpi-data-space") ||
+                opt == std::string("--omp-mpi-data-space") ||
+                opt == std::string("--omptarget-mpi-data-space") ||
+                opt == std::string("--cuda-mpi-data-space") ||
+                opt == std::string("--hip-mpi-data-space") ||
+                opt == std::string("--sycl-mpi-data-space") ||
+                opt == std::string("--kokkos-mpi-data-space") ) {
 
       bool got_someting = false;
       bool got_something_available = false;
+      bool got_something_pseudo = false;
       i++;
       if ( i < argc ) {
         auto opt_name = std::move(opt);
@@ -543,11 +613,12 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         if ( opt.at(0) == '-' ) {
           i--;
         } else {
-          for (int ids = 0; ids < static_cast<int>(DataSpace::NumSpaces); ++ids) {
+          for (int ids = 0; ids < static_cast<int>(DataSpace::EndPseudoSpaces); ++ids) {
             DataSpace ds = static_cast<DataSpace>(ids);
             if (getDataSpaceName(ds) == opt) {
               got_someting = true;
               got_something_available = isDataSpaceAvailable(ds);
+              got_something_pseudo = isPseudoDataSpace(ds);
               if (        opt_name == std::string("--seq-data-space") ||
                           opt_name == std::string("-sds") ) {
                 seqDataSpace = ds;
@@ -563,12 +634,47 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
               } else if ( opt_name == std::string("--hip-data-space") ||
                           opt_name == std::string("-hds") ) {
                 hipDataSpace = ds;
-              } else if ( opt_name == std::string("--kokkos-data-space") ||
-                          opt_name == std::string("-kds") ) {
-                kokkosDataSpace = ds;
               } else if ( opt_name == std::string("--sycl-data-space") ||
                           opt_name == std::string("-syds") ) {
                 syclDataSpace = ds;
+              } else if ( opt_name == std::string("--kokkos-data-space") ||
+                          opt_name == std::string("-kds") ) {
+                kokkosDataSpace = ds;
+              } else if ( opt_name == std::string("--seq-reduction-data-space") ) {
+                seqReductionDataSpace = ds;
+              } else if ( opt_name == std::string("--omp-reduction-data-space") ) {
+                ompReductionDataSpace = ds;
+              } else if ( opt_name == std::string("--omptarget-reduction-data-space") ) {
+                ompTargetReductionDataSpace = ds;
+              } else if ( opt_name == std::string("--cuda-reduction-data-space") ) {
+                cudaReductionDataSpace = ds;
+              } else if ( opt_name == std::string("--hip-reduction-data-space") ) {
+                hipReductionDataSpace = ds;
+              } else if ( opt_name == std::string("--sycl-reduction-data-space") ) {
+                syclReductionDataSpace = ds;
+              } else if ( opt_name == std::string("--kokkos-reduction-data-space") ) {
+                kokkosReductionDataSpace = ds;
+              } else if ( opt_name == std::string("--seq-mpi-data-space") ) {
+                seqMPIDataSpace = ds;
+                got_something_available = got_something_available || got_something_pseudo;
+              } else if ( opt_name == std::string("--omp-mpi-data-space") ) {
+                ompMPIDataSpace = ds;
+                got_something_available = got_something_available || got_something_pseudo;
+              } else if ( opt_name == std::string("--omptarget-mpi-data-space") ) {
+                ompTargetMPIDataSpace = ds;
+                got_something_available = got_something_available || got_something_pseudo;
+              } else if ( opt_name == std::string("--cuda-mpi-data-space") ) {
+                cudaMPIDataSpace = ds;
+                got_something_available = got_something_available || got_something_pseudo;
+              } else if ( opt_name == std::string("--hip-mpi-data-space") ) {
+                hipMPIDataSpace = ds;
+                got_something_available = got_something_available || got_something_pseudo;
+              } else if ( opt_name == std::string("--sycl-mpi-data-space") ) {
+                syclMPIDataSpace = ds;
+                got_something_available = got_something_available || got_something_pseudo;
+              } else if ( opt_name == std::string("--kokkos-mpi-data-space") ) {
+                kokkosMPIDataSpace = ds;
+                got_something_available = got_something_available || got_something_pseudo;
               } else {
                 got_someting = false;
               }
@@ -589,6 +695,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
           }
         }
       }
+
     } else if ( std::string(argv[i]) == std::string("--tunings") ||
                 std::string(argv[i]) == std::string("-t") ) {
 
@@ -702,11 +809,6 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
       disable_warmup = true;
 
-    } else if ( std::string(argv[i]) ==
-                std::string("--allow-problematic-implementations") ) {
-
-      allow_problematic_implementations = true;
-
     } else if ( std::string(argv[i]) == std::string("--checkrun") ) {
 
       input_state = CheckRun;
@@ -753,6 +855,10 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
     }
 
+    if (input_state == InfoRequest) {
+      break;
+    }
+
   }
 
   // Default size and size_meaning if unset
@@ -760,6 +866,55 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
     size_meaning = SizeMeaning::Factor;
     size_factor = 1.0;
   }
+
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+
+  // assumes number is >= 0
+  // returns {0} if number is 0
+  //         {1} if number is 1
+  //         {prime factors in non-decreasing order} otherwise
+  auto factorize = [](int number) {
+    std::vector<int> prime_factors;
+    int factor = 2;
+    while (factor <= std::sqrt(number)) {
+      int quotient = number / factor;
+      if (quotient * factor == number) {
+        prime_factors.emplace_back(factor);
+        number = quotient;
+      } else {
+        factor++;
+      }
+    }
+    prime_factors.emplace_back(number);
+    return prime_factors;
+  };
+
+  // Uses prime factors to set division
+  // to a relatively square grid
+  auto set_division = [](int* division, const int dims,
+                          std::vector<int> const& prime_factors) {
+    for (int d = 0; d < dims; ++d) {
+      division[d] = 1;
+    }
+
+    for (int factor : prime_factors) {
+
+      int min_d = 0;
+      for (int d = 1; d < dims; ++d) {
+        if (division[d] < division[min_d]) {
+          min_d = d;
+        }
+      }
+
+      division[min_d] *= factor;
+    }
+  };
+
+  if (mpi_3d_division[0] == -1) {
+    std::vector<int> prime_factors = factorize(mpi_size);
+    set_division(mpi_3d_division.data(), 3, prime_factors);
+  }
+#endif
 
   processNpassesCombinerInput();
 
@@ -769,12 +924,12 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
   processTuningInput();
 
-  if ( input_state != BadInput &&
+  if ( input_state != InfoRequest && 
+       input_state != BadInput &&
        input_state != DryRun && 
-       input_state != CheckRun ) {
+       input_state != CheckRun) {
     input_state = PerfRun;
   }
-
 }
 
 
@@ -842,9 +997,6 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t ========================================\n\n";;
 
   str << "\t --disable-warmup (disable warmup kernels) [Default is run warmup kernels that are relevant to kernels selected to run]\n\n";
-
-  str << "\t --allow-problematic-implementations (allow problematic kernel implementations) [Default is to not allow problematic kernel implementations to run]\n"
-      << "\t      These implementations may deadlock causing the code to hang indefinitely.\n\n";
 
   str << "\t --kernels, -k <space-separated strings> [Default is run all]\n"
       << "\t      (names of individual kernels and/or groups of kernels to run)\n"
@@ -938,6 +1090,12 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t\t Example...\n"
       << "\t\t --gpu_block_size 128 256 512 (runs kernels with gpu_block_size 128, 256, and 512)\n\n";
 
+  str << "\t --mpi_3d_division <space-separated ints> [no default]\n"
+      << "\t      (number of mpi ranks in each dimension in a 3d grid)\n"
+      << "\t      (3D MPI kernels will be skipped if the product of mpi_3d_division is not equal to the number of ranks)\n";
+  str << "\t\t Example...\n"
+      << "\t\t --mpi_3d_division 2 3 5 (runs 3d MPI kernels on a 2 by 3 by 5 grid)\n\n";
+
   str << "\t --tunings, -t <space-separated strings> [Default is run all]\n"
       << "\t      (names of tunings to run)\n"
       << "\t      Note: knowing which tunings are available requires knowledge about the variants,\n"
@@ -997,18 +1155,96 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t --hip-data-space HipManaged (run HIP variants with Hip Managed memory)\n"
       << "\t\t -hds HipPinned (run HIP variants with Hip Pinned memory)\n\n";
 
-  str << "\t --kokkos-data-space, -kds <string> [Default is Host]\n"
-      << "\t      (names of data space to use)\n";
-  str << "\t\t Examples...\n"
-      << "\t\t --kokkos-data-space Host (run KOKKOS variants with Host memory)\n"
-      << "\t\t -kds HipPinned (run KOKKOS variants with Hip Pinned memory)\n\n";
-
   str << "\t --sycl-data-space, -syds <string> [Default is SyclDevice]\n"
       << "\t      (names of data space to use for SYCL variants)\n"
       << "\t      Valid data space names are 'SyclDevice', 'SyclPinned', or 'SyclManaged'\n";
   str << "\t\t Examples...\n"
       << "\t\t --sycl-data-space SyclManaged (run SYCL variants with Sycl Managed memory)\n"
       << "\t\t -syds SyclPinned (run SYCL variants with Sycl Pinned memory)\n\n";
+
+  str << "\t --kokkos-data-space, -kds <string> [Default is Host]\n"
+      << "\t      (names of data space to use)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --kokkos-data-space Host (run KOKKOS variants with Host memory)\n"
+      << "\t\t -kds HipPinned (run KOKKOS variants with CUDA Pinned memory)\n\n";
+
+  str << "\t --seq-reduction-data-space <string> [Default is Host]\n"
+      << "\t      (name of data space to use with reductions for sequential variants)\n"
+      << "\t      Valid data space names are 'Host' or 'CudaPinned'\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --seq-reduction-data-space Host (run sequential variants with Host memory)\n\n";
+
+  str << "\t --omp-reduction-data-space <string> [Default is Omp]\n"
+      << "\t      (names of data space to use with reductions for OpenMP variants)\n"
+      << "\t      Valid data space names are 'Host' or 'Omp'\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --omp-reduction-data-space Omp (run Omp variants with Omp memory)\n\n";
+
+  str << "\t --omptarget-reduction-data-space <string> [Default is OmpTarget]\n"
+      << "\t      (names of data space to use with reductions for OpenMP Target variants)\n"
+      << "\t      Valid data space names are 'OmpTarget' or 'CudaPinned'\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --omptarget-reduction-data-space OmpTarget (run Omp Target variants with Omp Target memory)\n\n";
+
+  str << "\t --cuda-reduction-data-space <string> [Default is CudaManagedDevicePreferredHostAccessed]\n"
+      << "\t      (names of data space to use with reductions for CUDA variants)\n"
+      << "\t      Valid data space names are 'CudaDevice', 'CudaPinned', or 'CudaManaged'\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --cuda-reduction-data-space CudaManaged (run CUDA variants with Cuda Managed memory)\n\n";
+
+  str << "\t --hip-reduction-data-space <string> [Default is HipDevice]\n"
+      << "\t      (names of data space to use with reductions for HIP variants)\n"
+      << "\t      Valid data space names are 'HipDevice', 'HipPinned', or 'HipManaged'\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --hip-reduction-data-space HipManaged (run HIP variants with Hip Managed memory)\n\n";
+
+  str << "\t --sycl-reduction-data-space <string> [Default is SyclDevice]\n"
+      << "\t      (names of data space to use with reductions for SYCL variants)\n"
+      << "\t      Valid data space names are 'SyclDevice', 'SyclPinned', or 'SyclManaged'\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --sycl-reduction-data-space SyclManaged (run SYCL variants with Sycl Managed memory)\n\n";
+
+  str << "\t --kokkos-reduction-data-space <string> [Default is Host]\n"
+      << "\t      (names of data space to use with reductions)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --kokkos-data-space Host (run KOKKOS variants with Host memory)\n"
+      << "\t\t -kds HipPinned (run KOKKOS variants with HIP Pinned memory)\n\n";
+
+  str << "\t --seq-mpi-data-space <string> [Default is Host]\n"
+      << "\t      (name of data space to use with MPI and sequential execution)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --seq-mpi-data-space Host (run sequential variants with Host memory for MPI buffers)\n\n";
+
+  str << "\t --omp-mpi-data-space <string> [Default is Omp]\n"
+      << "\t      (name of data space to use with MPI and OpenMP execution)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --omp-mpi-data-space Omp (run Omp variants with Omp memory for MPI buffers)\n\n";
+
+  str << "\t --omptarget-mpi-data-space <string> [Default is Copy]\n"
+      << "\t      (name of data space to use with MPI and OpenMP target execution)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --omptarget-mpi-data-space Copy (run Omp Target variants and copy to Host memory for MPI buffers)\n\n";
+
+  str << "\t --cuda-mpi-data-space <string> [Default is CudaPinned]\n"
+      << "\t      (name of data space to use with MPI and CUDA execution)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --cuda-mpi-data-space CudaPinned (run CUDA variants with Cuda Pinned memory for MPI buffers)\n\n";
+
+  str << "\t --hip-mpi-data-space <string> [Default is HipPinned]\n"
+      << "\t      (name of data space to use with MPI and HIP execution)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --hip-mpi-data-space Copy (run HIP variants and copy to Host memory for MPI buffers)\n\n";
+
+  str << "\t --sycl-mpi-data-space <string> [Default is SyclPinned]\n"
+      << "\t      (name of data space to use with MPI and SYCL execution)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --sycl-mpi-data-space Copy (run SYCL variants and copy to Host memory for MPI buffers)\n\n";
+
+  str << "\t --kokkos-mpi-data-space <string> [Default is Copy]\n"
+      << "\t      (name of data space to use with MPI and kokkos execution)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --kokkos-mpi-data-space Copy (run KOKKOS variants and copy to Host memory for MPI buffers)\n\n";
+>>>>>>> develop
 
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
   str << "\t --add-to-spot-config, -atsc <string> [Default is none]\n"
@@ -1058,20 +1294,26 @@ void RunParams::printVariantNames(std::ostream& str) const
 void RunParams::printDataSpaceNames(std::ostream& str) const
 {
   str << "\nAvailable data spaces:";
-  str << "\n-------------------\n";
+  str << "\n----------------------\n";
   for (int ids = 0; ids < static_cast<int>(DataSpace::NumSpaces); ++ids) {
     DataSpace ds = static_cast<DataSpace>(ids);
     if (isDataSpaceAvailable(ds)) {
       str << getDataSpaceName(ds) << std::endl;
     }
   }
-  str << "\nUnavailable data spaces:";
-  str << "\n-------------------\n";
+  str << "\nUnavailable data spaces in current build configuration:";
+  str << "\n-------------------------------------------------------\n";
   for (int ids = 0; ids < static_cast<int>(DataSpace::NumSpaces); ++ids) {
     DataSpace ds = static_cast<DataSpace>(ids);
     if (!isDataSpaceAvailable(ds)) {
       str << getDataSpaceName(ds) << std::endl;
     }
+  }
+  str << "\nPseudo data spaces:";
+  str << "\n-------------------\n";
+  for (int ids = static_cast<int>(DataSpace::NumSpaces)+1; ids < static_cast<int>(DataSpace::EndPseudoSpaces); ++ids) {
+    DataSpace ds = static_cast<DataSpace>(ids);
+    str << getDataSpaceName(ds) << std::endl;
   }
   str.flush();
 }

@@ -101,9 +101,11 @@ void INDEXLIST_3LOOP::runCudaVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      indexlist_conditional<block_size><<<grid_size, block_size, shmem, stream>>>(
-          x, counts, iend );
-      cudaErrchk( cudaGetLastError() );
+
+      RPlaunchCudaKernel( (indexlist_conditional<block_size>),
+                          grid_size, block_size,
+                          shmem, stream,
+                          x, counts, iend );
 
       cudaErrchk(::cub::DeviceScan::ExclusiveScan(d_temp_storage,
                                                   temp_storage_bytes,
@@ -114,9 +116,10 @@ void INDEXLIST_3LOOP::runCudaVariantImpl(VariantID vid)
                                                   scan_size,
                                                   stream));
 
-      indexlist_make_list<block_size><<<grid_size, block_size, shmem, stream>>>(
-          list, counts, len, iend );
-      cudaErrchk( cudaGetLastError() );
+      RPlaunchCudaKernel( (indexlist_make_list<block_size>),
+                          grid_size, block_size,
+                          shmem, stream,
+                          list, counts, len, iend );
 
       cudaErrchk( cudaStreamSynchronize(stream) );
       m_len = *len;
@@ -145,8 +148,10 @@ void INDEXLIST_3LOOP::runCudaVariantImpl(VariantID vid)
         counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
       });
 
-      RAJA::exclusive_scan_inplace< RAJA::cuda_exec<block_size, true /*async*/> >( res,
-          RAJA::make_span(counts+ibegin, iend+1-ibegin));
+      RAJA::exclusive_scan_inplace<
+        RAJA::cuda_exec<block_size, true /*async*/> >(
+          res,
+          RAJA::make_span(counts+ibegin, iend+1-ibegin) );
 
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend),

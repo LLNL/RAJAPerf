@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -52,6 +52,7 @@ enum GroupID {
   Stream,
   Apps,
   Algorithm,
+  Comm,
 
   NumGroups // Keep this one last and DO NOT remove (!!)
 
@@ -145,8 +146,6 @@ enum KernelID {
   Apps_EDGE3D,
   Apps_ENERGY,
   Apps_FIR,
-  Apps_HALOEXCHANGE,
-  Apps_HALOEXCHANGE_FUSED,
   Apps_LTIMES,
   Apps_LTIMES_NOVIEW,
   Apps_MASS3DEA,
@@ -165,6 +164,17 @@ enum KernelID {
   Algorithm_REDUCE_SUM,
   Algorithm_MEMSET,
   Algorithm_MEMCPY,
+
+//
+// Comm kernels...
+//
+  Comm_HALO_PACKING,
+  Comm_HALO_PACKING_FUSED,
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+  Comm_HALO_SENDRECV,
+  Comm_HALO_EXCHANGE,
+  Comm_HALO_EXCHANGE_FUSED,
+#endif
 
   NumKernels // Keep this one last and NEVER comment out (!!)
 
@@ -241,6 +251,10 @@ enum FeatureID {
 
   View,
 
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+  MPI,
+#endif
+
   NumFeatures // Keep this one last and NEVER comment out (!!)
 
 };
@@ -290,7 +304,11 @@ enum struct DataSpace {
   SyclManaged,
   SyclDevice,
 
-  NumSpaces // Keep this one last and NEVER comment out (!!)
+  NumSpaces, // Keep this one here and NEVER comment out (!!)
+
+  Copy,
+
+  EndPseudoSpaces // Keep this one last and NEVER comment out (!!)
 
 };
 
@@ -376,11 +394,20 @@ const std::string& getDataSpaceName(DataSpace cd);
 /*!
  *******************************************************************************
  *
- * Return true if the allocate associated with DataSpace enum value is available.
+ * Return true if the allocator associated with DataSpace enum value is available.
  *
  *******************************************************************************
  */
 bool isDataSpaceAvailable(DataSpace dataSpace);
+
+/*!
+ *******************************************************************************
+ *
+ * Return true if the DataSpace enum value is a pseudo DataSpace.
+ *
+ *******************************************************************************
+ */
+bool isPseudoDataSpace(DataSpace dataSpace);
 
 /*!
  *******************************************************************************

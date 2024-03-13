@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -52,9 +52,11 @@ void ADD::runCudaVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      add<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( c, a, b,
-                                      iend );
-      cudaErrchk( cudaGetLastError() );
+
+      RPlaunchCudaKernel( (add<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          c, a, b, iend );
 
     }
     stopTimer();
@@ -64,13 +66,18 @@ void ADD::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+      auto add_lambda = [=] __device__ (Index_type i) {
+        ADD_BODY;
+      };
+
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      lambda_cuda_forall<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(
-        ibegin, iend, [=] __device__ (Index_type i) {
-        ADD_BODY;
-      });
-      cudaErrchk( cudaGetLastError() );
+
+      RPlaunchCudaKernel( (lambda_cuda_forall<block_size, 
+                                              decltype(add_lambda)>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          ibegin, iend, add_lambda );
 
     }
     stopTimer();

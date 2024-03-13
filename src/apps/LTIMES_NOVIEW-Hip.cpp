@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -90,12 +90,12 @@ void LTIMES_NOVIEW::runHipVariantImpl(VariantID vid)
       LTIMES_NOVIEW_NBLOCKS_HIP;
       constexpr size_t shmem = 0;
 
-      hipLaunchKernelGGL((ltimes_noview<LTIMES_NOVIEW_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                         dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
-                         phidat, elldat, psidat,
-                         num_d,
-                         num_m, num_g, num_z);
-      hipErrchk( hipGetLastError() );
+      RPlaunchHipKernel(
+        (ltimes_noview<LTIMES_NOVIEW_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
+        nblocks, nthreads_per_block,
+        shmem, res.get_stream(),
+        phidat, elldat, psidat,
+        num_d, num_m, num_g, num_z );
 
     }
     stopTimer();
@@ -105,22 +105,24 @@ void LTIMES_NOVIEW::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      LTIMES_NOVIEW_THREADS_PER_BLOCK_HIP;
-      LTIMES_NOVIEW_NBLOCKS_HIP;
-      constexpr size_t shmem = 0;
-
-      auto ltimes_noview_lambda =
+      auto ltimes_noview_lambda = 
         [=] __device__ (Index_type z, Index_type g, Index_type m) {
           for (Index_type d = 0; d < num_d; ++d ) {
             LTIMES_NOVIEW_BODY;
           }
-      };
+        };
 
-      hipLaunchKernelGGL((ltimes_noview_lam<LTIMES_NOVIEW_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(ltimes_noview_lambda)>),
-                         dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
-                         num_m, num_g, num_z,
-                         ltimes_noview_lambda);
-      hipErrchk( hipGetLastError() );
+      LTIMES_NOVIEW_THREADS_PER_BLOCK_HIP;
+      LTIMES_NOVIEW_NBLOCKS_HIP;
+      constexpr size_t shmem = 0;
+
+      RPlaunchHipKernel(
+        (ltimes_noview_lam<LTIMES_NOVIEW_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP,
+                           decltype(ltimes_noview_lambda)>),
+        nblocks, nthreads_per_block,
+        shmem, res.get_stream(),
+        num_m, num_g, num_z,
+        ltimes_noview_lambda );
 
     }
     stopTimer();
@@ -145,14 +147,17 @@ void LTIMES_NOVIEW::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel_resource<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, num_d),
-                                               RAJA::RangeSegment(0, num_z),
-                                               RAJA::RangeSegment(0, num_g),
-                                               RAJA::RangeSegment(0, num_m)),
-                                       res,
-        [=] __device__ (Index_type d, Index_type z, Index_type g, Index_type m) {
+      RAJA::kernel_resource<EXEC_POL>(
+        RAJA::make_tuple(RAJA::RangeSegment(0, num_d),
+                         RAJA::RangeSegment(0, num_z),
+                         RAJA::RangeSegment(0, num_g),
+                         RAJA::RangeSegment(0, num_m)),
+        res,
+        [=] __device__ (Index_type d, Index_type z,
+                        Index_type g, Index_type m) {
           LTIMES_NOVIEW_BODY;
-      });
+        }
+      );
 
     }
     stopTimer();

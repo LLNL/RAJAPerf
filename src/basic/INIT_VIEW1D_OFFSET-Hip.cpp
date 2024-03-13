@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -54,9 +54,12 @@ void INIT_VIEW1D_OFFSET::runHipVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend-ibegin, block_size);
       constexpr size_t shmem = 0;
-      hipLaunchKernelGGL((initview1d_offset<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
-          a, v, ibegin, iend );
-      hipErrchk( hipGetLastError() );
+
+      RPlaunchHipKernel( (initview1d_offset<block_size>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         a, v,
+                         ibegin, iend );
 
     }
     stopTimer();
@@ -72,9 +75,12 @@ void INIT_VIEW1D_OFFSET::runHipVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend-ibegin, block_size);
       constexpr size_t shmem = 0;
-      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(initview1d_offset_lambda)>),
-        grid_size, block_size, shmem, res.get_stream(), ibegin, iend, initview1d_offset_lambda);
-      hipErrchk( hipGetLastError() );
+
+      RPlaunchHipKernel( (lambda_hip_forall<block_size,
+                                            decltype(initview1d_offset_lambda)>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         ibegin, iend, initview1d_offset_lambda );
 
     }
     stopTimer();

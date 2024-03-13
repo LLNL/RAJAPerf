@@ -73,10 +73,10 @@ void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipLaunchKernelGGL((mat_mat_shared<tile_size>), dim3(gridDim), dim3(blockDim), shmem, res.get_stream(),
-                         N, C, A, B);
-
-      hipErrchk( hipGetLastError() );
+      RPlaunchHipKernel( (mat_mat_shared<tile_size>),
+                         gridDim, blockDim,
+                         shmem, res.get_stream(),
+                         N, C, A, B );
     }
     stopTimer();
 
@@ -85,7 +85,7 @@ void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      auto mat_mat_shared_lam = [=] __device__() {
+      auto mat_mat_shared_lambda = [=] __device__() {
 
         auto outer_y = [&](Index_type by) {
           auto outer_x = [&](Index_type bx) {
@@ -175,10 +175,11 @@ void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
         }
       };
 
-      hipLaunchKernelGGL((lambda_hip<tile_size*tile_size, decltype(mat_mat_shared_lam)>),
-        gridDim, blockDim, shmem, res.get_stream(), mat_mat_shared_lam);
-
-      hipErrchk( hipGetLastError() );
+      RPlaunchHipKernel( (lambda_hip<tile_size*tile_size,
+                                     decltype(mat_mat_shared_lambda)>),
+                         gridDim, blockDim,
+                         shmem, res.get_stream(),
+                         mat_mat_shared_lambda );
     }
     stopTimer();
 

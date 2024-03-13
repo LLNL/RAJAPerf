@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -96,13 +96,17 @@ void POLYBENCH_JACOBI_2D::runCudaVariantImpl(VariantID vid)
         JACOBI_2D_NBLOCKS_CUDA;
         constexpr size_t shmem = 0;
 
-        poly_jacobi_2D_1<JACOBI_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                        <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(A, B, N);
-        cudaErrchk( cudaGetLastError() );
+        RPlaunchCudaKernel( 
+          (poly_jacobi_2D_1<JACOBI_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>),
+          nblocks, nthreads_per_block,
+          shmem, res.get_stream(),
+          A, B, N );
 
-        poly_jacobi_2D_2<JACOBI_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                        <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(A, B, N);
-        cudaErrchk( cudaGetLastError() );
+        RPlaunchCudaKernel( 
+          (poly_jacobi_2D_2<JACOBI_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>),
+          nblocks, nthreads_per_block,
+          shmem, res.get_stream(),
+          A, B, N );
 
       }
 
@@ -120,21 +124,29 @@ void POLYBENCH_JACOBI_2D::runCudaVariantImpl(VariantID vid)
         JACOBI_2D_NBLOCKS_CUDA;
         constexpr size_t shmem = 0;
 
-        poly_jacobi_2D_lam<JACOBI_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                          <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(N,
-          [=] __device__ (Index_type i, Index_type j) {
-            POLYBENCH_JACOBI_2D_BODY1;
-          }
-        );
-        cudaErrchk( cudaGetLastError() );
+        auto poly_jacobi_2D_1_lambda = [=] __device__ (Index_type i,
+                                                       Index_type j) {
+          POLYBENCH_JACOBI_2D_BODY1;
+        };
 
-        poly_jacobi_2D_lam<JACOBI_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                          <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(N,
-          [=] __device__ (Index_type i, Index_type j) {
-            POLYBENCH_JACOBI_2D_BODY2;
-          }
-        );
-        cudaErrchk( cudaGetLastError() );
+        RPlaunchCudaKernel(
+          (poly_jacobi_2D_lam<JACOBI_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA,
+                              decltype(poly_jacobi_2D_1_lambda)>),
+          nblocks, nthreads_per_block,
+          shmem, res.get_stream(),
+          N, poly_jacobi_2D_1_lambda );
+
+        auto poly_jacobi_2D_2_lambda = [=] __device__ (Index_type i,
+                                                       Index_type j) {
+          POLYBENCH_JACOBI_2D_BODY2;
+        };
+
+        RPlaunchCudaKernel(
+          (poly_jacobi_2D_lam<JACOBI_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA,
+                              decltype(poly_jacobi_2D_2_lambda)>),
+          nblocks, nthreads_per_block,
+          shmem, res.get_stream(),
+          N, poly_jacobi_2D_2_lambda );
 
       }
 
@@ -161,17 +173,19 @@ void POLYBENCH_JACOBI_2D::runCudaVariantImpl(VariantID vid)
 
       for (Index_type t = 0; t < tsteps; ++t) {
 
-        RAJA::kernel_resource<EXEC_POL>(RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
-                                                RAJA::RangeSegment{1, N-1}),
-                                        res,
+        RAJA::kernel_resource<EXEC_POL>(
+          RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
+                           RAJA::RangeSegment{1, N-1}),
+          res,
           [=] __device__ (Index_type i, Index_type j) {
             POLYBENCH_JACOBI_2D_BODY1_RAJA;
           }
         );
 
-         RAJA::kernel_resource<EXEC_POL>(RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
-                                                 RAJA::RangeSegment{1, N-1}),
-                                         res,
+        RAJA::kernel_resource<EXEC_POL>(
+          RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
+                           RAJA::RangeSegment{1, N-1}),
+          res,
           [=] __device__ (Index_type i, Index_type j) {
             POLYBENCH_JACOBI_2D_BODY2_RAJA;
           }

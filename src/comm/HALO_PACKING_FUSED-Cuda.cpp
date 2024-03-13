@@ -1,12 +1,12 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "HALOEXCHANGE_FUSED.hpp"
+#include "HALO_PACKING_FUSED.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -18,10 +18,10 @@
 
 namespace rajaperf
 {
-namespace apps
+namespace comm
 {
 
-#define HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_CUDA \
+#define HALO_PACKING_FUSED_MANUAL_FUSER_SETUP_CUDA \
   Real_ptr*   pack_buffer_ptrs; \
   Int_ptr*    pack_list_ptrs; \
   Real_ptr*   pack_var_ptrs; \
@@ -39,7 +39,7 @@ namespace apps
   allocData(DataSpace::CudaPinned, unpack_var_ptrs,    num_neighbors * num_vars); \
   allocData(DataSpace::CudaPinned, unpack_len_ptrs,    num_neighbors * num_vars);
 
-#define HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN_CUDA \
+#define HALO_PACKING_FUSED_MANUAL_FUSER_TEARDOWN_CUDA \
   deallocData(DataSpace::CudaPinned, pack_buffer_ptrs); \
   deallocData(DataSpace::CudaPinned, pack_list_ptrs); \
   deallocData(DataSpace::CudaPinned, pack_var_ptrs); \
@@ -51,8 +51,10 @@ namespace apps
 
 template < size_t block_size >
 __launch_bounds__(block_size)
-__global__ void haloexchange_fused_pack(Real_ptr* pack_buffer_ptrs, Int_ptr* pack_list_ptrs,
-                                        Real_ptr* pack_var_ptrs, Index_type* pack_len_ptrs)
+__global__ void halo_packing_fused_pack(Real_ptr* pack_buffer_ptrs,
+                                         Int_ptr* pack_list_ptrs,
+                                         Real_ptr* pack_var_ptrs,
+                                         Index_type* pack_len_ptrs)
 {
   Index_type j = blockIdx.y;
 
@@ -64,14 +66,16 @@ __global__ void haloexchange_fused_pack(Real_ptr* pack_buffer_ptrs, Int_ptr* pac
   for (Index_type i = threadIdx.x + blockIdx.x * block_size;
        i < len;
        i += block_size * gridDim.x) {
-    HALOEXCHANGE_FUSED_PACK_BODY;
+    HALO_PACK_BODY;
   }
 }
 
 template < size_t block_size >
 __launch_bounds__(block_size)
-__global__ void haloexchange_fused_unpack(Real_ptr* unpack_buffer_ptrs, Int_ptr* unpack_list_ptrs,
-                                          Real_ptr* unpack_var_ptrs, Index_type* unpack_len_ptrs)
+__global__ void halo_packing_fused_unpack(Real_ptr* unpack_buffer_ptrs,
+                                           Int_ptr* unpack_list_ptrs,
+                                           Real_ptr* unpack_var_ptrs,
+                                           Index_type* unpack_len_ptrs)
 {
   Index_type j = blockIdx.y;
 
@@ -83,23 +87,23 @@ __global__ void haloexchange_fused_unpack(Real_ptr* unpack_buffer_ptrs, Int_ptr*
   for (Index_type i = threadIdx.x + blockIdx.x * block_size;
        i < len;
        i += block_size * gridDim.x) {
-    HALOEXCHANGE_FUSED_UNPACK_BODY;
+    HALO_UNPACK_BODY;
   }
 }
 
 
 template < size_t block_size >
-void HALOEXCHANGE_FUSED::runCudaVariantImpl(VariantID vid)
+void HALO_PACKING_FUSED::runCudaVariantDirect(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
   auto res{getCudaResource()};
 
-  HALOEXCHANGE_FUSED_DATA_SETUP;
+  HALO_PACKING_FUSED_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 
-    HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_CUDA;
+    HALO_PACKING_FUSED_MANUAL_FUSER_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -110,9 +114,9 @@ void HALOEXCHANGE_FUSED::runCudaVariantImpl(VariantID vid)
       Index_type pack_len_sum = 0;
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
-        Real_ptr buffer = buffers[l];
+        Real_ptr buffer = pack_buffers[l];
         Int_ptr list = pack_index_lists[l];
-        Index_type  len  = pack_index_list_lengths[l];
+        Index_type len = pack_index_list_lengths[l];
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
           pack_buffer_ptrs[pack_index] = buffer;
@@ -127,18 +131,36 @@ void HALOEXCHANGE_FUSED::runCudaVariantImpl(VariantID vid)
       Index_type pack_len_ave = (pack_len_sum + pack_index-1) / pack_index;
       dim3 pack_nthreads_per_block(block_size);
       dim3 pack_nblocks((pack_len_ave + block_size-1) / block_size, pack_index);
-      haloexchange_fused_pack<block_size><<<pack_nblocks, pack_nthreads_per_block, shmem, res.get_stream()>>>(
-          pack_buffer_ptrs, pack_list_ptrs, pack_var_ptrs, pack_len_ptrs);
-      cudaErrchk( cudaGetLastError() );
+      RPlaunchCudaKernel( (halo_packing_fused_pack<block_size>),
+                          pack_nblocks, pack_nthreads_per_block,
+                          shmem, res.get_stream(),
+                          pack_buffer_ptrs,
+                          pack_list_ptrs,
+                          pack_var_ptrs,
+                          pack_len_ptrs );
+      if (separate_buffers) {
+        for (Index_type l = 0; l < num_neighbors; ++l) {
+          Index_type len = pack_index_list_lengths[l];
+          copyData(DataSpace::Host, send_buffers[l],
+                   dataSpace, pack_buffers[l],
+                   len*num_vars);
+        }
+      }
       cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
 
       Index_type unpack_index = 0;
       Index_type unpack_len_sum = 0;
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
-        Real_ptr buffer = buffers[l];
+        Real_ptr buffer = unpack_buffers[l];
         Int_ptr list = unpack_index_lists[l];
-        Index_type  len  = unpack_index_list_lengths[l];
+        Index_type len = unpack_index_list_lengths[l];
+        if (separate_buffers) {
+          copyData(dataSpace, unpack_buffers[l],
+                   DataSpace::Host, recv_buffers[l],
+                   len*num_vars);
+        }
+
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
           unpack_buffer_ptrs[unpack_index] = buffer;
@@ -150,30 +172,57 @@ void HALOEXCHANGE_FUSED::runCudaVariantImpl(VariantID vid)
           buffer += len;
         }
       }
-      Index_type unpack_len_ave = (unpack_len_sum + unpack_index-1) / unpack_index;
+      Index_type unpack_len_ave = (unpack_len_sum + unpack_index-1) /
+                                  unpack_index;
       dim3 unpack_nthreads_per_block(block_size);
-      dim3 unpack_nblocks((unpack_len_ave + block_size-1) / block_size, unpack_index);
-      haloexchange_fused_unpack<block_size><<<unpack_nblocks, unpack_nthreads_per_block, shmem, res.get_stream()>>>(
-          unpack_buffer_ptrs, unpack_list_ptrs, unpack_var_ptrs, unpack_len_ptrs);
-      cudaErrchk( cudaGetLastError() );
+      dim3 unpack_nblocks((unpack_len_ave + block_size-1) / block_size,
+                          unpack_index);
+      RPlaunchCudaKernel( (halo_packing_fused_unpack<block_size>),
+                          unpack_nblocks, unpack_nthreads_per_block,
+                          shmem, res.get_stream(),
+                          unpack_buffer_ptrs,
+                          unpack_list_ptrs,
+                          unpack_var_ptrs, 
+                          unpack_len_ptrs ); 
       cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
 
     }
     stopTimer();
 
-    HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN_CUDA;
+    HALO_PACKING_FUSED_MANUAL_FUSER_TEARDOWN_CUDA;
 
-  } else if ( vid == RAJA_CUDA ) {
+  } else {
+     getCout() << "\n HALO_PACKING_FUSED : Unknown Cuda variant id = " << vid << std::endl;
+  }
+}
+
+template < size_t block_size, typename dispatch_helper >
+void HALO_PACKING_FUSED::runCudaVariantWorkGroup(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+
+  auto res{getCudaResource()};
+
+  HALO_PACKING_FUSED_DATA_SETUP;
+
+  if ( vid == RAJA_CUDA ) {
 
     using AllocatorHolder = RAJAPoolAllocatorHolder<RAJA::cuda::pinned_mempool_type>;
     using Allocator = AllocatorHolder::Allocator<char>;
 
     AllocatorHolder allocatorHolder;
 
+    using range_segment = RAJA::TypedRangeSegment<Index_type>;
+
+    using dispatch_policy = typename dispatch_helper::template dispatch_policy<
+                              camp::list<range_segment, Packer>,
+                              camp::list<range_segment, UnPacker>>;
+
     using workgroup_policy = RAJA::WorkGroupPolicy <
                                  RAJA::cuda_work_async<block_size>,
                                  RAJA::unordered_cuda_loop_y_block_iter_x_threadblock_average,
-                                 RAJA::constant_stride_array_of_objects >;
+                                 RAJA::constant_stride_array_of_objects,
+                                 dispatch_policy >;
 
     using workpool = RAJA::WorkPool< workgroup_policy,
                                      Index_type,
@@ -199,36 +248,40 @@ void HALOEXCHANGE_FUSED::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
-        Real_ptr buffer = buffers[l];
+        Real_ptr buffer = pack_buffers[l];
         Int_ptr list = pack_index_lists[l];
         Index_type len = pack_index_list_lengths[l];
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
-          auto haloexchange_fused_pack_base_lam = [=] __device__ (Index_type i) {
-                HALOEXCHANGE_FUSED_PACK_BODY;
-              };
-          pool_pack.enqueue(
-              RAJA::TypedRangeSegment<Index_type>(0, len),
-              haloexchange_fused_pack_base_lam );
+          pool_pack.enqueue(range_segment(0, len), Packer{buffer, var, list});
           buffer += len;
         }
       }
       workgroup group_pack = pool_pack.instantiate();
       worksite site_pack = group_pack.run(res);
+      if (separate_buffers) {
+        for (Index_type l = 0; l < num_neighbors; ++l) {
+          Index_type len = pack_index_list_lengths[l];
+          copyData(DataSpace::Host, send_buffers[l],
+                   dataSpace, pack_buffers[l],
+                   len*num_vars);
+        }
+      }
       res.wait();
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
-        Real_ptr buffer = buffers[l];
+        Real_ptr buffer = unpack_buffers[l];
         Int_ptr list = unpack_index_lists[l];
         Index_type len = unpack_index_list_lengths[l];
+        if (separate_buffers) {
+          copyData(dataSpace, unpack_buffers[l],
+                   DataSpace::Host, recv_buffers[l],
+                   len*num_vars);
+        }
+
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
-          auto haloexchange_fused_unpack_base_lam = [=] __device__ (Index_type i) {
-                HALOEXCHANGE_FUSED_UNPACK_BODY;
-              };
-          pool_unpack.enqueue(
-              RAJA::TypedRangeSegment<Index_type>(0, len),
-              haloexchange_fused_unpack_base_lam );
+          pool_unpack.enqueue(range_segment(0, len), UnPacker{buffer, var, list});
           buffer += len;
         }
       }
@@ -240,13 +293,102 @@ void HALOEXCHANGE_FUSED::runCudaVariantImpl(VariantID vid)
     stopTimer();
 
   } else {
-     getCout() << "\n HALOEXCHANGE_FUSED : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n HALO_PACKING_FUSED : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(HALOEXCHANGE_FUSED, Cuda)
+void HALO_PACKING_FUSED::runCudaVariant(VariantID vid, size_t tune_idx)
+{
+  size_t t = 0;
 
-} // end namespace apps
+  if (vid == Base_CUDA) {
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        if (tune_idx == t) {
+
+          runCudaVariantDirect<block_size>(vid);
+
+        }
+
+        t += 1;
+
+      }
+
+    });
+
+  }
+
+  if (vid == RAJA_CUDA) {
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        seq_for(workgroup_dispatch_helpers{}, [&](auto dispatch_helper) {
+
+          if (tune_idx == t) {
+
+            runCudaVariantWorkGroup<decltype(block_size){},
+                                    decltype(dispatch_helper)>(vid);
+
+          }
+
+          t += 1;
+
+        });
+
+      }
+
+    });
+
+  }
+
+}
+
+void HALO_PACKING_FUSED::setCudaTuningDefinitions(VariantID vid)
+{
+  if (vid == Base_CUDA) {
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        addVariantTuningName(vid, "direct_"+std::to_string(block_size));
+
+      }
+
+    });
+
+  }
+
+  if (vid == RAJA_CUDA) {
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        seq_for(workgroup_dispatch_helpers{}, [&](auto dispatch_helper) {
+
+          addVariantTuningName(vid, decltype(dispatch_helper)::get_name()+"_"+std::to_string(block_size));
+
+        });
+
+      }
+
+    });
+
+  }
+
+}
+
+} // end namespace comm
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_CUDA

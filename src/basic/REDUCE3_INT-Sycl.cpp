@@ -29,12 +29,12 @@ namespace basic
 {
 
 #define REDUCE3_INT_DATA_SETUP_SYCL \
-    Int_ptr hsum; \
-    allocAndInitSyclDeviceData(hsum, &m_vsum_init, 1, qu); \
-    Int_ptr hmin; \
-    allocAndInitSyclDeviceData(hmin, &m_vmin_init, 1, qu); \
-    Int_ptr hmax; \
-    allocAndInitSyclDeviceData(hmax, &m_vmax_init, 1, qu);
+  Int_ptr hsum; \
+  allocAndInitSyclDeviceData(hsum, &m_vsum_init, 1, qu); \
+  Int_ptr hmin; \
+  allocAndInitSyclDeviceData(hmin, &m_vmin_init, 1, qu); \
+  Int_ptr hmax; \
+  allocAndInitSyclDeviceData(hmax, &m_vmax_init, 1, qu);
 
 #define REDUCE3_INT_DATA_TEARDOWN_SYCL \
   deallocSyclDeviceData(hsum, qu); \
@@ -53,7 +53,6 @@ void REDUCE3_INT::runSyclVariantImpl(VariantID vid)
   if ( vid == Base_SYCL ) {
 
     REDUCE3_INT_DATA_SETUP_SYCL;
-
 
     if (work_group_size > 0) {
   
@@ -102,11 +101,11 @@ void REDUCE3_INT::runSyclVariantImpl(VariantID vid)
         getSyclDeviceData(plmax, hmax, 1, qu);
         m_vmax = RAJA_MAX(m_vmax, lmax);
 
-      }
+      } // for (RepIndex_type irep = ...
       qu->wait();
       stopTimer();
   
-    } else {
+    } else {  // work_group_size <= 0
   
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -156,6 +155,7 @@ void REDUCE3_INT::runSyclVariantImpl(VariantID vid)
     } 
 
     REDUCE3_INT_DATA_TEARDOWN_SYCL;
+
   } else if ( vid == RAJA_SYCL ) {
 
     if ( work_group_size == 0 ) {

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -63,11 +63,15 @@ void POLYBENCH_JACOBI_1D::runCudaVariantImpl(VariantID vid)
         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
         constexpr size_t shmem = 0;
 
-        poly_jacobi_1D_1<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(A, B, N);
-        cudaErrchk( cudaGetLastError() );
+        RPlaunchCudaKernel( (poly_jacobi_1D_1<block_size>),
+                            grid_size, block_size,
+                            shmem, res.get_stream(),
+                            A, B, N );
 
-        poly_jacobi_1D_2<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(A, B, N);
-        cudaErrchk( cudaGetLastError() );
+        RPlaunchCudaKernel( (poly_jacobi_1D_2<block_size>),
+                            grid_size, block_size,
+                            shmem, res.get_stream(),
+                            A, B, N );
 
       }
 

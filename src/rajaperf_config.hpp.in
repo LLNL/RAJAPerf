@@ -9,7 +9,7 @@
  */
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -22,7 +22,9 @@
 
 #include "RAJA/config.hpp"
 #include "camp/number.hpp"
+#include "camp/list.hpp"
 
+#include <type_traits>
 #include <string>
 
 #cmakedefine RAJA_PERFSUITE_ENABLE_MPI
@@ -42,7 +44,22 @@
 #include <algorithm>
 #endif
 
+// Squash compiler warnings about unused variables
+template < typename ... Ts >
+inline void RAJAPERF_UNUSED_VAR(Ts&&...) { }
+
+// Squash compiler warnings about unused arguments
+#define RAJAPERF_UNUSED_ARG(...)
+
 namespace rajaperf {
+
+namespace gpu_block_size {
+
+// helper alias to convert comma separated integer literals into list
+template < size_t... Is >
+using list_type = camp::list< camp::integral_constant<size_t, Is>... >;
+
+} // closing brace for gpu_block_size namespace
 
 struct configuration {
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
@@ -92,11 +109,8 @@ const adiak::catstring adiak_systype_build = std::string("@RAJAPERF_BUILD_SYSTYP
 const adiak::catstring adiak_machine_build = std::string("@RAJAPERF_BUILD_HOST@");
 #endif
 
-// helper alias to void trailing comma in no-arg case
-template < size_t... Is >
-using i_seq = camp::int_seq<size_t, Is...>;
 // List of GPU block sizes
-using gpu_block_sizes = i_seq<@RAJA_PERFSUITE_GPU_BLOCKSIZES@>;
+using gpu_block_sizes = gpu_block_size::list_type<@RAJA_PERFSUITE_GPU_BLOCKSIZES@>;
 
 // Name of user who ran code
 std::string user_run;
@@ -110,13 +124,27 @@ std::string machine_run;
 
 };
 
+#if __cplusplus < 201703L
+// Implement std::conjunction from https://en.cppreference.com/w/cpp/types/conjunction
+template<class...> struct conjunction : std::true_type {};
+template<class B1> struct conjunction<B1> : B1 {};
+template<class B1, class... Bn>
+struct conjunction<B1, Bn...>
+  : std::conditional_t<bool(B1::value), conjunction<Bn...>, B1> {};
+#else
+using std::conjunction;
+#endif
+
+//compile time loop over an integer sequence
+//this allows for creating a loop over a compile time constant variable
+template <typename Func, typename... Ts>
+inline void seq_for(camp::list<Ts...> const&, Func&& func)
+{
+  // braced init lists are evaluated in order
+  int seq_unused_array[] = {(func(Ts{}), 0)...};
+  RAJAPERF_UNUSED_VAR(seq_unused_array);
+}
+
 } // closing brace for rajaperf namespace
-
-// Squash compiler warnings about unused variables
-template < typename ... Ts >
-inline void RAJAPERF_UNUSED_VAR(Ts&&...) { }
-
-// Squash compiler warnings about unused arguments
-#define RAJAPERF_UNUSED_ARG(...)
 
 #endif  // closing endif for header file include guard

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -12,6 +12,7 @@
 #include <string>
 #include <set>
 #include <vector>
+#include <array>
 #include <iosfwd>
 
 #include "RAJAPerfSuite.hpp"
@@ -134,6 +135,11 @@ public:
     return false;
   }
 
+  int getMPISize() const { return mpi_size; }
+  int getMPIRank() const { return mpi_rank; }
+  bool validMPI3DDivision() const { return (mpi_3d_division[0]*mpi_3d_division[1]*mpi_3d_division[2] == mpi_size); }
+  std::array<int, 3> const& getMPI3DDivision() const { return mpi_3d_division; }
+
   DataSpace getSeqDataSpace() const { return seqDataSpace; }
   DataSpace getOmpDataSpace() const { return ompDataSpace; }
   DataSpace getOmpTargetDataSpace() const { return ompTargetDataSpace; }
@@ -141,6 +147,20 @@ public:
   DataSpace getHipDataSpace() const { return hipDataSpace; }
   DataSpace getKokkosDataSpace() const { return kokkosDataSpace; }
   DataSpace getSyclDataSpace() const { return syclDataSpace; }
+
+  DataSpace getSeqReductionDataSpace() const { return seqReductionDataSpace; }
+  DataSpace getOmpReductionDataSpace() const { return ompReductionDataSpace; }
+  DataSpace getOmpTargetReductionDataSpace() const { return ompTargetReductionDataSpace; }
+  DataSpace getCudaReductionDataSpace() const { return cudaReductionDataSpace; }
+  DataSpace getHipReductionDataSpace() const { return hipReductionDataSpace; }
+  DataSpace getKokkosReductionDataSpace() const { return kokkosReductionDataSpace; }
+
+  DataSpace getSeqMPIDataSpace() const { return seqMPIDataSpace; }
+  DataSpace getOmpMPIDataSpace() const { return ompMPIDataSpace; }
+  DataSpace getOmpTargetMPIDataSpace() const { return ompTargetMPIDataSpace; }
+  DataSpace getCudaMPIDataSpace() const { return cudaMPIDataSpace; }
+  DataSpace getHipMPIDataSpace() const { return hipMPIDataSpace; }
+  DataSpace getKokkosMPIDataSpace() const { return kokkosMPIDataSpace; }
 
   double getPFTolerance() const { return pf_tol; }
 
@@ -161,9 +181,6 @@ public:
 #endif
 
   bool getDisableWarmup() const { return disable_warmup; }
-
-  bool getAllowProblematicImplementations() const
-  { return allow_problematic_implementations; }
 
   const std::set<KernelID>& getKernelIDsToRun() const { return run_kernels; }
   const std::set<VariantID>& getVariantIDsToRun() const { return run_variants; }
@@ -217,6 +234,9 @@ private:
 
   int gpu_stream; /*!< 0 -> use stream 0; anything else -> use raja default stream */
   std::vector<size_t> gpu_block_sizes; /*!< Block sizes for gpu tunings to run (input option) */
+  int mpi_size;           /*!< Number of MPI ranks */
+  int mpi_rank;           /*!< Rank of this MPI process */
+  std::array<int, 3> mpi_3d_division; /*!< Number of MPI ranks in each dimension of a 3D grid */
 
   double pf_tol;         /*!< pct RAJA variant run time can exceed base for
                               each PM case to pass/fail acceptance */
@@ -234,6 +254,20 @@ private:
   DataSpace hipDataSpace = DataSpace::HipDevice;
   DataSpace kokkosDataSpace = DataSpace::Host;
   DataSpace syclDataSpace = DataSpace::SyclDevice;
+
+  DataSpace seqReductionDataSpace = DataSpace::Host;
+  DataSpace ompReductionDataSpace = DataSpace::Omp;
+  DataSpace ompTargetReductionDataSpace = DataSpace::OmpTarget;
+  DataSpace cudaReductionDataSpace = DataSpace::CudaManagedDevicePreferredHostAccessed;
+  DataSpace hipReductionDataSpace = DataSpace::HipDevice;
+  DataSpace kokkosReductionDataSpace = DataSpace::Host;
+
+  DataSpace seqMPIDataSpace = DataSpace::Host;
+  DataSpace ompMPIDataSpace = DataSpace::Omp;
+  DataSpace ompTargetMPIDataSpace = DataSpace::Copy;
+  DataSpace cudaMPIDataSpace = DataSpace::CudaPinned;
+  DataSpace hipMPIDataSpace = DataSpace::HipPinned;
+  DataSpace kokkosMPIDataSpace = DataSpace::Copy;
 
   //
   // Arrays to hold input strings for valid/invalid input. Helpful for
@@ -267,8 +301,6 @@ private:
 #endif
 
   bool disable_warmup;
-
-  bool allow_problematic_implementations;
 
   std::set<KernelID>  run_kernels;
   std::set<VariantID> run_variants;

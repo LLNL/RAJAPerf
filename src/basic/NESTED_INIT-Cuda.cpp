@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -89,10 +89,11 @@ void NESTED_INIT::runCudaVariantImpl(VariantID vid)
       NESTED_INIT_NBLOCKS_CUDA;
       constexpr size_t shmem = 0;
 
-      nested_init<NESTED_INIT_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                 <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(array,
-                                                   ni, nj, nk);
-      cudaErrchk( cudaGetLastError() );
+      RPlaunchCudaKernel(
+        (nested_init<NESTED_INIT_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>),
+        nblocks, nthreads_per_block,
+        shmem, res.get_stream(),
+        array, ni, nj, nk );
 
     }
     stopTimer();
@@ -102,17 +103,23 @@ void NESTED_INIT::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+      auto nested_init_lambda = [=] __device__ (Index_type i, 
+                                                Index_type j, 
+                                                Index_type k) {
+          NESTED_INIT_BODY;
+      };
+
       NESTED_INIT_THREADS_PER_BLOCK_CUDA;
       NESTED_INIT_NBLOCKS_CUDA;
       constexpr size_t shmem = 0;
 
-      nested_init_lam<NESTED_INIT_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                     <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(ni, nj, nk,
-        [=] __device__ (Index_type i, Index_type j, Index_type k) {
-          NESTED_INIT_BODY;
-        }
-      );
-      cudaErrchk( cudaGetLastError() );
+      RPlaunchCudaKernel(
+        (nested_init_lam<NESTED_INIT_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA,
+                         decltype(nested_init_lambda)>),
+        nblocks, nthreads_per_block,
+        shmem, res.get_stream(),
+        ni, nj, nk,
+        nested_init_lambda );
 
     }
     stopTimer();
@@ -136,10 +143,11 @@ void NESTED_INIT::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel_resource<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, ni),
-                                               RAJA::RangeSegment(0, nj),
-                                               RAJA::RangeSegment(0, nk)),
-                                       res,
+      RAJA::kernel_resource<EXEC_POL>(
+        RAJA::make_tuple(RAJA::RangeSegment(0, ni),
+                         RAJA::RangeSegment(0, nj),
+                         RAJA::RangeSegment(0, nk)),
+        res,
         [=] __device__ (Index_type i, Index_type j, Index_type k) {
         NESTED_INIT_BODY;
       });

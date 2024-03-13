@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -7,56 +7,59 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 ///
-/// HALOEXCHANGE_FUSED kernel reference implementation:
+/// HALO_PACKING_FUSED kernel reference implementation:
 ///
-/// // pack message for each neighbor
+/// // pack buffers for neighbors
 /// for (Index_type l = 0; l < num_neighbors; ++l) {
-///   Real_ptr buffer = buffers[l];
+///   Real_ptr buffer = pack_buffers[l];
 ///   Int_ptr list = pack_index_lists[l];
-///   Index_type  len  = pack_index_list_lengths[l];
+///   Index_type len = pack_index_list_lengths[l];
 ///   // pack part of each variable
 ///   for (Index_type v = 0; v < num_vars; ++v) {
 ///     Real_ptr var = vars[v];
 ///     for (Index_type i = 0; i < len; i++) {
-///       HALOEXCHANGE_FUSED_PACK_BODY;
+///       buffer[i] = var[list[i]];
 ///     }
 ///     buffer += len;
 ///   }
-///   // send message to neighbor
 /// }
 ///
-/// // unpack messages for each neighbor
+/// // unpack buffers for neighbors
 /// for (Index_type l = 0; l < num_neighbors; ++l) {
-///   // receive message from neighbor
-///   Real_ptr buffer = buffers[l];
+///   Real_ptr buffer = unpack_buffers[l];
 ///   Int_ptr list = unpack_index_lists[l];
-///   Index_type  len  = unpack_index_list_lengths[l];
+///   Index_type len = unpack_index_list_lengths[l];
 ///   // unpack part of each variable
 ///   for (Index_type v = 0; v < num_vars; ++v) {
 ///     Real_ptr var = vars[v];
 ///     for (Index_type i = 0; i < len; i++) {
-///       HALOEXCHANGE_FUSED_UNPACK_BODY;
+///       var[list[i]] = buffer[i];
 ///     }
 ///     buffer += len;
 ///   }
 /// }
 ///
 
-#ifndef RAJAPerf_Apps_HALOEXCHANGE_FUSED_HPP
-#define RAJAPerf_Apps_HALOEXCHANGE_FUSED_HPP
+#ifndef RAJAPerf_Comm_HALO_PACKING_FUSED_HPP
+#define RAJAPerf_Comm_HALO_PACKING_FUSED_HPP
 
-#define HALOEXCHANGE_FUSED_DATA_SETUP \
-  std::vector<Real_ptr> vars = m_vars; \
-  std::vector<Real_ptr> buffers = m_buffers; \
-\
-  Index_type num_neighbors = s_num_neighbors; \
+#define HALO_PACKING_FUSED_DATA_SETUP \
+  HALO_BASE_DATA_SETUP \
+  \
   Index_type num_vars = m_num_vars; \
-  std::vector<Int_ptr> pack_index_lists = m_pack_index_lists; \
-  std::vector<Index_type> pack_index_list_lengths = m_pack_index_list_lengths; \
-  std::vector<Int_ptr> unpack_index_lists = m_unpack_index_lists; \
-  std::vector<Index_type> unpack_index_list_lengths = m_unpack_index_list_lengths;
+  std::vector<Real_ptr> vars = m_vars; \
+  \
+  const DataSpace dataSpace = getDataSpace(vid); \
+  \
+  const bool separate_buffers = (getMPIDataSpace(vid) == DataSpace::Copy); \
+  \
+  std::vector<Real_ptr> pack_buffers = m_pack_buffers; \
+  std::vector<Real_ptr> unpack_buffers = m_unpack_buffers; \
+  \
+  std::vector<Real_ptr> send_buffers = m_send_buffers; \
+  std::vector<Real_ptr> recv_buffers = m_recv_buffers;
 
-#define HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP \
+#define HALO_PACKING_FUSED_MANUAL_FUSER_SETUP \
   struct ptr_holder { \
     Real_ptr buffer; \
     Int_ptr  list; \
@@ -67,23 +70,17 @@
   ptr_holder* unpack_ptr_holders = new ptr_holder[num_neighbors * num_vars]; \
   Index_type* unpack_lens        = new Index_type[num_neighbors * num_vars];
 
-#define HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN \
+#define HALO_PACKING_FUSED_MANUAL_FUSER_TEARDOWN \
   delete[] pack_ptr_holders; \
   delete[] pack_lens; \
   delete[] unpack_ptr_holders; \
   delete[] unpack_lens;
 
-#define HALOEXCHANGE_FUSED_PACK_BODY \
-  buffer[i] = var[list[i]];
 
-#define HALOEXCHANGE_FUSED_UNPACK_BODY \
-  var[list[i]] = buffer[i];
-
-
-#define HALOEXCHANGE_FUSED_MANUAL_LAMBDA_FUSER_SETUP \
+#define HALO_PACKING_FUSED_MANUAL_LAMBDA_FUSER_SETUP \
   auto make_pack_lambda = [](Real_ptr buffer, Int_ptr list, Real_ptr var) { \
     return [=](Index_type i) { \
-      HALOEXCHANGE_FUSED_PACK_BODY; \
+      HALO_PACK_BODY; \
     }; \
   }; \
   using pack_lambda_type = decltype(make_pack_lambda(Real_ptr(), Int_ptr(), Real_ptr())); \
@@ -92,7 +89,7 @@
   Index_type* pack_lens = new Index_type[num_neighbors * num_vars]; \
   auto make_unpack_lambda = [](Real_ptr buffer, Int_ptr list, Real_ptr var) { \
     return [=](Index_type i) { \
-      HALOEXCHANGE_FUSED_UNPACK_BODY; \
+      HALO_UNPACK_BODY; \
     }; \
   }; \
   using unpack_lambda_type = decltype(make_unpack_lambda(Real_ptr(), Int_ptr(), Real_ptr())); \
@@ -100,14 +97,14 @@
       malloc(sizeof(unpack_lambda_type) * (num_neighbors * num_vars))); \
   Index_type* unpack_lens = new Index_type[num_neighbors * num_vars];
 
-#define HALOEXCHANGE_FUSED_MANUAL_LAMBDA_FUSER_TEARDOWN \
+#define HALO_PACKING_FUSED_MANUAL_LAMBDA_FUSER_TEARDOWN \
   free(pack_lambdas); \
   delete[] pack_lens; \
   free(unpack_lambdas); \
   delete[] unpack_lens;
 
 
-#include "common/KernelBase.hpp"
+#include "HALO_base.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -117,16 +114,16 @@ namespace rajaperf
 {
 class RunParams;
 
-namespace apps
+namespace comm
 {
 
-class HALOEXCHANGE_FUSED : public KernelBase
+class HALO_PACKING_FUSED : public HALO_base
 {
 public:
 
-  HALOEXCHANGE_FUSED(const RunParams& params);
+  HALO_PACKING_FUSED(const RunParams& params);
 
-  ~HALOEXCHANGE_FUSED();
+  ~HALO_PACKING_FUSED();
 
   void setUp(VariantID vid, size_t tune_idx);
   void updateChecksum(VariantID vid, size_t tune_idx);
@@ -138,58 +135,48 @@ public:
   void runHipVariant(VariantID vid, size_t tune_idx);
   void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
 
+  void setSeqTuningDefinitions(VariantID vid);
+  void setOpenMPTuningDefinitions(VariantID vid);
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
+  void setOpenMPTargetTuningDefinitions(VariantID vid);
+
+  void runSeqVariantDirect(VariantID vid);
+  void runOpenMPVariantDirect(VariantID vid);
+  void runOpenMPTargetVariantDirect(VariantID vid);
   template < size_t block_size >
-  void runCudaVariantImpl(VariantID vid);
+  void runCudaVariantDirect(VariantID vid);
   template < size_t block_size >
-  void runHipVariantImpl(VariantID vid);
+  void runHipVariantDirect(VariantID vid);
+
+  template < typename dispatch_helper >
+  void runSeqVariantWorkGroup(VariantID vid);
+  template < typename dispatch_helper >
+  void runOpenMPVariantWorkGroup(VariantID vid);
+  template < typename dispatch_helper >
+  void runOpenMPTargetVariantWorkGroup(VariantID vid);
+  template < size_t block_size, typename dispatch_helper >
+  void runCudaVariantWorkGroup(VariantID vid);
+  template < size_t block_size, typename dispatch_helper >
+  void runHipVariantWorkGroup(VariantID vid);
 
 private:
   static const size_t default_gpu_block_size = 1024;
   using gpu_block_sizes_type = gpu_block_size::make_list_type<default_gpu_block_size>;
 
-  static const int s_num_neighbors = 26;
-
-  Index_type m_grid_dims[3];
-  Index_type m_halo_width;
   Index_type m_num_vars;
-
-  Index_type m_grid_dims_default[3];
-  Index_type m_halo_width_default;
-  Index_type m_num_vars_default;
-
-  Index_type m_grid_plus_halo_dims[3];
   Index_type m_var_size;
-  Index_type m_var_halo_size;
 
   std::vector<Real_ptr> m_vars;
-  std::vector<Real_ptr> m_buffers;
 
-  std::vector<Int_ptr> m_pack_index_lists;
-  std::vector<Index_type > m_pack_index_list_lengths;
-  std::vector<Int_ptr> m_unpack_index_lists;
-  std::vector<Index_type > m_unpack_index_list_lengths;
+  std::vector<Real_ptr> m_pack_buffers;
+  std::vector<Real_ptr> m_unpack_buffers;
 
-  void create_pack_lists(std::vector<Int_ptr>& pack_index_lists,
-                         std::vector<Index_type >& pack_index_list_lengths,
-                         const Index_type halo_width, const Index_type* grid_dims,
-                         const Index_type num_neighbors,
-                         VariantID vid);
-  void destroy_pack_lists(std::vector<Int_ptr>& pack_index_lists,
-                          const Index_type num_neighbors,
-                          VariantID vid);
-  void create_unpack_lists(std::vector<Int_ptr>& unpack_index_lists,
-                           std::vector<Index_type >& unpack_index_list_lengths,
-                           const Index_type halo_width, const Index_type* grid_dims,
-                           const Index_type num_neighbors,
-                           VariantID vid);
-  void destroy_unpack_lists(std::vector<Int_ptr>& unpack_index_lists,
-                            const Index_type num_neighbors,
-                            VariantID vid);
+  std::vector<Real_ptr> m_send_buffers;
+  std::vector<Real_ptr> m_recv_buffers;
 };
 
-} // end namespace apps
+} // end namespace comm
 } // end namespace rajaperf
 
 #endif // closing endif for header file include guard

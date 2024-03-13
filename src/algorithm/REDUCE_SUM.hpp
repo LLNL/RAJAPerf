@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -63,14 +63,14 @@ public:
   void setHipTuningDefinitions(VariantID vid);
   void runCudaVariantCub(VariantID vid);
   void runHipVariantRocprim(VariantID vid);
-  template < size_t block_size >
-  void runCudaVariantBlock(VariantID vid);
-  template < size_t block_size >
-  void runCudaVariantOccGS(VariantID vid);
-  template < size_t block_size >
-  void runHipVariantBlock(VariantID vid);
-  template < size_t block_size >
-  void runHipVariantOccGS(VariantID vid);
+  template < size_t block_size, typename MappingHelper >
+  void runCudaVariantBase(VariantID vid);
+  template < size_t block_size, typename MappingHelper >
+  void runHipVariantBase(VariantID vid);
+  template < size_t block_size, typename AlgorithmHelper, typename MappingHelper >
+  void runCudaVariantRAJA(VariantID vid);
+  template < size_t block_size, typename AlgorithmHelper, typename MappingHelper >
+  void runHipVariantRAJA(VariantID vid);
 
 private:
   static const size_t default_gpu_block_size = 256;

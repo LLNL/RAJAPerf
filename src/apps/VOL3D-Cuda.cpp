@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -68,13 +68,15 @@ void VOL3D::runCudaVariantImpl(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
 
-      vol3d<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(vol,
-                                       x0, x1, x2, x3, x4, x5, x6, x7,
-                                       y0, y1, y2, y3, y4, y5, y6, y7,
-                                       z0, z1, z2, z3, z4, z5, z6, z7,
-                                       vnormq,
-                                       ibegin, iend);
-      cudaErrchk( cudaGetLastError() );
+      RPlaunchCudaKernel( (vol3d<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          vol, 
+                          x0, x1, x2, x3, x4, x5, x6, x7,
+                          y0, y1, y2, y3, y4, y5, y6, y7,
+                          z0, z1, z2, z3, z4, z5, z6, z7,
+                          vnormq,
+                          ibegin, iend );
 
     }
     stopTimer();

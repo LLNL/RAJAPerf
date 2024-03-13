@@ -268,13 +268,15 @@ void INDEXLIST::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipErrchk( hipMemsetAsync(block_readys, 0, sizeof(unsigned)*grid_size, res.get_stream()) );
-      indexlist<block_size, items_per_thread>
-          <<<grid_size, block_size, shmem_size, res.get_stream()>>>(
-          x+ibegin, list+ibegin,
-          block_counts, grid_counts, block_readys,
-          len, iend-ibegin );
-      hipErrchk( hipGetLastError() );
+      hipErrchk( hipMemsetAsync(block_readys, 0, sizeof(unsigned)*grid_size,
+                                res.get_stream()) );
+
+      RPlaunchHipKernel( (indexlist<block_size, items_per_thread>),
+                         grid_size, block_size,
+                         shmem_size, res.get_stream(),
+                         x+ibegin, list+ibegin,
+                         block_counts, grid_counts, block_readys,
+                         len, iend-ibegin );
 
       hipErrchk( hipStreamSynchronize( res.get_stream() ) );
       m_len = *len;
