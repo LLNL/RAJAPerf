@@ -153,6 +153,7 @@ public:
   DataSpace getOmpTargetReductionDataSpace() const { return ompTargetReductionDataSpace; }
   DataSpace getCudaReductionDataSpace() const { return cudaReductionDataSpace; }
   DataSpace getHipReductionDataSpace() const { return hipReductionDataSpace; }
+  DataSpace getSyclReductionDataSpace() const { return syclReductionDataSpace; }
   DataSpace getKokkosReductionDataSpace() const { return kokkosReductionDataSpace; }
 
   DataSpace getSeqMPIDataSpace() const { return seqMPIDataSpace; }
@@ -160,6 +161,7 @@ public:
   DataSpace getOmpTargetMPIDataSpace() const { return ompTargetMPIDataSpace; }
   DataSpace getCudaMPIDataSpace() const { return cudaMPIDataSpace; }
   DataSpace getHipMPIDataSpace() const { return hipMPIDataSpace; }
+  DataSpace getSyclMPIDataSpace() const { return syclMPIDataSpace; }
   DataSpace getKokkosMPIDataSpace() const { return kokkosMPIDataSpace; }
 
   double getPFTolerance() const { return pf_tol; }
@@ -260,6 +262,7 @@ private:
   DataSpace ompTargetReductionDataSpace = DataSpace::OmpTarget;
   DataSpace cudaReductionDataSpace = DataSpace::CudaManagedDevicePreferredHostAccessed;
   DataSpace hipReductionDataSpace = DataSpace::HipDevice;
+  DataSpace syclReductionDataSpace = DataSpace::SyclDevice;
   DataSpace kokkosReductionDataSpace = DataSpace::Host;
 
   DataSpace seqMPIDataSpace = DataSpace::Host;
@@ -267,6 +270,7 @@ private:
   DataSpace ompTargetMPIDataSpace = DataSpace::Copy;
   DataSpace cudaMPIDataSpace = DataSpace::CudaPinned;
   DataSpace hipMPIDataSpace = DataSpace::HipPinned;
+  DataSpace syclMPIDataSpace = DataSpace::SyclPinned;
   DataSpace kokkosMPIDataSpace = DataSpace::Copy;
 
   //

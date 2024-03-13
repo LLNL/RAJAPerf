@@ -585,7 +585,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
                 opt == std::string("--hip-data-space") ||
                 opt == std::string("-hds") ||
 		opt == std::string("--sycl-data-space") ||
-                opt == std::string("-syds"))
+                opt == std::string("-syds") ||
                 opt == std::string("--kokkos-data-space") ||
                 opt == std::string("-kds") ||
                 opt == std::string("--seq-reduction-data-space") ||
@@ -1244,7 +1244,6 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t      (name of data space to use with MPI and kokkos execution)\n";
   str << "\t\t Examples...\n"
       << "\t\t --kokkos-mpi-data-space Copy (run KOKKOS variants and copy to Host memory for MPI buffers)\n\n";
->>>>>>> develop
 
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
   str << "\t --add-to-spot-config, -atsc <string> [Default is none]\n"
