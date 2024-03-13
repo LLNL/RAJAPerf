@@ -41,6 +41,9 @@
 #define ATOMIC_RAJA_BODY(policy, i, val) \
   RAJA::atomicAdd<policy>(&atomic[(i)%replication], (val))
 
+#define ATOMIC_RAJA_BODY_DIRECT(policy, i, val) \
+  RAJA::atomicAdd<policy>(&atomic[(i)], (val))
+
 
 #include "common/KernelBase.hpp"
 
@@ -82,18 +85,18 @@ public:
   void runSeqVariantReplicate(VariantID vid);
   template < size_t replication >
   void runOpenMPVariantReplicate(VariantID vid);
-  template < size_t block_size, size_t replication >
-  void runCudaVariantReplicateGlobal(VariantID vid);
-  template < size_t block_size, size_t replication >
-  void runHipVariantReplicateGlobal(VariantID vid);
-  template < size_t block_size, size_t replication >
-  void runCudaVariantReplicateWarp(VariantID vid);
-  template < size_t block_size, size_t replication >
-  void runHipVariantReplicateWarp(VariantID vid);
-  template < size_t block_size, size_t replication >
-  void runCudaVariantReplicateBlock(VariantID vid);
-  template < size_t block_size, size_t replication >
-  void runHipVariantReplicateBlock(VariantID vid);
+  template < size_t block_size, typename AtomicOrdering >
+  void runCudaVariantReplicateGlobal(VariantID vid, AtomicOrdering atomic_ordering);
+  template < size_t block_size, typename AtomicOrdering >
+  void runHipVariantReplicateGlobal(VariantID vid, AtomicOrdering atomic_ordering);
+  template < size_t block_size, typename AtomicOrdering >
+  void runCudaVariantReplicateWarp(VariantID vid, AtomicOrdering atomic_ordering);
+  template < size_t block_size, typename AtomicOrdering >
+  void runHipVariantReplicateWarp(VariantID vid, AtomicOrdering atomic_ordering);
+  template < size_t block_size, typename AtomicOrdering >
+  void runCudaVariantReplicateBlock(VariantID vid, AtomicOrdering atomic_ordering);
+  template < size_t block_size, typename AtomicOrdering >
+  void runHipVariantReplicateBlock(VariantID vid, AtomicOrdering atomic_ordering);
   template < size_t replication >
   void runOpenMPTargetVariantReplicate(VariantID vid);
 

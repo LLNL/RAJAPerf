@@ -26,21 +26,38 @@ namespace algorithm
 
 const size_t warp_size = detail::cuda::warp_size;
 
-template < size_t block_size, size_t replication >
+static constexpr size_t atomic_stride =
+    (detail::cuda::cache_line_size > sizeof(ATOMIC::Data_type))
+    ? detail::cuda::cache_line_size / sizeof(ATOMIC::Data_type)
+    : 1;
+
+static constexpr size_t max_concurrent_atomics =
+    (detail::cuda::max_concurrent_atomic_bytes > sizeof(ATOMIC::Data_type))
+    ? detail::cuda::max_concurrent_atomic_bytes / sizeof(ATOMIC::Data_type)
+    : 1;
+
+using atomic_orderings = camp::list<
+    detail::GetModReorderStatic,
+    detail::GetStridedReorderStatic<atomic_stride, max_concurrent_atomics> >;
+
+
+template < size_t block_size, typename AtomicOrdering >
 __launch_bounds__(block_size)
 __global__ void atomic_replicate_thread(ATOMIC::Data_ptr atomic,
-                          Index_type iend)
+                          Index_type iend,
+                          AtomicOrdering atomic_ordering)
 {
   Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < iend) {
-    ATOMIC_RAJA_BODY(RAJA::cuda_atomic, i, ATOMIC_VALUE);
+    ATOMIC_RAJA_BODY_DIRECT(RAJA::cuda_atomic, atomic_ordering(i), ATOMIC_VALUE);
   }
 }
 
-template < size_t block_size, size_t replication >
+template < size_t block_size, typename AtomicOrdering >
 __launch_bounds__(block_size)
 __global__ void atomic_replicate_warp(ATOMIC::Data_ptr atomic,
-                          Index_type iend)
+                          Index_type iend,
+                          AtomicOrdering atomic_ordering)
 {
   ATOMIC::Data_type val = 0;
 
@@ -53,14 +70,15 @@ __global__ void atomic_replicate_warp(ATOMIC::Data_ptr atomic,
   __shared__ typename WarpReduce::TempStorage warp_reduce_storage;
   val = WarpReduce(warp_reduce_storage).Sum(val);
   if ((threadIdx.x % warp_size) == 0) {
-    ATOMIC_RAJA_BODY(RAJA::cuda_atomic, i/warp_size, val);
+    ATOMIC_RAJA_BODY_DIRECT(RAJA::cuda_atomic, atomic_ordering(i/warp_size), val);
   }
 }
 
-template < size_t block_size, size_t replication >
+template < size_t block_size, typename AtomicOrdering >
 __launch_bounds__(block_size)
 __global__ void atomic_replicate_block(ATOMIC::Data_ptr atomic,
-                          Index_type iend)
+                          Index_type iend,
+                          AtomicOrdering atomic_ordering)
 {
   ATOMIC::Data_type val = 0;
 
@@ -73,21 +91,23 @@ __global__ void atomic_replicate_block(ATOMIC::Data_ptr atomic,
   __shared__ typename BlockReduce::TempStorage block_reduce_storage;
   val = BlockReduce(block_reduce_storage).Sum(val);
   if (threadIdx.x == 0) {
-    ATOMIC_RAJA_BODY(RAJA::cuda_atomic, blockIdx.x, val);
+    ATOMIC_RAJA_BODY_DIRECT(RAJA::cuda_atomic, atomic_ordering(blockIdx.x), val);
   }
 }
 
 
-template < size_t block_size, size_t replication >
-void ATOMIC::runCudaVariantReplicateGlobal(VariantID vid)
+template < size_t block_size, typename AtomicOrdering >
+void ATOMIC::runCudaVariantReplicateGlobal(VariantID vid, AtomicOrdering atomic_ordering)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  const size_t allocation_size = atomic_ordering.range(iend);
+
   auto res{getCudaResource()};
 
-  ATOMIC_DATA_SETUP(replication);
+  ATOMIC_DATA_SETUP(allocation_size);
 
   if ( vid == Base_CUDA ) {
 
@@ -97,11 +117,12 @@ void ATOMIC::runCudaVariantReplicateGlobal(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
 
-      RPlaunchCudaKernel( (atomic_replicate_thread<block_size, replication>),
+      RPlaunchCudaKernel( (atomic_replicate_thread<block_size, AtomicOrdering>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          atomic,
-                         iend );
+                         iend,
+                         atomic_ordering );
 
     }
     stopTimer();
@@ -113,7 +134,7 @@ void ATOMIC::runCudaVariantReplicateGlobal(VariantID vid)
 
       RAJA::forall<RAJA::cuda_exec<block_size, true /*async*/>>(
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-          ATOMIC_RAJA_BODY(RAJA::cuda_atomic, i, ATOMIC_VALUE);
+          ATOMIC_RAJA_BODY_DIRECT(RAJA::cuda_atomic, atomic_ordering(i), ATOMIC_VALUE);
       });
 
     }
@@ -123,32 +144,36 @@ void ATOMIC::runCudaVariantReplicateGlobal(VariantID vid)
      getCout() << "\n  ATOMIC : Unknown Cuda variant id = " << vid << std::endl;
   }
 
-  ATOMIC_DATA_TEARDOWN(replication);
+  ATOMIC_DATA_TEARDOWN(allocation_size);
 }
 
-template < size_t block_size, size_t replication >
-void ATOMIC::runCudaVariantReplicateWarp(VariantID vid)
+template < size_t block_size, typename AtomicOrdering >
+void ATOMIC::runCudaVariantReplicateWarp(VariantID vid, AtomicOrdering atomic_ordering)
 {
   const Index_type run_reps = getRunReps();
   const Index_type iend = getActualProblemSize();
 
+  const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+  const size_t num_warps = grid_size*RAJA_DIVIDE_CEILING_INT(block_size, warp_size);
+  const size_t allocation_size = atomic_ordering.range(num_warps);
+
   auto res{getCudaResource()};
 
-  ATOMIC_DATA_SETUP(replication);
+  ATOMIC_DATA_SETUP(allocation_size);
 
   if ( vid == Base_CUDA ) {
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
 
-      RPlaunchCudaKernel( (atomic_replicate_warp<block_size, replication>),
+      RPlaunchCudaKernel( (atomic_replicate_warp<block_size, AtomicOrdering>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          atomic,
-                         iend );
+                         iend,
+                         atomic_ordering );
 
     }
     stopTimer();
@@ -157,32 +182,35 @@ void ATOMIC::runCudaVariantReplicateWarp(VariantID vid)
      getCout() << "\n  ATOMIC : Unknown Cuda variant id = " << vid << std::endl;
   }
 
-  ATOMIC_DATA_TEARDOWN(replication);
+  ATOMIC_DATA_TEARDOWN(allocation_size);
 }
 
-template < size_t block_size, size_t replication >
-void ATOMIC::runCudaVariantReplicateBlock(VariantID vid)
+template < size_t block_size, typename AtomicOrdering >
+void ATOMIC::runCudaVariantReplicateBlock(VariantID vid, AtomicOrdering atomic_ordering)
 {
   const Index_type run_reps = getRunReps();
   const Index_type iend = getActualProblemSize();
 
+  const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+  const size_t allocation_size = atomic_ordering.range(grid_size);
+
   auto res{getCudaResource()};
 
-  ATOMIC_DATA_SETUP(replication);
+  ATOMIC_DATA_SETUP(allocation_size);
 
   if ( vid == Base_CUDA ) {
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
 
-      RPlaunchCudaKernel( (atomic_replicate_block<block_size, replication>),
+      RPlaunchCudaKernel( (atomic_replicate_block<block_size, AtomicOrdering>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          atomic,
-                         iend );
+                         iend,
+                         atomic_ordering );
 
     }
     stopTimer();
@@ -191,7 +219,7 @@ void ATOMIC::runCudaVariantReplicateBlock(VariantID vid)
      getCout() << "\n  ATOMIC : Unknown Cuda variant id = " << vid << std::endl;
   }
 
-  ATOMIC_DATA_TEARDOWN(replication);
+  ATOMIC_DATA_TEARDOWN(allocation_size);
 }
 
 void ATOMIC::runCudaVariant(VariantID vid, size_t tune_idx)
@@ -205,63 +233,70 @@ void ATOMIC::runCudaVariant(VariantID vid, size_t tune_idx)
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
 
-        seq_for(gpu_atomic_replications_type{}, [&](auto replication) {
+        seq_for(atomic_orderings{}, [&](auto get_atomic_ordering) {
 
-          if (run_params.numValidAtomicReplication() == 0u ||
-              run_params.validAtomicReplication(replication)) {
+          seq_for(gpu_atomic_replications_type{}, [&](auto replication) {
 
-            if (tune_idx == t) {
+            if (run_params.numValidAtomicReplication() == 0u ||
+                run_params.validAtomicReplication(replication)) {
 
-              setBlockSize(block_size);
-              runCudaVariantReplicateGlobal<decltype(block_size)::value, replication>(vid);
+              if (tune_idx == t) {
+
+                setBlockSize(block_size);
+                typename decltype(get_atomic_ordering)::template type<replication> atomic_ordering;
+                runCudaVariantReplicateGlobal<decltype(block_size)::value>(vid, atomic_ordering);
+
+              }
+
+              t += 1;
 
             }
 
-            t += 1;
+          });
+
+          if ( vid == Base_CUDA ) {
+
+            seq_for(gpu_atomic_replications_type{}, [&](auto replication) {
+
+              if (run_params.numValidAtomicReplication() == 0u ||
+                  run_params.validAtomicReplication(replication)) {
+
+                if (tune_idx == t) {
+
+                  setBlockSize(block_size);
+                typename decltype(get_atomic_ordering)::template type<replication> atomic_ordering;
+                  runCudaVariantReplicateWarp<decltype(block_size)::value>(vid, atomic_ordering);
+
+                }
+
+                t += 1;
+
+              }
+
+            });
+
+            seq_for(gpu_atomic_replications_type{}, [&](auto replication) {
+
+              if (run_params.numValidAtomicReplication() == 0u ||
+                  run_params.validAtomicReplication(replication)) {
+
+                if (tune_idx == t) {
+
+                  setBlockSize(block_size);
+                typename decltype(get_atomic_ordering)::template type<replication> atomic_ordering;
+                  runCudaVariantReplicateBlock<decltype(block_size)::value>(vid, atomic_ordering);
+
+                }
+
+                t += 1;
+
+              }
+
+            });
 
           }
 
         });
-
-        if ( vid == Base_CUDA ) {
-
-          seq_for(gpu_atomic_replications_type{}, [&](auto replication) {
-
-            if (run_params.numValidAtomicReplication() == 0u ||
-                run_params.validAtomicReplication(replication)) {
-
-              if (tune_idx == t) {
-
-                setBlockSize(block_size);
-                runCudaVariantReplicateWarp<decltype(block_size)::value, replication>(vid);
-
-              }
-
-              t += 1;
-
-            }
-
-          });
-
-          seq_for(gpu_atomic_replications_type{}, [&](auto replication) {
-
-            if (run_params.numValidAtomicReplication() == 0u ||
-                run_params.validAtomicReplication(replication)) {
-
-              if (tune_idx == t) {
-
-                setBlockSize(block_size);
-                runCudaVariantReplicateBlock<decltype(block_size)::value, replication>(vid);
-
-              }
-
-              t += 1;
-
-            }
-
-          });
-
-        }
 
       }
 
@@ -284,45 +319,52 @@ void ATOMIC::setCudaTuningDefinitions(VariantID vid)
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
 
-        seq_for(gpu_atomic_replications_type{}, [&](auto replication) {
+        seq_for(atomic_orderings{}, [&](auto get_atomic_ordering) {
 
-          if (run_params.numValidAtomicReplication() == 0u ||
-              run_params.validAtomicReplication(replication)) {
+          seq_for(gpu_atomic_replications_type{}, [&](auto replication) {
 
-            addVariantTuningName(vid, "replicate_"+std::to_string(replication)+
-                                      "_global_"+std::to_string(block_size));
+            if (run_params.numValidAtomicReplication() == 0u ||
+                run_params.validAtomicReplication(replication)) {
+
+              addVariantTuningName(vid, "replicate_"+std::to_string(replication)+
+                                        "_order_"+get_atomic_ordering.name()+
+                                        "_global_"+std::to_string(block_size));
+
+            }
+
+          });
+
+          if ( vid == Base_CUDA ) {
+
+            seq_for(gpu_atomic_replications_type{}, [&](auto replication) {
+
+              if (run_params.numValidAtomicReplication() == 0u ||
+                  run_params.validAtomicReplication(replication)) {
+
+                addVariantTuningName(vid, "replicate_"+std::to_string(replication)+
+                                          "_order_"+get_atomic_ordering.name()+
+                                          "_warp_"+std::to_string(block_size));
+
+              }
+
+            });
+
+            seq_for(gpu_atomic_replications_type{}, [&](auto replication) {
+
+              if (run_params.numValidAtomicReplication() == 0u ||
+                  run_params.validAtomicReplication(replication)) {
+
+                addVariantTuningName(vid, "replicate_"+std::to_string(replication)+
+                                          "_order_"+get_atomic_ordering.name()+
+                                          "_block_"+std::to_string(block_size));
+
+              }
+
+            });
 
           }
 
         });
-
-        if ( vid == Base_CUDA ) {
-
-          seq_for(gpu_atomic_replications_type{}, [&](auto replication) {
-
-            if (run_params.numValidAtomicReplication() == 0u ||
-                run_params.validAtomicReplication(replication)) {
-
-              addVariantTuningName(vid, "replicate_"+std::to_string(replication)+
-                                        "_warp_"+std::to_string(block_size));
-
-            }
-
-          });
-
-          seq_for(gpu_atomic_replications_type{}, [&](auto replication) {
-
-            if (run_params.numValidAtomicReplication() == 0u ||
-                run_params.validAtomicReplication(replication)) {
-
-              addVariantTuningName(vid, "replicate_"+std::to_string(replication)+
-                                        "_block_"+std::to_string(block_size));
-
-            }
-
-          });
-
-        }
 
       }
 

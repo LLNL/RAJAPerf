@@ -720,31 +720,105 @@ using AtomicDataPacker = AtomicDataPackerImpl<void, Ts...>;
 
 
 /*!
- * \brief Map positive indices to [0, size) reordering such that most are
- * separated by stride.
- * This by mapping groups of indices (i) to i * stride + group
- * where group = (i / (size / stride)) % stride
- *   [0, stride,   2*stride, ...,
- *    1, stride+1, 2*stride+1, ...)
+ * \brief Trivial mapping of positive indices with no reordering.
  */
-template < size_t stride, size_t size >
-struct StridedReorderStatic
+struct NonReorder
 {
-  static_assert(stride == next_pow2(stride),
-                "stride must be a power of 2");
-  static_assert(size == next_pow2(size),
-                "size must be a power of 2");
-
-  static constexpr size_t stride_shift = log2(stride);
-  static constexpr size_t stride_mask = stride - 1;
-
-  static constexpr size_t num_groups = (size > stride) ? (size / stride) : 1;
-  static constexpr size_t group_shift = log2(num_groups);
-  static constexpr size_t group_mask = num_groups - 1;
+  RAJA_PERFSUITE_HOST_DEVICE
+  constexpr size_t range(size_t domain) const noexcept
+  {
+    return domain;
+  }
 
   RAJA_PERFSUITE_HOST_DEVICE
   constexpr size_t operator()(size_t i) const noexcept
   {
+    return i;
+  }
+};
+
+/*!
+ * \brief Map positive indices to [0, range).
+ * Map groups of indices (i) to i % range.
+ *   {0, 1, 2, ..., range-1,
+ *    0, 1, 2, ..., range-1, ...}
+ */
+template < size_t t_max_range >
+struct ModReorderStatic
+{
+  static_assert(t_max_range == next_pow2(t_max_range),
+                "max_range must be a power of 2");
+
+  static constexpr size_t max_range = t_max_range;
+  static constexpr size_t max_range_mask = max_range - 1;
+
+  RAJA_PERFSUITE_HOST_DEVICE
+  constexpr size_t range(size_t domain) const noexcept
+  {
+    return (domain > max_range) ? max_range : domain;
+  }
+
+  RAJA_PERFSUITE_HOST_DEVICE
+  constexpr size_t operator()(size_t i) const noexcept
+  {
+    return i & max_range_mask;
+  }
+};
+
+/*!
+ * \brief Map positive indices to [0, size) reordering such that most are
+ * separated by stride.
+ * Map groups of indices (i) to i * stride + group,
+ * where group = (i / (size / stride)) % stride.
+ *   [0, stride,   2*stride, ...,
+ *    1, stride+1, 2*stride+1, ...)
+ */
+template < size_t t_stride, size_t t_max_domain, size_t t_max_range >
+struct StridedReorderStatic
+{
+  static_assert(t_stride == next_pow2(t_stride),
+                "stride must be a power of 2");
+  static_assert(t_max_domain == next_pow2(t_max_domain),
+                "max_domain must be a power of 2");
+  static_assert(t_max_range == next_pow2(t_max_range),
+                "max_range must be a power of 2");
+
+  static constexpr size_t max_domain = t_max_domain;
+  static constexpr size_t domain_mask = max_domain - 1;
+
+  static constexpr size_t max_range = t_max_range;
+  static constexpr size_t stride = (t_max_range > t_stride) ? t_stride : t_max_range;
+
+  static constexpr size_t stride_shift = log2(stride);
+  static constexpr size_t stride_mask = stride - 1;
+
+  static constexpr size_t num_groups = (max_range > stride) ? (max_range / stride) : 1;
+  static constexpr size_t group_shift = log2(num_groups);
+  static constexpr size_t group_mask = num_groups - 1;
+
+  RAJA_PERFSUITE_HOST_DEVICE
+  constexpr size_t range(size_t domain) const noexcept
+  {
+    if (domain > max_domain) {
+      domain = max_domain;
+    }
+    // round up to a multiple of stride
+    if (domain >= num_groups) {
+      return max_range;
+    } else if (domain > 0) {
+      const size_t group = (domain-1) & group_mask;
+      return (group + 1) * stride;
+    } else {
+      return 0;
+    }
+  }
+
+  RAJA_PERFSUITE_HOST_DEVICE
+  constexpr size_t operator()(size_t i) const noexcept
+  {
+    if constexpr(max_domain < max_range) {
+      i &= domain_mask;
+    }
     return ((i >> group_shift) & stride_mask) |
            ((i & group_mask) << stride_shift);
   }
@@ -759,13 +833,33 @@ struct StridedReorder
   static constexpr size_t stride_shift = log2(stride);
   static constexpr size_t stride_mask = stride - 1;
 
-  constexpr void setup(size_t size)
-  {
-    assert(size == next_pow2(size));
+  size_t group_shift;
+  size_t group_mask;
 
-    size_t num_groups = (size > stride) ? (size / stride) : 1;
+  constexpr void setup(size_t max_range)
+  {
+    assert(max_range == next_pow2(max_range));
+    assert(max_range >= stride);
+
+    size_t num_groups = (max_range > stride) ? (max_range / stride) : 1;
     group_shift = log2(num_groups);
     group_mask = num_groups - 1;
+  }
+
+  RAJA_PERFSUITE_HOST_DEVICE
+  constexpr size_t range(size_t domain) const noexcept
+  {
+    // round up to a multiple of stride
+    const size_t num_groups = group_mask+1;
+    const size_t max_range = num_groups * stride;
+    if (domain >= num_groups) {
+      return max_range;
+    } else if (domain > 0) {
+      const size_t group = (domain-1) & group_mask;
+      return (group + 1) * stride;
+    } else {
+      return 0;
+    }
   }
 
   RAJA_PERFSUITE_HOST_DEVICE
@@ -774,11 +868,22 @@ struct StridedReorder
     return ((i >> group_shift) & stride_mask) |
            ((i & group_mask) << stride_shift);
   }
-
-  size_t group_shift;
-  size_t group_mask;
 };
 
+struct GetModReorderStatic
+{
+  template < size_t max_range >
+  using type = ModReorderStatic<max_range>;
+  static const char* name() { return "mod"; }
+};
+
+template < size_t stride, size_t min_range >
+struct GetStridedReorderStatic
+{
+  template < size_t max_domain >
+  using type = StridedReorderStatic<stride, max_domain, std::max(max_domain, min_range)>;
+  static const char* name() { return "stride"; }
+};
 
 // store block and grid counts in separate places
 // because they can not be stored together with the ready flag
