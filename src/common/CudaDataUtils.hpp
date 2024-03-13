@@ -29,6 +29,25 @@
 namespace rajaperf
 {
 
+namespace detail
+{
+
+namespace cuda
+{
+
+//
+// Define magic numbers for CUDA execution
+//
+const size_t warp_size = 32;
+const size_t max_static_shmem = 49154;
+const size_t max_concurrent_atomic_bytes = 8*8192;
+const size_t cache_line_size = 32;
+
+}  // closing brace for cuda namespace
+
+}  // closing brace for detail namespace
+
+
 /*!
  * \brief Device timer, returns a time in ns from an arbitrary starting point.
  * Note that this time is consistent across the whole device.

@@ -13,6 +13,8 @@
 #include <rocprim/warp/warp_reduce.hpp>
 #include <rocprim/warp/warp_scan.hpp>
 
+#include "common/HipDataUtils.hpp"
+
 namespace rajaperf
 {
 namespace detail
@@ -20,12 +22,6 @@ namespace detail
 namespace hip
 {
 
-//
-// Define magic numbers for HIP execution
-//
-const size_t warp_size = 64;
-const size_t max_static_shmem = 65536;
-const size_t cache_line_size = (RAJA_PERFSUITE_TUNING_HIP_ARCH == 910) ? 128 : 64;
 
 
 // perform a grid scan on val and returns the result at each thread

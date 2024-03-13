@@ -24,7 +24,7 @@ namespace rajaperf
 namespace algorithm
 {
 
-const size_t warp_size = 32;
+const size_t warp_size = detail::cuda::warp_size;
 
 template < size_t block_size, size_t replication >
 __launch_bounds__(block_size)

@@ -13,6 +13,8 @@
 #include <cub/warp/warp_reduce.cuh>
 #include <cub/warp/warp_scan.cuh>
 
+#include "common/CudaDataUtils.hpp"
+
 namespace rajaperf
 {
 namespace detail
@@ -20,12 +22,6 @@ namespace detail
 namespace cuda
 {
 
-//
-// Define magic numbers for CUDA execution
-//
-const size_t warp_size = 32;
-const size_t max_static_shmem = 49154;
-const size_t cache_line_size = 32;
 
 
 // perform a grid scan on val and returns the result at each thread

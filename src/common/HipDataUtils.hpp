@@ -29,6 +29,25 @@
 namespace rajaperf
 {
 
+namespace detail
+{
+
+namespace hip
+{
+
+//
+// Define magic numbers for HIP execution
+//
+const size_t warp_size = 64;
+const size_t max_static_shmem = 65536;
+const size_t max_concurrent_atomic_bytes = (RAJA_PERFSUITE_TUNING_HIP_ARCH == 942) ? 8*4096 : 8*1024;
+const size_t cache_line_size = (RAJA_PERFSUITE_TUNING_HIP_ARCH == 910) ? 128 : 64;
+
+}  // closing brace for hip namespace
+
+}  // closing brace for detail namespace
+
+
 /*!
  * \brief Method for launching a HIP kernel with given configuration.
  *
