@@ -106,8 +106,8 @@ public:
 private:
   static const size_t default_gpu_block_size = 256;
   using gpu_block_sizes_type = integer::make_gpu_block_size_list_type<default_gpu_block_size>;
-  static const size_t default_atomic_replication = 2048; // 512, 512
-  using gpu_atomic_replications_type = integer::make_atomic_replication_list_type<default_atomic_replication>;
+  static const size_t default_gpu_atomic_replication = 2048; // 512, 512
+  using gpu_atomic_replications_type = integer::make_atomic_replication_list_type<default_gpu_atomic_replication>;
 
   Index_type m_num_bins;
   Index_ptr m_bins;

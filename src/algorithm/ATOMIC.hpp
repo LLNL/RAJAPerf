@@ -105,8 +105,8 @@ private:
   using gpu_block_sizes_type = integer::make_gpu_block_size_list_type<default_gpu_block_size>;
   static const size_t default_cpu_atomic_replication = 64;
   using cpu_atomic_replications_type = integer::make_atomic_replication_list_type<default_cpu_atomic_replication>;
-  static const size_t default_atomic_replication = 4096; // 1024, 8192
-  using gpu_atomic_replications_type = integer::make_atomic_replication_list_type<default_atomic_replication>;
+  static const size_t default_gpu_atomic_replication = 4096; // 1024, 8192
+  using gpu_atomic_replications_type = integer::make_atomic_replication_list_type<default_gpu_atomic_replication>;
 
   Data_type m_init;
   Data_type m_final;
