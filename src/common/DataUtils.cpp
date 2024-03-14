@@ -704,6 +704,10 @@ DataSpace hostCopyDataSpace(DataSpace dataSpace)
     case DataSpace::HipDeviceFine:
       return DataSpace::HipPinned;
 
+    case DataSpace::SyclManaged:
+    case DataSpace::SyclDevice:
+      return DataSpace::SyclPinned;
+
     default:
     {
       throw std::invalid_argument("hostCopyDataSpace : Unknown data space");
