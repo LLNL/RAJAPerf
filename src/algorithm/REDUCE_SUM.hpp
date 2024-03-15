@@ -9,11 +9,11 @@
 ///
 /// REDUCE_SUM kernel reference implementation:
 ///
-/// Real_type sum = std::reduce(x+ibegin, x+iend);
+/// Data_type sum = std::reduce(x+ibegin, x+iend);
 /// // or
-/// Real_type sum = std::accumulate(x+ibegin, x+iend, 0.0);
+/// Data_type sum = std::accumulate(x+ibegin, x+iend, 0.0);
 /// // or
-/// Real_type sum = 0.0;
+/// Data_type sum = 0;
 /// for (Index_type i = ibegin; i < iend; ++i ) {
 ///   sum += x[i] ;
 /// }
@@ -23,7 +23,7 @@
 #define RAJAPerf_Algorithm_REDUCE_SUM_HPP
 
 #define REDUCE_SUM_DATA_SETUP \
-  Real_ptr x = m_x;
+  Data_ptr x = m_x;
 
 #define REDUCE_SUM_STD_ARGS  \
   x + ibegin, x + iend
@@ -44,6 +44,8 @@ namespace algorithm
 class REDUCE_SUM : public KernelBase
 {
 public:
+  using Data_type = Real_type;
+  using Data_ptr = Real_ptr;
 
   REDUCE_SUM(const RunParams& params);
 
@@ -76,9 +78,9 @@ private:
   static const size_t default_gpu_block_size = 256;
   using gpu_block_sizes_type = integer::make_gpu_block_size_list_type<default_gpu_block_size>;
 
-  Real_ptr m_x;
-  Real_type m_sum_init;
-  Real_type m_sum;
+  Data_ptr m_x;
+  Data_type m_sum_init;
+  Data_type m_sum;
 };
 
 } // end namespace algorithm

@@ -35,10 +35,11 @@ namespace algorithm
 
 template < size_t block_size >
 __launch_bounds__(block_size)
-__global__ void reduce_sum(Real_ptr x, Real_ptr sum, Real_type sum_init,
+__global__ void reduce_sum(REDUCE_SUM::Data_ptr x,
+                           REDUCE_SUM::Data_ptr sum, REDUCE_SUM::Data_type sum_init,
                            Index_type iend)
 {
-  HIP_DYNAMIC_SHARED(Real_type, psum);
+  HIP_DYNAMIC_SHARED(REDUCE_SUM::Data_type, psum);
 
   Index_type i = blockIdx.x * block_size + threadIdx.x;
 
@@ -77,7 +78,7 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
 
     int len = iend - ibegin;
 
-    RAJAPERF_HIP_REDUCER_SETUP(Real_ptr, sum, hsum, 1, 1);
+    RAJAPERF_HIP_REDUCER_SETUP(Data_ptr, sum, hsum, 1, 1);
 
     // Determine temporary device storage requirements
     void* d_temp_storage = nullptr;
@@ -89,7 +90,7 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
                                 sum,
                                 m_sum_init,
                                 len,
-                                rocprim::plus<Real_type>(),
+                                rocprim::plus<Data_type>(),
                                 stream));
 #elif defined(__CUDACC__)
     hipErrchk(::cub::DeviceReduce::Reduce(d_temp_storage,
@@ -119,7 +120,7 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
                                   sum,
                                   m_sum_init,
                                   len,
-                                  rocprim::plus<Real_type>(),
+                                  rocprim::plus<Data_type>(),
                                   stream));
 #elif defined(__CUDACC__)
       hipErrchk(::cub::DeviceReduce::Reduce(d_temp_storage,
@@ -162,11 +163,11 @@ void REDUCE_SUM::runHipVariantBase(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    RAJAPERF_HIP_REDUCER_SETUP(Real_ptr, sum, hsum, 1, 1);
-
     constexpr size_t shmem = sizeof(Real_type)*block_size;
     const size_t max_grid_size = RAJAPERF_HIP_GET_MAX_BLOCKS(
         MappingHelper, (reduce_sum<block_size>), block_size, shmem);
+
+    RAJAPERF_HIP_REDUCER_SETUP(Data_ptr, sum, hsum, 1, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -221,7 +222,7 @@ void REDUCE_SUM::runHipVariantRAJA(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<reduction_policy, Real_type> sum(m_sum_init);
+      RAJA::ReduceSum<reduction_policy, Data_type> sum(m_sum_init);
 
       RAJA::forall<exec_policy>( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
