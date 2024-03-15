@@ -18,6 +18,74 @@ namespace algorithm
 {
 
 
+void REDUCE_SUM::runSeqVariantBinary(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  REDUCE_SUM_DATA_SETUP;
+
+  switch ( vid ) {
+
+    case Base_Seq : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        // do a binary reduction tree using O(lg(n)) memory
+        size_t size = (iend - ibegin);
+        size_t max_level = detail::log2(detail::next_pow2(size));
+        Data_type sum_stack[8*sizeof(Index_type)];
+
+        for (size_t ii = 0; ii < size; ++ii ) {
+          Index_type i = static_cast<Index_type>(ii) + ibegin;
+
+          Data_type val = REDUCE_SUM_VAL;
+
+          for (size_t level = 0, mask = 1;
+               level <= max_level;
+               ++level, mask <<= 1) {
+
+            // the bits of ii determine which levels to use
+            if (ii & mask) {
+              REDUCE_SUM_OP(sum_stack[level], val);
+              val = sum_stack[level];
+            } else {
+              sum_stack[level] = val;
+              break;
+            }
+          }
+        }
+
+        Data_type sum = m_sum_init;
+        for (size_t level = 0, mask = 1;
+             level <= max_level;
+             ++level, mask <<= 1) {
+
+          // size is a bit-set of the valid levels
+          if (size & mask) {
+            REDUCE_SUM_OP(sum, sum_stack[level]);
+          }
+        }
+
+        m_sum = sum;
+
+      }
+      stopTimer();
+
+      break;
+    }
+
+    default : {
+      getCout() << "\n  REDUCE_SUM : Unknown variant id = " << vid << std::endl;
+    }
+
+  }
+
+}
+
+
 void REDUCE_SUM::runSeqVariantDefault(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
@@ -153,6 +221,18 @@ void REDUCE_SUM::runSeqVariant(VariantID vid, size_t tune_idx)
 {
   size_t t = 0;
 
+  if ( vid == Base_Seq ) {
+
+    if (tune_idx == t) {
+
+      runSeqVariantBinary(vid);
+
+    }
+
+    t += 1;
+
+  }
+
   if (tune_idx == t) {
 
     runSeqVariantDefault(vid);
@@ -186,6 +266,12 @@ void REDUCE_SUM::runSeqVariant(VariantID vid, size_t tune_idx)
 
 void REDUCE_SUM::setSeqTuningDefinitions(VariantID vid)
 {
+
+  if ( vid == Base_Seq ) {
+
+    addVariantTuningName(vid, "binary");
+
+  }
 
   addVariantTuningName(vid, "default");
 

@@ -71,6 +71,7 @@ public:
   void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
 
   void setSeqTuningDefinitions(VariantID vid);
+  void runSeqVariantBinary(VariantID vid);
   void runSeqVariantDefault(VariantID vid);
   template < size_t replication >
   void runSeqVariantReplication(VariantID vid);
