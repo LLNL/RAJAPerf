@@ -217,7 +217,7 @@ void REDUCE_STRUCT::runHipVariant(VariantID vid, size_t tune_idx)
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
 
-        seq_for(gpu_mapping::reducer_helpers{}, [&](auto mapping_helper) {
+        seq_for(gpu_mapping::types{}, [&](auto mapping_helper) {
 
           if ( vid == Base_HIP ) {
 
@@ -233,7 +233,7 @@ void REDUCE_STRUCT::runHipVariant(VariantID vid, size_t tune_idx)
 
           } else if ( vid == RAJA_HIP ) {
 
-            seq_for(gpu_algorithm::reducer_helpers{}, [&](auto algorithm_helper) {
+            seq_for(gpu_algorithm::types{}, [&](auto algorithm_helper) {
 
               if (tune_idx == t) {
 
@@ -273,7 +273,7 @@ void REDUCE_STRUCT::setHipTuningDefinitions(VariantID vid)
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
 
-        seq_for(gpu_mapping::reducer_helpers{}, [&](auto mapping_helper) {
+        seq_for(gpu_mapping::types{}, [&](auto mapping_helper) {
 
           if ( vid == Base_HIP ) {
 
@@ -285,7 +285,7 @@ void REDUCE_STRUCT::setHipTuningDefinitions(VariantID vid)
 
           } else if ( vid == RAJA_HIP ) {
 
-            seq_for(gpu_algorithm::reducer_helpers{}, [&](auto algorithm_helper) {
+            seq_for(gpu_algorithm::types{}, [&](auto algorithm_helper) {
 
               addVariantTuningName(vid, decltype(algorithm_helper)::get_name()+"_"+
                                         decltype(mapping_helper)::get_name()+"_"+

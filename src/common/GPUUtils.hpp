@@ -192,7 +192,7 @@ struct block_host_helper
   static std::string get_name() { return "blkhst"; }
 };
 
-using reducer_helpers = camp::list<
+using types = camp::list<
     block_atomic_helper,
     block_device_helper >;
 
@@ -212,7 +212,7 @@ struct global_loop_occupancy_grid_stride_helper
   static std::string get_name() { return "occgs"; }
 };
 
-using reducer_helpers = camp::list<
+using types = camp::list<
     global_direct_helper,
     global_loop_occupancy_grid_stride_helper >;
 

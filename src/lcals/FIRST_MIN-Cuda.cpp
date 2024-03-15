@@ -162,7 +162,7 @@ void FIRST_MIN::runCudaVariant(VariantID vid, size_t tune_idx)
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
 
-        seq_for(gpu_mapping::reducer_helpers{}, [&](auto mapping_helper) {
+        seq_for(gpu_mapping::types{}, [&](auto mapping_helper) {
 
           if ( vid == Base_CUDA ) {
 
@@ -213,7 +213,7 @@ void FIRST_MIN::setCudaTuningDefinitions(VariantID vid)
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
 
-        seq_for(gpu_mapping::reducer_helpers{}, [&](auto mapping_helper) {
+        seq_for(gpu_mapping::types{}, [&](auto mapping_helper) {
 
           if ( vid == Base_CUDA ) {
 
