@@ -28,8 +28,17 @@
 #define REDUCE_SUM_STD_ARGS  \
   x + ibegin, x + iend
 
+#define REDUCE_SUM_VAL \
+  x[i]
+
+#define REDUCE_SUM_OP(sum, val) \
+  (sum) += (val)
+
+#define REDUCE_SUM_VAR_BODY(sum) \
+  REDUCE_SUM_OP(sum, REDUCE_SUM_VAL)
+
 #define REDUCE_SUM_BODY \
-  sum += x[i];
+  REDUCE_SUM_VAR_BODY(sum)
 
 
 #include "common/KernelBase.hpp"
@@ -61,14 +70,19 @@ public:
   void runHipVariant(VariantID vid, size_t tune_idx);
   void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
 
+  void setSeqTuningDefinitions(VariantID vid);
+  void runSeqVariantDefault(VariantID vid);
+  template < size_t replication >
+  void runSeqVariantReplication(VariantID vid);
+
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
   void runCudaVariantCub(VariantID vid);
   void runHipVariantRocprim(VariantID vid);
-  template < size_t block_size, typename MappingHelper >
-  void runCudaVariantBase(VariantID vid);
-  template < size_t block_size, typename MappingHelper >
-  void runHipVariantBase(VariantID vid);
+  template < size_t block_size, typename MappingHelper, typename AtomicOrdering >
+  void runCudaVariantBase(VariantID vid, AtomicOrdering atomic_ordering);
+  template < size_t block_size, typename MappingHelper, typename AtomicOrdering >
+  void runHipVariantBase(VariantID vid, AtomicOrdering atomic_ordering);
   template < size_t block_size, typename AlgorithmHelper, typename MappingHelper >
   void runCudaVariantRAJA(VariantID vid);
   template < size_t block_size, typename AlgorithmHelper, typename MappingHelper >
@@ -77,6 +91,11 @@ public:
 private:
   static const size_t default_gpu_block_size = 256;
   using gpu_block_sizes_type = integer::make_gpu_block_size_list_type<default_gpu_block_size>;
+  static const size_t default_cpu_atomic_replication = 64;
+  using cpu_atomic_replications_type = integer::make_atomic_replication_list_type<default_cpu_atomic_replication>;
+  static const size_t default_gpu_atomic_replication = 4096; // 1024, 8192
+  using gpu_atomic_replications_type = integer::make_atomic_replication_list_type<default_gpu_atomic_replication>;
+
 
   Data_ptr m_x;
   Data_type m_sum_init;

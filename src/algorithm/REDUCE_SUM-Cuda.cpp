@@ -28,11 +28,27 @@ namespace rajaperf
 namespace algorithm
 {
 
-template < size_t block_size >
+static constexpr size_t atomic_stride =
+    (detail::cuda::cache_line_size > sizeof(REDUCE_SUM::Data_type))
+    ? detail::cuda::cache_line_size / sizeof(REDUCE_SUM::Data_type)
+    : 1;
+
+static constexpr size_t max_concurrent_atomics =
+    (detail::cuda::max_concurrent_atomic_bytes > sizeof(REDUCE_SUM::Data_type))
+    ? detail::cuda::max_concurrent_atomic_bytes / sizeof(REDUCE_SUM::Data_type)
+    : 1;
+
+using atomic_orderings = camp::list<
+    detail::GetModReorderStatic,
+    detail::GetStridedReorderStatic<atomic_stride, max_concurrent_atomics> >;
+
+
+template < size_t block_size, typename AtomicOrdering >
 __launch_bounds__(block_size)
 __global__ void reduce_sum(REDUCE_SUM::Data_ptr x,
                            REDUCE_SUM::Data_ptr sum, REDUCE_SUM::Data_type sum_init,
-                           Index_type iend)
+                           Index_type iend,
+                           AtomicOrdering atomic_ordering)
 {
   extern __shared__ REDUCE_SUM::Data_type psum[ ];
 
@@ -52,7 +68,7 @@ __global__ void reduce_sum(REDUCE_SUM::Data_ptr x,
   }
 
   if ( threadIdx.x == 0 ) {
-    RAJA::atomicAdd<RAJA::cuda_atomic>( sum, psum[ 0 ] );
+    RAJA::atomicAdd<RAJA::cuda_atomic>( &sum[atomic_ordering(blockIdx.x)], psum[ 0 ] );
   }
 }
 
@@ -124,8 +140,8 @@ void REDUCE_SUM::runCudaVariantCub(VariantID vid)
 
 }
 
-template < size_t block_size, typename MappingHelper >
-void REDUCE_SUM::runCudaVariantBase(VariantID vid)
+template < size_t block_size, typename MappingHelper, typename AtomicOrdering >
+void REDUCE_SUM::runCudaVariantBase(VariantID vid, AtomicOrdering atomic_ordering)
 {
   const Index_type run_reps = getRunReps();
   const Index_type iend = getActualProblemSize();
@@ -136,26 +152,29 @@ void REDUCE_SUM::runCudaVariantBase(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    constexpr size_t shmem = sizeof(Real_type)*block_size;
+    constexpr size_t shmem = sizeof(Data_type)*block_size;
     const size_t max_grid_size = RAJAPERF_CUDA_GET_MAX_BLOCKS(
-        MappingHelper, (reduce_sum<block_size>), block_size, shmem);
+        MappingHelper, (reduce_sum<block_size, AtomicOrdering>), block_size, shmem);
+    const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+    const size_t grid_size = std::min(normal_grid_size, max_grid_size);
+    const size_t allocation_size = atomic_ordering.range(grid_size);
 
-    RAJAPERF_CUDA_REDUCER_SETUP(Data_ptr, sum, hsum, 1, 1);
+    RAJAPERF_CUDA_REDUCER_SETUP(Data_ptr, sum, hsum, 1, allocation_size);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJAPERF_CUDA_REDUCER_INITIALIZE(&m_sum_init, sum, hsum, 1, 1);
+      RAJAPERF_CUDA_REDUCER_INITIALIZE(&m_sum_init, sum, hsum, 1, allocation_size);
 
-      const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      const size_t grid_size = std::min(normal_grid_size, max_grid_size);
-
-      RPlaunchCudaKernel( (reduce_sum<block_size>),
+      RPlaunchCudaKernel( (reduce_sum<block_size, AtomicOrdering>),
                           grid_size, block_size,
                           shmem, res.get_stream(),
-                          x, sum, m_sum_init, iend );
+                          x, sum, m_sum_init, iend, atomic_ordering );
 
-      RAJAPERF_CUDA_REDUCER_COPY_BACK(sum, hsum, 1, 1);
+      RAJAPERF_CUDA_REDUCER_COPY_BACK(sum, hsum, 1, allocation_size);
+      for (size_t r = 1; r < allocation_size; ++r) {
+        hsum[0] += hsum[r];
+      }
       m_sum = hsum[0];
 
     }
@@ -242,15 +261,29 @@ void REDUCE_SUM::runCudaVariant(VariantID vid, size_t tune_idx)
 
           if ( vid == Base_CUDA ) {
 
-            if (tune_idx == t) {
+            seq_for(atomic_orderings{}, [&](auto get_atomic_ordering) {
 
-              setBlockSize(block_size);
-              runCudaVariantBase<decltype(block_size){},
-                                 decltype(mapping_helper)>(vid);
+              seq_for(gpu_atomic_replications_type{}, [&](auto replication) {
 
-            }
+                if (run_params.numValidAtomicReplication() == 0u ||
+                    run_params.validAtomicReplication(replication)) {
 
-            t += 1;
+                  if (tune_idx == t) {
+
+                    setBlockSize(block_size);
+                    typename decltype(get_atomic_ordering)::template type<replication> atomic_ordering;
+                    runCudaVariantBase<decltype(block_size){},
+                                       decltype(mapping_helper)>(vid, atomic_ordering);
+
+                  }
+
+                  t += 1;
+
+                }
+
+              });
+
+            });
 
           } else if ( vid == RAJA_CUDA ) {
 
@@ -304,11 +337,26 @@ void REDUCE_SUM::setCudaTuningDefinitions(VariantID vid)
 
           if ( vid == Base_CUDA ) {
 
-            auto algorithm_helper = gpu_algorithm::block_atomic_helper{};
+            seq_for(atomic_orderings{}, [&](auto get_atomic_ordering) {
 
-            addVariantTuningName(vid, decltype(algorithm_helper)::get_name()+"_"+
-                                      decltype(mapping_helper)::get_name()+"_"+
-                                      std::to_string(block_size));
+              seq_for(gpu_atomic_replications_type{}, [&](auto replication) {
+
+                if (run_params.numValidAtomicReplication() == 0u ||
+                    run_params.validAtomicReplication(replication)) {
+
+                  auto algorithm_helper = gpu_algorithm::block_atomic_helper{};
+
+                  addVariantTuningName(vid, decltype(algorithm_helper)::get_name()+
+                                            "_"+decltype(mapping_helper)::get_name()+
+                                            "_replicate_"+std::to_string(replication)+
+                                            "_order_"+get_atomic_ordering.name()+
+                                            "_"+std::to_string(block_size));
+
+                }
+
+              });
+
+            });
 
           } else if ( vid == RAJA_CUDA ) {
 
