@@ -21,6 +21,47 @@
 namespace rajaperf
 {
 
+class CommonParams {
+
+public:
+  int checkrun_reps{0};   /*!< Num reps each kernel is run in check run */ // 1
+  double rep_fact{1.0};   /*!< pct of default kernel reps to run */ // 1.0
+
+  double size{0.0};                             /*!< kernel size to run (input option) */
+  double size_factor{0.0};                      /*!< default kernel size multipier (input option) */
+  Size_type data_alignment{RAJA::DATA_ALIGN};
+
+  int gpu_stream{1};                       /*!< 0 -> use stream 0; anything else -> use raja default stream */
+  std::vector<size_t> gpu_block_sizes;     /*!< Block sizes for gpu tunings to run (input option) */
+  std::vector<size_t> atomic_replications; /*!< Atomic replications for gpu tunings to run (input option) */
+  std::vector<size_t> items_per_threads;   /*!< Items per thread for gpu tunings to run (input option) */
+
+  int mpi_size{1};                                  /*!< Number of MPI ranks */
+  int mpi_rank{0};                                  /*!< Rank of this MPI process */
+  std::array<int, 3> mpi_3d_division{{-1, -1, -1}}; /*!< Number of MPI ranks in each dimension of a 3D grid */
+
+  DataSpace seqDataSpace = DataSpace::Host;
+  DataSpace ompDataSpace = DataSpace::Omp;
+  DataSpace ompTargetDataSpace = DataSpace::OmpTarget;
+  DataSpace cudaDataSpace = DataSpace::CudaDevice;
+  DataSpace hipDataSpace = DataSpace::HipDevice;
+  DataSpace kokkosDataSpace = DataSpace::Host;
+
+  DataSpace seqReductionDataSpace = DataSpace::Host;
+  DataSpace ompReductionDataSpace = DataSpace::Omp;
+  DataSpace ompTargetReductionDataSpace = DataSpace::OmpTarget;
+  DataSpace cudaReductionDataSpace = DataSpace::CudaManagedDevicePreferredHostAccessed;
+  DataSpace hipReductionDataSpace = DataSpace::HipDevice;
+  DataSpace kokkosReductionDataSpace = DataSpace::Host;
+
+  DataSpace seqMPIDataSpace = DataSpace::Host;
+  DataSpace ompMPIDataSpace = DataSpace::Omp;
+  DataSpace ompTargetMPIDataSpace = DataSpace::Copy;
+  DataSpace cudaMPIDataSpace = DataSpace::CudaPinned;
+  DataSpace hipMPIDataSpace = DataSpace::HipPinned;
+  DataSpace kokkosMPIDataSpace = DataSpace::Copy;
+};
+
 /*!
  *******************************************************************************
  *
@@ -28,7 +69,7 @@ namespace rajaperf
  *
  *******************************************************************************
  */
-class InputParams {
+class InputParams : CommonParams {
 
 public:
   InputParams( int argc, char** argv );
@@ -118,77 +159,13 @@ public:
   const std::vector<CombinerOpt>& getNpassesCombinerOpts() const
   { return npasses_combiners; }
 
-  int getReps() const { return checkrun_reps; }
-  double getRepFactor() const { return rep_fact; }
   double getPFTolerance() const { return pf_tol; }
   const std::string& getReferenceVariant() const { return reference_variant; }
   VariantID getReferenceVariantID() const { return reference_vid; }
 
   SizeMeaning getSizeMeaning() const { return size_meaning; }
-  double getSize() const { return size; }
-  double getSizeFactor() const { return size_factor; }
-  Size_type getDataAlignment() const { return data_alignment; }
 
-  int getGPUStream() const { return gpu_stream; }
-  std::vector<size_t> const& getGPUBlockSizes() const { return gpu_block_sizes; }
-  std::vector<size_t> const& getAtomicReplications() const { return atomic_replications; }
-  std::vector<size_t> const& getItemsPerThreads() const { return items_per_threads; }
-  size_t numValidGPUBlockSize() const { return gpu_block_sizes.size(); }
-  bool validGPUBlockSize(size_t block_size) const
-  {
-    for (size_t valid_block_size : gpu_block_sizes) {
-      if (valid_block_size == block_size) {
-        return true;
-      }
-    }
-    return false;
-  }
-  size_t numValidAtomicReplication() const { return atomic_replications.size(); }
-  bool validAtomicReplication(size_t atomic_replication) const
-  {
-    for (size_t valid_atomic_replication : atomic_replications) {
-      if (valid_atomic_replication == atomic_replication) {
-        return true;
-      }
-    }
-    return false;
-  }
-  size_t numValidItemsPerThread() const { return items_per_threads.size(); }
-  bool validItemsPerThread(size_t items_per_thread) const
-  {
-    for (size_t valid_items_per_thread : items_per_threads) {
-      if (valid_items_per_thread == items_per_thread) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  int getMPISize() const { return mpi_size; }
-  int getMPIRank() const { return mpi_rank; }
-  bool validMPI3DDivision() const { return (mpi_3d_division[0]*mpi_3d_division[1]*mpi_3d_division[2] == mpi_size); }
-  std::array<int, 3> const& getMPI3DDivision() const { return mpi_3d_division; }
-
-  DataSpace getSeqDataSpace() const { return seqDataSpace; }
-  DataSpace getOmpDataSpace() const { return ompDataSpace; }
-  DataSpace getOmpTargetDataSpace() const { return ompTargetDataSpace; }
-  DataSpace getCudaDataSpace() const { return cudaDataSpace; }
-  DataSpace getHipDataSpace() const { return hipDataSpace; }
-  DataSpace getKokkosDataSpace() const { return kokkosDataSpace; }
-
-  DataSpace getSeqReductionDataSpace() const { return seqReductionDataSpace; }
-  DataSpace getOmpReductionDataSpace() const { return ompReductionDataSpace; }
-  DataSpace getOmpTargetReductionDataSpace() const { return ompTargetReductionDataSpace; }
-  DataSpace getCudaReductionDataSpace() const { return cudaReductionDataSpace; }
-  DataSpace getHipReductionDataSpace() const { return hipReductionDataSpace; }
-  DataSpace getKokkosReductionDataSpace() const { return kokkosReductionDataSpace; }
-
-  DataSpace getSeqMPIDataSpace() const { return seqMPIDataSpace; }
-  DataSpace getOmpMPIDataSpace() const { return ompMPIDataSpace; }
-  DataSpace getOmpTargetMPIDataSpace() const { return ompTargetMPIDataSpace; }
-  DataSpace getCudaMPIDataSpace() const { return cudaMPIDataSpace; }
-  DataSpace getHipMPIDataSpace() const { return hipMPIDataSpace; }
-  DataSpace getKokkosMPIDataSpace() const { return kokkosMPIDataSpace; }
+  CommonParams const& getCommonParams() const { return *this; }
 
   const std::string& getOutputDirName() const { return outdir; }
   const std::string& getOutputFilePrefix() const { return outfile_prefix; }
@@ -251,45 +228,7 @@ private:
                                               calculations given in input */
   VariantID reference_vid{NumVariants};  /*!< ID of reference variant */
 
-
-  int checkrun_reps{0};   /*!< Num reps each kernel is run in check run */ // 1
-  double rep_fact{1.0};   /*!< pct of default kernel reps to run */ // 1.0
-
   SizeMeaning size_meaning{SizeMeaning::Unset}; /*!< meaning of size value */
-  double size{0.0};                             /*!< kernel size to run (input option) */
-  double size_factor{0.0};                      /*!< default kernel size multipier (input option) */
-  Size_type data_alignment{RAJA::DATA_ALIGN};
-
-  int gpu_stream{1};                       /*!< 0 -> use stream 0; anything else -> use raja default stream */
-  std::vector<size_t> gpu_block_sizes;     /*!< Block sizes for gpu tunings to run (input option) */
-  std::vector<size_t> atomic_replications; /*!< Atomic replications for gpu tunings to run (input option) */
-  std::vector<size_t> items_per_threads;   /*!< Items per thread for gpu tunings to run (input option) */
-
-  int mpi_size{1};                                  /*!< Number of MPI ranks */
-  int mpi_rank{0};                                  /*!< Rank of this MPI process */
-  std::array<int, 3> mpi_3d_division{{-1, -1, -1}}; /*!< Number of MPI ranks in each dimension of a 3D grid */
-
-  DataSpace seqDataSpace = DataSpace::Host;
-  DataSpace ompDataSpace = DataSpace::Omp;
-  DataSpace ompTargetDataSpace = DataSpace::OmpTarget;
-  DataSpace cudaDataSpace = DataSpace::CudaDevice;
-  DataSpace hipDataSpace = DataSpace::HipDevice;
-  DataSpace kokkosDataSpace = DataSpace::Host;
-
-  DataSpace seqReductionDataSpace = DataSpace::Host;
-  DataSpace ompReductionDataSpace = DataSpace::Omp;
-  DataSpace ompTargetReductionDataSpace = DataSpace::OmpTarget;
-  DataSpace cudaReductionDataSpace = DataSpace::CudaManagedDevicePreferredHostAccessed;
-  DataSpace hipReductionDataSpace = DataSpace::HipDevice;
-  DataSpace kokkosReductionDataSpace = DataSpace::Host;
-
-  DataSpace seqMPIDataSpace = DataSpace::Host;
-  DataSpace ompMPIDataSpace = DataSpace::Omp;
-  DataSpace ompTargetMPIDataSpace = DataSpace::Copy;
-  DataSpace cudaMPIDataSpace = DataSpace::CudaPinned;
-  DataSpace hipMPIDataSpace = DataSpace::HipPinned;
-  DataSpace kokkosMPIDataSpace = DataSpace::Copy;
-
 
   std::string outdir;                      /*!< Output directory name. */
   std::string outfile_prefix{"RAJAPerf"};  /*!< Prefix for output data file names. */

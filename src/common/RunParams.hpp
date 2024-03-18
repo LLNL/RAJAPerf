@@ -17,11 +17,10 @@
 
 #include "RAJAPerfSuite.hpp"
 #include "RPTypes.hpp"
+#include "InputParams.hpp"
 
 namespace rajaperf
 {
-
-class InputParams;
 
 /*!
  *******************************************************************************
@@ -30,10 +29,10 @@ class InputParams;
  *
  *******************************************************************************
  */
-class RunParams {
+class RunParams : CommonParams {
 
 public:
-  explicit RunParams(InputParams const& input_params);
+  explicit RunParams(CommonParams const& common_params);
   ~RunParams();
 
   RunParams() = delete;
@@ -117,44 +116,6 @@ public:
    */
   void print(std::ostream& str) const;
 
-
-private:
-  int checkrun_reps;     /*!< Num reps each kernel is run in check run */
-  double rep_fact;       /*!< pct of default kernel reps to run */
-
-  double size;           /*!< kernel size to run (input option) */
-  double size_factor;    /*!< default kernel size multipier (input option) */
-  Size_type data_alignment;
-
-  int gpu_stream; /*!< 0 -> use stream 0; anything else -> use raja default stream */
-  std::vector<size_t> gpu_block_sizes; /*!< Block sizes for gpu tunings to run (input option) */
-  std::vector<size_t> atomic_replications; /*!< Atomic replications for gpu tunings to run (input option) */
-  std::vector<size_t> items_per_threads; /*!< Items per thread for gpu tunings to run (input option) */
-
-  int mpi_size;           /*!< Number of MPI ranks */
-  int mpi_rank;           /*!< Rank of this MPI process */
-  std::array<int, 3> mpi_3d_division; /*!< Number of MPI ranks in each dimension of a 3D grid */
-
-  DataSpace seqDataSpace;
-  DataSpace ompDataSpace;
-  DataSpace ompTargetDataSpace;
-  DataSpace cudaDataSpace;
-  DataSpace hipDataSpace;
-  DataSpace kokkosDataSpace;
-
-  DataSpace seqReductionDataSpace;
-  DataSpace ompReductionDataSpace;
-  DataSpace ompTargetReductionDataSpace;
-  DataSpace cudaReductionDataSpace;
-  DataSpace hipReductionDataSpace;
-  DataSpace kokkosReductionDataSpace;
-
-  DataSpace seqMPIDataSpace;
-  DataSpace ompMPIDataSpace;
-  DataSpace ompTargetMPIDataSpace;
-  DataSpace cudaMPIDataSpace;
-  DataSpace hipMPIDataSpace;
-  DataSpace kokkosMPIDataSpace;
 };
 
 

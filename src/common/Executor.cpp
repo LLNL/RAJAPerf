@@ -119,7 +119,7 @@ void Allreduce(const Checksum_type* send, Checksum_type* recv, int count,
 
 Executor::Executor(int argc, char** argv)
   : input_params(argc, argv),
-    run_params(input_params),
+    run_params(input_params.getCommonParams()),
     reference_vid(NumVariants),
     reference_tune_idx(KernelBase::getUnknownTuningIdx())
 {
@@ -399,17 +399,17 @@ void Executor::reportRunSummary(ostream& str) const
     str << "\nHow suite will be run:" << endl;
     str << "\t # passes = " << input_params.getNumPasses() << endl;
     if (input_params.getSizeMeaning() == InputParams::SizeMeaning::Factor) {
-      str << "\t Kernel size factor = " << input_params.getSizeFactor() << endl;
+      str << "\t Kernel size factor = " << run_params.getSizeFactor() << endl;
     } else if (input_params.getSizeMeaning() == InputParams::SizeMeaning::Direct) {
-      str << "\t Kernel size = " << input_params.getSize() << endl;
+      str << "\t Kernel size = " << run_params.getSize() << endl;
     }
-    str << "\t Kernel rep factor = " << input_params.getRepFactor() << endl;
+    str << "\t Kernel rep factor = " << run_params.getRepFactor() << endl;
     str << "\t Output files will be named " << ofiles << endl;
 
 #if defined(RAJA_PERFSUITE_ENABLE_MPI)
-    str << "\nRunning with " << input_params.getMPISize() << " MPI procs" << endl;
-    auto div3d = input_params.getMPI3DDivision();
-    const char* valid3d = input_params.validMPI3DDivision() ? "" : "invalid";
+    str << "\nRunning with " << run_params.getMPISize() << " MPI procs" << endl;
+    auto div3d = run_params.getMPI3DDivision();
+    const char* valid3d = run_params.validMPI3DDivision() ? "" : "invalid";
     str << "\t 3D division = " << div3d[0] << " x " << div3d[1] << " x " << div3d[2] << " " << valid3d << endl;
 #endif
 
@@ -417,61 +417,61 @@ void Executor::reportRunSummary(ostream& str) const
 
     str << "\nData Spaces"
         << "\n--------";
-    str << "\nSeq - " << getDataSpaceName(input_params.getSeqDataSpace());
+    str << "\nSeq - " << getDataSpaceName(run_params.getSeqDataSpace());
     if (isVariantAvailable(VariantID::Base_OpenMP)) {
-      str << "\nOpenMP - " << getDataSpaceName(input_params.getOmpDataSpace());
+      str << "\nOpenMP - " << getDataSpaceName(run_params.getOmpDataSpace());
     }
     if (isVariantAvailable(VariantID::Base_OpenMPTarget)) {
-      str << "\nOpenMP Target - " << getDataSpaceName(input_params.getOmpTargetDataSpace());
+      str << "\nOpenMP Target - " << getDataSpaceName(run_params.getOmpTargetDataSpace());
     }
     if (isVariantAvailable(VariantID::Base_CUDA)) {
-      str << "\nCuda - " << getDataSpaceName(input_params.getCudaDataSpace());
+      str << "\nCuda - " << getDataSpaceName(run_params.getCudaDataSpace());
     }
     if (isVariantAvailable(VariantID::Base_HIP)) {
-      str << "\nHip - " << getDataSpaceName(input_params.getHipDataSpace());
+      str << "\nHip - " << getDataSpaceName(run_params.getHipDataSpace());
     }
     if (isVariantAvailable(VariantID::Kokkos_Lambda)) {
-      str << "\nKokkos - " << getDataSpaceName(input_params.getKokkosDataSpace());
+      str << "\nKokkos - " << getDataSpaceName(run_params.getKokkosDataSpace());
     }
     str << endl;
 
     str << "\nReduction Data Spaces"
         << "\n--------";
-    str << "\nSeq - " << getDataSpaceName(input_params.getSeqReductionDataSpace());
+    str << "\nSeq - " << getDataSpaceName(run_params.getSeqReductionDataSpace());
     if (isVariantAvailable(VariantID::Base_OpenMP)) {
-      str << "\nOpenMP - " << getDataSpaceName(input_params.getOmpReductionDataSpace());
+      str << "\nOpenMP - " << getDataSpaceName(run_params.getOmpReductionDataSpace());
     }
     if (isVariantAvailable(VariantID::Base_OpenMPTarget)) {
-      str << "\nOpenMP Target - " << getDataSpaceName(input_params.getOmpTargetReductionDataSpace());
+      str << "\nOpenMP Target - " << getDataSpaceName(run_params.getOmpTargetReductionDataSpace());
     }
     if (isVariantAvailable(VariantID::Base_CUDA)) {
-      str << "\nCuda - " << getDataSpaceName(input_params.getCudaReductionDataSpace());
+      str << "\nCuda - " << getDataSpaceName(run_params.getCudaReductionDataSpace());
     }
     if (isVariantAvailable(VariantID::Base_HIP)) {
-      str << "\nHip - " << getDataSpaceName(input_params.getHipReductionDataSpace());
+      str << "\nHip - " << getDataSpaceName(run_params.getHipReductionDataSpace());
     }
     if (isVariantAvailable(VariantID::Kokkos_Lambda)) {
-      str << "\nKokkos - " << getDataSpaceName(input_params.getKokkosReductionDataSpace());
+      str << "\nKokkos - " << getDataSpaceName(run_params.getKokkosReductionDataSpace());
     }
     str << endl;
 
     str << "\nMPI Data Spaces"
         << "\n--------";
-    str << "\nSeq - " << getDataSpaceName(input_params.getSeqMPIDataSpace());
+    str << "\nSeq - " << getDataSpaceName(run_params.getSeqMPIDataSpace());
     if (isVariantAvailable(VariantID::Base_OpenMP)) {
-      str << "\nOpenMP - " << getDataSpaceName(input_params.getOmpMPIDataSpace());
+      str << "\nOpenMP - " << getDataSpaceName(run_params.getOmpMPIDataSpace());
     }
     if (isVariantAvailable(VariantID::Base_OpenMPTarget)) {
-      str << "\nOpenMP Target - " << getDataSpaceName(input_params.getOmpTargetMPIDataSpace());
+      str << "\nOpenMP Target - " << getDataSpaceName(run_params.getOmpTargetMPIDataSpace());
     }
     if (isVariantAvailable(VariantID::Base_CUDA)) {
-      str << "\nCuda - " << getDataSpaceName(input_params.getCudaMPIDataSpace());
+      str << "\nCuda - " << getDataSpaceName(run_params.getCudaMPIDataSpace());
     }
     if (isVariantAvailable(VariantID::Base_HIP)) {
-      str << "\nHip - " << getDataSpaceName(input_params.getHipMPIDataSpace());
+      str << "\nHip - " << getDataSpaceName(run_params.getHipMPIDataSpace());
     }
     if (isVariantAvailable(VariantID::Kokkos_Lambda)) {
-      str << "\nKokkos - " << getDataSpaceName(input_params.getKokkosMPIDataSpace());
+      str << "\nKokkos - " << getDataSpaceName(run_params.getKokkosMPIDataSpace());
     }
     str << endl;
 
