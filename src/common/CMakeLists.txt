@@ -13,6 +13,7 @@ blt_add_library(
           KernelBase.cpp 
           OutputUtils.cpp 
           RAJAPerfSuite.cpp 
+          InputParams.cpp
           RunParams.cpp
   INCLUDES ${PROJECT_BINARY_DIR}/include/
   DEPENDS_ON ${RAJA_PERFSUITE_DEPENDS}

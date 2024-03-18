@@ -118,7 +118,8 @@ void Allreduce(const Checksum_type* send, Checksum_type* recv, int count,
 }
 
 Executor::Executor(int argc, char** argv)
-  : run_params(argc, argv),
+  : input_params(argc, argv),
+    run_params(input_params.getCommonParams()),
     reference_vid(NumVariants),
     reference_tune_idx(KernelBase::getUnknownTuningIdx())
 {
@@ -184,11 +185,11 @@ Executor::Executor(int argc, char** argv)
     adiak::value("machine_build", cc.adiak_machine_build);
   }
 
-  adiak::value("SizeMeaning",(adiak::catstring)run_params.SizeMeaningToStr(run_params.getSizeMeaning()));
-  if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Factor) {
-    adiak::value("ProblemSizeRunParam",(uint)run_params.getSizeFactor());
-  } else if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Direct) {
-    adiak::value("ProblemSizeRunParam",(uint)run_params.getSize());
+  adiak::value("SizeMeaning",(adiak::catstring)input_params.SizeMeaningToStr(input_params.getSizeMeaning()));
+  if (input_params.getSizeMeaning() == InputParams::SizeMeaning::Factor) {
+    adiak::value("ProblemSizeRunParam",(uint)input_params.getSizeFactor());
+  } else if (input_params.getSizeMeaning() == InputParams::SizeMeaning::Direct) {
+    adiak::value("ProblemSizeRunParam",(uint)input_params.getSize());
   }
 
   // Openmp section
@@ -228,8 +229,8 @@ Executor::~Executor()
 
 void Executor::setupSuite()
 {
-  RunParams::InputOpt in_state = run_params.getInputState();
-  if ( in_state == RunParams::InfoRequest || in_state == RunParams::BadInput ) {
+  InputParams::InputOpt in_state = input_params.getInputState();
+  if ( in_state == InputParams::InfoRequest || in_state == InputParams::BadInput ) {
     return;
   }
 
@@ -243,12 +244,12 @@ void Executor::setupSuite()
   // Kernel and variant input is assumed to be good at this point.
   //
 
-  const std::set<KernelID>& run_kern = run_params.getKernelIDsToRun();
+  const std::set<KernelID>& run_kern = input_params.getKernelIDsToRun();
   for (auto kid = run_kern.begin(); kid != run_kern.end(); ++kid) {
     kernels.push_back( getKernelObject(*kid, run_params) );
   }
 
-  const std::set<VariantID>& run_var = run_params.getVariantIDsToRun();
+  const std::set<VariantID>& run_var = input_params.getVariantIDsToRun();
   for (auto vid = run_var.begin(); vid != run_var.end(); ++vid) {
     variant_ids.push_back( *vid );
   }
@@ -258,7 +259,7 @@ void Executor::setupSuite()
   //
   // This logic seems a bit strange. Not sure why we do it this way.
   //
-  reference_vid = run_params.getReferenceVariantID();
+  reference_vid = input_params.getReferenceVariantID();
   if ( reference_vid == NumVariants && !variant_ids.empty() ) {
     reference_tune_idx = 0;
   }
@@ -278,8 +279,8 @@ void Executor::setupSuite()
   // Note that all tuning input has been checked for correctness at this point.
   //
 
-  const Svector& selected_tuning_names = run_params.getTuningInput();
-  const Svector& excluded_tuning_names = run_params.getExcludeTuningInput();
+  const Svector& selected_tuning_names = input_params.getTuningInput();
+  const Svector& excluded_tuning_names = input_params.getExcludeTuningInput();
 
   for (VariantID vid : variant_ids) {
 
@@ -318,8 +319,8 @@ void Executor::setupSuite()
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
       KernelBase::setCaliperMgrVariantTuning(vid,
                                              tstr,
-                                             run_params.getOutputDirName(),
-                                             run_params.getAddToSpotConfig());
+                                             input_params.getOutputDirName(),
+                                             input_params.getAddToSpotConfig());
 #endif
     }
 
@@ -341,35 +342,33 @@ void Executor::setupSuite()
 
 void Executor::reportRunSummary(ostream& str) const
 {
-  RunParams::InputOpt in_state = run_params.getInputState();
+  InputParams::InputOpt in_state = input_params.getInputState();
 
-  if ( in_state == RunParams::BadInput ) {
+  if ( in_state == InputParams::BadInput ) {
 
-    str << "\nRunParams state:\n";
+    str << "\nInputParams state:\n";
     str <<   "----------------";
-    run_params.print(str);
+    input_params.print(str);
 
     str << "\n\nSuite will not be run now due to bad input."
         << "\n  See run parameters or option messages above.\n"
         << endl;
 
-  } else if ( in_state == RunParams::PerfRun ||
-              in_state == RunParams::DryRun ||
-              in_state == RunParams::CheckRun ) {
+  } else if ( in_state == InputParams::PerfRun ||
+              in_state == InputParams::DryRun ) {
 
-    if ( in_state == RunParams::DryRun ) {
+    if ( in_state == InputParams::DryRun ) {
 
       str << "\n\nRAJA performance suite dry run summary...."
           <<   "\n--------------------------------------" << endl;
 
       str << "\nInput state:";
       str << "\n------------";
-      run_params.print(str);
+      input_params.print(str);
 
     }
 
-    if ( in_state == RunParams::PerfRun ||
-         in_state == RunParams::CheckRun ) {
+    if ( in_state == InputParams::PerfRun ) {
 
       str << "\n\nRAJA performance suite run summary...."
           <<   "\n--------------------------------------" << endl;
@@ -377,19 +376,19 @@ void Executor::reportRunSummary(ostream& str) const
     }
 
     string ofiles;
-    if ( !run_params.getOutputDirName().empty() ) {
-      ofiles = run_params.getOutputDirName();
+    if ( !input_params.getOutputDirName().empty() ) {
+      ofiles = input_params.getOutputDirName();
     } else {
       ofiles = string(".");
     }
-    ofiles += string("/") + run_params.getOutputFilePrefix() +
+    ofiles += string("/") + input_params.getOutputFilePrefix() +
               string("*");
 
     str << "\nHow suite will be run:" << endl;
-    str << "\t # passes = " << run_params.getNumPasses() << endl;
-    if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Factor) {
+    str << "\t # passes = " << input_params.getNumPasses() << endl;
+    if (input_params.getSizeMeaning() == InputParams::SizeMeaning::Factor) {
       str << "\t Kernel size factor = " << run_params.getSizeFactor() << endl;
-    } else if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Direct) {
+    } else if (input_params.getSizeMeaning() == InputParams::SizeMeaning::Direct) {
       str << "\t Kernel size = " << run_params.getSize() << endl;
     }
     str << "\t Kernel rep factor = " << run_params.getRepFactor() << endl;
@@ -593,9 +592,8 @@ void Executor::writeKernelInfoSummary(ostream& str, bool to_file) const
 
 void Executor::runSuite()
 {
-  RunParams::InputOpt in_state = run_params.getInputState();
-  if ( in_state != RunParams::PerfRun &&
-       in_state != RunParams::CheckRun ) {
+  InputParams::InputOpt in_state = input_params.getInputState();
+  if ( in_state != InputParams::PerfRun ) {
     return;
   }
 
@@ -603,9 +601,9 @@ void Executor::runSuite()
 
   getCout() << "\n\nRunning specified kernels and variants...\n";
 
-  const int npasses = run_params.getNumPasses();
+  const int npasses = input_params.getNumPasses();
   for (int ip = 0; ip < npasses; ++ip) {
-    if ( run_params.showProgress() ) {
+    if ( input_params.showProgress() ) {
       getCout() << "\nPass through suite # " << ip << "\n";
     }
 
@@ -627,14 +625,14 @@ KernelBase* Executor::makeKernel()
 
 void Executor::runKernel(KernelBase* kernel, bool print_kernel_name)
 {
-  if ( run_params.showProgress() || print_kernel_name) {
+  if ( input_params.showProgress() || print_kernel_name) {
     getCout()  << endl << "Run kernel -- " << kernel->getName() << endl;
   }
 
   for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
     VariantID vid = variant_ids[iv];
 
-    if ( run_params.showProgress() ) {
+    if ( input_params.showProgress() ) {
       if ( kernel->hasVariantDefined(vid) ) {
         getCout() << "\tRunning ";
       } else {
@@ -654,13 +652,13 @@ void Executor::runKernel(KernelBase* kernel, bool print_kernel_name)
              tuning_names[vid].end()) 
       { 
         // Check if valid tuning
-        if ( run_params.showProgress() ) {
+        if ( input_params.showProgress() ) {
           getCout() << "\t\tRunning " << tuning_name << " tuning";
         }
 
         kernel->execute(vid, tune_idx); // Execute kernel
 
-        if ( run_params.showProgress() ) {
+        if ( input_params.showProgress() ) {
           getCout() << " -- " << kernel->getLastTime() << " sec." << endl;
         }
 
@@ -676,7 +674,7 @@ void Executor::runKernel(KernelBase* kernel, bool print_kernel_name)
 
 void Executor::runWarmupKernels()
 {
-  if ( run_params.getDisableWarmup() ) {
+  if ( input_params.getDisableWarmup() ) {
     return;
   } 
 
@@ -760,9 +758,8 @@ void Executor::runWarmupKernels()
 
 void Executor::outputRunData()
 {
-  RunParams::InputOpt in_state = run_params.getInputState();
-  if ( in_state != RunParams::PerfRun &&
-       in_state != RunParams::CheckRun ) {
+  InputParams::InputOpt in_state = input_params.getInputState();
+  if ( in_state != InputParams::PerfRun ) {
     return;
   }
 
@@ -772,21 +769,21 @@ void Executor::outputRunData()
   // Generate output file prefix (including directory path).
   //
   string out_fprefix;
-  string outdir = recursiveMkdir(run_params.getOutputDirName());
+  string outdir = recursiveMkdir(input_params.getOutputDirName());
   if ( !outdir.empty() ) {
     chdir(outdir.c_str());
   }
-  out_fprefix = "./" + run_params.getOutputFilePrefix();
+  out_fprefix = "./" + input_params.getOutputFilePrefix();
 
   unique_ptr<ostream> file;
 
 
-  for (RunParams::CombinerOpt combiner : run_params.getNpassesCombinerOpts()) {
-    file = openOutputFile(out_fprefix + "-timing-" + RunParams::CombinerOptToStr(combiner) + ".csv");
+  for (InputParams::CombinerOpt combiner : input_params.getNpassesCombinerOpts()) {
+    file = openOutputFile(out_fprefix + "-timing-" + InputParams::CombinerOptToStr(combiner) + ".csv");
     writeCSVReport(*file, CSVRepMode::Timing, combiner, 6 /* prec */);
 
     if ( haveReferenceVariant() ) {
-      file = openOutputFile(out_fprefix + "-speedup-" + RunParams::CombinerOptToStr(combiner) + ".csv");
+      file = openOutputFile(out_fprefix + "-speedup-" + InputParams::CombinerOptToStr(combiner) + ".csv");
       writeCSVReport(*file, CSVRepMode::Speedup, combiner, 3 /* prec */);
     }
   }
@@ -831,7 +828,7 @@ unique_ptr<ostream> Executor::openOutputFile(const string& filename) const
 }
 
 void Executor::writeCSVReport(ostream& file, CSVRepMode mode,
-                              RunParams::CombinerOpt combiner, size_t prec)
+                              InputParams::CombinerOpt combiner, size_t prec)
 {
   if ( file ) {
 
@@ -1067,7 +1064,7 @@ void Executor::writeFOMReport(ostream& file, vector<FOMGroup>& fom_groups)
                 (kern->getTotTime(vid, tune_idx) - base_totTime) / base_totTime;
 
               string pfstring(pass);
-              if (pct_diff[ik][ifg][col] > run_params.getPFTolerance()) {
+              if (pct_diff[ik][ifg][col] > input_params.getPFTolerance()) {
                 pfstring = fail;
               }
               if (is_base) {
@@ -1444,19 +1441,19 @@ void Executor::writeChecksumReport(ostream& file)
 }
 
 
-string Executor::getReportTitle(CSVRepMode mode, RunParams::CombinerOpt combiner)
+string Executor::getReportTitle(CSVRepMode mode, InputParams::CombinerOpt combiner)
 {
   string title;
   switch ( combiner ) {
-    case RunParams::CombinerOpt::Average : {
+    case InputParams::CombinerOpt::Average : {
       title = string("Mean ");
     }
     break;
-    case RunParams::CombinerOpt::Minimum : {
+    case InputParams::CombinerOpt::Minimum : {
       title = string("Min ");
     }
     break;
-    case RunParams::CombinerOpt::Maximum : {
+    case InputParams::CombinerOpt::Maximum : {
       title = string("Max ");
     }
     break;
@@ -1481,7 +1478,7 @@ string Executor::getReportTitle(CSVRepMode mode, RunParams::CombinerOpt combiner
 }
 
 long double Executor::getReportDataEntry(CSVRepMode mode,
-                                         RunParams::CombinerOpt combiner,
+                                         InputParams::CombinerOpt combiner,
                                          KernelBase* kern,
                                          VariantID vid,
                                          size_t tune_idx)
@@ -1490,15 +1487,15 @@ long double Executor::getReportDataEntry(CSVRepMode mode,
   switch ( mode ) {
     case CSVRepMode::Timing : {
       switch ( combiner ) {
-        case RunParams::CombinerOpt::Average : {
-          retval = kern->getTotTime(vid, tune_idx) / run_params.getNumPasses();
+        case InputParams::CombinerOpt::Average : {
+          retval = kern->getTotTime(vid, tune_idx) / input_params.getNumPasses();
         }
         break;
-        case RunParams::CombinerOpt::Minimum : {
+        case InputParams::CombinerOpt::Minimum : {
           retval = kern->getMinTime(vid, tune_idx);
         }
         break;
-        case RunParams::CombinerOpt::Maximum : {
+        case InputParams::CombinerOpt::Maximum : {
           retval = kern->getMaxTime(vid, tune_idx);
         }
         break;
@@ -1511,17 +1508,17 @@ long double Executor::getReportDataEntry(CSVRepMode mode,
         if ( kern->hasVariantTuningDefined(reference_vid, reference_tune_idx) &&
              kern->hasVariantTuningDefined(vid, tune_idx) ) {
           switch ( combiner ) {
-            case RunParams::CombinerOpt::Average : {
+            case InputParams::CombinerOpt::Average : {
               retval = kern->getTotTime(reference_vid, reference_tune_idx) /
                        kern->getTotTime(vid, tune_idx);
             }
             break;
-            case RunParams::CombinerOpt::Minimum : {
+            case InputParams::CombinerOpt::Minimum : {
               retval = kern->getMinTime(reference_vid, reference_tune_idx) /
                        kern->getMinTime(vid, tune_idx);
             }
             break;
-            case RunParams::CombinerOpt::Maximum : {
+            case InputParams::CombinerOpt::Maximum : {
               retval = kern->getMaxTime(reference_vid, reference_tune_idx) /
                        kern->getMaxTime(vid, tune_idx);
             }
