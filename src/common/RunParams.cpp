@@ -24,41 +24,8 @@ namespace rajaperf
  *
  *******************************************************************************
  */
-RunParams::RunParams(InputParams const& input_params)
- : checkrun_reps(input_params.getReps()),
-   rep_fact(input_params.getRepFactor()),
-
-   size(input_params.getSize()),
-   size_factor(input_params.getSizeFactor()),
-   data_alignment(input_params.getDataAlignment()),
-
-   gpu_stream(input_params.getGPUStream()),
-   gpu_block_sizes(input_params.getGPUBlockSizes()),
-
-   mpi_size(input_params.getMPISize()),
-   mpi_rank(input_params.getMPIRank()),
-   mpi_3d_division(input_params.getMPI3DDivision()),
-
-   seqDataSpace(input_params.getSeqDataSpace()),
-   ompDataSpace(input_params.getOmpDataSpace()),
-   ompTargetDataSpace(input_params.getOmpTargetDataSpace()),
-   cudaDataSpace(input_params.getCudaDataSpace()),
-   hipDataSpace(input_params.getHipDataSpace()),
-   kokkosDataSpace(input_params.getKokkosDataSpace()),
-
-   seqReductionDataSpace(input_params.getSeqReductionDataSpace()),
-   ompReductionDataSpace(input_params.getOmpReductionDataSpace()),
-   ompTargetReductionDataSpace(input_params.getOmpTargetReductionDataSpace()),
-   cudaReductionDataSpace(input_params.getCudaReductionDataSpace()),
-   hipReductionDataSpace(input_params.getHipReductionDataSpace()),
-   kokkosReductionDataSpace(input_params.getKokkosReductionDataSpace()),
-
-   seqMPIDataSpace(input_params.getSeqMPIDataSpace()),
-   ompMPIDataSpace(input_params.getOmpMPIDataSpace()),
-   ompTargetMPIDataSpace(input_params.getOmpTargetMPIDataSpace()),
-   cudaMPIDataSpace(input_params.getCudaMPIDataSpace()),
-   hipMPIDataSpace(input_params.getHipMPIDataSpace()),
-   kokkosMPIDataSpace(input_params.getKokkosMPIDataSpace())
+RunParams::RunParams(CommonParams const& common_params)
+ : CommonParams(common_params)
 {
 }
 

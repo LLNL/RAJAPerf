@@ -1282,7 +1282,7 @@ void InputParams::printFeatureKernels(std::ostream& str) const
     str << getFeatureName(tfid) << std::endl;
     for (int kid = 0; kid < NumKernels; ++kid) {
       KernelID tkid = static_cast<KernelID>(kid);
-      KernelBase* kern = getKernelObject(tkid, RunParams(*this));
+      KernelBase* kern = getKernelObject(tkid, RunParams(this->getCommonParams()));
       if ( kern->usesFeature(tfid) ) {
         str << "\t" << getFullKernelName(tkid) << std::endl;
       }
@@ -1300,7 +1300,7 @@ void InputParams::printKernelFeatures(std::ostream& str) const
   for (int kid = 0; kid < NumKernels; ++kid) {
     KernelID tkid = static_cast<KernelID>(kid);
     str << getFullKernelName(tkid) << std::endl;
-    KernelBase* kern = getKernelObject(tkid, RunParams(*this));
+    KernelBase* kern = getKernelObject(tkid, RunParams(this->getCommonParams()));
     for (int fid = 0; fid < NumFeatures; ++fid) {
       FeatureID tfid = static_cast<FeatureID>(fid);
       if ( kern->usesFeature(tfid) ) {
@@ -1491,7 +1491,7 @@ void InputParams::processKernelInput()
 
             for (int kid = 0; kid < NumKernels; ++kid) {
               KernelID tkid = static_cast<KernelID>(kid);
-              KernelBase* kern = getKernelObject(tkid, RunParams(*this));
+              KernelBase* kern = getKernelObject(tkid, RunParams(this->getCommonParams()));
               if ( kern->usesFeature(tfid) ) {
                  exclude_kernels.insert( tkid );
               }
@@ -1580,7 +1580,7 @@ void InputParams::processKernelInput()
 
               for (int kid = 0; kid < NumKernels; ++kid) {
                 KernelID tkid = static_cast<KernelID>(kid);
-                KernelBase* kern = getKernelObject(tkid, RunParams(*this));
+                KernelBase* kern = getKernelObject(tkid, RunParams(this->getCommonParams()));
                 if ( kern->usesFeature(tfid) &&
                      exclude_kernels.find(tkid) == exclude_kernels.end() ) {
                    run_kernels.insert( tkid );
@@ -1847,7 +1847,7 @@ void InputParams::processTuningInput()
   std::set<std::string> all_tunings;
   for (auto vid = run_variants.begin(); vid != run_variants.end(); ++vid) {
     for (auto kid = run_kernels.begin(); kid != run_kernels.end(); ++kid) {
-      KernelBase* kern = getKernelObject(*kid, RunParams(*this));
+      KernelBase* kern = getKernelObject(*kid, RunParams(this->getCommonParams()));
       for (std::string const& tuning_name :
            kern->getVariantTuningNames(*vid)) {
         all_tunings.insert(tuning_name);
