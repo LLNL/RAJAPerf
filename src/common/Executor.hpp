@@ -10,6 +10,7 @@
 #define RAJAPerf_Executor_HPP
 
 #include "common/RAJAPerfSuite.hpp"
+#include "common/InputParams.hpp"
 #include "common/RunParams.hpp"
 
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
@@ -39,8 +40,13 @@ class Executor
 {
 public:
   Executor( int argc, char** argv );
-
   ~Executor();
+
+  Executor() = delete;
+  Executor(Executor const&) = delete;
+  Executor& operator=(Executor const&) = delete;
+  Executor(Executor &&) = delete;
+  Executor& operator=(Executor &&) = delete;
 
   void setupSuite();
 
@@ -51,7 +57,6 @@ public:
   void outputRunData();
 
 private:
-  Executor() = delete;
 
   bool haveReferenceVariant() { return reference_vid < NumVariants; }
 
@@ -78,10 +83,10 @@ private:
   void writeKernelInfoSummary(std::ostream& str, bool to_file) const;
 
   void writeCSVReport(std::ostream& file, CSVRepMode mode,
-                      RunParams::CombinerOpt combiner, size_t prec);
-  std::string getReportTitle(CSVRepMode mode, RunParams::CombinerOpt combiner);
+                      InputParams::CombinerOpt combiner, size_t prec);
+  std::string getReportTitle(CSVRepMode mode, InputParams::CombinerOpt combiner);
   long double getReportDataEntry(CSVRepMode mode, 
-                                 RunParams::CombinerOpt combiner,
+                                 InputParams::CombinerOpt combiner,
                                  KernelBase* kern, VariantID vid, 
                                  size_t tune_idx);
 
@@ -90,6 +95,7 @@ private:
   void writeFOMReport(std::ostream& file, std::vector<FOMGroup>& fom_groups);
   void getFOMGroups(std::vector<FOMGroup>& fom_groups);
 
+  InputParams input_params;
   RunParams run_params;
   std::vector<KernelBase*> kernels;
   std::vector<VariantID>   variant_ids;

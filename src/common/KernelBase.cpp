@@ -88,10 +88,10 @@ KernelBase::~KernelBase()
 Index_type KernelBase::getTargetProblemSize() const
 {
   Index_type target_size = static_cast<Index_type>(0);
-  if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Factor) {
+  if (run_params.getSizeFactor() != 0.0) {
     target_size =
       static_cast<Index_type>(default_prob_size*run_params.getSizeFactor());
-  } else if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Direct) {
+  } else if (run_params.getSize() != 0.0) {
     target_size = static_cast<Index_type>(run_params.getSize());
   }
   return target_size;
@@ -100,8 +100,8 @@ Index_type KernelBase::getTargetProblemSize() const
 Index_type KernelBase::getRunReps() const
 {
   Index_type run_reps = static_cast<Index_type>(0);
-  if (run_params.getInputState() == RunParams::CheckRun) {
-    run_reps = static_cast<Index_type>(run_params.getCheckRunReps());
+  if (run_params.getReps() != 0) {
+    run_reps = static_cast<Index_type>(run_params.getReps());
   } else {
     run_reps = static_cast<Index_type>(default_reps*run_params.getRepFactor());
   }
