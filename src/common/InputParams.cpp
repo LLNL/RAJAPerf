@@ -1278,6 +1278,26 @@ void InputParams::printHelpMessage(std::ostream& str) const
 }
 
 
+namespace {
+
+/*
+ *******************************************************************************
+ *
+ * Make temporary RunParams object.
+ *
+ * This is used to create temporary kernel objects and may have different
+ * parameters than will be used in the actual run of the suite.
+ *
+ *******************************************************************************
+ */
+RunParams makeTempRunParams(InputParams const& input_params)
+{
+  return RunParams{input_params.getCommonParams()};
+}
+
+}
+
+
 void InputParams::printKernelNames(std::ostream& str) const
 {
   str << "\nAvailable kernels:";
@@ -1361,6 +1381,8 @@ void InputParams::printFeatureNames(std::ostream& str) const
 
 void InputParams::printFeatureKernels(std::ostream& str) const
 {
+  auto temp_run_params = makeTempRunParams(*this);
+
   str << "\nAvailable features and kernels that use each:";
   str << "\n---------------------------------------------\n";
   for (int fid = 0; fid < NumFeatures; ++fid) {
@@ -1368,7 +1390,7 @@ void InputParams::printFeatureKernels(std::ostream& str) const
     str << getFeatureName(tfid) << std::endl;
     for (int kid = 0; kid < NumKernels; ++kid) {
       KernelID tkid = static_cast<KernelID>(kid);
-      KernelBase* kern = getKernelObject(tkid, RunParams(this->getCommonParams()));
+      KernelBase* kern = getKernelObject(tkid, temp_run_params);
       if ( kern->usesFeature(tfid) ) {
         str << "\t" << getFullKernelName(tkid) << std::endl;
       }
@@ -1381,12 +1403,14 @@ void InputParams::printFeatureKernels(std::ostream& str) const
 
 void InputParams::printKernelFeatures(std::ostream& str) const
 {
+  auto temp_run_params = makeTempRunParams(*this);
+
   str << "\nAvailable kernels and features each uses:";
   str << "\n-----------------------------------------\n";
   for (int kid = 0; kid < NumKernels; ++kid) {
     KernelID tkid = static_cast<KernelID>(kid);
     str << getFullKernelName(tkid) << std::endl;
-    KernelBase* kern = getKernelObject(tkid, RunParams(this->getCommonParams()));
+    KernelBase* kern = getKernelObject(tkid, temp_run_params);
     for (int fid = 0; fid < NumFeatures; ++fid) {
       FeatureID tfid = static_cast<FeatureID>(fid);
       if ( kern->usesFeature(tfid) ) {
@@ -1562,6 +1586,8 @@ void InputParams::processKernelInput()
     //
     if ( invalid_exclude_feature_input.empty() ) {
 
+      auto temp_run_params = makeTempRunParams(*this);
+
       for (size_t i = 0; i < exclude_feature_input.size(); ++i) {
 
         const std::string& feature = exclude_feature_input[i];
@@ -1577,7 +1603,7 @@ void InputParams::processKernelInput()
 
             for (int kid = 0; kid < NumKernels; ++kid) {
               KernelID tkid = static_cast<KernelID>(kid);
-              KernelBase* kern = getKernelObject(tkid, RunParams(this->getCommonParams()));
+              KernelBase* kern = getKernelObject(tkid, temp_run_params);
               if ( kern->usesFeature(tfid) ) {
                  exclude_kernels.insert( tkid );
               }
@@ -1653,6 +1679,8 @@ void InputParams::processKernelInput()
       //
       if ( invalid_feature_input.empty() ) {
 
+        auto temp_run_params = makeTempRunParams(*this);
+
         for (size_t i = 0; i < feature_input.size(); ++i) {
 
           const std::string& feature = feature_input[i];
@@ -1666,7 +1694,7 @@ void InputParams::processKernelInput()
 
               for (int kid = 0; kid < NumKernels; ++kid) {
                 KernelID tkid = static_cast<KernelID>(kid);
-                KernelBase* kern = getKernelObject(tkid, RunParams(this->getCommonParams()));
+                KernelBase* kern = getKernelObject(tkid, temp_run_params);
                 if ( kern->usesFeature(tfid) &&
                      exclude_kernels.find(tkid) == exclude_kernels.end() ) {
                    run_kernels.insert( tkid );
@@ -1926,6 +1954,8 @@ void InputParams::processVariantInput()
  */
 void InputParams::processTuningInput()
 {
+  auto temp_run_params = makeTempRunParams(*this);
+
   //
   //  Construct set of all possible tunings based on given sets of
   //  kernels and variants
@@ -1933,7 +1963,7 @@ void InputParams::processTuningInput()
   std::set<std::string> all_tunings;
   for (auto vid = run_variants.begin(); vid != run_variants.end(); ++vid) {
     for (auto kid = run_kernels.begin(); kid != run_kernels.end(); ++kid) {
-      KernelBase* kern = getKernelObject(*kid, RunParams(this->getCommonParams()));
+      KernelBase* kern = getKernelObject(*kid, temp_run_params);
       for (std::string const& tuning_name :
            kern->getVariantTuningNames(*vid)) {
         all_tunings.insert(tuning_name);
@@ -1969,6 +1999,5 @@ void InputParams::processTuningInput()
   }
 
 }
-
 
 }  // closing brace for rajaperf namespace
