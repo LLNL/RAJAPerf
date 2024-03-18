@@ -164,6 +164,7 @@ enum KernelID {
   Algorithm_REDUCE_SUM,
   Algorithm_MEMSET,
   Algorithm_MEMCPY,
+  Algorithm_ATOMIC,
 
 //
 // Comm kernels...
