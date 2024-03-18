@@ -79,13 +79,13 @@ void FIRST_MIN::runCudaVariantBase(VariantID vid)
     const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
     const size_t grid_size = std::min(normal_grid_size, max_grid_size);
 
-    RAJAPERF_CUDA_REDUCER_SETUP(MyMinLoc*, dminloc, mymin_block, grid_size);
+    RAJAPERF_CUDA_REDUCER_SETUP(MyMinLoc*, dminloc, mymin_block, grid_size, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       FIRST_MIN_MINLOC_INIT;
-      RAJAPERF_CUDA_REDUCER_INITIALIZE_VALUE(mymin, dminloc, mymin_block, grid_size);
+      RAJAPERF_CUDA_REDUCER_INITIALIZE_VALUE(mymin, dminloc, mymin_block, grid_size, 1);
 
       RPlaunchCudaKernel( (first_min<block_size>),
                            grid_size, block_size,
@@ -93,7 +93,7 @@ void FIRST_MIN::runCudaVariantBase(VariantID vid)
                            x, dminloc, mymin, 
                            iend );
 
-      RAJAPERF_CUDA_REDUCER_COPY_BACK_NOFINAL(dminloc, mymin_block, grid_size);
+      RAJAPERF_CUDA_REDUCER_COPY_BACK(dminloc, mymin_block, grid_size, 1);
       for (Index_type i = 0; i < static_cast<Index_type>(grid_size); i++) {
         if ( mymin_block[i].val < mymin.val ) {
           mymin = mymin_block[i];

@@ -110,7 +110,7 @@ void REDUCE_STRUCT::runHipVariantBase(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    RAJAPERF_HIP_REDUCER_SETUP(Real_ptr, mem, hmem, 6);
+    RAJAPERF_HIP_REDUCER_SETUP(Real_ptr, mem, hmem, 6, 1);
 
     constexpr size_t shmem = 6*sizeof(Real_type)*block_size;
     const size_t max_grid_size = RAJAPERF_HIP_GET_MAX_BLOCKS(
@@ -120,7 +120,7 @@ void REDUCE_STRUCT::runHipVariantBase(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       Real_type imem[6] {m_init_sum, m_init_min, m_init_max, m_init_sum, m_init_min, m_init_max};
-      RAJAPERF_HIP_REDUCER_INITIALIZE(imem, mem, hmem, 6);
+      RAJAPERF_HIP_REDUCER_INITIALIZE(imem, mem, hmem, 6, 1);
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
@@ -134,13 +134,12 @@ void REDUCE_STRUCT::runHipVariantBase(VariantID vid)
                          m_init_sum, m_init_min, m_init_max,
                          points.N ); 
 
-      Real_type rmem[6];
-      RAJAPERF_HIP_REDUCER_COPY_BACK(rmem, mem, hmem, 6);
-      points.SetCenter(rmem[0]/points.N, rmem[3]/points.N);
-      points.SetXMin(rmem[1]);
-      points.SetXMax(rmem[2]);
-      points.SetYMin(rmem[4]);
-      points.SetYMax(rmem[5]);
+      RAJAPERF_HIP_REDUCER_COPY_BACK(mem, hmem, 6, 1);
+      points.SetCenter(hmem[0]/points.N, hmem[3]/points.N);
+      points.SetXMin(hmem[1]);
+      points.SetXMax(hmem[2]);
+      points.SetYMin(hmem[4]);
+      points.SetYMax(hmem[5]);
       m_points=points;
 
     }

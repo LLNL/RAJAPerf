@@ -47,14 +47,14 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
 
   PI_ATOMIC_GPU_DATA_SETUP;
 
-  RAJAPERF_HIP_REDUCER_SETUP(Real_ptr, pi, hpi, 1);
+  RAJAPERF_HIP_REDUCER_SETUP(Real_ptr, pi, hpi, 1, 1);
 
   if ( vid == Base_HIP ) {
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJAPERF_HIP_REDUCER_INITIALIZE(&m_pi_init, pi, hpi, 1);
+      RAJAPERF_HIP_REDUCER_INITIALIZE(&m_pi_init, pi, hpi, 1, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
@@ -66,9 +66,8 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
                          dx,
                          iend );
 
-      Real_type rpi;
-      RAJAPERF_HIP_REDUCER_COPY_BACK(&rpi, pi, hpi, 1);
-      m_pi_final = rpi * static_cast<Real_type>(4);
+      RAJAPERF_HIP_REDUCER_COPY_BACK(pi, hpi, 1, 1);
+      m_pi_final = hpi[0] * static_cast<Real_type>(4);
 
     }
     stopTimer();
@@ -78,7 +77,7 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJAPERF_HIP_REDUCER_INITIALIZE(&m_pi_init, pi, hpi, 1);
+      RAJAPERF_HIP_REDUCER_INITIALIZE(&m_pi_init, pi, hpi, 1, 1);
 
       auto pi_atomic_lambda = [=] __device__ (Index_type i) {
           double x = (double(i) + 0.5) * dx;
@@ -94,9 +93,8 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
                          shmem, res.get_stream(),
                          ibegin, iend, pi_atomic_lambda );
 
-      Real_type rpi;
-      RAJAPERF_HIP_REDUCER_COPY_BACK(&rpi, pi, hpi, 1);
-      m_pi_final = rpi * static_cast<Real_type>(4);
+      RAJAPERF_HIP_REDUCER_COPY_BACK(pi, hpi, 1, 1);
+      m_pi_final = hpi[0] * static_cast<Real_type>(4);
 
     }
     stopTimer();
@@ -106,7 +104,7 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJAPERF_HIP_REDUCER_INITIALIZE(&m_pi_init, pi, hpi, 1);
+      RAJAPERF_HIP_REDUCER_INITIALIZE(&m_pi_init, pi, hpi, 1, 1);
 
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
@@ -114,9 +112,8 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
           RAJA::atomicAdd<RAJA::hip_atomic>(pi, dx / (1.0 + x * x));
       });
 
-      Real_type rpi;
-      RAJAPERF_HIP_REDUCER_COPY_BACK(&rpi, pi, hpi, 1);
-      m_pi_final = rpi * static_cast<Real_type>(4);
+      RAJAPERF_HIP_REDUCER_COPY_BACK(pi, hpi, 1, 1);
+      m_pi_final = hpi[0] * static_cast<Real_type>(4);
 
     }
     stopTimer();

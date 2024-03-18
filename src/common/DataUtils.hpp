@@ -150,6 +150,9 @@ void initData(Real_type& d);
 long double calcChecksum(Int_ptr d, Size_type len,
                          Real_type scale_factor);
 ///
+long double calcChecksum(unsigned long long* d, Size_type len,
+                         Real_type scale_factor);
+///
 long double calcChecksum(Real_ptr d, Size_type len,
                          Real_type scale_factor);
 ///

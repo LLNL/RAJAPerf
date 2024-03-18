@@ -66,7 +66,7 @@ void DOT::runHipVariantBase(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    RAJAPERF_HIP_REDUCER_SETUP(Real_ptr, dprod, hdprod, 1);
+    RAJAPERF_HIP_REDUCER_SETUP(Real_ptr, dprod, hdprod, 1, 1);
 
     constexpr size_t shmem = sizeof(Real_type)*block_size;
     const size_t max_grid_size = RAJAPERF_HIP_GET_MAX_BLOCKS(
@@ -75,7 +75,7 @@ void DOT::runHipVariantBase(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJAPERF_HIP_REDUCER_INITIALIZE(&m_dot_init, dprod, hdprod, 1);
+      RAJAPERF_HIP_REDUCER_INITIALIZE(&m_dot_init, dprod, hdprod, 1, 1);
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
@@ -85,9 +85,8 @@ void DOT::runHipVariantBase(VariantID vid)
                          shmem, res.get_stream(),
                          a, b, dprod, m_dot_init, iend );
 
-      Real_type rdprod;
-      RAJAPERF_HIP_REDUCER_COPY_BACK(&rdprod, dprod, hdprod, 1);
-      m_dot += rdprod;
+      RAJAPERF_HIP_REDUCER_COPY_BACK(dprod, hdprod, 1, 1);
+      m_dot += hdprod[0];
 
     }
     stopTimer();

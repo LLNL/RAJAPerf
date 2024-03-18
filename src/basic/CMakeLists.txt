@@ -116,5 +116,11 @@ blt_add_library(
           TRAP_INT-Cuda.cpp
           TRAP_INT-OMPTarget.cpp
           TRAP_INT-OMP.cpp
+          MULTI_REDUCE.cpp
+          MULTI_REDUCE-Seq.cpp
+          MULTI_REDUCE-Hip.cpp
+          MULTI_REDUCE-Cuda.cpp
+          MULTI_REDUCE-OMP.cpp
+          MULTI_REDUCE-OMPTarget.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

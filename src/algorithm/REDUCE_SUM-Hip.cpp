@@ -77,7 +77,7 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
 
     int len = iend - ibegin;
 
-    RAJAPERF_HIP_REDUCER_SETUP(Real_ptr, sum, hsum, 1);
+    RAJAPERF_HIP_REDUCER_SETUP(Real_ptr, sum, hsum, 1, 1);
 
     // Determine temporary device storage requirements
     void* d_temp_storage = nullptr;
@@ -132,13 +132,8 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
                                             stream));
 #endif
 
-      if (sum != hsum) {
-        hipErrchk( hipMemcpyAsync( hsum, sum, sizeof(Real_type),
-                                   hipMemcpyDeviceToHost, stream ) );
-      }
-
-      hipErrchk(hipStreamSynchronize(stream));
-      m_sum = *hsum;
+      RAJAPERF_HIP_REDUCER_COPY_BACK(sum, hsum, 1, 1);
+      m_sum = hsum[0];
 
     }
     stopTimer();
@@ -167,7 +162,7 @@ void REDUCE_SUM::runHipVariantBase(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    RAJAPERF_HIP_REDUCER_SETUP(Real_ptr, sum, hsum, 1);
+    RAJAPERF_HIP_REDUCER_SETUP(Real_ptr, sum, hsum, 1, 1);
 
     constexpr size_t shmem = sizeof(Real_type)*block_size;
     const size_t max_grid_size = RAJAPERF_HIP_GET_MAX_BLOCKS(
@@ -176,7 +171,7 @@ void REDUCE_SUM::runHipVariantBase(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJAPERF_HIP_REDUCER_INITIALIZE(&m_sum_init, sum, hsum, 1);
+      RAJAPERF_HIP_REDUCER_INITIALIZE(&m_sum_init, sum, hsum, 1, 1);
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
@@ -186,7 +181,8 @@ void REDUCE_SUM::runHipVariantBase(VariantID vid)
                          shmem, res.get_stream(),
                          x, sum, m_sum_init, iend );
 
-      RAJAPERF_HIP_REDUCER_COPY_BACK(&m_sum, sum, hsum, 1);
+      RAJAPERF_HIP_REDUCER_COPY_BACK(sum, hsum, 1, 1);
+      m_sum = hsum[0];
 
     }
     stopTimer();
