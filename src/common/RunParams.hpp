@@ -38,8 +38,9 @@ public:
   RunParams() = delete;
   RunParams(RunParams const&) = delete;
   RunParams& operator=(RunParams const&) = delete;
-  RunParams(RunParams &&) = delete;
-  RunParams& operator=(RunParams &&) = delete;
+
+  RunParams(RunParams &&) = default;
+  RunParams& operator=(RunParams &&) = default;
 
 //@{
 //! @name Getters/setters for processing input and run parameters

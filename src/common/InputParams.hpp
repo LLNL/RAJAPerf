@@ -76,8 +76,9 @@ public:
   InputParams() = delete;
   InputParams(InputParams const&) = delete;
   InputParams& operator=(InputParams const&) = delete;
-  InputParams(InputParams &&) = delete;
-  InputParams& operator=(InputParams &&) = delete;
+
+  InputParams(InputParams &&) = default;
+  InputParams& operator=(InputParams &&) = default;
 
   /*!
    * \brief Enumeration indicating state of input options requested
