@@ -279,6 +279,21 @@ public:
   }
 
   template <typename T>
+  void allocAndInitDataConst(DataSpace dataSpace, T*& ptr, Size_type len, T val)
+  {
+    rajaperf::allocAndInitDataConst(dataSpace,
+        ptr, len, getDataAlignment(), val);
+  }
+
+  template <typename T>
+  rajaperf::AutoDataMover<T> scopedMoveData(DataSpace dataSpace, T*& ptr, Size_type len)
+  {
+    DataSpace hds = rajaperf::hostCopyDataSpace(dataSpace);
+    rajaperf::moveData(hds, dataSpace, ptr, len, getDataAlignment());
+    return {dataSpace, hds, ptr, len, getDataAlignment()};
+  }
+
+  template <typename T>
   void copyData(DataSpace dst_dataSpace, T* dst_ptr,
                 DataSpace src_dataSpace, const T* src_ptr,
                 Size_type len)
