@@ -244,6 +244,9 @@ blt_add_executable(
   algorithm/MEMCPY.cpp
   algorithm/MEMCPY-Seq.cpp
   algorithm/MEMCPY-OMPTarget.cpp
+  algorithm/ATOMIC.cpp
+  algorithm/ATOMIC-Seq.cpp
+  algorithm/ATOMIC-OMPTarget.cpp
   comm/HALO_base.cpp
   comm/HALO_PACKING.cpp
   comm/HALO_PACKING-Seq.cpp

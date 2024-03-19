@@ -25,8 +25,8 @@ namespace apps
 // Define thread block shape for CUDA execution
 //
 #define m_block_sz (32)
-#define g_block_sz (gpu_block_size::greater_of_squarest_factor_pair(block_size/m_block_sz))
-#define z_block_sz (gpu_block_size::lesser_of_squarest_factor_pair(block_size/m_block_sz))
+#define g_block_sz (integer::greater_of_squarest_factor_pair(block_size/m_block_sz))
+#define z_block_sz (integer::lesser_of_squarest_factor_pair(block_size/m_block_sz))
 
 #define LTIMES_NOVIEW_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA \
   m_block_sz, g_block_sz, z_block_sz

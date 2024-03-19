@@ -53,13 +53,13 @@ inline void RAJAPERF_UNUSED_VAR(Ts&&...) { }
 
 namespace rajaperf {
 
-namespace gpu_block_size {
+namespace integer {
 
 // helper alias to convert comma separated integer literals into list
 template < size_t... Is >
 using list_type = camp::list< camp::integral_constant<size_t, Is>... >;
 
-} // closing brace for gpu_block_size namespace
+} // closing brace for integer namespace
 
 struct configuration {
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
@@ -102,7 +102,8 @@ const adiak::version adiak_compiler_version = std::string("@CMAKE_CXX_COMPILER_V
 const adiak::version adiak_cuda_compiler_version = std::string("@CMAKE_CUDA_COMPILER_VERSION@");
 constexpr static const char* adiak_gpu_targets = "@GPU_TARGETS@";
 constexpr static const char* adiak_cmake_hip_architectures = "@CMAKE_HIP_ARCHIECTURES@";
-const std::vector<int> adiak_gpu_targets_block_sizes = {@RAJA_PERFSUITE_GPU_BLOCKSIZES@};
+const std::vector<int> adiak_gpu_block_sizes = {@RAJA_PERFSUITE_GPU_BLOCKSIZES@};
+const std::vector<int> adiak_atomic_replications = {@RAJA_PERFSUITE_ATOMIC_REPLICATIONS@};
 const std::vector<adiak::catstring> adiak_raja_hipcc_flags = str_to_list<adiak::catstring>(std::string("@RAJA_HIPCC_FLAGS@"));
 const adiak::catstring adiak_mpi_cxx_compiler = std::string("@MPI_CXX_COMPILER@");
 const adiak::catstring adiak_systype_build = std::string("@RAJAPERF_BUILD_SYSTYPE@");
@@ -110,7 +111,10 @@ const adiak::catstring adiak_machine_build = std::string("@RAJAPERF_BUILD_HOST@"
 #endif
 
 // List of GPU block sizes
-using gpu_block_sizes = gpu_block_size::list_type<@RAJA_PERFSUITE_GPU_BLOCKSIZES@>;
+using gpu_block_sizes = integer::list_type<@RAJA_PERFSUITE_GPU_BLOCKSIZES@>;
+
+// List of GPU atomic replications
+using atomic_replications = integer::list_type<@RAJA_PERFSUITE_ATOMIC_REPLICATIONS@>;
 
 // Name of user who ran code
 std::string user_run;

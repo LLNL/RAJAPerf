@@ -491,7 +491,7 @@ public:
 
 private:
   static const size_t default_gpu_block_size = DPA_Q1D * DPA_Q1D * DPA_Q1D;
-  using gpu_block_sizes_type = gpu_block_size::list_type<default_gpu_block_size>;
+  using gpu_block_sizes_type = integer::list_type<default_gpu_block_size>;
 
   Real_ptr m_B;
   Real_ptr m_Bt;
