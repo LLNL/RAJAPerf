@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -64,6 +64,16 @@ using Index_ptr = Index_type*;
 /*!
  ******************************************************************************
  *
+ * \brief Type used for sizing allocations.
+ *
+ ******************************************************************************
+ */
+using Size_type = size_t;
+
+
+/*!
+ ******************************************************************************
+ *
  * \brief Integer types used in kernels.
  *
  ******************************************************************************
@@ -95,10 +105,14 @@ using Checksum_type = long double;
 #if defined(RP_USE_DOUBLE)
 ///
 using Real_type = double;
+///
+#define Real_MPI_type MPI_DOUBLE
 
 #elif defined(RP_USE_FLOAT)
 ///
 using Real_type = float;
+///
+#define Real_MPI_type MPI_FLOAT
 
 #else
 #error Real_type is undefined!

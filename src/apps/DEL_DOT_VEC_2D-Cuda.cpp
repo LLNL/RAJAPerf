@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -52,6 +52,7 @@ template < size_t block_size >
 void DEL_DOT_VEC_2D::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
   const Index_type iend = m_domain->n_real_zones;
 
   auto res{getCudaResource()};
@@ -64,17 +65,19 @@ void DEL_DOT_VEC_2D::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-
       constexpr size_t shmem = 0;
-      deldotvec2d<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(div,
-                                             x1, x2, x3, x4,
-                                             y1, y2, y3, y4,
-                                             fx1, fx2, fx3, fx4,
-                                             fy1, fy2, fy3, fy4,
-                                             real_zones,
-                                             half, ptiny,
-                                             iend);
-      cudaErrchk( cudaGetLastError() );
+
+      RPlaunchCudaKernel( (deldotvec2d<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          div,
+                          x1, x2, x3, x4,
+                          y1, y2, y3, y4,
+                          fx1, fx2, fx3, fx4,
+                          fy1, fy2, fy3, fy4,
+                          real_zones,
+                          half, ptiny,
+                          iend );
 
     }
     stopTimer();
@@ -84,17 +87,20 @@ void DEL_DOT_VEC_2D::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-
-      constexpr size_t shmem = 0;
-      lambda_cuda_forall<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(
-        0, iend,
-        [=] __device__ (Index_type ii) {
-
+      auto deldotvec2d_lambda = [=] __device__ (Index_type ii) {
         DEL_DOT_VEC_2D_BODY_INDEX;
         DEL_DOT_VEC_2D_BODY;
-      });
-      cudaErrchk( cudaGetLastError() );
+      };
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = 0;
+
+      RPlaunchCudaKernel( (lambda_cuda_forall<block_size,
+                                              decltype(deldotvec2d_lambda)>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          ibegin, iend,
+                          deldotvec2d_lambda );
 
     }
     stopTimer();

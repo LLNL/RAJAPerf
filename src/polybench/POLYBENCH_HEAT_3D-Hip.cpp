@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -100,15 +100,17 @@ void POLYBENCH_HEAT_3D::runHipVariantImpl(VariantID vid)
         HEAT_3D_NBLOCKS_HIP;
         constexpr size_t shmem = 0;
 
-        hipLaunchKernelGGL((poly_heat_3D_1<HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                           dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
-                           A, B, N);
-        hipErrchk( hipGetLastError() );
+        RPlaunchHipKernel(
+          (poly_heat_3D_1<HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
+          nblocks, nthreads_per_block,
+          shmem, res.get_stream(),
+          A, B, N );
 
-        hipLaunchKernelGGL((poly_heat_3D_2<HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                           dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
-                           A, B, N);
-        hipErrchk( hipGetLastError() );
+        RPlaunchHipKernel(
+          (poly_heat_3D_2<HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
+          nblocks, nthreads_per_block,
+          shmem, res.get_stream(),
+          A, B, N );
 
       }
 
@@ -126,26 +128,31 @@ void POLYBENCH_HEAT_3D::runHipVariantImpl(VariantID vid)
         HEAT_3D_NBLOCKS_HIP;
         constexpr size_t shmem = 0;
 
-        auto poly_heat_3D_1_lambda = [=] __device__ (Index_type i, Index_type j,
+        auto poly_heat_3D_1_lambda = [=] __device__ (Index_type i,
+                                                     Index_type j,
                                                      Index_type k) {
           POLYBENCH_HEAT_3D_BODY1;
         };
 
-        auto poly_heat_3D_2_lambda = [=] __device__ (Index_type i, Index_type j,                                                     Index_type k) {
+        RPlaunchHipKernel(
+          (poly_heat_3D_lam<HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP,
+                            decltype(poly_heat_3D_1_lambda)>),
+          nblocks, nthreads_per_block,
+          shmem, res.get_stream(),
+          N, poly_heat_3D_1_lambda );
+
+        auto poly_heat_3D_2_lambda = [=] __device__ (Index_type i,
+                                                     Index_type j,
+                                                     Index_type k) {
           POLYBENCH_HEAT_3D_BODY2;
         };
 
-        hipLaunchKernelGGL((poly_heat_3D_lam<HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP,
-                                             decltype(poly_heat_3D_1_lambda)>),
-                           dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
-                           N, poly_heat_3D_1_lambda);
-        hipErrchk( hipGetLastError() );
-
-        hipLaunchKernelGGL((poly_heat_3D_lam<HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP,
-                                             decltype(poly_heat_3D_2_lambda)>),
-                           dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
-                           N, poly_heat_3D_2_lambda);
-        hipErrchk( hipGetLastError() );
+        RPlaunchHipKernel(
+          (poly_heat_3D_lam<HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP,
+                            decltype(poly_heat_3D_2_lambda)>),
+          nblocks, nthreads_per_block,
+          shmem, res.get_stream(),
+          N, poly_heat_3D_2_lambda );
 
       }
 
@@ -174,19 +181,21 @@ void POLYBENCH_HEAT_3D::runHipVariantImpl(VariantID vid)
 
       for (Index_type t = 0; t < tsteps; ++t) {
 
-        RAJA::kernel_resource<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
-                                                 RAJA::RangeSegment{1, N-1},
-                                                 RAJA::RangeSegment{1, N-1}),
-                                         res,
+        RAJA::kernel_resource<EXEC_POL>(
+          RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
+                           RAJA::RangeSegment{1, N-1},
+                           RAJA::RangeSegment{1, N-1}),
+          res,
           [=] __device__ (Index_type i, Index_type j, Index_type k) {
             POLYBENCH_HEAT_3D_BODY1_RAJA;
           }
         );
 
-        RAJA::kernel_resource<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
-                                                 RAJA::RangeSegment{1, N-1},
-                                                 RAJA::RangeSegment{1, N-1}),
-                                         res,
+        RAJA::kernel_resource<EXEC_POL>(
+          RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
+                           RAJA::RangeSegment{1, N-1},
+                           RAJA::RangeSegment{1, N-1}),
+          res,
           [=] __device__ (Index_type i, Index_type j, Index_type k) {
             POLYBENCH_HEAT_3D_BODY2_RAJA;
           }

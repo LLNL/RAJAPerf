@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -40,7 +40,8 @@ void COPY8::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      #pragma omp target is_device_ptr(x, y) device( did )
+      #pragma omp target is_device_ptr(x0, x1, x2, x3, x4, x5, x6, x7, y0, y1, y2,   \
+                                 y3, y4, y5, y6, y7) device( did )
       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         COPY8_BODY;
@@ -70,4 +71,4 @@ void COPY8::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
 } // end namespace basic
 } // end namespace rajaperf
 
-#endif  // RAJA_ENABLE_TARGET_OPENMP
+#endif // RAJA_ENABLE_TARGET_OPENMP

@@ -203,8 +203,6 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::ReduceSum<RAJA::omp_reduce, Index_type> len(0);
-
         RAJA::forall<RAJA::omp_parallel_for_exec>(
           RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
@@ -219,11 +217,10 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
           [=](Index_type i) {
           if (counts[i] != counts[i+1]) {
             list[counts[i]] = i;
-            len += 1;
           }
         });
 
-        m_len = len.get();
+        m_len = counts[iend];
 
       }
       stopTimer();

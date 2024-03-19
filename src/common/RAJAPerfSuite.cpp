@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -86,8 +86,6 @@
 #include "apps/EDGE3D.hpp"
 #include "apps/ENERGY.hpp"
 #include "apps/FIR.hpp"
-#include "apps/HALOEXCHANGE.hpp"
-#include "apps/HALOEXCHANGE_FUSED.hpp"
 #include "apps/LTIMES.hpp"
 #include "apps/LTIMES_NOVIEW.hpp"
 #include "apps/MASS3DEA.hpp"
@@ -106,6 +104,18 @@
 #include "algorithm/REDUCE_SUM.hpp"
 #include "algorithm/MEMSET.hpp"
 #include "algorithm/MEMCPY.hpp"
+#include "algorithm/ATOMIC.hpp"
+
+//
+// Comm kernels...
+//
+#include "comm/HALO_PACKING.hpp"
+#include "comm/HALO_PACKING_FUSED.hpp"
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+#include "comm/HALO_SENDRECV.hpp"
+#include "comm/HALO_EXCHANGE.hpp"
+#include "comm/HALO_EXCHANGE_FUSED.hpp"
+#endif
 
 
 #include <iostream>
@@ -133,6 +143,7 @@ static const std::string GroupNames [] =
   std::string("Stream"),
   std::string("Apps"),
   std::string("Algorithm"),
+  std::string("Comm"),
 
   std::string("Unknown Group")  // Keep this at the end and DO NOT remove....
 
@@ -226,8 +237,6 @@ static const std::string KernelNames [] =
   std::string("Apps_EDGE3D"),
   std::string("Apps_ENERGY"),
   std::string("Apps_FIR"),
-  std::string("Apps_HALOEXCHANGE"),
-  std::string("Apps_HALOEXCHANGE_FUSED"),
   std::string("Apps_LTIMES"),
   std::string("Apps_LTIMES_NOVIEW"),
   std::string("Apps_MASS3DEA"),
@@ -246,6 +255,18 @@ static const std::string KernelNames [] =
   std::string("Algorithm_REDUCE_SUM"),
   std::string("Algorithm_MEMSET"),
   std::string("Algorithm_MEMCPY"),
+  std::string("Algorithm_ATOMIC"),
+
+//
+// Comm kernels...
+//
+  std::string("Comm_HALO_PACKING"),
+  std::string("Comm_HALO_PACKING_FUSED"),
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+  std::string("Comm_HALO_SENDRECV"),
+  std::string("Comm_HALO_EXCHANGE"),
+  std::string("Comm_HALO_EXCHANGE_FUSED"),
+#endif
 
   std::string("Unknown Kernel")  // Keep this at the end and DO NOT remove....
 
@@ -321,6 +342,10 @@ static const std::string FeatureNames [] =
 
   std::string("View"),
 
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+  std::string("MPI"),
+#endif
+
   std::string("Unknown Feature")  // Keep this at the end and DO NOT remove....
 
 }; // END FeatureNames
@@ -348,6 +373,10 @@ static const std::string DataSpaceNames [] =
 
   std::string("CudaPinned"),
   std::string("CudaManaged"),
+  std::string("CudaManagedHostPreferred"),
+  std::string("CudaManagedDevicePreferred"),
+  std::string("CudaManagedHostPreferredDeviceAccessed"),
+  std::string("CudaManagedDevicePreferredHostAccessed"),
   std::string("CudaDevice"),
 
   std::string("HipHostAdviseFine"),
@@ -360,6 +389,10 @@ static const std::string DataSpaceNames [] =
   std::string("HipManagedAdviseCoarse"),
   std::string("HipDevice"),
   std::string("HipDeviceFine"),
+
+  std::string("Unknown Memory"), // Keep this at the end and DO NOT remove....
+
+  std::string("Copy"),
 
   std::string("Unknown Memory")  // Keep this at the end and DO NOT remove....
 
@@ -570,7 +603,7 @@ const std::string& getDataSpaceName(DataSpace ds)
 /*!
  *******************************************************************************
  *
- * Return true if the allocate associated with DataSpace enum value is available.
+ * Return true if the allocator associated with DataSpace enum value is available.
  *
  *******************************************************************************
  */
@@ -595,6 +628,10 @@ bool isDataSpaceAvailable(DataSpace dataSpace)
 #if defined(RAJA_ENABLE_CUDA)
     case DataSpace::CudaPinned:
     case DataSpace::CudaManaged:
+    case DataSpace::CudaManagedHostPreferred:
+    case DataSpace::CudaManagedDevicePreferred:
+    case DataSpace::CudaManagedHostPreferredDeviceAccessed:
+    case DataSpace::CudaManagedDevicePreferredHostAccessed:
     case DataSpace::CudaDevice:
       ret_val = true; break;
 #endif
@@ -624,6 +661,26 @@ bool isDataSpaceAvailable(DataSpace dataSpace)
   return ret_val;
 }
 
+/*!
+ *******************************************************************************
+ *
+ * Return true if the DataSpace enum value is a psuedo DataSpace.
+ *
+ *******************************************************************************
+ */
+bool isPseudoDataSpace(DataSpace dataSpace)
+{
+  bool ret_val = false;
+
+  switch (dataSpace) {
+    case DataSpace::Copy:
+      ret_val = true; break;
+    default:
+      ret_val = false; break;
+  }
+
+  return ret_val;
+}
 
 /*
  *******************************************************************************
@@ -871,14 +928,6 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::FIR(run_params);
        break;
     }
-    case Apps_HALOEXCHANGE : {
-       kernel = new apps::HALOEXCHANGE(run_params);
-       break;
-    }
-    case Apps_HALOEXCHANGE_FUSED : {
-       kernel = new apps::HALOEXCHANGE_FUSED(run_params);
-       break;
-    }
     case Apps_LTIMES : {
        kernel = new apps::LTIMES(run_params);
        break;
@@ -939,6 +988,36 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new algorithm::MEMCPY(run_params);
        break;
     }
+    case Algorithm_ATOMIC: {
+       kernel = new algorithm::ATOMIC(run_params);
+       break;
+    }
+
+//
+// Comm kernels...
+//
+    case Comm_HALO_PACKING : {
+       kernel = new comm::HALO_PACKING(run_params);
+       break;
+    }
+    case Comm_HALO_PACKING_FUSED : {
+       kernel = new comm::HALO_PACKING_FUSED(run_params);
+       break;
+    }
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+    case Comm_HALO_SENDRECV : {
+       kernel = new comm::HALO_SENDRECV(run_params);
+       break;
+    }
+    case Comm_HALO_EXCHANGE : {
+       kernel = new comm::HALO_EXCHANGE(run_params);
+       break;
+    }
+    case Comm_HALO_EXCHANGE_FUSED : {
+       kernel = new comm::HALO_EXCHANGE_FUSED(run_params);
+       break;
+    }
+#endif
 
     default: {
       getCout() << "\n Unknown Kernel ID = " << kid << std::endl;

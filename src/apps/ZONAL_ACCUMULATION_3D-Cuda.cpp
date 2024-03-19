@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -61,11 +61,13 @@ void ZONAL_ACCUMULATION_3D::runCudaVariantImpl(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
 
-      zonal_accumulation_3d<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(vol,
-                                       x0, x1, x2, x3, x4, x5, x6, x7,
-                                       real_zones,
-                                       ibegin, iend);
-      cudaErrchk( cudaGetLastError() );
+      RPlaunchCudaKernel( (zonal_accumulation_3d<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          vol,
+                          x0, x1, x2, x3, x4, x5, x6, x7,
+                          real_zones,
+                          ibegin, iend );
 
     }
     stopTimer();

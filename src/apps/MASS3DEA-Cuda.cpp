@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -69,15 +69,16 @@ void MASS3DEA::runCudaVariantImpl(VariantID vid) {
 
   case Base_CUDA: {
 
-    dim3 nthreads_per_block(MEA_D1D, MEA_D1D, MEA_D1D);
-    constexpr size_t shmem = 0;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      Mass3DEA<block_size><<<NE, nthreads_per_block, shmem, res.get_stream()>>>(B, D, M);
+      dim3 nthreads_per_block(MEA_D1D, MEA_D1D, MEA_D1D);
+      constexpr size_t shmem = 0;
 
-      cudaErrchk( cudaGetLastError() );
+      RPlaunchCudaKernel( (Mass3DEA<block_size>),
+                          NE, nthreads_per_block,
+                          shmem, res.get_stream(),
+                          B, D, M );
     }
     stopTimer();
 

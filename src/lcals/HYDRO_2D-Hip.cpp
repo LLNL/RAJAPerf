@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -111,28 +111,31 @@ void HYDRO_2D::runHipVariantImpl(VariantID vid)
       HYDRO_2D_THREADS_PER_BLOCK_HIP;
       HYDRO_2D_NBLOCKS_HIP;
 
-      hipLaunchKernelGGL((hydro_2d1<HYDRO_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                         dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
+      RPlaunchHipKernel( (hydro_2d1<HYDRO_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
+                         nblocks, nthreads_per_block,
+                         shmem, res.get_stream(),
                          zadat, zbdat,
-                         zpdat, zqdat, zrdat, zmdat,
+                         zpdat, zqdat,
+                         zrdat, zmdat,
                          jn, kn);
-       hipErrchk( hipGetLastError() );
 
-       hipLaunchKernelGGL((hydro_2d2<HYDRO_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                          dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
+       RPlaunchHipKernel( (hydro_2d2<HYDRO_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
+                          nblocks, nthreads_per_block,
+                          shmem, res.get_stream(),
                           zudat, zvdat,
-                          zadat, zbdat, zzdat, zrdat,
+                          zadat, zbdat,
+                          zzdat, zrdat,
                           s,
                           jn, kn);
-       hipErrchk( hipGetLastError() );
 
-       hipLaunchKernelGGL((hydro_2d3<HYDRO_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                          dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
+       RPlaunchHipKernel( (hydro_2d3<HYDRO_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
+                          nblocks, nthreads_per_block,
+                          shmem, res.get_stream(),
                           zroutdat, zzoutdat,
-                          zrdat, zudat, zzdat, zvdat,
+                          zrdat, zudat,
+                          zzdat, zvdat,
                           t,
                           jn, kn);
-       hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -258,22 +258,45 @@ public:
 #endif
   }
 
-  int getDataAlignment() const;
+  Size_type getDataAlignment() const;
 
   DataSpace getDataSpace(VariantID vid) const;
-  DataSpace getHostAccessibleDataSpace(VariantID vid) const;
+  DataSpace getReductionDataSpace(VariantID vid) const;
+  DataSpace getMPIDataSpace(VariantID vid) const;
 
   template <typename T>
-  void allocData(DataSpace dataSpace, T& ptr, int len)
+  void allocData(DataSpace dataSpace, T& ptr, Size_type len)
   {
     rajaperf::allocData(dataSpace,
         ptr, len, getDataAlignment());
   }
 
   template <typename T>
+  void allocAndInitData(DataSpace dataSpace, T*& ptr, Size_type len)
+  {
+    rajaperf::allocAndInitData(dataSpace,
+        ptr, len, getDataAlignment());
+  }
+
+  template <typename T>
+  void allocAndInitDataConst(DataSpace dataSpace, T*& ptr, Size_type len, T val)
+  {
+    rajaperf::allocAndInitDataConst(dataSpace,
+        ptr, len, getDataAlignment(), val);
+  }
+
+  template <typename T>
+  rajaperf::AutoDataMover<T> scopedMoveData(DataSpace dataSpace, T*& ptr, Size_type len)
+  {
+    DataSpace hds = rajaperf::hostCopyDataSpace(dataSpace);
+    rajaperf::moveData(hds, dataSpace, ptr, len, getDataAlignment());
+    return {dataSpace, hds, ptr, len, getDataAlignment()};
+  }
+
+  template <typename T>
   void copyData(DataSpace dst_dataSpace, T* dst_ptr,
                 DataSpace src_dataSpace, const T* src_ptr,
-                int len)
+                Size_type len)
   {
     rajaperf::copyData(dst_dataSpace, dst_ptr, src_dataSpace, src_ptr, len);
   }
@@ -285,46 +308,47 @@ public:
   }
 
   template <typename T>
-  void allocData(T*& ptr, int len, VariantID vid)
+  void allocData(T*& ptr, Size_type len, VariantID vid)
   {
     rajaperf::allocData(getDataSpace(vid),
         ptr, len, getDataAlignment());
   }
 
   template <typename T>
-  void allocAndInitData(T*& ptr, int len, VariantID vid)
+  void allocAndInitData(T*& ptr, Size_type len, VariantID vid)
   {
     rajaperf::allocAndInitData(getDataSpace(vid),
         ptr, len, getDataAlignment());
   }
 
   template <typename T>
-  void allocAndInitDataConst(T*& ptr, int len, T val, VariantID vid)
+  void allocAndInitDataConst(T*& ptr, Size_type len, T val, VariantID vid)
   {
     rajaperf::allocAndInitDataConst(getDataSpace(vid),
         ptr, len, getDataAlignment(), val);
   }
 
   template <typename T>
-  void allocAndInitDataRandSign(T*& ptr, int len, VariantID vid)
+  void allocAndInitDataRandSign(T*& ptr, Size_type len, VariantID vid)
   {
     rajaperf::allocAndInitDataRandSign(getDataSpace(vid),
         ptr, len, getDataAlignment());
   }
 
   template <typename T>
-  void allocAndInitDataRandValue(T*& ptr, int len, VariantID vid)
+  void allocAndInitDataRandValue(T*& ptr, Size_type len, VariantID vid)
   {
     rajaperf::allocAndInitDataRandValue(getDataSpace(vid),
         ptr, len, getDataAlignment());
   }
 
   template <typename T>
-  rajaperf::AutoDataMover<T> scopedMoveData(T*& ptr, int len, VariantID vid)
+  rajaperf::AutoDataMover<T> scopedMoveData(T*& ptr, Size_type len, VariantID vid)
   {
-    rajaperf::moveData(getHostAccessibleDataSpace(vid), getDataSpace(vid),
-        ptr, len, getDataAlignment());
-    return {getDataSpace(vid), getHostAccessibleDataSpace(vid), ptr, len, getDataAlignment()};
+    DataSpace ds = getDataSpace(vid);
+    DataSpace hds = rajaperf::hostCopyDataSpace(ds);
+    rajaperf::moveData(hds, ds, ptr, len, getDataAlignment());
+    return {ds, hds, ptr, len, getDataAlignment()};
   }
 
   template <typename T>
@@ -341,14 +365,21 @@ public:
   }
 
   template <typename T>
-  long double calcChecksum(T* ptr, int len, VariantID vid)
+  long double calcChecksum(DataSpace dataSpace, T* ptr, Size_type len, VariantID RAJAPERF_UNUSED_ARG(vid))
+  {
+    return rajaperf::calcChecksum(dataSpace,
+      ptr, len, getDataAlignment(), 1.0);
+  }
+
+  template <typename T>
+  long double calcChecksum(T* ptr, Size_type len, VariantID vid)
   {
     return rajaperf::calcChecksum(getDataSpace(vid),
       ptr, len, getDataAlignment(), 1.0);
   }
 
   template <typename T>
-  long double calcChecksum(T* ptr, int len, Real_type scale_factor, VariantID vid)
+  long double calcChecksum(T* ptr, Size_type len, Real_type scale_factor, VariantID vid)
   {
     return rajaperf::calcChecksum(getDataSpace(vid),
       ptr, len, getDataAlignment(), scale_factor);

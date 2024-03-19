@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
 ###############################################################################
-# Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 # and RAJA project contributors. See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
 
-if [ "$1" == "" ]; then
+if [[ $# -lt 1 ]]; then
   echo
   echo "You must pass a compiler version number to script. For example,"
   echo "    blueos_gcc.sh 8.3.1"

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -90,11 +90,13 @@ void POLYBENCH_GEMM::runHipVariantImpl(VariantID vid)
       POLY_GEMM_NBLOCKS_HIP;
       constexpr size_t shmem = 0;
 
-      hipLaunchKernelGGL((poly_gemm<POLY_GEMM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                         dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
-                         C, A, B, alpha, beta,
-                         ni, nj, nk);
-      hipErrchk( hipGetLastError() );
+      RPlaunchHipKernel(
+          (poly_gemm<POLY_GEMM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
+          nblocks, nthreads_per_block,
+          shmem, res.get_stream(),
+          C, A, B,
+          alpha, beta,
+          ni, nj, nk );
 
     }
     stopTimer();
@@ -117,10 +119,12 @@ void POLYBENCH_GEMM::runHipVariantImpl(VariantID vid)
         POLYBENCH_GEMM_BODY4;
       };
 
-      hipLaunchKernelGGL((poly_gemm_lam<POLY_GEMM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(poly_gemm_lambda)>),
-        dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
-        ni, nj, poly_gemm_lambda);
-      hipErrchk( hipGetLastError() );
+      RPlaunchHipKernel(
+       (poly_gemm_lam<POLY_GEMM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP,
+                      decltype(poly_gemm_lambda)>),
+       nblocks, nthreads_per_block,
+       shmem, res.get_stream(),
+       ni, nj, poly_gemm_lambda );
 
     }
     stopTimer();

@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors.
 # See the RAJAPerf/LICENSE file for details.
 #
@@ -16,7 +16,7 @@ else()
 endif()
 
 option(ENABLE_RAJA_SEQUENTIAL "Run sequential variants of RAJA kernels. Disable
-this, and all other variants, to run _only_ raw C loops." On)
+this, and all other variants, to run _only_ base variants." On)
 option(ENABLE_KOKKOS "Include Kokkos implementations of the kernels in the RAJA Perfsuite" Off)
 
 #
@@ -51,6 +51,12 @@ if (ENABLE_TESTS)
 endif()
 
 cmake_dependent_option(RAJA_PERFSUITE_ENABLE_MPI "Build with MPI" On "ENABLE_MPI" Off)
+if (RAJA_PERFSUITE_ENABLE_MPI)
+set(RAJA_PERFSUITE_NUM_MPI_TASKS 4 CACHE STRING "Number of MPI tasks in tests")
+else()
+set(RAJA_PERFSUITE_NUM_MPI_TASKS 0 CACHE INTERNAL "Number of MPI tasks in tests")
+endif()
+message(STATUS "Using RAJA_PERFSUITE_NUM_MPI_TASKS: ${RAJA_PERFSUITE_NUM_MPI_TASKS}")
 
 cmake_dependent_option(RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN "Build OpenMP scan variants" Off "ENABLE_OPENMP" Off)
 
@@ -69,6 +75,8 @@ set(RAJA_USE_CHRONO On CACHE BOOL "")
 
 set(RAJA_PERFSUITE_GPU_BLOCKSIZES "" CACHE STRING "Comma separated list of GPU block sizes, ex '256,1024'")
 
+set(RAJA_PERFSUITE_ATOMIC_REPLICATIONS "" CACHE STRING "Comma separated list of atomic replications, ex '1,256,4096'")
+
 set(RAJA_RANGE_ALIGN 4)
 set(RAJA_RANGE_MIN_LENGTH 32)
 set(RAJA_DATA_ALIGN 64)
@@ -78,6 +86,13 @@ if (BLOCKSIZES_LENGTH GREATER 0)
   message(STATUS "Using gpu block size(s): ${RAJA_PERFSUITE_GPU_BLOCKSIZES}")
 else()
   message(STATUS "Using default gpu block size(s)")
+endif()
+
+string(LENGTH "${RAJA_PERFSUITE_ATOMIC_REPLICATIONS}" ATOMIC_REPLICATIONS_LENGTH)
+if (ATOMIC_REPLICATIONS_LENGTH GREATER 0)
+  message(STATUS "Using atomic replication(s): ${RAJA_PERFSUITE_ATOMIC_REPLICATIONS}")
+else()
+  message(STATUS "Using default atomic replication(s)")
 endif()
 
 # exclude RAJA make targets from top-level build...
@@ -95,8 +110,8 @@ if (ENABLE_OPENMP)
   add_definitions(-DRUN_OPENMP)
 endif ()
 
-set(RAJA_PERFSUITE_VERSION_MAJOR 2023)
-set(RAJA_PERFSUITE_VERSION_MINOR 06)
+set(RAJA_PERFSUITE_VERSION_MAJOR 2024)
+set(RAJA_PERFSUITE_VERSION_MINOR 02)
 set(RAJA_PERFSUITE_VERSION_PATCHLEVEL 0)
 
 set(RAJA_PERFSUITE_DEPENDS RAJA)

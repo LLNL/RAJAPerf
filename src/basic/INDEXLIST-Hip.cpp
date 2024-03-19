@@ -189,12 +189,6 @@ __device__ void grid_scan(const int block_id,
       exclusive[ti] = prev_grid_count + exclusive[ti];
       inclusive[ti] = prev_grid_count + inclusive[ti];
     }
-
-    if (last_block) {
-      for (unsigned i = threadIdx.x; i < gridDim.x-1; i += block_size) {
-        while (atomicCAS(&block_readys[i], 2u, 0u) != 2u);
-      }
-    }
   }
 }
 
@@ -208,9 +202,9 @@ __global__ void indexlist(Real_ptr x,
                           Index_type* len,
                           Index_type iend)
 {
-  // blocks do start running in order in cuda and hip, so a block with a higher
-  // index can wait on a block with a lower index without deadlocking
-  // (replace with an atomicInc if this changes)
+  // It looks like blocks do not start running in order in hip, so a block
+  // with a higher index can't wait on a block with a lower index without
+  // deadlocking (have to replace with an atomicInc)
   const int block_id = blockIdx.x;
 
   Index_type vals[items_per_thread];
@@ -263,25 +257,26 @@ void INDEXLIST::runHipVariantImpl(VariantID vid)
     const size_t shmem_size = 0;
 
     Index_type* len;
-    allocData(DataSpace::HipPinned, len, 1);
+    allocData(DataSpace::HipPinnedCoarse, len, 1);
     Index_type* block_counts;
     allocData(DataSpace::HipDevice, block_counts, grid_size);
     Index_type* grid_counts;
     allocData(DataSpace::HipDevice, grid_counts, grid_size);
     unsigned* block_readys;
     allocData(DataSpace::HipDevice, block_readys, grid_size);
-    hipErrchk( hipMemsetAsync(block_readys, 0, sizeof(unsigned)*grid_size, res.get_stream()) );
-    hipErrchk( hipStreamSynchronize( res.get_stream() ) );
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      indexlist<block_size, items_per_thread>
-          <<<grid_size, block_size, shmem_size, res.get_stream()>>>(
-          x+ibegin, list+ibegin,
-          block_counts, grid_counts, block_readys,
-          len, iend-ibegin );
-      hipErrchk( hipGetLastError() );
+      hipErrchk( hipMemsetAsync(block_readys, 0, sizeof(unsigned)*grid_size,
+                                res.get_stream()) );
+
+      RPlaunchHipKernel( (indexlist<block_size, items_per_thread>),
+                         grid_size, block_size,
+                         shmem_size, res.get_stream(),
+                         x+ibegin, list+ibegin,
+                         block_counts, grid_counts, block_readys,
+                         len, iend-ibegin );
 
       hipErrchk( hipStreamSynchronize( res.get_stream() ) );
       m_len = *len;
@@ -289,7 +284,7 @@ void INDEXLIST::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    deallocData(DataSpace::HipPinned, len);
+    deallocData(DataSpace::HipPinnedCoarse, len);
     deallocData(DataSpace::HipDevice, block_counts);
     deallocData(DataSpace::HipDevice, grid_counts);
     deallocData(DataSpace::HipDevice, block_readys);

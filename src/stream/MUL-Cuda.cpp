@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -51,9 +51,11 @@ void MUL::runCudaVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      mul<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( b, c, alpha,
-                                      iend );
-      cudaErrchk( cudaGetLastError() );
+
+      RPlaunchCudaKernel( (mul<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          b, c, alpha, iend );
 
     }
     stopTimer();
@@ -63,13 +65,18 @@ void MUL::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+      auto mul_lambda = [=] __device__ (Index_type i) {
+        MUL_BODY;
+      };
+
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      lambda_cuda_forall<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(
-        ibegin, iend, [=] __device__ (Index_type i) {
-        MUL_BODY;
-      });
-      cudaErrchk( cudaGetLastError() );
+
+      RPlaunchCudaKernel( (lambda_cuda_forall<block_size, 
+                                              decltype(mul_lambda)>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          ibegin, iend, mul_lambda );
 
     }
     stopTimer();

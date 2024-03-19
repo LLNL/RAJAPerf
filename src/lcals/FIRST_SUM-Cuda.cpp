@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -49,11 +49,14 @@ void FIRST_SUM::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       constexpr size_t shmem = 0;
-       first_sum<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( x, y,
-                                              iend );
-       cudaErrchk( cudaGetLastError() );
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = 0;
+
+      RPlaunchCudaKernel( (first_sum<block_size>),
+                           grid_size, block_size,
+                           shmem, res.get_stream(),
+                           x, y,
+                           iend );
 
     }
     stopTimer();

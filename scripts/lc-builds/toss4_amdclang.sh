@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ###############################################################################
-# Copyright (c) 2016-23, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 # and RAJA project contributors. See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
@@ -15,7 +15,7 @@ if [[ $# -lt 2 ]]; then
   echo "   3...) optional arguments to cmake"
   echo
   echo "For example: "
-  echo "    toss4_amdclang.sh 5.1.0 gfx906"
+  echo "    toss4_amdclang.sh 5.7.0 gfx906"
   exit
 fi
 
@@ -44,6 +44,12 @@ echo "Creating build directory ${BUILD_SUFFIX} and generating configuration in i
 echo "Configuration extra arguments:"
 echo "   $@"
 echo
+echo "To get cmake to work you may have to configure with"
+echo "   -DHIP_PLATFORM=amd"
+echo
+echo "To use fp64 HW atomics you must configure with these options when using gfx90a and hip >= 5.2"
+echo "   -DCMAKE_CXX_FLAGS=\"-munsafe-fp-atomics\""
+echo
 
 rm -rf build_${BUILD_SUFFIX} >/dev/null
 mkdir build_${BUILD_SUFFIX} && cd build_${BUILD_SUFFIX}
@@ -53,23 +59,28 @@ module load cmake/3.23.1
 
 # unload rocm to avoid configuration problems where the loaded rocm and COMP_VER
 # are inconsistent causing the rocprim from the module to be used unexpectedly
-module unload rocm
+# module unload rocm
 
+if [[ ${COMP_VER} =~ .*magic.* ]]; then
+  ROCM_PATH="/usr/tce/packages/rocmcc/rocmcc-${COMP_VER}"
+else
+  ROCM_PATH="/usr/tce/packages/rocmcc-tce/rocmcc-${COMP_VER}"
+fi
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -DROCM_ROOT_DIR="/opt/rocm-${COMP_VER}" \
-  -DHIP_ROOT_DIR="/opt/rocm-${COMP_VER}/hip" \
-  -DHIP_PATH=/opt/rocm-${COMP_VER}/llvm/bin \
-  -DCMAKE_C_COMPILER=/opt/rocm-${COMP_VER}/llvm/bin/amdclang \
-  -DCMAKE_CXX_COMPILER=/opt/rocm-${COMP_VER}/llvm/bin/amdclang++ \
+  -DROCM_ROOT_DIR="${ROCM_PATH}" \
+  -DHIP_ROOT_DIR="${ROCM_PATH}/hip" \
+  -DHIP_PATH=${ROCM_PATH}/llvm/bin \
+  -DCMAKE_C_COMPILER=${ROCM_PATH}/llvm/bin/amdclang \
+  -DCMAKE_CXX_COMPILER=${ROCM_PATH}/llvm/bin/amdclang++ \
   -DCMAKE_HIP_ARCHITECTURES="${COMP_ARCH}" \
   -DGPU_TARGETS="${COMP_ARCH}" \
   -DAMDGPU_TARGETS="${COMP_ARCH}" \
   -DBLT_CXX_STD=c++14 \
   -C ${RAJA_HOSTCONFIG} \
   -DENABLE_HIP=ON \
-  -DENABLE_OPENMP=OFF \
+  -DENABLE_OPENMP=ON \
   -DENABLE_CUDA=OFF \
   -DCMAKE_INSTALL_PREFIX=../install_${BUILD_SUFFIX} \
   "$@" \
@@ -78,7 +89,7 @@ cmake \
 echo
 echo "***********************************************************************"
 echo
-echo "cd into directory build_${BUILD_SUFFIX} and run make to build RAJA"
+echo "cd into directory build_${BUILD_SUFFIX} and run make to build RAJAPerf"
 echo
 echo "  Please note that you have to have a consistent build environment"
 echo "  when you make RAJA as cmake may reconfigure; unload the rocm module"

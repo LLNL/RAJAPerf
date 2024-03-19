@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -25,7 +25,14 @@
 
 #define PI_ATOMIC_DATA_SETUP \
   Real_type dx = m_dx; \
-  Real_ptr pi = m_pi;
+  Real_ptr pi; \
+  allocData(getReductionDataSpace(vid), pi, 1);
+
+#define PI_ATOMIC_DATA_TEARDOWN \
+  deallocData(pi, vid);
+
+#define PI_ATOMIC_GPU_DATA_SETUP \
+  Real_type dx = m_dx;
 
 
 #include "common/KernelBase.hpp"
@@ -65,10 +72,9 @@ public:
 
 private:
   static const size_t default_gpu_block_size = 256;
-  using gpu_block_sizes_type = gpu_block_size::make_list_type<default_gpu_block_size>;
+  using gpu_block_sizes_type = integer::make_gpu_block_size_list_type<default_gpu_block_size>;
 
   Real_type m_dx;
-  Real_ptr m_pi;
   Real_type m_pi_init;
   Real_type m_pi_final;
 };

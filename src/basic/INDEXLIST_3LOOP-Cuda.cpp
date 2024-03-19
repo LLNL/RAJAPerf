@@ -101,9 +101,11 @@ void INDEXLIST_3LOOP::runCudaVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      indexlist_conditional<block_size><<<grid_size, block_size, shmem, stream>>>(
-          x, counts, iend );
-      cudaErrchk( cudaGetLastError() );
+
+      RPlaunchCudaKernel( (indexlist_conditional<block_size>),
+                          grid_size, block_size,
+                          shmem, stream,
+                          x, counts, iend );
 
       cudaErrchk(::cub::DeviceScan::ExclusiveScan(d_temp_storage,
                                                   temp_storage_bytes,
@@ -114,9 +116,10 @@ void INDEXLIST_3LOOP::runCudaVariantImpl(VariantID vid)
                                                   scan_size,
                                                   stream));
 
-      indexlist_make_list<block_size><<<grid_size, block_size, shmem, stream>>>(
-          list, counts, len, iend );
-      cudaErrchk( cudaGetLastError() );
+      RPlaunchCudaKernel( (indexlist_make_list<block_size>),
+                          grid_size, block_size,
+                          shmem, stream,
+                          list, counts, len, iend );
 
       cudaErrchk( cudaStreamSynchronize(stream) );
       m_len = *len;
@@ -133,10 +136,11 @@ void INDEXLIST_3LOOP::runCudaVariantImpl(VariantID vid)
 
     INDEXLIST_3LOOP_DATA_SETUP_CUDA;
 
+    Index_type* len;
+    allocData(DataSpace::CudaPinned, len, 1);
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      RAJA::ReduceSum<RAJA::cuda_reduce, Index_type> len(0);
 
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend),
@@ -144,22 +148,29 @@ void INDEXLIST_3LOOP::runCudaVariantImpl(VariantID vid)
         counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
       });
 
-      RAJA::exclusive_scan_inplace< RAJA::cuda_exec<block_size, true /*async*/> >( res,
-          RAJA::make_span(counts+ibegin, iend+1-ibegin));
+      RAJA::exclusive_scan_inplace<
+        RAJA::cuda_exec<block_size, true /*async*/> >(
+          res,
+          RAJA::make_span(counts+ibegin, iend+1-ibegin) );
 
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend),
         [=] __device__ (Index_type i) {
         if (counts[i] != counts[i+1]) {
           list[counts[i]] = i;
-          len += 1;
+        }
+        if (i == iend-1) {
+          *len = counts[i+1];
         }
       });
 
-      m_len = len.get();
+      res.wait();
+      m_len = *len;
 
     }
     stopTimer();
+
+    deallocData(DataSpace::CudaPinned, len);
 
     INDEXLIST_3LOOP_DATA_TEARDOWN_CUDA;
 

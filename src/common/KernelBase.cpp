@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -194,7 +194,7 @@ void KernelBase::setVariantDefined(VariantID vid)
   #endif
 }
 
-int KernelBase::getDataAlignment() const
+Size_type KernelBase::getDataAlignment() const
 {
   return run_params.getDataAlignment();
 }
@@ -235,9 +235,76 @@ DataSpace KernelBase::getDataSpace(VariantID vid) const
   }
 }
 
-DataSpace KernelBase::getHostAccessibleDataSpace(VariantID vid) const
+DataSpace KernelBase::getMPIDataSpace(VariantID vid) const
 {
-  return hostAccessibleDataSpace(getDataSpace(vid));
+  switch ( vid ) {
+
+    case Base_Seq :
+    case Lambda_Seq :
+    case RAJA_Seq :
+      return run_params.getSeqMPIDataSpace();
+
+    case Base_OpenMP :
+    case Lambda_OpenMP :
+    case RAJA_OpenMP :
+      return run_params.getOmpMPIDataSpace();
+
+    case Base_OpenMPTarget :
+    case RAJA_OpenMPTarget :
+      return run_params.getOmpTargetMPIDataSpace();
+
+    case Base_CUDA :
+    case Lambda_CUDA :
+    case RAJA_CUDA :
+      return run_params.getCudaMPIDataSpace();
+
+    case Base_HIP :
+    case Lambda_HIP :
+    case RAJA_HIP :
+      return run_params.getHipMPIDataSpace();
+
+    case Kokkos_Lambda :
+      return run_params.getKokkosMPIDataSpace();
+
+    default:
+      throw std::invalid_argument("getDataSpace : Unknown variant id");
+  }
+}
+
+DataSpace KernelBase::getReductionDataSpace(VariantID vid) const
+{
+  switch ( vid ) {
+
+    case Base_Seq :
+    case Lambda_Seq :
+    case RAJA_Seq :
+      return run_params.getSeqReductionDataSpace();
+
+    case Base_OpenMP :
+    case Lambda_OpenMP :
+    case RAJA_OpenMP :
+      return run_params.getOmpReductionDataSpace();
+
+    case Base_OpenMPTarget :
+    case RAJA_OpenMPTarget :
+      return run_params.getOmpTargetReductionDataSpace();
+
+    case Base_CUDA :
+    case Lambda_CUDA :
+    case RAJA_CUDA :
+      return run_params.getCudaReductionDataSpace();
+
+    case Base_HIP :
+    case Lambda_HIP :
+    case RAJA_HIP :
+      return run_params.getHipReductionDataSpace();
+
+    case Kokkos_Lambda :
+      return run_params.getKokkosReductionDataSpace();
+
+    default:
+      throw std::invalid_argument("getReductionDataSpace : Unknown variant id");
+  }
 }
 
 void KernelBase::execute(VariantID vid, size_t tune_idx)

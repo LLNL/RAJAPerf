@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
 ###############################################################################
-# Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 # and RAJA project contributors. See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
 
-if [ "$1" == "" ]; then
+if [[ $# -lt 1 ]]; then
   echo
   echo "You must pass a compiler version number to script. For example,"
   echo "    ubuntu_gcc.sh 8"
@@ -22,6 +22,8 @@ RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/ubuntu-builds/gcc_X.cmake
 
 echo
 echo "Creating build directory ${BUILD_SUFFIX} and generating configuration in it"
+echo "Configuration extra arguments:"
+echo "   $@"
 echo
 
 rm -rf build_${BUILD_SUFFIX} 2>/dev/null
@@ -39,5 +41,5 @@ cmake \
 
 echo
 echo "***********************************************************************"
-echo "cd into directory ${BUILD_SUFFIX} and run make to build RAJA Perf Suite"
+echo "cd into directory build_${BUILD_SUFFIX} and run make to build RAJA Perf Suite"
 echo "***********************************************************************"

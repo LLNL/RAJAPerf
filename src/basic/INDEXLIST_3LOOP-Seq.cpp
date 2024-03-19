@@ -117,8 +117,6 @@ void INDEXLIST_3LOOP::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::ReduceSum<RAJA::seq_reduce, Index_type> len(0);
-
         RAJA::forall<RAJA::seq_exec>(
           RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
@@ -133,11 +131,10 @@ void INDEXLIST_3LOOP::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
           [=](Index_type i) {
           if (counts[i] != counts[i+1]) {
             list[counts[i]] = i;
-            len += 1;
           }
         });
 
-        m_len = len.get();
+        m_len = counts[iend];
 
       }
       stopTimer();

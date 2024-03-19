@@ -189,12 +189,6 @@ __device__ void grid_scan(const int block_id,
       exclusive[ti] = prev_grid_count + exclusive[ti];
       inclusive[ti] = prev_grid_count + inclusive[ti];
     }
-
-    if (last_block) {
-      for (unsigned i = threadIdx.x; i < gridDim.x-1; i += block_size) {
-        while (atomicCAS(&block_readys[i], 2u, 0u) != 2u);
-      }
-    }
   }
 }
 
@@ -208,7 +202,7 @@ __global__ void indexlist(Real_ptr x,
                           Index_type* len,
                           Index_type iend)
 {
-  // blocks do start running in order in cuda and hip, so a block with a higher
+  // blocks do start running in order in cuda, so a block with a higher
   // index can wait on a block with a lower index without deadlocking
   // (replace with an atomicInc if this changes)
   const int block_id = blockIdx.x;
@@ -270,18 +264,18 @@ void INDEXLIST::runCudaVariantImpl(VariantID vid)
     allocData(DataSpace::CudaDevice, grid_counts, grid_size);
     unsigned* block_readys;
     allocData(DataSpace::CudaDevice, block_readys, grid_size);
-    cudaErrchk( cudaMemsetAsync(block_readys, 0, sizeof(unsigned)*grid_size, res.get_stream()) );
-    cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      indexlist<block_size, items_per_thread>
-          <<<grid_size, block_size, shmem_size, res.get_stream()>>>(
-          x+ibegin, list+ibegin,
-          block_counts, grid_counts, block_readys,
-          len, iend-ibegin );
-      cudaErrchk( cudaGetLastError() );
+      cudaErrchk( cudaMemsetAsync(block_readys, 0, sizeof(unsigned)*grid_size, 
+                                  res.get_stream()) );
+      RPlaunchCudaKernel( (indexlist<block_size, items_per_thread>),
+                          grid_size, block_size,
+                          shmem_size, res.get_stream(),
+                          x+ibegin, list+ibegin,
+                          block_counts, grid_counts, block_readys,
+                          len, iend-ibegin );
 
       cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
       m_len = *len;

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ###############################################################################
-# Copyright (c) 2016-23, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 # and RAJA project contributors. See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
@@ -52,6 +52,12 @@ echo "Creating build directory ${BUILD_SUFFIX} and generating configuration in i
 echo "Configuration extra arguments:"
 echo "   $@"
 echo
+echo "To get cmake to work you may have to configure with"
+echo "   -DHIP_PLATFORM=amd"
+echo
+echo "To use fp64 HW atomics you must configure with these options when using gfx90a and hip >= 5.2"
+echo "   -DCMAKE_CXX_FLAGS=\"-munsafe-fp-atomics\""
+echo
 
 rm -rf build_${BUILD_SUFFIX} >/dev/null
 mkdir build_${BUILD_SUFFIX} && cd build_${BUILD_SUFFIX}
@@ -98,10 +104,10 @@ echo
 echo "    module unload rocm"
 echo "    srun -n1 make"
 echo
-echo "  Please note that cray-mpich requires libmodules.so.1 from cce to run."
+echo "  Please note that rocm requires libpgmath.so from rocm/llvm to run."
 echo "  Until this is handled transparently in the build system you may add "
-echo "  cce to your LD_LIBRARY_PATH."
+echo "  rocm/llvm to your LD_LIBRARY_PATH."
 echo
-echo "    export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/usr/tce/packages/cce-tce/cce-13.0.2/cce/x86_64/lib/"
+echo "    export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/opt/rocm-${COMP_VER}/llvm/lib"
 echo
 echo "***********************************************************************"
