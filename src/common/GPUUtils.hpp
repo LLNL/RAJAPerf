@@ -203,18 +203,23 @@ namespace gpu_mapping {
 struct global_direct_helper
 {
   static constexpr bool direct = true;
+  static constexpr long long extra = 0;
   static std::string get_name() { return "direct"; }
 };
 
+template < long long t_extra = 0 >
 struct global_loop_occupancy_grid_stride_helper
 {
   static constexpr bool direct = false;
-  static std::string get_name() { return "occgs"; }
+  static constexpr long long extra = t_extra;
+  static std::string get_name() { return "occgs<"+std::to_string(extra)+">"; }
 };
 
 using types = camp::list<
     global_direct_helper,
-    global_loop_occupancy_grid_stride_helper >;
+    global_loop_occupancy_grid_stride_helper<0>,
+    global_loop_occupancy_grid_stride_helper<12>,
+    global_loop_occupancy_grid_stride_helper<-12> >;
 
 } // closing brace for gpu_mapping namespace
 
@@ -224,16 +229,16 @@ using types = camp::list<
 // for kernel func with the given block_size and shmem.
 // This will use the occupancy calculator if MappingHelper::direct is false
 #define RAJAPERF_CUDA_GET_MAX_BLOCKS(MappingHelper, func, block_size, shmem)   \
-  MappingHelper::direct                                                        \
+  (MappingHelper::direct                                                       \
       ? std::numeric_limits<size_t>::max()                                     \
-      : detail::getCudaOccupancyMaxBlocks(                                     \
-            (func), (block_size), (shmem));
+      : (detail::getCudaOccupancyMaxBlocks(                                    \
+            (func), (block_size), (shmem)) + MappingHelper::extra))
 ///
 #define RAJAPERF_HIP_GET_MAX_BLOCKS(MappingHelper, func, block_size, shmem)    \
-  MappingHelper::direct                                                        \
+  (MappingHelper::direct                                                       \
       ? std::numeric_limits<size_t>::max()                                     \
-      : detail::getHipOccupancyMaxBlocks(                                      \
-            (func), (block_size), (shmem));
+      : (detail::getHipOccupancyMaxBlocks(                                     \
+            (func), (block_size), (shmem)) + MappingHelper::extra))
 
 // allocate pointer of pointer_type with length
 // device_ptr_name gets memory in the reduction data space for the current variant
