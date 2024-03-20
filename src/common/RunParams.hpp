@@ -98,6 +98,67 @@ public:
   }
 
   /*!
+   * \brief Enumeration indicating how to separate partitions
+   */
+  enum PartType {
+    Even,      /*!< all parts use same size */
+    Geometric, /*!< part sizes are multiples of a single factor */
+
+    NumPartTypes
+  };
+
+  /*!
+   * \brief Translate PartType enum value to string
+   */
+  static std::string PartTypeToStr(PartType pt)
+  {
+    switch (pt) {
+      case PartType::Even:
+        return "Even";
+      case PartType::Geometric:
+        return "Geometric";
+      case PartType::NumPartTypes:
+      default:
+        return "Unknown";
+    }
+  }
+
+  /*!
+   * \brief Enumeration indicating how to separate partitions
+   */
+  enum PartSizeOrder {
+    Random,     /*!< part sizes are ordered randomly (but consistently) */
+    Ascending,  /*!< part sizes are in ascending order */
+    Descending, /*!< part sizes are in descending order */
+
+    NumPartSizeOrders
+  };
+
+  /*!
+   * \brief Translate PartSizeOrder enum value to string
+   */
+  static std::string PartSizeOrderToStr(PartSizeOrder pt)
+  {
+    switch (pt) {
+      case PartSizeOrder::Random:
+        return "Random";
+      case PartSizeOrder::Ascending:
+        return "Ascending";
+      case PartSizeOrder::Descending:
+        return "Descending";
+      case PartSizeOrder::NumPartSizeOrders:
+      default:
+        return "Unknown";
+    }
+  }
+
+  /*!
+   * \brief Get a partition from a length, number of partitions, and PartType enum value
+   * Note that the vector will be of length (num_part+1)
+   */
+  std::vector<Index_type> getPartition(Index_type len, Index_type num_parts) const;
+
+  /*!
    * \brief Return state of input parsed to this point.
    */
   InputOpt getInputState() const { return input_state; }
@@ -122,6 +183,8 @@ public:
   double getSizeFactor() const { return size_factor; }
 
   Size_type getDataAlignment() const { return data_alignment; }
+
+  Index_type getNumParts() const { return num_parts; }
 
   int getGPUStream() const { return gpu_stream; }
   size_t numValidGPUBlockSize() const { return gpu_block_sizes.size(); }
@@ -206,6 +269,11 @@ public:
 private:
   RunParams() = delete;
 
+  /*!
+   * \brief Reorder partition sizes, used in getPartition.
+   */
+  void reorderPartitionSizes(std::vector<Index_type>& parts) const;
+
 //@{
 //! @name Routines used in command line parsing and printing option output
   void parseCommandLineOptions(int argc, char** argv);
@@ -238,8 +306,12 @@ private:
 
   SizeMeaning size_meaning; /*!< meaning of size value */
   double size;           /*!< kernel size to run (input option) */
-  double size_factor;    /*!< default kernel size multipier (input option) */
+  double size_factor;    /*!< default kernel size multiplier (input option) */
   Size_type data_alignment;
+
+  Index_type num_parts;   /*!< number of parts used in parted kernels (input option) */
+  PartType part_type;     /*!< how the partition sizes are generated (input option) */
+  PartSizeOrder part_size_order; /*!< how the partition sizes are ordered (input option) */
 
   int gpu_stream; /*!< 0 -> use stream 0; anything else -> use raja default stream */
   std::vector<size_t> gpu_block_sizes; /*!< Block sizes for gpu tunings to run (input option) */

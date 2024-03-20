@@ -12,6 +12,8 @@
 
 #if defined(RAJA_PERFSUITE_ENABLE_MPI)
 
+#include "common/MemPool.hpp"
+
 #include <iostream>
 
 namespace rajaperf
@@ -231,7 +233,7 @@ void HALO_EXCHANGE_FUSED::runSeqVariantWorkGroup(VariantID vid)
     case RAJA_Seq : {
 
       using AllocatorHolder = RAJAPoolAllocatorHolder<
-        RAJA::basic_mempool::MemPool<RAJA::basic_mempool::generic_allocator>>;
+        rajaperf::basic_mempool::MemPool<dataspace_allocator<getFuserDataSpace(RAJA_Seq)>>>;
       using Allocator = AllocatorHolder::Allocator<char>;
 
       AllocatorHolder allocatorHolder;

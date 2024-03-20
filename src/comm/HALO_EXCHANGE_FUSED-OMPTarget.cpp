@@ -13,6 +13,7 @@
 #if defined(RAJA_PERFSUITE_ENABLE_MPI) && defined(RAJA_ENABLE_TARGET_OPENMP)
 
 #include "common/OpenMPTargetDataUtils.hpp"
+#include "common/MemPool.hpp"
 
 #include <iostream>
 
@@ -197,7 +198,7 @@ void HALO_EXCHANGE_FUSED::runOpenMPTargetVariantWorkGroup(VariantID vid)
   if ( vid == RAJA_OpenMPTarget ) {
 
     using AllocatorHolder = RAJAPoolAllocatorHolder<
-        RAJA::basic_mempool::MemPool<RAJA::basic_mempool::generic_allocator>>;
+        rajaperf::basic_mempool::MemPool<dataspace_allocator<getFuserDataSpace(RAJA_OpenMPTarget)>>>;
     using Allocator = AllocatorHolder::Allocator<char>;
 
     AllocatorHolder allocatorHolder;

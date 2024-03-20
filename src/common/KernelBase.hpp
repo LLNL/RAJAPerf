@@ -264,6 +264,46 @@ public:
   DataSpace getReductionDataSpace(VariantID vid) const;
   DataSpace getMPIDataSpace(VariantID vid) const;
 
+  /*!
+   * \brief Get DataSpace to use with fusers for given variant.
+   */
+  static constexpr DataSpace getFuserDataSpace(VariantID vid)
+  {
+    switch(vid)
+    {
+    case VariantID::Base_Seq:
+    case VariantID::Lambda_Seq:
+    case VariantID::RAJA_Seq:
+      return DataSpace::Host;
+
+    case VariantID::Base_OpenMP:
+    case VariantID::Lambda_OpenMP:
+    case VariantID::RAJA_OpenMP:
+      return DataSpace::Host;
+
+    case VariantID::Base_OpenMPTarget:
+    case VariantID::RAJA_OpenMPTarget:
+      return DataSpace::Host;
+
+    case VariantID::Base_CUDA:
+    case VariantID::Lambda_CUDA:
+    case VariantID::RAJA_CUDA:
+      return DataSpace::CudaPinned;
+
+    case VariantID::Base_HIP:
+    case VariantID::Lambda_HIP:
+    case VariantID::RAJA_HIP:
+      return DataSpace::HipPinnedCoarse;
+
+    case VariantID::Kokkos_Lambda:
+      return DataSpace::Host;
+
+    case VariantID::NumVariants:
+      return DataSpace::Host;
+    }
+    return DataSpace::Host;
+  }
+
   template <typename T>
   void allocData(DataSpace dataSpace, T& ptr, Size_type len)
   {

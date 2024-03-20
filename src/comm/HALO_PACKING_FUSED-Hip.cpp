@@ -13,6 +13,7 @@
 #if defined(RAJA_ENABLE_HIP)
 
 #include "common/HipDataUtils.hpp"
+#include "common/MemPool.hpp"
 
 #include <iostream>
 
@@ -21,33 +22,33 @@ namespace rajaperf
 namespace comm
 {
 
-#define HALO_PACKING_FUSED_MANUAL_FUSER_SETUP_HIP \
+#define HALO_PACKING_FUSED_MANUAL_FUSER_SETUP_HIP(vid) \
   Real_ptr*   pack_buffer_ptrs; \
   Int_ptr*    pack_list_ptrs; \
   Real_ptr*   pack_var_ptrs; \
   Index_type* pack_len_ptrs; \
-  allocData(DataSpace::HipPinnedCoarse, pack_buffer_ptrs, num_neighbors * num_vars); \
-  allocData(DataSpace::HipPinnedCoarse, pack_list_ptrs,   num_neighbors * num_vars); \
-  allocData(DataSpace::HipPinnedCoarse, pack_var_ptrs,    num_neighbors * num_vars); \
-  allocData(DataSpace::HipPinnedCoarse, pack_len_ptrs,    num_neighbors * num_vars); \
+  allocData(getFuserDataSpace(vid), pack_buffer_ptrs, num_neighbors * num_vars); \
+  allocData(getFuserDataSpace(vid), pack_list_ptrs,   num_neighbors * num_vars); \
+  allocData(getFuserDataSpace(vid), pack_var_ptrs,    num_neighbors * num_vars); \
+  allocData(getFuserDataSpace(vid), pack_len_ptrs,    num_neighbors * num_vars); \
   Real_ptr*   unpack_buffer_ptrs; \
   Int_ptr*    unpack_list_ptrs; \
   Real_ptr*   unpack_var_ptrs; \
   Index_type* unpack_len_ptrs; \
-  allocData(DataSpace::HipPinnedCoarse, unpack_buffer_ptrs, num_neighbors * num_vars); \
-  allocData(DataSpace::HipPinnedCoarse, unpack_list_ptrs,   num_neighbors * num_vars); \
-  allocData(DataSpace::HipPinnedCoarse, unpack_var_ptrs,    num_neighbors * num_vars); \
-  allocData(DataSpace::HipPinnedCoarse, unpack_len_ptrs,    num_neighbors * num_vars);
+  allocData(getFuserDataSpace(vid), unpack_buffer_ptrs, num_neighbors * num_vars); \
+  allocData(getFuserDataSpace(vid), unpack_list_ptrs,   num_neighbors * num_vars); \
+  allocData(getFuserDataSpace(vid), unpack_var_ptrs,    num_neighbors * num_vars); \
+  allocData(getFuserDataSpace(vid), unpack_len_ptrs,    num_neighbors * num_vars);
 
-#define HALO_PACKING_FUSED_MANUAL_FUSER_TEARDOWN_HIP \
-  deallocData(DataSpace::HipPinnedCoarse, pack_buffer_ptrs); \
-  deallocData(DataSpace::HipPinnedCoarse, pack_list_ptrs); \
-  deallocData(DataSpace::HipPinnedCoarse, pack_var_ptrs); \
-  deallocData(DataSpace::HipPinnedCoarse, pack_len_ptrs); \
-  deallocData(DataSpace::HipPinnedCoarse, unpack_buffer_ptrs); \
-  deallocData(DataSpace::HipPinnedCoarse, unpack_list_ptrs); \
-  deallocData(DataSpace::HipPinnedCoarse, unpack_var_ptrs); \
-  deallocData(DataSpace::HipPinnedCoarse, unpack_len_ptrs);
+#define HALO_PACKING_FUSED_MANUAL_FUSER_TEARDOWN_HIP(vid) \
+  deallocData(getFuserDataSpace(vid), pack_buffer_ptrs); \
+  deallocData(getFuserDataSpace(vid), pack_list_ptrs); \
+  deallocData(getFuserDataSpace(vid), pack_var_ptrs); \
+  deallocData(getFuserDataSpace(vid), pack_len_ptrs); \
+  deallocData(getFuserDataSpace(vid), unpack_buffer_ptrs); \
+  deallocData(getFuserDataSpace(vid), unpack_list_ptrs); \
+  deallocData(getFuserDataSpace(vid), unpack_var_ptrs); \
+  deallocData(getFuserDataSpace(vid), unpack_len_ptrs);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -103,7 +104,7 @@ void HALO_PACKING_FUSED::runHipVariantDirect(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    HALO_PACKING_FUSED_MANUAL_FUSER_SETUP_HIP;
+    HALO_PACKING_FUSED_MANUAL_FUSER_SETUP_HIP(Base_HIP);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -189,7 +190,7 @@ void HALO_PACKING_FUSED::runHipVariantDirect(VariantID vid)
     }
     stopTimer();
 
-    HALO_PACKING_FUSED_MANUAL_FUSER_TEARDOWN_HIP;
+    HALO_PACKING_FUSED_MANUAL_FUSER_TEARDOWN_HIP(Base_HIP);
 
   } else {
      getCout() << "\n HALO_PACKING_FUSED : Unknown Hip variant id = " << vid << std::endl;
@@ -207,7 +208,8 @@ void HALO_PACKING_FUSED::runHipVariantWorkGroup(VariantID vid)
 
   if ( vid == RAJA_HIP ) {
 
-    using AllocatorHolder = RAJAPoolAllocatorHolder<RAJA::hip::pinned_mempool_type>;
+    using AllocatorHolder = RAJAPoolAllocatorHolder<
+        rajaperf::basic_mempool::MemPool<dataspace_allocator<getFuserDataSpace(RAJA_HIP)>>>;
     using Allocator = AllocatorHolder::Allocator<char>;
 
     AllocatorHolder allocatorHolder;
