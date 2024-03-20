@@ -107,7 +107,6 @@ void REDUCE3_INT::runSyclVariantImpl(VariantID vid)
         initSyclDeviceData(hmin, &m_vmin_init, 1, qu);
         initSyclDeviceData(hmax, &m_vmax_init, 1, qu);
 
-
         qu->submit([&] (sycl::handler& h) {
 
           auto sum_reduction = sycl::reduction(hsum, sycl::plus<>());
@@ -156,8 +155,6 @@ void REDUCE3_INT::runSyclVariantImpl(VariantID vid)
       return;
     }
 
-    REDUCE3_INT_DATA_SETUP_SYCL;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -165,7 +162,7 @@ void REDUCE3_INT::runSyclVariantImpl(VariantID vid)
       RAJA::ReduceMin<RAJA::sycl_reduce, Int_type> vmin(m_vmin_init);
       RAJA::ReduceMax<RAJA::sycl_reduce, Int_type> vmax(m_vmax_init);
 
-      RAJA::forall< RAJA::sycl_exec<work_group_size, false> >(
+      RAJA::forall< RAJA::sycl_exec<work_group_size, false /*async*/> >(
         RAJA::RangeSegment(ibegin, iend), [=] (Index_type i) {
         REDUCE3_INT_BODY_RAJA;
       });
@@ -177,8 +174,6 @@ void REDUCE3_INT::runSyclVariantImpl(VariantID vid)
     }
     qu->wait();
     stopTimer();
-
-    REDUCE3_INT_DATA_TEARDOWN_SYCL;
 
   } else {
      std::cout << "\n  REDUCE3_INT : Unknown Sycl variant id = " << vid << std::endl;

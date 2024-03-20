@@ -47,15 +47,17 @@ void TRAP_INT::runSyclVariantImpl(VariantID vid)
 
   if ( vid == Base_SYCL ) {
 
+    Real_ptr sumx;
+    allocAndInitSyclDeviceData(sumx, &m_sumx_init, 1, qu);
+  
     if (work_group_size > 0) {
   
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        Real_ptr sumx;
-        allocAndInitSyclDeviceData(sumx, &m_sumx_init, 1, qu);
-  
         const size_t global_size = work_group_size * RAJA_DIVIDE_CEILING_INT(iend, work_group_size);
+
+        initSyclDeviceData(sumx, &m_sumx_init, 1, qu);
   
         qu->submit([&] (sycl::handler& hdl) {
 
@@ -87,8 +89,7 @@ void TRAP_INT::runSyclVariantImpl(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
  
-        Real_ptr sumx;
-        allocAndInitSyclDeviceData(sumx, &m_sumx_init, 1, qu);
+        initSyclDeviceData(sumx, &m_sumx_init, 1, qu);
 
         qu->submit([&] (sycl::handler& hdl) {
 
@@ -114,6 +115,9 @@ void TRAP_INT::runSyclVariantImpl(VariantID vid)
       stopTimer();
   
     } 
+
+    deallocSyclDeviceData(sumx, qu); \
+
   } else if ( vid == RAJA_SYCL ) {
 
     if ( work_group_size == 0 ) {
