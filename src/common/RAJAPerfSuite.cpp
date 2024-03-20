@@ -104,6 +104,7 @@
 #include "algorithm/REDUCE_SUM.hpp"
 #include "algorithm/MEMSET.hpp"
 #include "algorithm/MEMCPY.hpp"
+#include "algorithm/ATOMIC.hpp"
 
 //
 // Comm kernels...
@@ -254,6 +255,7 @@ static const std::string KernelNames [] =
   std::string("Algorithm_REDUCE_SUM"),
   std::string("Algorithm_MEMSET"),
   std::string("Algorithm_MEMCPY"),
+  std::string("Algorithm_ATOMIC"),
 
 //
 // Comm kernels...
@@ -1012,6 +1014,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Algorithm_MEMCPY: {
        kernel = new algorithm::MEMCPY(run_params);
+       break;
+    }
+    case Algorithm_ATOMIC: {
+       kernel = new algorithm::ATOMIC(run_params);
        break;
     }
 

@@ -134,6 +134,16 @@ public:
     }
     return false;
   }
+  size_t numValidAtomicReplication() const { return atomic_replications.size(); }
+  bool validAtomicReplication(size_t atomic_replication) const
+  {
+    for (size_t valid_atomic_replication : atomic_replications) {
+      if (valid_atomic_replication == atomic_replication) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   int getMPISize() const { return mpi_size; }
   int getMPIRank() const { return mpi_rank; }
@@ -236,6 +246,7 @@ private:
 
   int gpu_stream; /*!< 0 -> use stream 0; anything else -> use raja default stream */
   std::vector<size_t> gpu_block_sizes; /*!< Block sizes for gpu tunings to run (input option) */
+  std::vector<size_t> atomic_replications; /*!< Atomic replications for gpu tunings to run (input option) */
   int mpi_size;           /*!< Number of MPI ranks */
   int mpi_rank;           /*!< Rank of this MPI process */
   std::array<int, 3> mpi_3d_division; /*!< Number of MPI ranks in each dimension of a 3D grid */

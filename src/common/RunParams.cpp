@@ -40,6 +40,7 @@ RunParams::RunParams(int argc, char** argv)
    data_alignment(RAJA::DATA_ALIGN),
    gpu_stream(1),
    gpu_block_sizes(),
+   atomic_replications(),
    mpi_size(1),
    mpi_rank(0),
    mpi_3d_division({-1, -1, -1}),
@@ -122,6 +123,10 @@ void RunParams::print(std::ostream& str) const
   str << "\n gpu_block_sizes = ";
   for (size_t j = 0; j < gpu_block_sizes.size(); ++j) {
     str << "\n\t" << gpu_block_sizes[j];
+  }
+  str << "\n atomic_replications = ";
+  for (size_t j = 0; j < atomic_replications.size(); ++j) {
+    str << "\n\t" << atomic_replications[j];
   }
   str << "\n mpi_size = " << mpi_size;
   str << "\n mpi_3d_division = ";
@@ -462,6 +467,37 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
       if (!got_someting) {
         getCout() << "\nBad input:"
                   << " must give --gpu_block_size one or more values (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--atomic_replication") ) {
+
+      bool got_someting = false;
+      bool done = false;
+      i++;
+      while ( i < argc && !done ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+          done = true;
+        } else {
+          got_someting = true;
+          int atomic_replication = ::atoi( opt.c_str() );
+          if ( atomic_replication <= 0 ) {
+            getCout() << "\nBad input:"
+                      << " must give --atomic_replication POSITIVE values (int)"
+                      << std::endl;
+            input_state = BadInput;
+          } else {
+            atomic_replications.push_back(atomic_replication);
+          }
+          ++i;
+        }
+      }
+      if (!got_someting) {
+        getCout() << "\nBad input:"
+                  << " must give --atomic_replication one or more values (int)"
                   << std::endl;
         input_state = BadInput;
       }
@@ -1089,6 +1125,14 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t      values give via CMake variable RAJA_PERFSUITE_GPU_BLOCKSIZES.\n";
   str << "\t\t Example...\n"
       << "\t\t --gpu_block_size 128 256 512 (runs kernels with gpu_block_size 128, 256, and 512)\n\n";
+
+  str << "\t --atomic_replication <space-separated ints> [no default]\n"
+      << "\t      (atomic replications to run for all GPU kernels)\n"
+      << "\t      GPU kernels not supporting atomic_replication option will be skipped.\n"
+      << "\t      Behavior depends on kernel implementations and \n"
+      << "\t      values give via CMake variable RAJA_PERFSUITE_ATOMIC_REPLICATIONS.\n";
+  str << "\t\t Example...\n"
+      << "\t\t --atomic_replication 128 256 512 (runs kernels with atomic_replication 128, 256, and 512)\n\n";
 
   str << "\t --mpi_3d_division <space-separated ints> [no default]\n"
       << "\t      (number of mpi ranks in each dimension in a 3d grid)\n"

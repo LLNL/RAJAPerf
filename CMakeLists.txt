@@ -75,6 +75,8 @@ set(RAJA_USE_CHRONO On CACHE BOOL "")
 
 set(RAJA_PERFSUITE_GPU_BLOCKSIZES "" CACHE STRING "Comma separated list of GPU block sizes, ex '256,1024'")
 
+set(RAJA_PERFSUITE_ATOMIC_REPLICATIONS "" CACHE STRING "Comma separated list of atomic replications, ex '1,256,4096'")
+
 set(RAJA_RANGE_ALIGN 4)
 set(RAJA_RANGE_MIN_LENGTH 32)
 set(RAJA_DATA_ALIGN 64)
@@ -84,6 +86,13 @@ if (BLOCKSIZES_LENGTH GREATER 0)
   message(STATUS "Using gpu block size(s): ${RAJA_PERFSUITE_GPU_BLOCKSIZES}")
 else()
   message(STATUS "Using default gpu block size(s)")
+endif()
+
+string(LENGTH "${RAJA_PERFSUITE_ATOMIC_REPLICATIONS}" ATOMIC_REPLICATIONS_LENGTH)
+if (ATOMIC_REPLICATIONS_LENGTH GREATER 0)
+  message(STATUS "Using atomic replication(s): ${RAJA_PERFSUITE_ATOMIC_REPLICATIONS}")
+else()
+  message(STATUS "Using default atomic replication(s)")
 endif()
 
 # exclude RAJA make targets from top-level build...
