@@ -33,53 +33,27 @@ void INIT_VIEW1D::runSyclVariantImpl(VariantID vid)
 
   if ( vid == Base_SYCL ) {
 
-    if (work_group_size > 0) {
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+      const size_t global_size = work_group_size * RAJA_DIVIDE_CEILING_INT(iend, work_group_size);
 
-        const size_t global_size = work_group_size * RAJA_DIVIDE_CEILING_INT(iend, work_group_size);
+      qu->submit([&] (sycl::handler& h) {
 
-        qu->submit([&] (sycl::handler& h) {
+        h.parallel_for(sycl::nd_range<1>(global_size, work_group_size),
+                                        [=] (sycl::nd_item<1> item ) {
 
-          h.parallel_for(sycl::nd_range<1>{global_size, work_group_size},
-                                          [=] (sycl::nd_item<1> item ) {
-
-            Index_type i = item.get_global_id(0);
-            if (i < iend) {
-              INIT_VIEW1D_BODY
-            }
-          });
-        });
-      }
-      qu->wait();
-      stopTimer();
-
-    } else {
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-  
-        qu->submit([&] (sycl::handler& h) {
-          h.parallel_for(sycl::range<1>(iend),
-                         [=] (sycl::item<1> item) {
-  
-            Index_type i = item.get_id(0);
+          Index_type i = item.get_global_id(0);
+          if (i < iend) {
             INIT_VIEW1D_BODY
-  
-          });
+          }
         });
-      }
-      qu->wait();
-      stopTimer();
-
+      });
     }
+    qu->wait();
+    stopTimer();
 
   } else if ( vid == RAJA_SYCL ) {
-
-    if ( work_group_size == 0 ) {
-      std::cout << "\n  INIT_VIEW1D : RAJA_SYCL does not support auto work group size" << std::endl;
-      return;
-    }
 
     INIT_VIEW1D_VIEW_RAJA;
 

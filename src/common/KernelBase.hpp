@@ -252,9 +252,11 @@ public:
 #if defined(RAJA_ENABLE_SYCL)
   camp::resources::Sycl getSyclResource()
   {
-/*    if (run_params.getGPUStream() == 0) {
-      return camp::resources::Cuda::CudaFromStream(0);
-    }*/
+    /*
+    if (run_params.getGPUStream() == 0) {
+      return camp::resources::Sycl::SyclFromStream(0);
+    }
+    */
     return camp::resources::Sycl::get_default();
   }
 #endif

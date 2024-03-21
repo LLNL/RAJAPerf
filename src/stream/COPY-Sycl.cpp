@@ -49,7 +49,6 @@ void COPY::runSyclVariantImpl(VariantID vid)
         });
       });
     }
-
     qu->wait();
     stopTimer();
 

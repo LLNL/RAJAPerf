@@ -47,113 +47,58 @@ void REDUCE3_INT::runSyclVariantImpl(VariantID vid)
 
     REDUCE3_INT_DATA_SETUP_SYCL;
 
-    if (work_group_size > 0) {
-  
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-  
-        const size_t global_size = work_group_size * RAJA_DIVIDE_CEILING_INT(iend, work_group_size);
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        initSyclDeviceData(hsum, &m_vsum_init, 1, qu);
-        initSyclDeviceData(hmin, &m_vmin_init, 1, qu);
-        initSyclDeviceData(hmax, &m_vmax_init, 1, qu);
+      const size_t global_size = work_group_size * RAJA_DIVIDE_CEILING_INT(iend, work_group_size);
 
-        qu->submit([&] (sycl::handler& h) {
+      initSyclDeviceData(hsum, &m_vsum_init, 1, qu);
+      initSyclDeviceData(hmin, &m_vmin_init, 1, qu);
+      initSyclDeviceData(hmax, &m_vmax_init, 1, qu);
 
-          auto sum_reduction = sycl::reduction(hsum, sycl::plus<>());
-          auto min_reduction = sycl::reduction(hmin, sycl::minimum<>());
-          auto max_reduction = sycl::reduction(hmax, sycl::maximum<>());
+      qu->submit([&] (sycl::handler& h) {
 
-          h.parallel_for(sycl::nd_range<1>(global_size, work_group_size),
-                         sum_reduction, min_reduction, max_reduction,
-                         [=] (sycl::nd_item<1> item, auto& vsum, auto& vmin, auto& vmax) {
-  
-            Index_type i = item.get_global_id(0);
-            if (i < iend) {
-             // REDUCE3_INT_BODY
-                vsum += vec[i];
-                vmin.combine(vec[i]); 
-                vmax.combine(vec[i]);
-            }
-  
-          });
+        auto sum_reduction = sycl::reduction(hsum, sycl::plus<>());
+        auto min_reduction = sycl::reduction(hmin, sycl::minimum<>());
+        auto max_reduction = sycl::reduction(hmax, sycl::maximum<>());
+
+        h.parallel_for(sycl::nd_range<1>(global_size, work_group_size),
+                       sum_reduction, min_reduction, max_reduction,
+                       [=] (sycl::nd_item<1> item, auto& vsum, auto& vmin, auto& vmax) {
+
+          Index_type i = item.get_global_id(0);
+          if (i < iend) {
+           // REDUCE3_INT_BODY
+              vsum += vec[i];
+              vmin.combine(vec[i]); 
+              vmax.combine(vec[i]);
+          }
+
         });
-  
-        Int_type lsum;
-        Int_ptr plsum = &lsum;
-        getSyclDeviceData(plsum, hsum, 1, qu);
-        m_vsum += lsum;
-  
-        Int_type lmin;
-        Int_ptr plmin = &lmin;
-        getSyclDeviceData(plmin, hmin, 1, qu);
-        m_vmin = RAJA_MIN(m_vmin, lmin);
-  
-        Int_type lmax;
-        Int_ptr plmax = &lmax;
-        getSyclDeviceData(plmax, hmax, 1, qu);
-        m_vmax = RAJA_MAX(m_vmax, lmax);
+      });
 
-      } // for (RepIndex_type irep = ...
-      qu->wait();
-      stopTimer();
+      Int_type lsum;
+      Int_ptr plsum = &lsum;
+      getSyclDeviceData(plsum, hsum, 1, qu);
+      m_vsum += lsum;
+
+      Int_type lmin;
+      Int_ptr plmin = &lmin;
+      getSyclDeviceData(plmin, hmin, 1, qu);
+      m_vmin = RAJA_MIN(m_vmin, lmin);
+
+      Int_type lmax;
+      Int_ptr plmax = &lmax;
+      getSyclDeviceData(plmax, hmax, 1, qu);
+      m_vmax = RAJA_MAX(m_vmax, lmax);
+
+    } // for (RepIndex_type irep = ...
+    qu->wait();
+    stopTimer();
   
-    } else {  // work_group_size <= 0
-  
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        initSyclDeviceData(hsum, &m_vsum_init, 1, qu);
-        initSyclDeviceData(hmin, &m_vmin_init, 1, qu);
-        initSyclDeviceData(hmax, &m_vmax_init, 1, qu);
-
-        qu->submit([&] (sycl::handler& h) {
-
-          auto sum_reduction = sycl::reduction(hsum, sycl::plus<>());
-          auto min_reduction = sycl::reduction(hmin, sycl::minimum<>());
-          auto max_reduction = sycl::reduction(hmax, sycl::maximum<>());
-
-          h.parallel_for(sycl::range<1>(iend),
-                         sum_reduction, min_reduction, max_reduction,
-                         [=] (sycl::item<1> item, auto& vsum, auto& vmin, auto& vmax ) {
-  
-            Index_type i = item.get_id(0);
-            vsum += vec[i];
-            vmin.combine(vec[i]);       
-            vmax.combine(vec[i]);
-
-          });
-        });
-
-        Int_type lsum;
-        Int_ptr plsum = &lsum;
-        getSyclDeviceData(plsum, hsum, 1, qu);
-        m_vsum += lsum;
-  
-        Int_type lmin;
-        Int_ptr plmin = &lmin;
-        getSyclDeviceData(plmin, hmin, 1, qu);
-        m_vmin = RAJA_MIN(m_vmin, lmin);
-  
-        Int_type lmax;
-        Int_ptr plmax = &lmax;
-        getSyclDeviceData(plmax, hmax, 1, qu);
-        m_vmax = RAJA_MAX(m_vmax, lmax);
-
-      }
-      qu->wait();
-      stopTimer();
-  
-    } 
-
     REDUCE3_INT_DATA_TEARDOWN_SYCL;
 
   } else if ( vid == RAJA_SYCL ) {
-
-    if ( work_group_size == 0 ) {
-      std::cout << "\n  REDUCE3_INT : RAJA_SYCL does not support auto work group size" << std::endl;
-      return;
-    }
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

@@ -49,81 +49,42 @@ void TRAP_INT::runSyclVariantImpl(VariantID vid)
 
     Real_ptr sumx;
     allocAndInitSyclDeviceData(sumx, &m_sumx_init, 1, qu);
-  
-    if (work_group_size > 0) {
-  
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        const size_t global_size = work_group_size * RAJA_DIVIDE_CEILING_INT(iend, work_group_size);
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        initSyclDeviceData(sumx, &m_sumx_init, 1, qu);
-  
-        qu->submit([&] (sycl::handler& hdl) {
+      const size_t global_size = work_group_size * RAJA_DIVIDE_CEILING_INT(iend, work_group_size);
 
-          auto sum_reduction = sycl::reduction(sumx, sycl::plus<>());
+      initSyclDeviceData(sumx, &m_sumx_init, 1, qu);
+  
+      qu->submit([&] (sycl::handler& hdl) {
 
-          hdl.parallel_for(sycl::nd_range<1>(global_size, work_group_size),
-                         sum_reduction,
-                         [=] (sycl::nd_item<1> item, auto& sumx) {
-  
-            Index_type i = item.get_global_id(0);
-            if (i < iend) {
-              TRAP_INT_BODY
-            }
-  
-          });
-        });
+        auto sum_reduction = sycl::reduction(sumx, sycl::plus<>());
 
-        Real_type lsumx;
-        Real_ptr plsumx = &lsumx;
-        getSyclDeviceData(plsumx, sumx, 1, qu);
-        m_sumx += lsumx * h;
-  
-      }
-      qu->wait();
-      stopTimer();
-  
-    } else {
-  
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
- 
-        initSyclDeviceData(sumx, &m_sumx_init, 1, qu);
+        hdl.parallel_for(sycl::nd_range<1>(global_size, work_group_size),
+                       sum_reduction,
+                       [=] (sycl::nd_item<1> item, auto& sumx) {
 
-        qu->submit([&] (sycl::handler& hdl) {
-
-          auto sum_reduction = sycl::reduction(sumx, sycl::plus<>());
-
-          hdl.parallel_for(sycl::range<1>(iend),
-                           sum_reduction,
-                           [=] (sycl::item<1> item, auto& sumx ) {
-  
-            Index_type i = item.get_id(0);
+          Index_type i = item.get_global_id(0);
+          if (i < iend) {
             TRAP_INT_BODY
-  
-          });
+          }
+
         });
+      });
 
-        Real_type lsumx;
-        Real_ptr plsumx = &lsumx;
-        getSyclDeviceData(plsumx, sumx, 1, qu);
-        m_sumx += lsumx * h;
-  
-      }
-      qu->wait();
-      stopTimer();
-  
-    } 
+      Real_type lsumx;
+      Real_ptr plsumx = &lsumx;
+      getSyclDeviceData(plsumx, sumx, 1, qu);
+      m_sumx += lsumx * h;
 
-    deallocSyclDeviceData(sumx, qu); \
+    }
+    qu->wait();
+    stopTimer();
+  
+    deallocSyclDeviceData(sumx, qu);
 
   } else if ( vid == RAJA_SYCL ) {
-
-    if ( work_group_size == 0 ) {
-      std::cout << "\n  TRAP_INT : RAJA_SYCL does not support auto work group size" << std::endl;
-      return;
-    }
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

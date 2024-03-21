@@ -37,64 +37,33 @@ void NESTED_INIT::runSyclVariantImpl(VariantID vid)
 
   if ( vid == Base_SYCL ) {
 
-    if (work_group_size > 0) {
-
-      sycl::range<3> ndrange_dim(RAJA_DIVIDE_CEILING_INT(nk, k_block_sz),
-                                 RAJA_DIVIDE_CEILING_INT(nj, j_block_sz),
-                                 RAJA_DIVIDE_CEILING_INT(ni, i_block_sz));
-      sycl::range<3> wkgroup_dim(k_block_sz, j_block_sz, i_block_sz);
+    sycl::range<3> ndrange_dim(RAJA_DIVIDE_CEILING_INT(nk, k_block_sz),
+                               RAJA_DIVIDE_CEILING_INT(nj, j_block_sz),
+                               RAJA_DIVIDE_CEILING_INT(ni, i_block_sz));
+    sycl::range<3> wkgroup_dim(k_block_sz, j_block_sz, i_block_sz);
   
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
- 
-        qu->submit([&] (cl::sycl::handler& h) {
-          h.parallel_for(sycl::nd_range<3> ( ndrange_dim * wkgroup_dim, wkgroup_dim),
-                         [=] (sycl::nd_item<3> item) {
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-            Index_type i = item.get_global_id(2);
-            Index_type j = item.get_global_id(1);
-            Index_type k = item.get_global_id(0);
+      qu->submit([&] (cl::sycl::handler& h) {
+        h.parallel_for(sycl::nd_range<3> ( ndrange_dim * wkgroup_dim, wkgroup_dim),
+                       [=] (sycl::nd_item<3> item) {
 
-            if (i < ni && j < nj && k < nk) {
-              NESTED_INIT_BODY
-            }
-          });
-        });
-  
-      }
-      qu->wait();
-      stopTimer();
-  
-    } else {
-  
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+          Index_type i = item.get_global_id(2);
+          Index_type j = item.get_global_id(1);
+          Index_type k = item.get_global_id(0);
 
-        qu->submit([&] (sycl::handler& h) {
-          h.parallel_for(sycl::range<3> (nk, nj, ni),
-                                           [=] (sycl::item<3> item) {
-
-            Index_type i = item.get_id(2);
-            Index_type j = item.get_id(1);
-            Index_type k = item.get_id(0);
-
+          if (i < ni && j < nj && k < nk) {
             NESTED_INIT_BODY
- 
-          });
+          }
         });
-  
-      }
-      qu->wait();
-      stopTimer();
-  
-    } 
+      });
 
-  } else if ( vid == RAJA_SYCL ) {
-
-    if ( work_group_size == 0 ) {
-      std::cout << "\n  NESTED_INIT : RAJA_SYCL does not support auto work group size" << std::endl;
-      return;
     }
+    qu->wait();
+    stopTimer();
+  
+  } else if ( vid == RAJA_SYCL ) {
 
     using EXEC_POL =
       RAJA::KernelPolicy<
