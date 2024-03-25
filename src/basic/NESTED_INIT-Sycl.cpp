@@ -24,9 +24,9 @@ namespace basic
   //
   // Define work-group shape for SYCL execution
   //
-#define i_block_sz (32)
-#define j_block_sz (work_group_size / i_block_sz)
-#define k_block_sz (1)
+#define i_wg_sz (32)
+#define j_wg_sz (work_group_size / i_wg_sz)
+#define k_wg_sz (1)
 
 template <size_t work_group_size >
 void NESTED_INIT::runSyclVariantImpl(VariantID vid)
@@ -37,10 +37,10 @@ void NESTED_INIT::runSyclVariantImpl(VariantID vid)
 
   if ( vid == Base_SYCL ) {
 
-    sycl::range<3> ndrange_dim(RAJA_DIVIDE_CEILING_INT(nk, k_block_sz),
-                               RAJA_DIVIDE_CEILING_INT(nj, j_block_sz),
-                               RAJA_DIVIDE_CEILING_INT(ni, i_block_sz));
-    sycl::range<3> wkgroup_dim(k_block_sz, j_block_sz, i_block_sz);
+    sycl::range<3> ndrange_dim(RAJA_DIVIDE_CEILING_INT(nk, k_wg_sz),
+                               RAJA_DIVIDE_CEILING_INT(nj, j_wg_sz),
+                               RAJA_DIVIDE_CEILING_INT(ni, i_wg_sz));
+    sycl::range<3> wkgroup_dim(k_wg_sz, j_wg_sz, i_wg_sz);
   
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -68,9 +68,9 @@ void NESTED_INIT::runSyclVariantImpl(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::SyclKernelAsync<
-          RAJA::statement::For<2, RAJA::sycl_global_0<k_block_sz>,
-            RAJA::statement::For<1, RAJA::sycl_global_1<j_block_sz>,
-              RAJA::statement::For<0, RAJA::sycl_global_2<i_block_sz>,
+          RAJA::statement::For<2, RAJA::sycl_global_0<k_wg_sz>,
+            RAJA::statement::For<1, RAJA::sycl_global_1<j_wg_sz>,
+              RAJA::statement::For<0, RAJA::sycl_global_2<i_wg_sz>,
                 RAJA::statement::Lambda<0>
               >
             >

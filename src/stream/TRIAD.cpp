@@ -57,10 +57,10 @@ TRIAD::TRIAD(const RunParams& params)
   setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
 
-  setVariantDefined( Kokkos_Lambda );
-
   setVariantDefined( Base_SYCL );
   setVariantDefined( RAJA_SYCL );
+
+  setVariantDefined( Kokkos_Lambda );
 }
 
 TRIAD::~TRIAD()
