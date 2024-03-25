@@ -65,7 +65,6 @@ DEL_DOT_VEC_2D::DEL_DOT_VEC_2D(const RunParams& params)
 
   setVariantDefined( Base_SYCL );
   setVariantDefined( RAJA_SYCL );
-
 }
 
 DEL_DOT_VEC_2D::~DEL_DOT_VEC_2D()

@@ -14,7 +14,6 @@
 
 #include <iostream>
 
-#include <sycl.hpp>
 #include "common/SyclDataUtils.hpp"
 
 namespace rajaperf 
@@ -22,49 +21,8 @@ namespace rajaperf
 namespace apps
 {
 
-  //
-  // Define thread block size for SYCL execution
-  //
-  const size_t block_size = 256;
-
-
-#define ENERGY_DATA_SETUP_SYCL \
-  allocAndInitSyclDeviceData(e_new, m_e_new, iend, qu); \
-  allocAndInitSyclDeviceData(e_old, m_e_old, iend, qu); \
-  allocAndInitSyclDeviceData(delvc, m_delvc, iend, qu); \
-  allocAndInitSyclDeviceData(p_new, m_p_new, iend, qu); \
-  allocAndInitSyclDeviceData(p_old, m_p_old, iend, qu); \
-  allocAndInitSyclDeviceData(q_new, m_q_new, iend, qu); \
-  allocAndInitSyclDeviceData(q_old, m_q_old, iend, qu); \
-  allocAndInitSyclDeviceData(work, m_work, iend, qu); \
-  allocAndInitSyclDeviceData(compHalfStep, m_compHalfStep, iend, qu); \
-  allocAndInitSyclDeviceData(pHalfStep, m_pHalfStep, iend, qu); \
-  allocAndInitSyclDeviceData(bvc, m_bvc, iend, qu); \
-  allocAndInitSyclDeviceData(pbvc, m_pbvc, iend, qu); \
-  allocAndInitSyclDeviceData(ql_old, m_ql_old, iend, qu); \
-  allocAndInitSyclDeviceData(qq_old, m_qq_old, iend, qu); \
-  allocAndInitSyclDeviceData(vnewc, m_vnewc, iend, qu);
-
-#define ENERGY_DATA_TEARDOWN_SYCL \
-  getSyclDeviceData(m_e_new, e_new, iend, qu); \
-  getSyclDeviceData(m_q_new, q_new, iend, qu); \
-  deallocSyclDeviceData(e_new, qu); \
-  deallocSyclDeviceData(e_old, qu); \
-  deallocSyclDeviceData(delvc, qu); \
-  deallocSyclDeviceData(p_new, qu); \
-  deallocSyclDeviceData(p_old, qu); \
-  deallocSyclDeviceData(q_new, qu); \
-  deallocSyclDeviceData(q_old, qu); \
-  deallocSyclDeviceData(work, qu); \
-  deallocSyclDeviceData(compHalfStep, qu); \
-  deallocSyclDeviceData(pHalfStep, qu); \
-  deallocSyclDeviceData(bvc, qu); \
-  deallocSyclDeviceData(pbvc, qu); \
-  deallocSyclDeviceData(ql_old, qu); \
-  deallocSyclDeviceData(qq_old, qu); \
-  deallocSyclDeviceData(vnewc, qu);
-
-void ENERGY::runSyclVariant(VariantID vid)
+template <size_t work_group_size >
+void ENERGY::runSyclVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -75,18 +33,18 @@ void ENERGY::runSyclVariant(VariantID vid)
   using sycl::sqrt;
   using sycl::fabs;
 
-  if ( vid == Base_SYCL ) {
+  auto res{getSyclResource()};
 
-    ENERGY_DATA_SETUP_SYCL;
+  if ( vid == Base_SYCL ) {
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      const size_t grid_size = block_size * RAJA_DIVIDE_CEILING_INT(iend, block_size); 
+      const size_t grid_size = work_group_size * RAJA_DIVIDE_CEILING_INT(iend, work_group_size); 
 
       qu->submit([&] (sycl::handler& h) {
-        h.parallel_for<class Energy_1>(sycl::nd_range<1> (grid_size, block_size),
-                                       [=] (sycl::nd_item<1> item) {
+        h.parallel_for(sycl::nd_range<1> (grid_size, work_group_size),
+                       [=] (sycl::nd_item<1> item) {
 
           Index_type i = item.get_global_id(0);
           if(i < iend) {
@@ -97,8 +55,8 @@ void ENERGY::runSyclVariant(VariantID vid)
       });
 
       qu->submit([&] (sycl::handler& h) {
-        h.parallel_for<class Energy_2>(sycl::nd_range<1> (grid_size, block_size),
-                                       [=] (sycl::nd_item<1> item) {
+        h.parallel_for(sycl::nd_range<1> (grid_size, work_group_size),
+                       [=] (sycl::nd_item<1> item) {
             
           Index_type i = item.get_global_id(0);            
           if(i < iend) {
@@ -109,8 +67,8 @@ void ENERGY::runSyclVariant(VariantID vid)
       });
 
       qu->submit([&] (sycl::handler& h) {
-        h.parallel_for<class Energy_3>(sycl::nd_range<1> (grid_size, block_size),
-                                       [=] (sycl::nd_item<1> item) {
+        h.parallel_for(sycl::nd_range<1> (grid_size, work_group_size),
+                       [=] (sycl::nd_item<1> item) {
 
           Index_type i = item.get_global_id(0);
           if(i < iend) {
@@ -120,8 +78,8 @@ void ENERGY::runSyclVariant(VariantID vid)
       });
 
       qu->submit([&] (sycl::handler& h) {
-        h.parallel_for<class Energy_4>(sycl::nd_range<1> (grid_size, block_size),
-                                       [=] (sycl::nd_item<1> item) {
+        h.parallel_for(sycl::nd_range<1> (grid_size, work_group_size),
+                       [=] (sycl::nd_item<1> item) {
 
           Index_type i = item.get_global_id(0);
           if(i < iend) {
@@ -132,8 +90,8 @@ void ENERGY::runSyclVariant(VariantID vid)
       });
 
       qu->submit([&] (sycl::handler& h) {
-        h.parallel_for<class Energy_5>(sycl::nd_range<1> (grid_size, block_size),
-                                       [=] (sycl::nd_item<1> item) {
+        h.parallel_for(sycl::nd_range<1> (grid_size, work_group_size),
+                       [=] (sycl::nd_item<1> item) {
 
           Index_type i = item.get_global_id(0);
           if(i < iend) {
@@ -145,8 +103,8 @@ void ENERGY::runSyclVariant(VariantID vid)
 
       qu->submit([&] (sycl::handler& h)
       {
-        h.parallel_for<class Energy_6>(sycl::nd_range<1> (grid_size, block_size),
-                                       [=] (sycl::nd_item<1> item) {
+        h.parallel_for(sycl::nd_range<1> (grid_size, work_group_size),
+                       [=] (sycl::nd_item<1> item) {
 
           Index_type i = item.get_global_id(0);
           if(i < iend) {
@@ -156,14 +114,10 @@ void ENERGY::runSyclVariant(VariantID vid)
         });
       });
     }
-    qu->wait(); // Wait for computation to finish before stopping timer
+    qu->wait();
     stopTimer();
 
-    ENERGY_DATA_TEARDOWN_SYCL;
-
   } else if ( vid == RAJA_SYCL ) {
-
-    ENERGY_DATA_SETUP_SYCL;
 
     const bool async = true;
 
@@ -172,32 +126,32 @@ void ENERGY::runSyclVariant(VariantID vid)
 
       RAJA::region<RAJA::seq_region>( [=]() {
 
-        RAJA::forall< RAJA::sycl_exec<block_size, async> >(
+        RAJA::forall< RAJA::sycl_exec<work_group_size, async> >(
           RAJA::RangeSegment(ibegin, iend), [=] (Index_type i) {
           ENERGY_BODY1;
         });
 
-        RAJA::forall< RAJA::sycl_exec<block_size, async> >(
+        RAJA::forall< RAJA::sycl_exec<work_group_size, async> >(
           RAJA::RangeSegment(ibegin, iend), [=] (Index_type i) {
           ENERGY_BODY2;
         });
 
-        RAJA::forall< RAJA::sycl_exec<block_size, async> >(
+        RAJA::forall< RAJA::sycl_exec<work_group_size, async> >(
           RAJA::RangeSegment(ibegin, iend), [=] (Index_type i) {
           ENERGY_BODY3;
         });
 
-        RAJA::forall< RAJA::sycl_exec<block_size, async> >(
+        RAJA::forall< RAJA::sycl_exec<work_group_size, async> >(
           RAJA::RangeSegment(ibegin, iend), [=] (Index_type i) {
           ENERGY_BODY4;
         });
 
-        RAJA::forall< RAJA::sycl_exec<block_size, async> >(
+        RAJA::forall< RAJA::sycl_exec<work_group_size, async> >(
           RAJA::RangeSegment(ibegin, iend), [=] (Index_type i) {
           ENERGY_BODY5;
         });
 
-        RAJA::forall< RAJA::sycl_exec<block_size, async> >(
+        RAJA::forall< RAJA::sycl_exec<work_group_size, async> >(
           RAJA::RangeSegment(ibegin, iend), [=] (Index_type i) {
           ENERGY_BODY6;
         });
@@ -208,12 +162,12 @@ void ENERGY::runSyclVariant(VariantID vid)
     qu->wait();
     stopTimer();
 
-    ENERGY_DATA_TEARDOWN_SYCL;
-
   } else {
      std::cout << "\n  ENERGY : Unknown Sycl variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(ENERGY, Sycl)
 
 } // end namespace apps
 } // end namespace rajaperf

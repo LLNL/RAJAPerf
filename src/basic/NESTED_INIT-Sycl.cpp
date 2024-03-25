@@ -54,7 +54,7 @@ void NESTED_INIT::runSyclVariantImpl(VariantID vid)
           Index_type k = item.get_global_id(0);
 
           if (i < ni && j < nj && k < nk) {
-            NESTED_INIT_BODY
+            NESTED_INIT_BODY;
           }
         });
       });

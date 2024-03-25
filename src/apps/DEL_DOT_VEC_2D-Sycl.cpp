@@ -27,6 +27,7 @@ template <size_t work_group_size >
 void DEL_DOT_VEC_2D::runSyclVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
   const Index_type iend = m_domain->n_real_zones;
 
   auto res{getSyclResource()};
@@ -34,12 +35,6 @@ void DEL_DOT_VEC_2D::runSyclVariantImpl(VariantID vid)
   DEL_DOT_VEC_2D_DATA_SETUP;
 
   if ( vid == Base_SYCL ) {
-    if (work_group_size != 0) {
-
-/*    NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
-    NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
-    NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
-    NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;*/
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -60,19 +55,11 @@ void DEL_DOT_VEC_2D::runSyclVariantImpl(VariantID vid)
       });
 
     }
-    qu->wait(); // Wait for computation to finish before stopping timer
+    qu->wait();
     stopTimer();
 
-    }
   } else if ( vid == RAJA_SYCL ) {
 
-
-/*    NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
-    NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
-    NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
-    NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;*/
-
-    //RAJA::ListSegment zones(m_domain->real_zones, m_domain->n_real_zones, sycl_res);
     RAJA::TypedListSegment<Index_type> zones(real_zones, iend,
                                              res, RAJA::Unowned);
 

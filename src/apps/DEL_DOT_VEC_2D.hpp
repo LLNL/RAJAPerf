@@ -123,11 +123,12 @@ public:
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
   void setSyclTuningDefinitions(VariantID vid);
+
   template < size_t block_size >
   void runCudaVariantImpl(VariantID vid);
   template < size_t block_size >
   void runHipVariantImpl(VariantID vid);
-  template < size_t block_size >
+  template < size_t work_group_size >
   void runSyclVariantImpl(VariantID vid);
 
 private:
