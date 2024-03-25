@@ -45,13 +45,13 @@ void DAXPY::runSyclVariantImpl(VariantID vid)
 
           Index_type i = item.get_global_id(0);
           if (i < iend) {
-            DAXPY_BODY
+            DAXPY_BODY;
           }
 
         });
       });
     }
-    qu->wait(); // Wait for computation to finish before stopping timer
+    qu->wait();
     stopTimer();
 
   } else if ( vid == RAJA_SYCL ) {

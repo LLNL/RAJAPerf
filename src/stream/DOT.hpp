@@ -69,7 +69,7 @@ public:
   template < size_t block_size, typename AlgorithmHelper, typename MappingHelper >
   void runHipVariantRAJA(VariantID vid);
 
-  template < size_t block_size >
+  template < size_t work_group_size >
   void runSyclVariantImpl(VariantID vid);
 
 private:

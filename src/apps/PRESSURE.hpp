@@ -82,6 +82,7 @@ public:
   void runCudaVariantImpl(VariantID vid);
   template < size_t block_size >
   void runHipVariantImpl(VariantID vid);
+
   template < size_t work_group_size >
   void runSyclVariantImpl(VariantID vid);
 
