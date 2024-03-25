@@ -14,7 +14,6 @@
 
 #include <iostream>
 
-#include <sycl.hpp>
 #include "common/SyclDataUtils.hpp"
 
 namespace rajaperf 
@@ -58,6 +57,7 @@ void HYDRO_2D::runSyclVariantImpl(VariantID vid) {
 
         });
       });
+
       qu->submit([&] (sycl::handler& h) { 
         h.parallel_for(sycl::nd_range<2>(sycl::range<2>(kn_global_size, jn_global_size),
                                          sycl::range<2>(k_block_sz,j_block_sz)),
@@ -96,16 +96,16 @@ void HYDRO_2D::runSyclVariantImpl(VariantID vid) {
 
     HYDRO_2D_VIEWS_RAJA;
 
-      using EXECPOL =
-        RAJA::KernelPolicy<
-          RAJA::statement::SyclKernelAsync<
-            RAJA::statement::For<0, RAJA::sycl_global_1<k_block_sz>,  // k
-              RAJA::statement::For<1, RAJA::sycl_global_2<j_block_sz>,  // j
-                RAJA::statement::Lambda<0>
-              >
+    using EXECPOL =
+      RAJA::KernelPolicy<
+        RAJA::statement::SyclKernelAsync<
+          RAJA::statement::For<0, RAJA::sycl_global_1<k_block_sz>,
+            RAJA::statement::For<1, RAJA::sycl_global_2<j_block_sz>,
+              RAJA::statement::Lambda<0>
             >
           >
-        >;
+        >
+      >;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

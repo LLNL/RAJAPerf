@@ -40,19 +40,20 @@ void PLANCKIAN::runSyclVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t global_size = work_group_size * RAJA_DIVIDE_CEILING_INT(iend, work_group_size);
+
       qu->submit([&] (sycl::handler& h) {
         h.parallel_for(sycl::nd_range<1> (global_size, work_group_size),
                        [=] (sycl::nd_item<1> item) {
 
           Index_type i = item.get_global_id(0);
           if (i < iend) {
-            PLANCKIAN_BODY
+            PLANCKIAN_BODY;
           }
 
         });
       });
     }
-    qu->wait(); // Wait for computation to finish before stopping timer
+    qu->wait();
     stopTimer();
 
   } else if ( vid == RAJA_SYCL ) {

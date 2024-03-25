@@ -42,13 +42,13 @@ void FIRST_DIFF::runSyclVariantImpl(VariantID vid)
 
           Index_type i = item.get_global_id(0);
           if (i < iend) {
-            FIRST_DIFF_BODY
+            FIRST_DIFF_BODY;
           }
 
         });
       });
     }
-    qu->wait(); // Wait for computation to finish before stopping timer
+    qu->wait();
     stopTimer();
 
   } else if ( vid == RAJA_SYCL ) {

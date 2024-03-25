@@ -43,7 +43,7 @@ void EOS::runSyclVariantImpl(VariantID vid)
 
           Index_type i = item.get_global_id(0);
           if (i < iend) {
-            EOS_BODY
+            EOS_BODY;
           }
 
         });
@@ -70,6 +70,7 @@ void EOS::runSyclVariantImpl(VariantID vid)
      std::cout << "\n  EOS : Unknown Sycl variant id = " << vid << std::endl;
   }
 }
+
 RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(EOS, Sycl)
 
 } // end namespace lcals
