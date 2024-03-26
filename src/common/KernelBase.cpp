@@ -168,12 +168,7 @@ void KernelBase::setVariantDefined(VariantID vid)
 #endif
       break;
     }
-// Required for running Kokkos
-    case Kokkos_Lambda :
-    {
-#if defined(RUN_KOKKOS)
-    setKokkosTuningDefinitions(vid);
-#endif
+
     case Base_SYCL:
     case RAJA_SYCL:
     {
@@ -182,7 +177,14 @@ void KernelBase::setVariantDefined(VariantID vid)
 #endif
       break;
     }
-    break;
+
+// Required for running Kokkos
+    case Kokkos_Lambda :
+    {
+#if defined(RUN_KOKKOS)
+      setKokkosTuningDefinitions(vid);
+#endif
+      break;
     }
 
     default : {
