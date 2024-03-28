@@ -144,6 +144,16 @@ public:
     }
     return false;
   }
+  size_t numValidItemsPerThread() const { return items_per_threads.size(); }
+  bool validItemsPerThread(size_t items_per_thread) const
+  {
+    for (size_t valid_items_per_thread : items_per_threads) {
+      if (valid_items_per_thread == items_per_thread) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   int getMPISize() const { return mpi_size; }
   int getMPIRank() const { return mpi_rank; }
@@ -244,6 +254,7 @@ private:
   int gpu_stream; /*!< 0 -> use stream 0; anything else -> use raja default stream */
   std::vector<size_t> gpu_block_sizes; /*!< Block sizes for gpu tunings to run (input option) */
   std::vector<size_t> atomic_replications; /*!< Atomic replications for gpu tunings to run (input option) */
+  std::vector<size_t> items_per_threads; /*!< Items per thread for gpu tunings to run (input option) */
   int mpi_size;           /*!< Number of MPI ranks */
   int mpi_rank;           /*!< Rank of this MPI process */
   std::array<int, 3> mpi_3d_division; /*!< Number of MPI ranks in each dimension of a 3D grid */
