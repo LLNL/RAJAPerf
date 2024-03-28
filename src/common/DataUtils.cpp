@@ -746,6 +746,8 @@ DataSpace hostAccessibleDataSpace(DataSpace dataSpace)
     case DataSpace::HipManagedAdviseCoarse:
     case DataSpace::HipDevice:
     case DataSpace::HipDeviceFine:
+    case DataSpace::SyclPinned:
+    case DataSpace::SyclManaged:
       return dataSpace;
 
     case DataSpace::OmpTarget:
@@ -754,7 +756,6 @@ DataSpace hostAccessibleDataSpace(DataSpace dataSpace)
     case DataSpace::CudaDevice:
       return DataSpace::CudaPinned;
 
-    case DataSpace::SyclManaged:
     case DataSpace::SyclDevice:
       return DataSpace::SyclPinned;
 
