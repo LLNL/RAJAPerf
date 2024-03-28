@@ -187,6 +187,12 @@ then
     rm -rf ${build_dir} 2>/dev/null
     mkdir -p ${build_dir} && cd ${build_dir}
 
+    cmake_options=""
+    if [[ "${truehostname}" == "ruby" || "${truehostname}" == "poodle" ]]
+    then
+        cmake_options="-DBLT_MPI_COMMAND_APPEND=\"--overlap\""
+    fi
+
     date
     if [[ "${truehostname}" == "corona"  || "${truehostname}" == "tioga" ]]
     then
@@ -194,6 +200,7 @@ then
     fi
     $cmake_exe \
       -C ${hostconfig_path} \
+      ${cmake_options}
       ${project_dir}
     if ! $cmake_exe --build . -j ${core_counts[$truehostname]}
     then
