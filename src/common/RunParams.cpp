@@ -12,8 +12,13 @@
 
 #include <cstdlib>
 #include <cstdio>
+#include <cmath>
 #include <iostream>
+#include <random>
+#include <algorithm>
+#include <functional>
 
+#include <vector>
 #include <list>
 #include <set>
 
@@ -38,6 +43,9 @@ RunParams::RunParams(int argc, char** argv)
    size(0.0),
    size_factor(0.0),
    data_alignment(RAJA::DATA_ALIGN),
+   num_parts(10),
+   part_type(PartType::Even),
+   part_size_order(PartSizeOrder::Random),
    gpu_stream(1),
    gpu_block_sizes(),
    atomic_replications(),
@@ -91,6 +99,142 @@ RunParams::~RunParams()
 }
 
 
+
+/*
+ *******************************************************************************
+ *
+ * Reorder partition boundaries based on params while preserving sizes.
+ *
+ *******************************************************************************
+ */
+void RunParams::reorderPartitionSizes(std::vector<Index_type>& parts) const
+{
+  std::vector<Index_type> size_of_parts;
+
+  size_of_parts.reserve(num_parts);
+
+  for (size_t p = 1; p < parts.size(); ++p) {
+    size_of_parts.emplace_back(parts[p] - parts[p-1]);
+  }
+
+  switch ( part_size_order ) {
+    case PartSizeOrder::Random:
+    {
+      std::mt19937 rng(parts.size()); // seed consistently
+      std::shuffle(size_of_parts.begin(), size_of_parts.end(), rng);
+    } break;
+    case PartSizeOrder::Ascending:
+    {
+      std::sort(size_of_parts.begin(), size_of_parts.end(), std::less<Index_type>{});
+    } break;
+    case PartSizeOrder::Descending:
+    {
+      std::sort(size_of_parts.begin(), size_of_parts.end(), std::greater<Index_type>{});
+    } break;
+    default:
+    {
+      getCout() << "RunParams::reorderPartitionSizes: unknown part_size_order" << std::endl;
+    } break;
+  }
+
+  for (size_t p = 1; p < parts.size(); ++p) {
+    parts[p] = parts[p-1] + size_of_parts[p-1];
+  }
+}
+
+/*
+ *******************************************************************************
+ *
+ * Get a partition boundaries based on params.
+ *
+ *******************************************************************************
+ */
+std::vector<Index_type> RunParams::getPartition(Index_type len, Index_type num_parts) const
+{
+  std::vector<Index_type> parts;
+
+  parts.reserve(num_parts+1);
+
+  parts.emplace_back(0);
+
+  switch ( (len > num_parts && num_parts > 1)
+           ? part_type : PartType::Even ) {
+    case PartType::Even:
+    {
+      for (Index_type p = 1; p < num_parts; ++p) {
+
+        parts.emplace_back((len/num_parts)*p +
+                           (len%num_parts)*p / num_parts);
+      }
+    } break;
+
+    case PartType::Geometric:
+    {
+      auto geo_sum = [](double a, double r, double n) {
+        // sum of geometric series
+        // for i in [0, n), a*pow(r, i)
+        return a * (1.0 - std::pow(r, n)) / (1.0 - r);
+      };
+
+      auto geo_solve_for_r = [&](double sum, double a, double n)
+      {
+        double max_r = std::pow(sum/a, 1.0 / (n-1.0));
+        double min_r = 1.0;
+
+        double r = (max_r + min_r) / 2.0;
+        double diff = geo_sum(a, r, n) - sum;
+
+        constexpr double tolerance = 1.0;
+        constexpr size_t max_iter = 1000;
+
+        // use bisection to find r
+        for (size_t iter = 0;
+             iter < max_iter && (diff < 0.0 || diff > tolerance);
+             ++iter) {
+
+          if (diff > 0.0) {
+            max_r = r;
+          } else {
+            min_r = r;
+          }
+
+          r = (max_r + min_r) / 2.0;
+          diff = geo_sum(a, r, n) - sum;
+        }
+
+        return r;
+      };
+
+      constexpr double a = 1.0;
+      double r = geo_solve_for_r(len, a, num_parts);
+
+      for (Index_type p = 1; p < num_parts; ++p) {
+
+        Index_type val = static_cast<Index_type>(std::floor(geo_sum(a, r, p)));
+
+        if (val > 0 && val < len) {
+          parts.emplace_back(val);
+        } else {
+          getCout() << "RunParams::getPartition: Geometric failed to generate partition" << std::endl;
+          break;
+        }
+      }
+
+    } break;
+    default:
+    {
+      getCout() << "RunParams::getPartition: unknown part_type" << std::endl;
+    } break;
+  }
+
+  parts.emplace_back(len);
+
+  reorderPartitionSizes(parts);
+
+  return parts;
+}
+
+
 /*
  *******************************************************************************
  *
@@ -119,6 +263,9 @@ void RunParams::print(std::ostream& str) const
   str << "\n size = " << size;
   str << "\n size_factor = " << size_factor;
   str << "\n data_alignment = " << data_alignment;
+  str << "\n num_parts = " << num_parts;
+  str << "\n part_type = " << PartTypeToStr(part_type);
+  str << "\n part_size_order = " << PartSizeOrderToStr(part_size_order);
   str << "\n gpu stream = " << ((gpu_stream == 0) ? "0" : "RAJA default");
   str << "\n gpu_block_sizes = ";
   for (size_t j = 0; j < gpu_block_sizes.size(); ++j) {
@@ -433,6 +580,78 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
                   << " must give " << opt << " a value (int)"
                   << std::endl;
         input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--num_parts") ) {
+
+      i++;
+      if ( i < argc ) {
+        long long num_parts_arg = ::atoll( argv[i] );
+        if ( num_parts_arg < 1 ) {
+          getCout() << "\nBad input:"
+                << " must give " << opt << " a value of at least " << 1
+                << std::endl;
+          input_state = BadInput;
+        } else {
+          num_parts = num_parts_arg;
+        }
+      } else {
+        getCout() << "\nBad input:"
+                  << " must give " << opt << " a value (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--part_type") ) {
+
+      bool got_someting = false;
+      i++;
+      if ( i < argc ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+        } else {
+          for (int ipt = 0; ipt < static_cast<int>(PartType::NumPartTypes); ++ipt) {
+            PartType pt = static_cast<PartType>(ipt);
+            if (PartTypeToStr(pt) == opt) {
+              got_someting = true;
+              part_type = pt;
+              break;
+            }
+          }
+          if (!got_someting) {
+            getCout() << "\nBad input:"
+                      << " must give a valid partition type"
+                      << std::endl;
+            input_state = BadInput;
+          }
+        }
+      }
+
+    } else if ( opt == std::string("--part_size_order") ) {
+
+      bool got_someting = false;
+      i++;
+      if ( i < argc ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+        } else {
+          for (int ipso = 0; ipso < static_cast<int>(PartSizeOrder::NumPartSizeOrders); ++ipso) {
+            PartSizeOrder pso = static_cast<PartSizeOrder>(ipso);
+            if (PartSizeOrderToStr(pso) == opt) {
+              got_someting = true;
+              part_size_order = pso;
+              break;
+            }
+          }
+          if (!got_someting) {
+            getCout() << "\nBad input:"
+                      << " must give a valid partition size order"
+                      << std::endl;
+            input_state = BadInput;
+          }
+        }
       }
 
     } else if ( opt == std::string("--gpu_stream_0") ) {
@@ -1143,13 +1362,31 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t -et default library (exclude default and library tunings)\n\n";
 
   str << "\t Options for selecting kernel data used in kernels....\n"
-      << "\t ======================================================\n\n";;
+      << "\t ======================================================\n\n";
 
   str << "\t --data_alignment, -align <int> [default is RAJA::DATA_ALIGN]\n"
       << "\t      (minimum memory alignment for host allocations)\n"
       << "\t      Must be a power of 2 at least as large as default alignment.\n";
   str << "\t\t Example...\n"
       << "\t\t -align 4096 (allocates memory aligned to 4KiB boundaries)\n\n";
+
+  str << "\t --num_parts <int> [default is 10]\n"
+      << "\t      (number of parts for *_PARTED kernels)\n"
+      << "\t      Must be at least 1.\n";
+  str << "\t\t Example...\n"
+      << "\t\t --num_parts 100 (breaks *_PARTED kernels into 100 loops)\n\n";
+
+  str << "\t --part_type <string> [default is Even]\n"
+      << "\t      (distribution for parts in *_PARTED kernels).\n"
+      << "\t      Valid partition types are 'Even' and 'Geometric'\n";
+  str << "\t\t Example...\n"
+      << "\t\t --part_type Geometric (makes partitions with a fixed ratio of sizes)\n\n";
+
+  str << "\t --part_size_order <string> [default is Random]\n"
+      << "\t      (way to order partition sizes).\n"
+      << "\t      Valid partition size orders are 'Random', 'Ascending', and 'Descending'\n";
+  str << "\t\t Example...\n"
+      << "\t\t --part_size_order Ascending (sort partition sizes in ascending order)\n\n";
 
   str << "\t --seq-data-space, -sds <string> [Default is Host]\n"
       << "\t      (name of data space to use for sequential variants)\n"

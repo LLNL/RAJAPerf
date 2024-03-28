@@ -13,6 +13,7 @@
 #if defined(RAJA_ENABLE_CUDA)
 
 #include "common/CudaDataUtils.hpp"
+#include "common/MemPool.hpp"
 
 #include <iostream>
 
@@ -21,33 +22,33 @@ namespace rajaperf
 namespace comm
 {
 
-#define HALO_PACKING_FUSED_MANUAL_FUSER_SETUP_CUDA \
+#define HALO_PACKING_FUSED_MANUAL_FUSER_SETUP_CUDA(vid) \
   Real_ptr*   pack_buffer_ptrs; \
   Int_ptr*    pack_list_ptrs; \
   Real_ptr*   pack_var_ptrs; \
   Index_type* pack_len_ptrs; \
-  allocData(DataSpace::CudaPinned, pack_buffer_ptrs, num_neighbors * num_vars); \
-  allocData(DataSpace::CudaPinned, pack_list_ptrs,   num_neighbors * num_vars); \
-  allocData(DataSpace::CudaPinned, pack_var_ptrs,    num_neighbors * num_vars); \
-  allocData(DataSpace::CudaPinned, pack_len_ptrs,    num_neighbors * num_vars); \
+  allocData(getFuserDataSpace(vid), pack_buffer_ptrs, num_neighbors * num_vars); \
+  allocData(getFuserDataSpace(vid), pack_list_ptrs,   num_neighbors * num_vars); \
+  allocData(getFuserDataSpace(vid), pack_var_ptrs,    num_neighbors * num_vars); \
+  allocData(getFuserDataSpace(vid), pack_len_ptrs,    num_neighbors * num_vars); \
   Real_ptr*   unpack_buffer_ptrs; \
   Int_ptr*    unpack_list_ptrs; \
   Real_ptr*   unpack_var_ptrs; \
   Index_type* unpack_len_ptrs; \
-  allocData(DataSpace::CudaPinned, unpack_buffer_ptrs, num_neighbors * num_vars); \
-  allocData(DataSpace::CudaPinned, unpack_list_ptrs,   num_neighbors * num_vars); \
-  allocData(DataSpace::CudaPinned, unpack_var_ptrs,    num_neighbors * num_vars); \
-  allocData(DataSpace::CudaPinned, unpack_len_ptrs,    num_neighbors * num_vars);
+  allocData(getFuserDataSpace(vid), unpack_buffer_ptrs, num_neighbors * num_vars); \
+  allocData(getFuserDataSpace(vid), unpack_list_ptrs,   num_neighbors * num_vars); \
+  allocData(getFuserDataSpace(vid), unpack_var_ptrs,    num_neighbors * num_vars); \
+  allocData(getFuserDataSpace(vid), unpack_len_ptrs,    num_neighbors * num_vars);
 
-#define HALO_PACKING_FUSED_MANUAL_FUSER_TEARDOWN_CUDA \
-  deallocData(DataSpace::CudaPinned, pack_buffer_ptrs); \
-  deallocData(DataSpace::CudaPinned, pack_list_ptrs); \
-  deallocData(DataSpace::CudaPinned, pack_var_ptrs); \
-  deallocData(DataSpace::CudaPinned, pack_len_ptrs); \
-  deallocData(DataSpace::CudaPinned, unpack_buffer_ptrs); \
-  deallocData(DataSpace::CudaPinned, unpack_list_ptrs); \
-  deallocData(DataSpace::CudaPinned, unpack_var_ptrs); \
-  deallocData(DataSpace::CudaPinned, unpack_len_ptrs);
+#define HALO_PACKING_FUSED_MANUAL_FUSER_TEARDOWN_CUDA(vid) \
+  deallocData(getFuserDataSpace(vid), pack_buffer_ptrs); \
+  deallocData(getFuserDataSpace(vid), pack_list_ptrs); \
+  deallocData(getFuserDataSpace(vid), pack_var_ptrs); \
+  deallocData(getFuserDataSpace(vid), pack_len_ptrs); \
+  deallocData(getFuserDataSpace(vid), unpack_buffer_ptrs); \
+  deallocData(getFuserDataSpace(vid), unpack_list_ptrs); \
+  deallocData(getFuserDataSpace(vid), unpack_var_ptrs); \
+  deallocData(getFuserDataSpace(vid), unpack_len_ptrs);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -103,7 +104,7 @@ void HALO_PACKING_FUSED::runCudaVariantDirect(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    HALO_PACKING_FUSED_MANUAL_FUSER_SETUP_CUDA;
+    HALO_PACKING_FUSED_MANUAL_FUSER_SETUP_CUDA(Base_CUDA);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -189,7 +190,7 @@ void HALO_PACKING_FUSED::runCudaVariantDirect(VariantID vid)
     }
     stopTimer();
 
-    HALO_PACKING_FUSED_MANUAL_FUSER_TEARDOWN_CUDA;
+    HALO_PACKING_FUSED_MANUAL_FUSER_TEARDOWN_CUDA(Base_CUDA);
 
   } else {
      getCout() << "\n HALO_PACKING_FUSED : Unknown Cuda variant id = " << vid << std::endl;
@@ -207,7 +208,8 @@ void HALO_PACKING_FUSED::runCudaVariantWorkGroup(VariantID vid)
 
   if ( vid == RAJA_CUDA ) {
 
-    using AllocatorHolder = RAJAPoolAllocatorHolder<RAJA::cuda::pinned_mempool_type>;
+    using AllocatorHolder = RAJAPoolAllocatorHolder<
+        rajaperf::basic_mempool::MemPool<dataspace_allocator<getFuserDataSpace(RAJA_CUDA)>>>;
     using Allocator = AllocatorHolder::Allocator<char>;
 
     AllocatorHolder allocatorHolder;
