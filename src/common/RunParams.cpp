@@ -1120,9 +1120,11 @@ void RunParams::printHelpMessage(std::ostream& str) const
 
   str << "\t --gpu_block_size <space-separated ints> [no default]\n"
       << "\t      (block sizes to run for all GPU kernels)\n"
+      << "\t      Given int values must be > 0\n."
       << "\t      GPU kernels not supporting gpu_block_size option will be skipped.\n"
-      << "\t      Behavior depends on kernel implementations and \n"
-      << "\t      values give via CMake variable RAJA_PERFSUITE_GPU_BLOCKSIZES.\n";
+      << "\t      Behavior depends on individual kernel implementations and \n"
+      << "\t      compile configuration values given via CMake variable \n"
+      << "\t      RAJA_PERFSUITE_GPU_BLOCKSIZES.\n";
   str << "\t\t Example...\n"
       << "\t\t --gpu_block_size 128 256 512 (runs kernels with gpu_block_size 128, 256, and 512)\n\n";
 

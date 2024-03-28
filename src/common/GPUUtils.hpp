@@ -112,6 +112,12 @@ struct AllowAny
   static constexpr bool valid(size_t RAJAPERF_UNUSED_ARG(i)) { return true; }
 };
 
+// true only if i > 0
+struct PositiveOnly 
+{
+  static constexpr bool valid(size_t i) { return i > 0; }
+};
+
 // true if of i is a multiple of N, false otherwise
 template < size_t N >
 struct MultipleOf
@@ -129,7 +135,7 @@ struct ExactSqrt
 // If gpu_block_sizes from the configuration is not empty it is those gpu_block_sizes,
 // otherwise it is a list containing just default_block_size.
 // Invalid entries are removed according to validity_checker in either case.
-template < size_t default_block_size, typename validity_checker = AllowAny >
+template < size_t default_block_size, typename validity_checker = PositiveOnly >
 using make_gpu_block_size_list_type =
       typename detail::remove_invalid<validity_checker,
         typename std::conditional< (camp::size<rajaperf::configuration::gpu_block_sizes>::value > 0),
