@@ -25,6 +25,11 @@
 #if defined(RAJA_ENABLE_HIP)
 #include "RAJA/policy/hip/raja_hiperrchk.hpp"
 #endif
+#if defined(RAJA_ENABLE_SYCL)
+#include <sycl.hpp>
+#include "camp/resource.hpp"
+#endif
+
 
 #include <string>
 #include <vector>
@@ -134,6 +139,11 @@ public:
   virtual void setKokkosTuningDefinitions(VariantID vid)
   { addVariantTuningName(vid, getDefaultTuningName()); }
 #endif
+#if defined(RAJA_ENABLE_SYCL)
+  virtual void setSyclTuningDefinitions(VariantID vid)
+  { addVariantTuningName(vid, getDefaultTuningName()); }
+#endif
+
 
   //
   // Getter methods used to generate kernel execution summary
@@ -239,6 +249,17 @@ public:
     return camp::resources::Hip::get_default();
   }
 #endif
+#if defined(RAJA_ENABLE_SYCL)
+  camp::resources::Sycl getSyclResource()
+  {
+    /*
+    if (run_params.getGPUStream() == 0) {
+      return camp::resources::Sycl::SyclFromStream(0);
+    }
+    */
+    return camp::resources::Sycl::get_default();
+  }
+#endif
 
   void synchronize()
   {
@@ -256,6 +277,13 @@ public:
       hipErrchk( hipDeviceSynchronize() );
     }
 #endif
+#if defined(RAJA_ENABLE_SYCL)
+    if ( running_variant == Base_SYCL ||
+         running_variant == RAJA_SYCL ) {
+      getSyclResource().wait();
+    }
+#endif
+
   }
 
   Size_type getDataAlignment() const;
@@ -443,6 +471,15 @@ public:
      getCout() << "\n KernelBase: Unimplemented Kokkos variant id = " << vid << std::endl;
   }
 #endif
+#if defined(RAJA_ENABLE_SYCL)
+  virtual void runSyclVariant(VariantID vid, size_t tune_idx)
+  {
+     getCout() << "\n KernelBase: Unimplemented Sycl variant id = " << vid << std::endl;
+  }
+  static sycl::queue* qu;
+  static camp::resources::Resource sycl_res;
+#endif
+
 
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
   void caliperOn() { doCaliperTiming = true; }

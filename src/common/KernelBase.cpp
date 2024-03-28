@@ -11,6 +11,7 @@
 #include "RunParams.hpp"
 #include "OpenMPTargetDataUtils.hpp"
 
+#include "RAJA/RAJA.hpp"
 #include <cmath>
 #include <limits>
 #include <stdexcept>
@@ -167,13 +168,23 @@ void KernelBase::setVariantDefined(VariantID vid)
 #endif
       break;
     }
+
+    case Base_SYCL:
+    case RAJA_SYCL:
+    {
+#if defined(RAJA_ENABLE_SYCL)
+      setSyclTuningDefinitions(vid);
+#endif
+      break;
+    }
+
 // Required for running Kokkos
     case Kokkos_Lambda :
     {
 #if defined(RUN_KOKKOS)
-    setKokkosTuningDefinitions(vid);
+      setKokkosTuningDefinitions(vid);
 #endif
-    break;
+      break;
     }
 
     default : {
@@ -227,6 +238,10 @@ DataSpace KernelBase::getDataSpace(VariantID vid) const
     case RAJA_HIP :
       return run_params.getHipDataSpace();
 
+    case Base_SYCL :
+    case RAJA_SYCL :
+      return run_params.getSyclDataSpace();
+
     case Kokkos_Lambda :
       return run_params.getKokkosDataSpace();
 
@@ -263,6 +278,10 @@ DataSpace KernelBase::getMPIDataSpace(VariantID vid) const
     case RAJA_HIP :
       return run_params.getHipMPIDataSpace();
 
+    case Base_SYCL :
+    case RAJA_SYCL :
+      return run_params.getSyclMPIDataSpace();
+
     case Kokkos_Lambda :
       return run_params.getKokkosMPIDataSpace();
 
@@ -298,6 +317,10 @@ DataSpace KernelBase::getReductionDataSpace(VariantID vid) const
     case Lambda_HIP :
     case RAJA_HIP :
       return run_params.getHipReductionDataSpace();
+
+    case Base_SYCL :
+    case RAJA_SYCL :
+      return run_params.getSyclReductionDataSpace();
 
     case Kokkos_Lambda :
       return run_params.getKokkosReductionDataSpace();
@@ -406,11 +429,22 @@ void KernelBase::runKernel(VariantID vid, size_t tune_idx)
 #endif
       break;
     }
+
+    case Base_SYCL:
+    case RAJA_SYCL:
+    {
+#if defined(RAJA_ENABLE_SYCL)
+      runSyclVariant(vid, tune_idx);
+#endif
+      break;
+    }
+
     case Kokkos_Lambda :
     {
 #if defined(RUN_KOKKOS)
       runKokkosVariant(vid, tune_idx);
 #endif
+      break;
     }
 
     default : {

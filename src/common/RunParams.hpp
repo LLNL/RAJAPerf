@@ -156,12 +156,14 @@ public:
   DataSpace getCudaDataSpace() const { return cudaDataSpace; }
   DataSpace getHipDataSpace() const { return hipDataSpace; }
   DataSpace getKokkosDataSpace() const { return kokkosDataSpace; }
+  DataSpace getSyclDataSpace() const { return syclDataSpace; }
 
   DataSpace getSeqReductionDataSpace() const { return seqReductionDataSpace; }
   DataSpace getOmpReductionDataSpace() const { return ompReductionDataSpace; }
   DataSpace getOmpTargetReductionDataSpace() const { return ompTargetReductionDataSpace; }
   DataSpace getCudaReductionDataSpace() const { return cudaReductionDataSpace; }
   DataSpace getHipReductionDataSpace() const { return hipReductionDataSpace; }
+  DataSpace getSyclReductionDataSpace() const { return syclReductionDataSpace; }
   DataSpace getKokkosReductionDataSpace() const { return kokkosReductionDataSpace; }
 
   DataSpace getSeqMPIDataSpace() const { return seqMPIDataSpace; }
@@ -169,6 +171,7 @@ public:
   DataSpace getOmpTargetMPIDataSpace() const { return ompTargetMPIDataSpace; }
   DataSpace getCudaMPIDataSpace() const { return cudaMPIDataSpace; }
   DataSpace getHipMPIDataSpace() const { return hipMPIDataSpace; }
+  DataSpace getSyclMPIDataSpace() const { return syclMPIDataSpace; }
   DataSpace getKokkosMPIDataSpace() const { return kokkosMPIDataSpace; }
 
   double getPFTolerance() const { return pf_tol; }
@@ -263,12 +266,14 @@ private:
   DataSpace cudaDataSpace = DataSpace::CudaDevice;
   DataSpace hipDataSpace = DataSpace::HipDevice;
   DataSpace kokkosDataSpace = DataSpace::Host;
+  DataSpace syclDataSpace = DataSpace::SyclDevice;
 
   DataSpace seqReductionDataSpace = DataSpace::Host;
   DataSpace ompReductionDataSpace = DataSpace::Omp;
   DataSpace ompTargetReductionDataSpace = DataSpace::OmpTarget;
   DataSpace cudaReductionDataSpace = DataSpace::CudaManagedDevicePreferredHostAccessed;
   DataSpace hipReductionDataSpace = DataSpace::HipDevice;
+  DataSpace syclReductionDataSpace = DataSpace::SyclDevice;
   DataSpace kokkosReductionDataSpace = DataSpace::Host;
 
   DataSpace seqMPIDataSpace = DataSpace::Host;
@@ -276,6 +281,7 @@ private:
   DataSpace ompTargetMPIDataSpace = DataSpace::Copy;
   DataSpace cudaMPIDataSpace = DataSpace::CudaPinned;
   DataSpace hipMPIDataSpace = DataSpace::HipPinned;
+  DataSpace syclMPIDataSpace = DataSpace::SyclPinned;
   DataSpace kokkosMPIDataSpace = DataSpace::Copy;
 
   //
