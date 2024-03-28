@@ -37,16 +37,16 @@ void LTIMES::runSyclVariantImpl(VariantID vid)
 
   if ( vid == Base_SYCL ) {
 
-    sycl::range<3> ndrange_dim(RAJA_DIVIDE_CEILING_INT(num_z, z_wg_sz),
-                               RAJA_DIVIDE_CEILING_INT(num_g, g_wg_sz),
-                               RAJA_DIVIDE_CEILING_INT(num_m, m_wg_sz));
+    sycl::range<3> global_dim(z_wg_sz * RAJA_DIVIDE_CEILING_INT(num_z, z_wg_sz),
+                              g_wg_sz * RAJA_DIVIDE_CEILING_INT(num_g, g_wg_sz),
+                              m_wg_sz * RAJA_DIVIDE_CEILING_INT(num_m, m_wg_sz));
     sycl::range<3> wkgroup_dim(z_wg_sz, g_wg_sz, m_wg_sz);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       qu->submit([&] (sycl::handler& h) {
-        h.parallel_for(sycl::nd_range<3> ( ndrange_dim * wkgroup_dim, wkgroup_dim),
+        h.parallel_for(sycl::nd_range<3> ( global_dim, wkgroup_dim),
                        [=] (sycl::nd_item<3> item) {
 
           Index_type m = item.get_global_id(2);

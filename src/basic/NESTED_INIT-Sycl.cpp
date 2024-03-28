@@ -37,17 +37,17 @@ void NESTED_INIT::runSyclVariantImpl(VariantID vid)
 
   if ( vid == Base_SYCL ) {
 
-    sycl::range<3> ndrange_dim(RAJA_DIVIDE_CEILING_INT(nk, k_wg_sz),
-                               RAJA_DIVIDE_CEILING_INT(nj, j_wg_sz),
-                               RAJA_DIVIDE_CEILING_INT(ni, i_wg_sz));
+    sycl::range<3> global_dim(k_wg_sz * RAJA_DIVIDE_CEILING_INT(nk, k_wg_sz),
+                              j_wg_sz * RAJA_DIVIDE_CEILING_INT(nj, j_wg_sz),
+                              i_wg_sz * RAJA_DIVIDE_CEILING_INT(ni, i_wg_sz));
     sycl::range<3> wkgroup_dim(k_wg_sz, j_wg_sz, i_wg_sz);
   
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       qu->submit([&] (cl::sycl::handler& h) {
-        h.parallel_for(sycl::nd_range<3> ( ndrange_dim * wkgroup_dim, wkgroup_dim),
-                       [=] (sycl::nd_item<3> item) {
+        h.parallel_for(sycl::nd_range<3> ( global_dim, wkgroup_dim),
+                       [=] (sycl::nd_item<3> item) { 
 
           Index_type i = item.get_global_id(2);
           Index_type j = item.get_global_id(1);

@@ -21,8 +21,11 @@ namespace rajaperf
 namespace lcals
 {
 
-#define j_block_sz (32)
-#define k_block_sz (work_group_size / j_block_sz)
+  //
+  // Define work-group shape for SYCL execution
+  //
+#define j_wg_sz (32)
+#define k_wg_sz (work_group_size / j_wg_sz)
 
 template <size_t work_group_size >
 void HYDRO_2D::runSyclVariantImpl(VariantID vid) {
@@ -36,16 +39,16 @@ void HYDRO_2D::runSyclVariantImpl(VariantID vid) {
   HYDRO_2D_DATA_SETUP;
 
   if ( vid == Base_SYCL ) {
- 
-    auto kn_global_size = k_block_sz * RAJA_DIVIDE_CEILING_INT(kn-2, k_block_sz);
-    auto jn_global_size = j_block_sz * RAJA_DIVIDE_CEILING_INT(jn-2, j_block_sz);
 
+    sycl::range<2> global_dim(k_wg_sz * RAJA_DIVIDE_CEILING_INT(kn-2, k_wg_sz),
+                              j_wg_sz * RAJA_DIVIDE_CEILING_INT(jn-2, j_wg_sz));
+    sycl::range<2> wkgroup_dim(k_wg_sz, j_wg_sz);
+ 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
       qu->submit([&] (sycl::handler& h) { 
 
-        h.parallel_for(sycl::nd_range<2>(sycl::range<2>(kn_global_size, jn_global_size),
-                                         sycl::range<2>(k_block_sz,j_block_sz)),
+        h.parallel_for(sycl::nd_range<2>( global_dim, wkgroup_dim),
                        [=] (sycl::nd_item<2> item) {
 
           int j = item.get_global_id(1) + 1;
@@ -59,8 +62,7 @@ void HYDRO_2D::runSyclVariantImpl(VariantID vid) {
       });
 
       qu->submit([&] (sycl::handler& h) { 
-        h.parallel_for(sycl::nd_range<2>(sycl::range<2>(kn_global_size, jn_global_size),
-                                         sycl::range<2>(k_block_sz,j_block_sz)),
+        h.parallel_for(sycl::nd_range<2>( global_dim, wkgroup_dim),
                        [=] (sycl::nd_item<2> item) {
 
           int j = item.get_global_id(1) + 1;
@@ -74,8 +76,7 @@ void HYDRO_2D::runSyclVariantImpl(VariantID vid) {
       });
 
       qu->submit([&] (sycl::handler& h) { 
-        h.parallel_for(sycl::nd_range<2>(sycl::range<2>(kn_global_size, jn_global_size),
-                                         sycl::range<2>(k_block_sz,j_block_sz)),
+        h.parallel_for(sycl::nd_range<2>( global_dim, wkgroup_dim),
                        [=] (sycl::nd_item<2> item) {
 
           int j = item.get_global_id(1) + 1;
@@ -99,8 +100,8 @@ void HYDRO_2D::runSyclVariantImpl(VariantID vid) {
     using EXECPOL =
       RAJA::KernelPolicy<
         RAJA::statement::SyclKernelAsync<
-          RAJA::statement::For<0, RAJA::sycl_global_1<k_block_sz>,
-            RAJA::statement::For<1, RAJA::sycl_global_2<j_block_sz>,
+          RAJA::statement::For<0, RAJA::sycl_global_1<k_wg_sz>,
+            RAJA::statement::For<1, RAJA::sycl_global_2<j_wg_sz>,
               RAJA::statement::Lambda<0>
             >
           >
