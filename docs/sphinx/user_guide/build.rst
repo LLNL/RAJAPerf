@@ -229,6 +229,23 @@ replication amounts. The CMake option for this is
 will build versions of GPU kernels that use 1, 256, and 4096 atomic
 replications.
 
+Building with specific GPU items per thread tunings
+-----------------------------------------------------
+
+If desired, you can build a version of the RAJA Performance Suite code with
+multiple versions of GPU kernels that will run with different GPU items per
+thread amounts. The CMake option for this is
+``-DRAJA_PERFSUITE_GPU_ITEMS_PER_THREAD=<list,of,items,per,thread,amounts>``. For example::
+
+  $ mkdir my-gpu-build
+  $ cd my-gpu-build
+  $ cmake <cmake args> \
+    -DRAJA_PERFSUITE_GPU_ITEMS_PER_THREAD=1,2,4,8 \
+    ..
+  $ make -j
+
+will build versions of GPU kernels that use 1, 2, 4, and 8 items per thread.
+
 Building with Caliper
 ---------------------
 
