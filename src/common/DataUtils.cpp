@@ -10,7 +10,9 @@
 #include "CudaDataUtils.hpp"
 #include "HipDataUtils.hpp"
 #include "OpenMPTargetDataUtils.hpp"
+#include "SyclDataUtils.hpp"
 
+#include "KernelBase.hpp"
 
 #include "RAJA/internal/MemUtils_CPU.hpp"
 
@@ -99,6 +101,21 @@ bool isHipDataSpace(DataSpace dataSpace)
     case DataSpace::HipManagedAdviseCoarse:
     case DataSpace::HipDevice:
     case DataSpace::HipDeviceFine:
+      return true;
+    default:
+      return false;
+  }
+}
+
+/*!
+ * \brief Get if the data space is a sycl DataSpace.
+ */
+bool isSyclDataSpace(DataSpace dataSpace)
+{
+  switch (dataSpace) {
+    case DataSpace::SyclPinned:
+    case DataSpace::SyclManaged:
+    case DataSpace::SyclDevice:
       return true;
     default:
       return false;
@@ -263,6 +280,25 @@ void* allocData(DataSpace dataSpace, Size_type nbytes, Size_type align)
     } break;
 #endif
 
+#if defined(RAJA_ENABLE_SYCL)
+    case DataSpace::SyclPinned:
+    {
+      auto qu = camp::resources::Sycl::get_default().get_queue();
+      ptr = detail::allocSyclPinnedData(nbytes, qu);
+    } break;
+    case DataSpace::SyclManaged:
+    {
+      auto qu = camp::resources::Sycl::get_default().get_queue();
+      ptr = detail::allocSyclManagedData(nbytes, qu);
+    } break;
+    case DataSpace::SyclDevice:
+    {
+      auto qu = camp::resources::Sycl::get_default().get_queue();
+      ptr = detail::allocSyclDeviceData(nbytes, qu);
+    } break;
+#endif
+
+
     default:
     {
       throw std::invalid_argument("allocData : Unknown data space");
@@ -307,6 +343,14 @@ void copyData(DataSpace dst_dataSpace, void* dst_ptr,
   else if (isHipDataSpace(dst_dataSpace) ||
            isHipDataSpace(src_dataSpace)) {
     detail::copyHipData(dst_ptr, src_ptr, nbytes);
+  }
+#endif
+
+#if defined(RAJA_ENABLE_SYCL)
+  else if (isSyclDataSpace(dst_dataSpace) ||
+           isSyclDataSpace(src_dataSpace)) {
+    auto qu = camp::resources::Sycl::get_default().get_queue();
+    detail::copySyclData(dst_ptr, src_ptr, nbytes,qu);
   }
 #endif
 
@@ -392,6 +436,26 @@ void deallocData(DataSpace dataSpace, void* ptr)
       detail::deallocHipDeviceData(ptr);
     } break;
 #endif
+
+#if defined(RAJA_ENABLE_SYCL)
+    case DataSpace::SyclPinned:
+    {
+      auto qu = camp::resources::Sycl::get_default().get_queue();
+      detail::deallocSyclPinnedData(ptr,qu);
+    } break;
+    case DataSpace::SyclManaged:
+    {
+      auto qu = camp::resources::Sycl::get_default().get_queue();
+      detail::deallocSyclManagedData(ptr,qu);
+    } break;
+    case DataSpace::SyclDevice:
+    {
+      auto qu = camp::resources::Sycl::get_default().get_queue();
+      detail::deallocSyclDeviceData(ptr,qu);
+    } break;
+#endif
+
+
 
     default:
     {
@@ -613,6 +677,7 @@ DataSpace hostCopyDataSpace(DataSpace dataSpace)
     case DataSpace::HipManaged:
     case DataSpace::HipManagedAdviseFine:
     case DataSpace::HipManagedAdviseCoarse:
+    case DataSpace::SyclPinned:
       return dataSpace;
 
     case DataSpace::OmpTarget:
@@ -627,6 +692,10 @@ DataSpace hostCopyDataSpace(DataSpace dataSpace)
     case DataSpace::HipDevice:
     case DataSpace::HipDeviceFine:
       return DataSpace::HipPinned;
+
+    case DataSpace::SyclManaged:
+    case DataSpace::SyclDevice:
+      return DataSpace::SyclPinned;
 
     default:
     {
@@ -666,6 +735,8 @@ DataSpace hostAccessibleDataSpace(DataSpace dataSpace)
     case DataSpace::HipManagedAdviseCoarse:
     case DataSpace::HipDevice:
     case DataSpace::HipDeviceFine:
+    case DataSpace::SyclPinned:
+    case DataSpace::SyclManaged:
       return dataSpace;
 
     case DataSpace::OmpTarget:
@@ -673,6 +744,9 @@ DataSpace hostAccessibleDataSpace(DataSpace dataSpace)
 
     case DataSpace::CudaDevice:
       return DataSpace::CudaPinned;
+
+    case DataSpace::SyclDevice:
+      return DataSpace::SyclPinned;
 
     default:
     {

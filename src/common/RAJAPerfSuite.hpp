@@ -219,6 +219,9 @@ enum VariantID {
 
   Kokkos_Lambda,
 
+  Base_SYCL,
+  RAJA_SYCL,
+
   NumVariants // Keep this one last and NEVER comment out (!!)
 
 };
@@ -299,6 +302,10 @@ enum struct DataSpace {
   HipManagedAdviseCoarse,
   HipDevice,
   HipDeviceFine,
+
+  SyclPinned,
+  SyclManaged,
+  SyclDevice,
 
   NumSpaces, // Keep this one here and NEVER comment out (!!)
 
