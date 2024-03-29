@@ -190,7 +190,7 @@ then
     cmake_options=""
     if [[ "${truehostname}" == "ruby" || "${truehostname}" == "poodle" ]]
     then
-        cmake_options="-DBLT_MPI_COMMAND_APPEND=\"--overlap\""
+        cmake_options="-DBLT_MPI_COMMAND_APPEND:STRING=--overlap"
     fi
 
     date
