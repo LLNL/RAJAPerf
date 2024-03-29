@@ -200,7 +200,7 @@ then
     fi
     $cmake_exe \
       -C ${hostconfig_path} \
-      ${cmake_options}
+      ${cmake_options} \
       ${project_dir}
     if ! $cmake_exe --build . -j ${core_counts[$truehostname]}
     then
