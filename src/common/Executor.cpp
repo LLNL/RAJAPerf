@@ -238,6 +238,10 @@ void Executor::setupSuite()
 
   getCout() << "\nSetting up suite based on input..." << endl;
 
+#if defined(RAJA_ENABLE_SYCL)
+  KernelBase::qu = camp::resources::Sycl().get_queue();
+#endif
+
   using Svector = vector<string>;
 
   //
@@ -421,6 +425,9 @@ void Executor::reportRunSummary(ostream& str) const
     }
     if (isVariantAvailable(VariantID::Base_HIP)) {
       str << "\nHip - " << getDataSpaceName(run_params.getHipDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Base_SYCL)) {
+      str << "\nSycl - " << getDataSpaceName(run_params.getSyclDataSpace());
     }
     if (isVariantAvailable(VariantID::Kokkos_Lambda)) {
       str << "\nKokkos - " << getDataSpaceName(run_params.getKokkosDataSpace());

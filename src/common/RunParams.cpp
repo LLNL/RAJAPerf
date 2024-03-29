@@ -153,6 +153,7 @@ void RunParams::print(std::ostream& str) const
   str << "\n cuda data space = " << getDataSpaceName(cudaDataSpace);
   str << "\n hip data space = " << getDataSpaceName(hipDataSpace);
   str << "\n kokkos data space = " << getDataSpaceName(kokkosDataSpace);
+  str << "\n sycl data space = " << getDataSpaceName(syclDataSpace);
 
   str << "\n seq reduction data space = " << getDataSpaceName(seqReductionDataSpace);
   str << "\n omp reduction data space = " << getDataSpaceName(ompReductionDataSpace);
@@ -619,6 +620,8 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
                 opt == std::string("-cds") ||
                 opt == std::string("--hip-data-space") ||
                 opt == std::string("-hds") ||
+		opt == std::string("--sycl-data-space") ||
+                opt == std::string("-syds") ||
                 opt == std::string("--kokkos-data-space") ||
                 opt == std::string("-kds") ||
                 opt == std::string("--seq-reduction-data-space") ||
@@ -626,12 +629,14 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
                 opt == std::string("--omptarget-reduction-data-space") ||
                 opt == std::string("--cuda-reduction-data-space") ||
                 opt == std::string("--hip-reduction-data-space") ||
+                opt == std::string("--sycl-reduction-data-space") ||
                 opt == std::string("--kokkos-reduction-data-space") ||
                 opt == std::string("--seq-mpi-data-space") ||
                 opt == std::string("--omp-mpi-data-space") ||
                 opt == std::string("--omptarget-mpi-data-space") ||
                 opt == std::string("--cuda-mpi-data-space") ||
                 opt == std::string("--hip-mpi-data-space") ||
+                opt == std::string("--sycl-mpi-data-space") ||
                 opt == std::string("--kokkos-mpi-data-space") ) {
 
       bool got_someting = false;
@@ -665,6 +670,9 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
               } else if ( opt_name == std::string("--hip-data-space") ||
                           opt_name == std::string("-hds") ) {
                 hipDataSpace = ds;
+              } else if ( opt_name == std::string("--sycl-data-space") ||
+                          opt_name == std::string("-syds") ) {
+                syclDataSpace = ds;
               } else if ( opt_name == std::string("--kokkos-data-space") ||
                           opt_name == std::string("-kds") ) {
                 kokkosDataSpace = ds;
@@ -678,6 +686,8 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
                 cudaReductionDataSpace = ds;
               } else if ( opt_name == std::string("--hip-reduction-data-space") ) {
                 hipReductionDataSpace = ds;
+              } else if ( opt_name == std::string("--sycl-reduction-data-space") ) {
+                syclReductionDataSpace = ds;
               } else if ( opt_name == std::string("--kokkos-reduction-data-space") ) {
                 kokkosReductionDataSpace = ds;
               } else if ( opt_name == std::string("--seq-mpi-data-space") ) {
@@ -694,6 +704,9 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
                 got_something_available = got_something_available || got_something_pseudo;
               } else if ( opt_name == std::string("--hip-mpi-data-space") ) {
                 hipMPIDataSpace = ds;
+                got_something_available = got_something_available || got_something_pseudo;
+              } else if ( opt_name == std::string("--sycl-mpi-data-space") ) {
+                syclMPIDataSpace = ds;
                 got_something_available = got_something_available || got_something_pseudo;
               } else if ( opt_name == std::string("--kokkos-mpi-data-space") ) {
                 kokkosMPIDataSpace = ds;
@@ -1107,9 +1120,11 @@ void RunParams::printHelpMessage(std::ostream& str) const
 
   str << "\t --gpu_block_size <space-separated ints> [no default]\n"
       << "\t      (block sizes to run for all GPU kernels)\n"
+      << "\t      Given int values must be > 0\n."
       << "\t      GPU kernels not supporting gpu_block_size option will be skipped.\n"
-      << "\t      Behavior depends on kernel implementations and \n"
-      << "\t      values give via CMake variable RAJA_PERFSUITE_GPU_BLOCKSIZES.\n";
+      << "\t      Behavior depends on individual kernel implementations and \n"
+      << "\t      compile configuration values given via CMake variable \n"
+      << "\t      RAJA_PERFSUITE_GPU_BLOCKSIZES.\n";
   str << "\t\t Example...\n"
       << "\t\t --gpu_block_size 128 256 512 (runs kernels with gpu_block_size 128, 256, and 512)\n\n";
 
@@ -1186,11 +1201,18 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t --hip-data-space HipManaged (run HIP variants with Hip Managed memory)\n"
       << "\t\t -hds HipPinned (run HIP variants with Hip Pinned memory)\n\n";
 
+  str << "\t --sycl-data-space, -syds <string> [Default is SyclDevice]\n"
+      << "\t      (names of data space to use for SYCL variants)\n"
+      << "\t      Valid data space names are 'SyclDevice', 'SyclPinned', or 'SyclManaged'\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --sycl-data-space SyclManaged (run SYCL variants with Sycl Managed memory)\n"
+      << "\t\t -syds SyclPinned (run SYCL variants with Sycl Pinned memory)\n\n";
+
   str << "\t --kokkos-data-space, -kds <string> [Default is Host]\n"
       << "\t      (names of data space to use)\n";
   str << "\t\t Examples...\n"
       << "\t\t --kokkos-data-space Host (run KOKKOS variants with Host memory)\n"
-      << "\t\t -kds HipPinned (run KOKKOS variants with Hip Pinned memory)\n\n";
+      << "\t\t -kds HipPinned (run KOKKOS variants with CUDA Pinned memory)\n\n";
 
   str << "\t --seq-reduction-data-space <string> [Default is Host]\n"
       << "\t      (name of data space to use with reductions for sequential variants)\n"
@@ -1222,11 +1244,17 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t\t Examples...\n"
       << "\t\t --hip-reduction-data-space HipManaged (run HIP variants with Hip Managed memory)\n\n";
 
+  str << "\t --sycl-reduction-data-space <string> [Default is SyclDevice]\n"
+      << "\t      (names of data space to use with reductions for SYCL variants)\n"
+      << "\t      Valid data space names are 'SyclDevice', 'SyclPinned', or 'SyclManaged'\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --sycl-reduction-data-space SyclManaged (run SYCL variants with Sycl Managed memory)\n\n";
+
   str << "\t --kokkos-reduction-data-space <string> [Default is Host]\n"
       << "\t      (names of data space to use with reductions)\n";
   str << "\t\t Examples...\n"
       << "\t\t --kokkos-data-space Host (run KOKKOS variants with Host memory)\n"
-      << "\t\t -kds HipPinned (run KOKKOS variants with Hip Pinned memory)\n\n";
+      << "\t\t -kds HipPinned (run KOKKOS variants with HIP Pinned memory)\n\n";
 
   str << "\t --seq-mpi-data-space <string> [Default is Host]\n"
       << "\t      (name of data space to use with MPI and sequential execution)\n";
@@ -1244,14 +1272,19 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t --omptarget-mpi-data-space Copy (run Omp Target variants and copy to Host memory for MPI buffers)\n\n";
 
   str << "\t --cuda-mpi-data-space <string> [Default is CudaPinned]\n"
-      << "\t      (name of data space to use with MPI and cuda execution)\n";
+      << "\t      (name of data space to use with MPI and CUDA execution)\n";
   str << "\t\t Examples...\n"
       << "\t\t --cuda-mpi-data-space CudaPinned (run CUDA variants with Cuda Pinned memory for MPI buffers)\n\n";
 
   str << "\t --hip-mpi-data-space <string> [Default is HipPinned]\n"
-      << "\t      (name of data space to use with MPI and hip execution)\n";
+      << "\t      (name of data space to use with MPI and HIP execution)\n";
   str << "\t\t Examples...\n"
       << "\t\t --hip-mpi-data-space Copy (run HIP variants and copy to Host memory for MPI buffers)\n\n";
+
+  str << "\t --sycl-mpi-data-space <string> [Default is SyclPinned]\n"
+      << "\t      (name of data space to use with MPI and SYCL execution)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --sycl-mpi-data-space Copy (run SYCL variants and copy to Host memory for MPI buffers)\n\n";
 
   str << "\t --kokkos-mpi-data-space <string> [Default is Copy]\n"
       << "\t      (name of data space to use with MPI and kokkos execution)\n";
