@@ -41,6 +41,7 @@ RunParams::RunParams(int argc, char** argv)
    gpu_stream(1),
    gpu_block_sizes(),
    atomic_replications(),
+   items_per_threads(),
    mpi_size(1),
    mpi_rank(0),
    mpi_3d_division({-1, -1, -1}),
@@ -127,6 +128,10 @@ void RunParams::print(std::ostream& str) const
   str << "\n atomic_replications = ";
   for (size_t j = 0; j < atomic_replications.size(); ++j) {
     str << "\n\t" << atomic_replications[j];
+  }
+  str << "\n items_per_threads = ";
+  for (size_t j = 0; j < items_per_threads.size(); ++j) {
+    str << "\n\t" << items_per_threads[j];
   }
   str << "\n mpi_size = " << mpi_size;
   str << "\n mpi_3d_division = ";
@@ -498,6 +503,37 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
       if (!got_someting) {
         getCout() << "\nBad input:"
                   << " must give --atomic_replication one or more values (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--items_per_thread") ) {
+
+      bool got_someting = false;
+      bool done = false;
+      i++;
+      while ( i < argc && !done ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+          done = true;
+        } else {
+          got_someting = true;
+          int items_per_thread = ::atoi( opt.c_str() );
+          if ( items_per_thread <= 0 ) {
+            getCout() << "\nBad input:"
+                      << " must give --items_per_thread POSITIVE values (int)"
+                      << std::endl;
+            input_state = BadInput;
+          } else {
+            items_per_threads.push_back(items_per_thread);
+          }
+          ++i;
+        }
+      }
+      if (!got_someting) {
+        getCout() << "\nBad input:"
+                  << " must give --items_per_thread one or more values (int)"
                   << std::endl;
         input_state = BadInput;
       }
@@ -1135,6 +1171,14 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t      values give via CMake variable RAJA_PERFSUITE_ATOMIC_REPLICATIONS.\n";
   str << "\t\t Example...\n"
       << "\t\t --atomic_replication 128 256 512 (runs kernels with atomic_replication 128, 256, and 512)\n\n";
+
+  str << "\t --items_per_thread <space-separated ints> [no default]\n"
+      << "\t      (items per thread to run for all GPU kernels)\n"
+      << "\t      GPU kernels not supporting items_per_thread option will be skipped.\n"
+      << "\t      Behavior depends on kernel implementations and \n"
+      << "\t      values give via CMake variable RAJA_PERFSUITE_GPU_ITEMS_PER_THREAD.\n";
+  str << "\t\t Example...\n"
+      << "\t\t --items_per_thread 128 256 512 (runs kernels with items_per_thread 128, 256, and 512)\n\n";
 
   str << "\t --mpi_3d_division <space-separated ints> [no default]\n"
       << "\t      (number of mpi ranks in each dimension in a 3d grid)\n"
