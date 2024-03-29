@@ -52,6 +52,9 @@ TRIDIAG_ELIM::TRIDIAG_ELIM(const RunParams& params)
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
 
+  setVariantDefined( Base_SYCL );
+  setVariantDefined( RAJA_SYCL );
+
   setVariantDefined( Kokkos_Lambda );
 }
 

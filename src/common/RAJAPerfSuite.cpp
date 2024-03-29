@@ -309,6 +309,9 @@ static const std::string VariantNames [] =
 
   std::string("Kokkos_Lambda"),
 
+  std::string("Base_SYCL"),
+  std::string("RAJA_SYCL"),
+
   std::string("Unknown Variant")  // Keep this at the end and DO NOT remove....
 
 }; // END VariantNames
@@ -389,6 +392,10 @@ static const std::string DataSpaceNames [] =
   std::string("HipManagedAdviseCoarse"),
   std::string("HipDevice"),
   std::string("HipDeviceFine"),
+
+  std::string("SyclPinned"),
+  std::string("SyclManaged"),
+  std::string("SyclDevice"),
 
   std::string("Unknown Memory"), // Keep this at the end and DO NOT remove....
 
@@ -511,6 +518,13 @@ bool isVariantAvailable(VariantID vid)
   }
 #endif
 
+#if defined(RAJA_ENABLE_SYCL)
+  if ( vid == Base_SYCL ||
+       vid == RAJA_SYCL ) {
+    ret_val = true;
+  }
+#endif
+
   return ret_val;
 }
 
@@ -568,6 +582,13 @@ bool isVariantGPU(VariantID vid)
 
 #if defined(RUN_KOKKOS)
   if ( vid == Kokkos_Lambda ) {
+    ret_val = true;
+  }
+#endif
+
+#if defined(RAJA_ENABLE_SYCL)
+  if ( vid == Base_SYCL ||
+       vid == RAJA_SYCL ) {
     ret_val = true;
   }
 #endif
@@ -651,6 +672,13 @@ bool isDataSpaceAvailable(DataSpace dataSpace)
 #endif
     case DataSpace::HipDevice:
     case DataSpace::HipDeviceFine:
+      ret_val = true; break;
+#endif
+
+#if defined(RAJA_ENABLE_SYCL)
+    case DataSpace::SyclPinned:
+    case DataSpace::SyclManaged:
+    case DataSpace::SyclDevice:
       ret_val = true; break;
 #endif
 
@@ -1027,6 +1055,10 @@ KernelBase* getKernelObject(KernelID kid,
 
   return kernel;
 }
+
+#if defined(RAJA_ENABLE_SYCL)
+sycl::queue* KernelBase::qu;
+#endif
 
 // subclass of streambuf that ignores overflow
 // never printing anything to the underlying stream

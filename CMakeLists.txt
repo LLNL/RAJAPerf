@@ -27,7 +27,7 @@ if (PERFSUITE_ENABLE_WARNINGS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
 endif()
 
-if (ENABLE_KOKKOS)
+if (ENABLE_KOKKOS OR ENABLE_SYCL)
   set(CMAKE_CXX_STANDARD 17)
   set(BLT_CXX_STD c++17)
 else()
@@ -150,6 +150,9 @@ if (ENABLE_OPENMP)
 endif()
 if (ENABLE_CUDA)
   list(APPEND RAJA_PERFSUITE_DEPENDS cuda)
+endif()
+if (ENABLE_SYCL)
+  list(APPEND RAJA_PERFSUITE_DEPENDS sycl)
 endif()
 
 # Kokkos requires hipcc as the CMAKE_CXX_COMPILER for HIP AMD/VEGA GPU
