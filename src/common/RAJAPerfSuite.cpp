@@ -633,17 +633,24 @@ bool isDataSpaceAvailable(DataSpace dataSpace)
   bool ret_val = false;
 
   switch (dataSpace) {
-    case DataSpace::Host:
-      ret_val = true; break;
+
+    case DataSpace::Host: {
+      ret_val = true;
+      break;
+    }
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-    case DataSpace::Omp:
-      ret_val = true; break;
+    case DataSpace::Omp: {
+      ret_val = true;
+      break;
+    }
 #endif
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
-    case DataSpace::OmpTarget:
-      ret_val = true; break;
+    case DataSpace::OmpTarget: {
+      ret_val = true;
+      break;
+    }
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
@@ -653,8 +660,10 @@ bool isDataSpaceAvailable(DataSpace dataSpace)
     case DataSpace::CudaManagedDevicePreferred:
     case DataSpace::CudaManagedHostPreferredDeviceAccessed:
     case DataSpace::CudaManagedDevicePreferredHostAccessed:
-    case DataSpace::CudaDevice:
-      ret_val = true; break;
+    case DataSpace::CudaDevice: {
+      ret_val = true;
+      break;
+    }
 #endif
 
 #if defined(RAJA_ENABLE_HIP)
@@ -671,20 +680,27 @@ bool isDataSpaceAvailable(DataSpace dataSpace)
     case DataSpace::HipManagedAdviseCoarse:
 #endif
     case DataSpace::HipDevice:
-    case DataSpace::HipDeviceFine:
-      ret_val = true; break;
+    case DataSpace::HipDeviceFine: {
+      ret_val = true;
+      break;
+    } 
 #endif
 
 #if defined(RAJA_ENABLE_SYCL)
     case DataSpace::SyclPinned:
     case DataSpace::SyclManaged:
-    case DataSpace::SyclDevice:
-      ret_val = true; break;
+    case DataSpace::SyclDevice: {
+      ret_val = true;
+      break;
+    }
 #endif
 
-    default:
-      ret_val = false; break;
-  }
+    default: {
+      ret_val = false;
+      break;
+    }
+
+  } // close switch (dataSpace)
 
   return ret_val;
 }
@@ -701,10 +717,16 @@ bool isPseudoDataSpace(DataSpace dataSpace)
   bool ret_val = false;
 
   switch (dataSpace) {
-    case DataSpace::Copy:
-      ret_val = true; break;
-    default:
-      ret_val = false; break;
+
+    case DataSpace::Copy: {
+      ret_val = true;
+      break;
+    }
+    default: {
+      ret_val = false;
+      break;
+    }
+
   }
 
   return ret_val;

@@ -14,7 +14,6 @@
 
 #include <iostream>
 
-#include <sycl.hpp>
 #include "common/SyclDataUtils.hpp"
 
 namespace rajaperf 

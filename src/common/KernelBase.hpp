@@ -27,9 +27,9 @@
 #endif
 #if defined(RAJA_ENABLE_SYCL)
 #include <sycl.hpp>
-#include "camp/resource.hpp"
 #endif
 
+#include "camp/resource.hpp"
 
 #include <string>
 #include <vector>
