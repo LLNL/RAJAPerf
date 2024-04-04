@@ -29,6 +29,9 @@ void PLANCKIAN::runSyclVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getSyclResource()};
+  auto qu = res.get_queue(); 
+
   PLANCKIAN_DATA_SETUP;
 
   using sycl::exp;
@@ -52,7 +55,6 @@ void PLANCKIAN::runSyclVariantImpl(VariantID vid)
         });
       });
     }
-    qu->wait();
     stopTimer();
 
   } else if ( vid == RAJA_SYCL ) {
@@ -66,7 +68,6 @@ void PLANCKIAN::runSyclVariantImpl(VariantID vid)
        });
 
     }
-    qu->wait();
     stopTimer();
 
   } else {

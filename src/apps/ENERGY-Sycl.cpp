@@ -28,12 +28,13 @@ void ENERGY::runSyclVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getSyclResource()};
+  auto qu = res.get_queue();
+
   ENERGY_DATA_SETUP;
 
   using sycl::sqrt;
   using sycl::fabs;
-
-  auto res{getSyclResource()};
 
   if ( vid == Base_SYCL ) {
 
@@ -101,8 +102,7 @@ void ENERGY::runSyclVariantImpl(VariantID vid)
         });
       });
 
-      qu->submit([&] (sycl::handler& h)
-      {
+      qu->submit([&] (sycl::handler& h) {
         h.parallel_for(sycl::nd_range<1> (grid_size, work_group_size),
                        [=] (sycl::nd_item<1> item) {
 
@@ -114,7 +114,6 @@ void ENERGY::runSyclVariantImpl(VariantID vid)
         });
       });
     }
-    qu->wait();
     stopTimer();
 
   } else if ( vid == RAJA_SYCL ) {
@@ -159,7 +158,6 @@ void ENERGY::runSyclVariantImpl(VariantID vid)
       }); // end sequential region (for single-source code)
 
     }
-    qu->wait();
     stopTimer();
 
   } else {

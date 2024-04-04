@@ -36,6 +36,9 @@ void HYDRO_2D::runSyclVariantImpl(VariantID vid) {
   const Index_type jbeg = 1;
   const Index_type jend = m_jn - 1;
 
+  auto res{getSyclResource()};
+  auto qu = res.get_queue();
+
   HYDRO_2D_DATA_SETUP;
 
   if ( vid == Base_SYCL ) {
@@ -46,6 +49,7 @@ void HYDRO_2D::runSyclVariantImpl(VariantID vid) {
  
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
       qu->submit([&] (sycl::handler& h) { 
 
         h.parallel_for(sycl::nd_range<2>( global_dim, wkgroup_dim),
@@ -90,7 +94,6 @@ void HYDRO_2D::runSyclVariantImpl(VariantID vid) {
       });
 
     }
-    qu->wait(); // Wait for computation to finish before stopping timer
     stopTimer();
 
   } else if ( vid == RAJA_SYCL ) {
@@ -133,7 +136,6 @@ void HYDRO_2D::runSyclVariantImpl(VariantID vid) {
       });
 
     }
-    qu->wait();
     stopTimer();
 
   } else { 

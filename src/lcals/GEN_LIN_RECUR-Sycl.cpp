@@ -26,6 +26,9 @@ void GEN_LIN_RECUR::runSyclVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getSyclResource()};
+  auto qu = res.get_queue();
+
   GEN_LIN_RECUR_DATA_SETUP;
 
   if ( vid == Base_SYCL ) {
@@ -61,7 +64,6 @@ void GEN_LIN_RECUR::runSyclVariantImpl(VariantID vid)
         });
       });
     }
-    qu->wait();
     stopTimer();
 
   } else if ( vid == RAJA_SYCL ) {
@@ -80,7 +82,6 @@ void GEN_LIN_RECUR::runSyclVariantImpl(VariantID vid)
        });
 
     }
-    qu->wait();
     stopTimer();
 
   } else {

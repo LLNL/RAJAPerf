@@ -28,6 +28,9 @@ void TRIDIAG_ELIM::runSyclVariantImpl(VariantID vid)
   const Index_type ibegin = 1;
   const Index_type iend = m_N;
 
+  auto res{getSyclResource()};
+  auto qu = res.get_queue();
+
   TRIDIAG_ELIM_DATA_SETUP;
 
   if ( vid == Base_SYCL ) {
@@ -49,7 +52,6 @@ void TRIDIAG_ELIM::runSyclVariantImpl(VariantID vid)
         });
       });
     }
-    qu->wait();
     stopTimer();
 
   } else if ( vid == RAJA_SYCL ) {
@@ -63,7 +65,6 @@ void TRIDIAG_ELIM::runSyclVariantImpl(VariantID vid)
        });
 
     }
-    qu->wait();
     stopTimer();
 
   } else {

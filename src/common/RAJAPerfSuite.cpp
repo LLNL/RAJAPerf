@@ -1078,9 +1078,6 @@ KernelBase* getKernelObject(KernelID kid,
   return kernel;
 }
 
-#if defined(RAJA_ENABLE_SYCL)
-sycl::queue* KernelBase::qu;
-#endif
 
 // subclass of streambuf that ignores overflow
 // never printing anything to the underlying stream

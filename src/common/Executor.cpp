@@ -247,10 +247,6 @@ void Executor::setupSuite()
 
   getCout() << "\nSetting up suite based on input..." << endl;
 
-#if defined(RAJA_ENABLE_SYCL)
-  KernelBase::qu = camp::resources::Sycl().get_queue();
-#endif
-
   using Svector = vector<string>;
 
   //
