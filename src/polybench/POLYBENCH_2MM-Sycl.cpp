@@ -122,15 +122,15 @@ void POLYBENCH_2MM::runSyclVariantImpl(VariantID vid)
           POLYBENCH_2MM_BODY1_RAJA;
         },
         [=] (Index_type i, Index_type j, Index_type k,
-                        Real_type &dot) {
+             Real_type &dot) {
           POLYBENCH_2MM_BODY2_RAJA;
         },
         [=] (Index_type i, Index_type j,
-                        Real_type &dot) {
+             Real_type &dot) {
           POLYBENCH_2MM_BODY3_RAJA;
         }
       );
-
+ 
       RAJA::kernel_param<EXEC_POL>(
         RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                          RAJA::RangeSegment{0, nl},

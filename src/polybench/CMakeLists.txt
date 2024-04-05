@@ -75,6 +75,7 @@ blt_add_library(
           POLYBENCH_JACOBI_1D-Cuda.cpp
           POLYBENCH_JACOBI_1D-OMP.cpp
           POLYBENCH_JACOBI_1D-OMPTarget.cpp
+          POLYBENCH_JACOBI_1D-Sycl.cpp
           POLYBENCH_JACOBI_2D.cpp
           POLYBENCH_JACOBI_2D-Seq.cpp
           POLYBENCH_JACOBI_2D-Hip.cpp
