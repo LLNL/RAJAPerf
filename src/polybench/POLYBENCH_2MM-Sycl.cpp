@@ -46,7 +46,7 @@ void POLYBENCH_2MM::runSyclVariantImpl(VariantID vid)
     sycl::range<2> global_dim2(out_wg_sz * RAJA_DIVIDE_CEILING_INT(ni, out_wg_sz),
                                in_wg_sz * RAJA_DIVIDE_CEILING_INT(nl, in_wg_sz));
 
-    sycl::range<2> wkgroup_dim(in_wg_sz, out_wg_sz);
+    sycl::range<2> wkgroup_dim(out_wg_sz, in_wg_sz);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

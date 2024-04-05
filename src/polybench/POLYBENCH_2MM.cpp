@@ -79,9 +79,7 @@ POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
   setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
 
-/* Turn off for now. Need to understand "non-uniform work groups" error
   setVariantDefined( Base_SYCL );
-*/
   setVariantDefined( RAJA_SYCL );
 }
 
