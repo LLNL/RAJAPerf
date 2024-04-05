@@ -12,10 +12,10 @@
 
 #if defined(RAJA_ENABLE_SYCL)
 
+#include "common/SyclDataUtils.hpp"
+
 #include <iostream>
 #include <cmath>
-
-#include "common/SyclDataUtils.hpp"
 
 namespace rajaperf 
 {
@@ -23,30 +23,13 @@ namespace polybench
 {
 
   //
-  // Define thread block size for SYCL execution
+  // Define work-group shape for SYCL execution
   //
-  const size_t block_size = 16;
+#define in_wg_sz (32)
+#define out_wg_sz (work_group_size / in_wg_sz)
 
-#define POLYBENCH_2MM_DATA_SETUP_SYCL \
-  allocAndInitSyclDeviceData(tmp, m_tmp, m_ni * m_nj, qu); \
-  allocAndInitSyclDeviceData(A, m_A, m_ni * m_nk, qu); \
-  allocAndInitSyclDeviceData(B, m_B, m_nk * m_nj, qu); \
-  allocAndInitSyclDeviceData(C, m_C, m_nj * m_nl, qu); \
-  allocAndInitSyclDeviceData(D, m_D, m_ni * m_nl, qu); \
-\
-  Real_type alpha = m_alpha; \
-  Real_type beta = m_beta; \
-
-
-#define POLYBENCH_2MM_TEARDOWN_SYCL \
-  getSyclDeviceData(m_D, D, m_ni * m_nl, qu); \
-  deallocSyclDeviceData(tmp, qu); \
-  deallocSyclDeviceData(A, qu); \
-  deallocSyclDeviceData(B, qu); \
-  deallocSyclDeviceData(C, qu); \
-  deallocSyclDeviceData(D, qu);
-
-void POLYBENCH_2MM::runSyclVariant(VariantID vid)
+template <size_t work_group_size >
+void POLYBENCH_2MM::runSyclVariantImpl(VariantID vid)
 {
   const unsigned long run_reps = getRunReps();
 
@@ -56,72 +39,66 @@ void POLYBENCH_2MM::runSyclVariant(VariantID vid)
   POLYBENCH_2MM_DATA_SETUP;
 
   if ( vid == Base_SYCL ) {
-    {
-      POLYBENCH_2MM_DATA_SETUP_SYCL;
 
-      const size_t ni_grid_size = block_size * RAJA_DIVIDE_CEILING_INT(m_ni, block_size);
-      const size_t nj_grid_size = block_size * RAJA_DIVIDE_CEILING_INT(m_nj, block_size);
-      const size_t nl_grid_size = block_size * RAJA_DIVIDE_CEILING_INT(m_nl, block_size);
+    sycl::range<2> global_dim1(out_wg_sz * RAJA_DIVIDE_CEILING_INT(ni, out_wg_sz),
+                               in_wg_sz * RAJA_DIVIDE_CEILING_INT(nj, in_wg_sz));
 
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+    sycl::range<2> global_dim2(out_wg_sz * RAJA_DIVIDE_CEILING_INT(ni, out_wg_sz),
+                               in_wg_sz * RAJA_DIVIDE_CEILING_INT(nl, in_wg_sz));
 
-        qu->submit([&] (sycl::handler& h) {
-          h.parallel_for<class polybench2MM_1>(sycl::nd_range<2> 
-                                               {sycl::range<2> {ni_grid_size, nj_grid_size},
-                                                sycl::range<2> {block_size, block_size}},
-                                               [=] (sycl::nd_item<2> item) {
+    sycl::range<2> wkgroup_dim(in_wg_sz, out_wg_sz);
 
-           Index_type i = item.get_global_id(0); 
-           Index_type j = item.get_global_id(1); 
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-           if (i < ni && j < nj) {
-             POLYBENCH_2MM_BODY1;
-             for (Index_type k=0; k < nk; ++k) {
-                POLYBENCH_2MM_BODY2;
-              }
-              POLYBENCH_2MM_BODY3;
+      qu->submit([&] (sycl::handler& h) {
+        h.parallel_for(sycl::nd_range<2>( global_dim1, wkgroup_dim), 
+                       [=] (sycl::nd_item<2> item) {
+
+          Index_type i = item.get_global_id(0); 
+          Index_type j = item.get_global_id(1); 
+
+          if (i < ni && j < nj) {
+            POLYBENCH_2MM_BODY1;
+            for (Index_type k=0; k < nk; ++k) {
+              POLYBENCH_2MM_BODY2;
             }
+            POLYBENCH_2MM_BODY3;
+          }
 
-          });
         });
+      });
 
-        qu->submit([&] (sycl::handler& h) {
-          h.parallel_for<class polybench2MM_2>(sycl::nd_range<2>
-                                                 {sycl::range<2> {ni_grid_size, nl_grid_size},
-                                                  sycl::range<2> {block_size, block_size}},
-                                               [=] (sycl::nd_item<2> item) {
+      qu->submit([&] (sycl::handler& h) {
+        h.parallel_for(sycl::nd_range<2>( global_dim2, wkgroup_dim),
+                       [=] (sycl::nd_item<2> item) {
 
-           Index_type i = item.get_global_id(0); 
-           Index_type l = item.get_global_id(1);
+         Index_type i = item.get_global_id(0); 
+         Index_type l = item.get_global_id(1);
 
-           if(i < ni && l < nl) {        
-             POLYBENCH_2MM_BODY4;
-             for (Index_type j=0; j < nj; ++j) {
-                POLYBENCH_2MM_BODY5;
-              }
-              POLYBENCH_2MM_BODY6;
-            }
-          });
+         if (i < ni && l < nl) {        
+           POLYBENCH_2MM_BODY4;
+           for (Index_type j=0; j < nj; ++j) {
+              POLYBENCH_2MM_BODY5;
+           }
+           POLYBENCH_2MM_BODY6;
+         }
+
         });
-      }
-      stopTimer();
+      });
 
     }
-
-    POLYBENCH_2MM_TEARDOWN_SYCL;
+    stopTimer();
 
   } else if (vid == RAJA_SYCL) {
     
-    POLYBENCH_2MM_DATA_SETUP_SYCL;
-
     POLYBENCH_2MM_VIEWS_RAJA;
 
     using EXEC_POL =
       RAJA::KernelPolicy<
-        RAJA::statement::SyclKernelNonTrivial<
-          RAJA::statement::For<0, RAJA::sycl_global_0<16>,
-            RAJA::statement::For<1, RAJA::sycl_global_1<16>,
+        RAJA::statement::SyclKernelAsync<
+          RAJA::statement::For<0, RAJA::sycl_global_0<out_wg_sz>,
+            RAJA::statement::For<1, RAJA::sycl_global_1<in_wg_sz>,
               RAJA::statement::Lambda<0, RAJA::Params<0>>,
               RAJA::statement::For<2, RAJA::seq_exec,
                 RAJA::statement::Lambda<1, RAJA::Segs<0,1,2>, RAJA::Params<0>>
@@ -164,11 +141,11 @@ void POLYBENCH_2MM::runSyclVariant(VariantID vid)
           POLYBENCH_2MM_BODY4_RAJA;
         },
         [=] (Index_type i, Index_type l, Index_type j,
-                        Real_type &dot) {
+             Real_type &dot) {
           POLYBENCH_2MM_BODY5_RAJA;
         },
         [=]  (Index_type i, Index_type l,
-                        Real_type &dot) {
+              Real_type &dot) {
           POLYBENCH_2MM_BODY6_RAJA;
         }
       );
@@ -176,16 +153,15 @@ void POLYBENCH_2MM::runSyclVariant(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_2MM_TEARDOWN_SYCL;
-  
   } else {
       std::cout << "\n  POLYBENCH_2MM : Unknown Sycl variant id = " << vid << std::endl;
   }
-
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(POLYBENCH_2MM, Sycl)
 
 } // end namespace polybench
 } // end namespace rajaperf
 
-#endif  // RAJA_ENABLE_Sycl
+#endif  // RAJA_ENABLE_SYCL
   
