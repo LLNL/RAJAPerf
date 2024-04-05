@@ -28,6 +28,9 @@ void INIT3::runSyclVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getSyclResource()};
+  auto qu = res.get_queue();
+
   INIT3_DATA_SETUP;
 
   if ( vid == Base_SYCL ) {
@@ -50,7 +53,6 @@ void INIT3::runSyclVariantImpl(VariantID vid)
       });
 
     }
-    qu->wait();
     stopTimer();
 
   } else if ( vid == RAJA_SYCL ) {
@@ -64,7 +66,6 @@ void INIT3::runSyclVariantImpl(VariantID vid)
       });
 
     }
-    qu->wait();
     stopTimer();
 
   } else {

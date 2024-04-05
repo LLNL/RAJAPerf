@@ -28,11 +28,12 @@ void PRESSURE::runSyclVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getSyclResource()};
+  auto qu = res.get_queue();
+
   PRESSURE_DATA_SETUP;
 
   using sycl::fabs;
-
-  auto res{getSyclResource()};
 
   if ( vid == Base_SYCL ) {
 
@@ -66,7 +67,6 @@ void PRESSURE::runSyclVariantImpl(VariantID vid)
       });
 
     }
-    qu->wait();
     stopTimer();
 
   } else if ( vid == RAJA_SYCL ) {
@@ -91,7 +91,6 @@ void PRESSURE::runSyclVariantImpl(VariantID vid)
       }); // end sequential region (for single-source code)
 
     }
-    qu->wait();
     stopTimer();
 
   } else {

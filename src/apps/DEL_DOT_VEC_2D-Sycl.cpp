@@ -31,6 +31,7 @@ void DEL_DOT_VEC_2D::runSyclVariantImpl(VariantID vid)
   const Index_type iend = m_domain->n_real_zones;
 
   auto res{getSyclResource()};
+  auto qu = res.get_queue();
 
   DEL_DOT_VEC_2D_DATA_SETUP;
 
@@ -55,7 +56,6 @@ void DEL_DOT_VEC_2D::runSyclVariantImpl(VariantID vid)
       });
 
     }
-    qu->wait();
     stopTimer();
 
   } else if ( vid == RAJA_SYCL ) {
@@ -72,7 +72,6 @@ void DEL_DOT_VEC_2D::runSyclVariantImpl(VariantID vid)
        });
 
     }
-    qu->wait();
     stopTimer();
 
   } else {

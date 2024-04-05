@@ -29,6 +29,9 @@ void DOT::runSyclVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getSyclResource()};
+  auto qu = res.get_queue();
+
   DOT_DATA_SETUP;
 
   if ( vid == Base_SYCL ) {
@@ -65,7 +68,6 @@ void DOT::runSyclVariantImpl(VariantID vid)
       m_dot += ldot;       
 
     }
-    qu->wait();
     stopTimer();
 
   } else if ( vid == RAJA_SYCL ) {

@@ -33,6 +33,9 @@ void LTIMES_NOVIEW::runSyclVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getSyclResource()};
+  auto qu = res.get_queue();
+
   LTIMES_NOVIEW_DATA_SETUP;
 
   if ( vid == Base_SYCL ) {
@@ -62,7 +65,6 @@ void LTIMES_NOVIEW::runSyclVariantImpl(VariantID vid)
         });
       });
     }
-    qu->wait();
     stopTimer();
 
   } else if ( vid == RAJA_SYCL ) {
@@ -94,7 +96,6 @@ void LTIMES_NOVIEW::runSyclVariantImpl(VariantID vid)
       });
 
     }
-    qu->wait();
     stopTimer();
 
   } else {

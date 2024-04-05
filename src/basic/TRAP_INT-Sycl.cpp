@@ -31,6 +31,9 @@ void TRAP_INT::runSyclVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getSyclResource()};
+  auto qu = res.get_queue();
+
   TRAP_INT_DATA_SETUP;
 
   if ( vid == Base_SYCL ) {
@@ -67,7 +70,6 @@ void TRAP_INT::runSyclVariantImpl(VariantID vid)
       m_sumx += lsumx * h;
 
     }
-    qu->wait();
     stopTimer();
   
     deallocSyclDeviceData(sumx, qu);
@@ -87,7 +89,6 @@ void TRAP_INT::runSyclVariantImpl(VariantID vid)
       m_sumx += static_cast<Real_type>(sumx.get()) * h;
 
     }
-    qu->wait();
     stopTimer();
 
   } else {

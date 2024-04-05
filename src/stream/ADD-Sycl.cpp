@@ -29,6 +29,7 @@ void ADD::runSyclVariantImpl(VariantID vid)
   const Index_type iend = getActualProblemSize();
 
   auto res{getSyclResource()};
+  auto qu = res.get_queue();
 
   ADD_DATA_SETUP;
 
@@ -51,7 +52,6 @@ void ADD::runSyclVariantImpl(VariantID vid)
         });
       });
     }
-    qu->wait();
     stopTimer();
 
   } else if ( vid == RAJA_SYCL ) {
@@ -65,7 +65,6 @@ void ADD::runSyclVariantImpl(VariantID vid)
       });
 
     }
-    qu->wait();
     stopTimer();
 
   } else {

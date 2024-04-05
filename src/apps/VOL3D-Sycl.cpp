@@ -30,7 +30,8 @@ void VOL3D::runSyclVariantImpl(VariantID vid)
   const Index_type ibegin = m_domain->fpz;
   const Index_type iend = m_domain->lpz+1;
 
-  auto res{getSyclResource()}; 
+  auto res{getSyclResource()};
+  auto qu = res.get_queue();
 
   VOL3D_DATA_SETUP;
 
@@ -54,7 +55,6 @@ void VOL3D::runSyclVariantImpl(VariantID vid)
         });
       });
     }
-    qu->wait();
     stopTimer();
  
   } else if ( vid == RAJA_SYCL ) {
@@ -68,7 +68,6 @@ void VOL3D::runSyclVariantImpl(VariantID vid)
       });
 
     }
-    qu->wait();
     stopTimer();
 
   } else {

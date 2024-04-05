@@ -44,9 +44,10 @@ void FIR::runSyclVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize() - m_coefflen;
 
-  FIR_DATA_SETUP;
-
   auto res{getSyclResource()};
+  auto qu = res.get_queue();
+
+  FIR_DATA_SETUP;
 
   if ( vid == Base_SYCL ) {
 
@@ -71,7 +72,6 @@ void FIR::runSyclVariantImpl(VariantID vid)
         });
       });
     }
-    qu->wait();
     stopTimer();
 
     FIR_DATA_TEARDOWN_SYCL;
@@ -91,7 +91,6 @@ void FIR::runSyclVariantImpl(VariantID vid)
        });
 
     }
-    qu->wait();
     stopTimer();
 
     FIR_DATA_TEARDOWN_SYCL;

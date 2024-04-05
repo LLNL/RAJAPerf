@@ -33,6 +33,9 @@ void NESTED_INIT::runSyclVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getSyclResource()};
+  auto qu = res.get_queue();
+
   NESTED_INIT_DATA_SETUP;
 
   if ( vid == Base_SYCL ) {
@@ -56,11 +59,11 @@ void NESTED_INIT::runSyclVariantImpl(VariantID vid)
           if (i < ni && j < nj && k < nk) {
             NESTED_INIT_BODY;
           }
+
         });
       });
 
     }
-    qu->wait();
     stopTimer();
   
   } else if ( vid == RAJA_SYCL ) {
@@ -89,7 +92,6 @@ void NESTED_INIT::runSyclVariantImpl(VariantID vid)
       });
 
     }
-    qu->wait();
     stopTimer();
 
   } else {
