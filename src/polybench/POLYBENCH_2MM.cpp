@@ -81,8 +81,8 @@ POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
 
 /* Turn off for now. Need to understand "non-uniform work groups" error
   setVariantDefined( Base_SYCL );
-  setVariantDefined( RAJA_SYCL );
 */
+  setVariantDefined( RAJA_SYCL );
 }
 
 POLYBENCH_2MM::~POLYBENCH_2MM()
