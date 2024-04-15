@@ -75,6 +75,7 @@ blt_add_library(
           MASS3DPA-Seq.cpp
           MASS3DPA-OMP.cpp
           MASS3DPA-OMPTarget.cpp
+          MASS3DPA-Sycl.cpp
           NODAL_ACCUMULATION_3D.cpp
           NODAL_ACCUMULATION_3D-Seq.cpp
           NODAL_ACCUMULATION_3D-Hip.cpp
