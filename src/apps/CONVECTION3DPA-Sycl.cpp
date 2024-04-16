@@ -59,7 +59,7 @@ void CONVECTION3DPA::runSyclVariantImpl(VariantID vid) {
           (cl::sycl::nd_range<3>(gridSize, blockSize),
            [=] (cl::sycl::nd_item<3> itm) {
 
-             const Index_type e = itm.get_group(0);
+             const Index_type e = itm.get_group(2);
 
              double *sm0 = sm0_vec.get_multi_ptr<::sycl::access::decorated::yes>().get();
              double *sm1 = sm1_vec.get_multi_ptr<::sycl::access::decorated::yes>().get();
@@ -194,7 +194,7 @@ void CONVECTION3DPA::runSyclVariantImpl(VariantID vid) {
       RAJA::LaunchPolicy<RAJA::sycl_launch_t<async>>;
 
     using outer_x =
-      RAJA::LoopPolicy<RAJA::sycl_group_0_loop>;
+      RAJA::LoopPolicy<RAJA::sycl_group_2_loop>;
 
     using inner_x =
       RAJA::LoopPolicy<RAJA::sycl_local_0_loop>;
