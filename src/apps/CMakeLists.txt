@@ -29,6 +29,7 @@ blt_add_library(
           DIFFUSION3DPA-Seq.cpp
           DIFFUSION3DPA-OMP.cpp
           DIFFUSION3DPA-OMPTarget.cpp
+          DIFFUSION3DPA-Sycl.cpp
           EDGE3D.cpp
           EDGE3D-Cuda.cpp
           EDGE3D-Hip.cpp

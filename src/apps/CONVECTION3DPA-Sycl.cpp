@@ -29,7 +29,7 @@ void CONVECTION3DPA::runSyclVariantImpl(VariantID vid) {
   CONVECTION3DPA_DATA_SETUP;
 
   const ::sycl::range<3> blockSize(CPA_Q1D, CPA_Q1D, CPA_Q1D);
-  const ::sycl::range<3> gridSize(NE*CPA_Q1D,CPA_Q1D,CPA_Q1D);
+  const ::sycl::range<3> gridSize(CPA_Q1D,CPA_Q1D,CPA_Q1D*NE);
 
   constexpr size_t shmem = 0;
 
@@ -194,16 +194,16 @@ void CONVECTION3DPA::runSyclVariantImpl(VariantID vid) {
       RAJA::LaunchPolicy<RAJA::sycl_launch_t<async>>;
 
     using outer_x =
-      RAJA::LoopPolicy<RAJA::sycl_group_0_direct>;
+      RAJA::LoopPolicy<RAJA::sycl_group_0_loop>;
 
     using inner_x =
-      RAJA::LoopPolicy<RAJA::sycl_local_0_direct>;
+      RAJA::LoopPolicy<RAJA::sycl_local_0_loop>;
 
     using inner_y =
-      RAJA::LoopPolicy<RAJA::sycl_local_1_direct>;
+      RAJA::LoopPolicy<RAJA::sycl_local_1_loop>;
 
     using inner_z =
-      RAJA::LoopPolicy<RAJA::sycl_local_2_direct>;
+      RAJA::LoopPolicy<RAJA::sycl_local_2_loop>;
 
     //Caclulate amount of shared memory needed
     size_t shmem = 0;
