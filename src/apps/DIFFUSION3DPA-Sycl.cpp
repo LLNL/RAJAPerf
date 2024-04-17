@@ -56,8 +56,6 @@ void DIFFUSION3DPA::runSyclVariantImpl(VariantID vid) {
         auto sm1_1_vec = ::sycl::local_accessor<double, 1>(::sycl::range<1>(MDQ*MDQ*MDQ), h);
         auto sm1_2_vec = ::sycl::local_accessor<double, 1>(::sycl::range<1>(MDQ*MDQ*MDQ), h);
 
-        sycl::stream out(1024, 256, h);
-
         h.parallel_for
           (cl::sycl::nd_range<3>(gridSize, blockSize),
            [=] (cl::sycl::nd_item<3> itm) {
