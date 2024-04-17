@@ -31,12 +31,12 @@ void DIFFUSION3DPA::runSyclVariantImpl(VariantID vid) {
 
   DIFFUSION3DPA_DATA_SETUP;
 
-  const ::sycl::range<3> blockSize(DPA_Q1D, DPA_Q1D, DPA_Q1D);
-  const ::sycl::range<3> gridSize(DPA_Q1D*NE,DPA_Q1D,DPA_Q1D);
-
   switch (vid) {
 
   case Base_SYCL: {
+
+    const ::sycl::range<3> blockSize(DPA_Q1D, DPA_Q1D, DPA_Q1D);
+    const ::sycl::range<3> gridSize(DPA_Q1D,DPA_Q1D,DPA_Q1D*NE);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -62,7 +62,7 @@ void DIFFUSION3DPA::runSyclVariantImpl(VariantID vid) {
           (cl::sycl::nd_range<3>(gridSize, blockSize),
            [=] (cl::sycl::nd_item<3> itm) {
 
-             const Index_type e = itm.get_group(0);
+             const Index_type e = itm.get_group(2);
 
              double *sBG = sBG_vec.get_multi_ptr<::sycl::access::decorated::yes>().get();
 
@@ -168,7 +168,6 @@ void DIFFUSION3DPA::runSyclVariantImpl(VariantID vid) {
                }
              }
 
-
            });
         });
 
@@ -197,7 +196,7 @@ void DIFFUSION3DPA::runSyclVariantImpl(VariantID vid) {
 
     using inner_z =
         RAJA::LoopPolicy<RAJA::sycl_local_0_loop>;
-    
+
     size_t shmem = 0;
     {
       constexpr int MQ1 = DPA_Q1D;
@@ -221,7 +220,7 @@ void DIFFUSION3DPA::runSyclVariantImpl(VariantID vid) {
           RAJA::loop<outer_x>(ctx, RAJA::RangeSegment(0, NE),
             [&](int e) {
 
-              //Redefine inside the lambda to keep consistent with base version              
+              //Redefine inside the lambda to keep consistent with base version
               constexpr int MQ1 = DPA_Q1D;
               constexpr int MD1 = DPA_D1D;
               constexpr int MDQ = (MQ1 > MD1) ? MQ1 : MD1;
@@ -416,7 +415,7 @@ void DIFFUSION3DPA::runSyclVariantImpl(VariantID vid) {
 
             } // lambda (e)
           ); // RAJA::loop<outer_x>
-          
+
         }  // outer lambda (ctx)
       );  // RAJA::launch
 

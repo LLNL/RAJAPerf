@@ -70,6 +70,7 @@ blt_add_library(
           MASS3DEA-Seq.cpp
           MASS3DEA-OMP.cpp
           MASS3DEA-OMPTarget.cpp
+          MASS3DEA-Sycl.cpp
           MASS3DPA.cpp
           MASS3DPA-Cuda.cpp
           MASS3DPA-Hip.cpp
