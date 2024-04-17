@@ -81,11 +81,11 @@ void CONVECTION3DPA::runSyclVariantImpl(VariantID vid) {
              double (*BDGu)[max_Q1D][max_Q1D] = (double (*)[max_Q1D][max_Q1D])sm4;
              double (*BBDGu)[max_D1D][max_Q1D] = (double (*)[max_D1D][max_Q1D])sm5;
 
-             SYCL_FOREACH_THREAD(dz,2,CPA_D1D)
+             SYCL_FOREACH_THREAD(dz,0,CPA_D1D)
              {
                SYCL_FOREACH_THREAD(dy,1,CPA_D1D)
                {
-                 SYCL_FOREACH_THREAD(dx,0,CPA_D1D)
+                 SYCL_FOREACH_THREAD(dx,2,CPA_D1D)
                  {
                    CONVECTION3DPA_1;
                  }
@@ -93,11 +93,11 @@ void CONVECTION3DPA::runSyclVariantImpl(VariantID vid) {
              }
              itm.barrier(::sycl::access::fence_space::local_space);
 
-             SYCL_FOREACH_THREAD(dz,2,CPA_D1D)
+             SYCL_FOREACH_THREAD(dz,0,CPA_D1D)
              {
                SYCL_FOREACH_THREAD(dy,1,CPA_D1D)
                {
-                 SYCL_FOREACH_THREAD(qx,0,CPA_Q1D)
+                 SYCL_FOREACH_THREAD(qx,2,CPA_Q1D)
                  {
                    CONVECTION3DPA_2;
                  }
@@ -105,11 +105,11 @@ void CONVECTION3DPA::runSyclVariantImpl(VariantID vid) {
              }
              itm.barrier(::sycl::access::fence_space::local_space);
 
-             SYCL_FOREACH_THREAD(dz,2,CPA_D1D)
+             SYCL_FOREACH_THREAD(dz,0,CPA_D1D)
              {
-               SYCL_FOREACH_THREAD(qx,1,CPA_Q1D)
+               SYCL_FOREACH_THREAD(qx,2,CPA_Q1D)
                {
-                 SYCL_FOREACH_THREAD(qy,0,CPA_Q1D)
+                 SYCL_FOREACH_THREAD(qy,1,CPA_Q1D)
                  {
                    CONVECTION3DPA_3;
                  }
@@ -117,11 +117,11 @@ void CONVECTION3DPA::runSyclVariantImpl(VariantID vid) {
              }
              itm.barrier(::sycl::access::fence_space::local_space);
 
-             SYCL_FOREACH_THREAD(qx,0,CPA_Q1D)
+             SYCL_FOREACH_THREAD(qx,2,CPA_Q1D)
              {
                SYCL_FOREACH_THREAD(qy,1,CPA_Q1D)
                {
-                 SYCL_FOREACH_THREAD(qz,2,CPA_Q1D)
+                 SYCL_FOREACH_THREAD(qz,0,CPA_Q1D)
                  {
                    CONVECTION3DPA_4;
                  }
@@ -129,11 +129,11 @@ void CONVECTION3DPA::runSyclVariantImpl(VariantID vid) {
              }
              itm.barrier(::sycl::access::fence_space::local_space);
 
-             SYCL_FOREACH_THREAD(qz,2,CPA_Q1D)
+             SYCL_FOREACH_THREAD(qz,0,CPA_Q1D)
              {
                SYCL_FOREACH_THREAD(qy,1,CPA_Q1D)
                {
-                 SYCL_FOREACH_THREAD(qx,0,CPA_Q1D)
+                 SYCL_FOREACH_THREAD(qx,2,CPA_Q1D)
                  {
                    CONVECTION3DPA_5;
                  }
@@ -141,11 +141,11 @@ void CONVECTION3DPA::runSyclVariantImpl(VariantID vid) {
              }
              itm.barrier(::sycl::access::fence_space::local_space);
 
-             SYCL_FOREACH_THREAD(qx,0,CPA_Q1D)
+             SYCL_FOREACH_THREAD(qx,2,CPA_Q1D)
              {
                SYCL_FOREACH_THREAD(qy,1,CPA_Q1D)
                {
-                 SYCL_FOREACH_THREAD(dz,2,CPA_D1D)
+                 SYCL_FOREACH_THREAD(dz,0,CPA_D1D)
                  {
                    CONVECTION3DPA_6;
                  }
@@ -153,9 +153,9 @@ void CONVECTION3DPA::runSyclVariantImpl(VariantID vid) {
              }
              itm.barrier(::sycl::access::fence_space::local_space);
 
-             SYCL_FOREACH_THREAD(dz,2,CPA_D1D)
+             SYCL_FOREACH_THREAD(dz,0,CPA_D1D)
              {
-               SYCL_FOREACH_THREAD(qx,0,CPA_Q1D)
+               SYCL_FOREACH_THREAD(qx,2,CPA_Q1D)
                {
                  SYCL_FOREACH_THREAD(dy,1,CPA_D1D)
                  {
@@ -165,11 +165,11 @@ void CONVECTION3DPA::runSyclVariantImpl(VariantID vid) {
              }
              itm.barrier(::sycl::access::fence_space::local_space);
 
-             SYCL_FOREACH_THREAD(dz,2,CPA_D1D)
+             SYCL_FOREACH_THREAD(dz,0,CPA_D1D)
              {
                SYCL_FOREACH_THREAD(dy,1,CPA_D1D)
                {
-                 SYCL_FOREACH_THREAD(dx,0,CPA_D1D)
+                 SYCL_FOREACH_THREAD(dx,2,CPA_D1D)
                  {
                    CONVECTION3DPA_8;
                  }
@@ -197,13 +197,13 @@ void CONVECTION3DPA::runSyclVariantImpl(VariantID vid) {
       RAJA::LoopPolicy<RAJA::sycl_group_2_loop>;
 
     using inner_x =
-      RAJA::LoopPolicy<RAJA::sycl_local_0_loop>;
+      RAJA::LoopPolicy<RAJA::sycl_local_2_loop>;
 
     using inner_y =
       RAJA::LoopPolicy<RAJA::sycl_local_1_loop>;
 
     using inner_z =
-      RAJA::LoopPolicy<RAJA::sycl_local_2_loop>;
+      RAJA::LoopPolicy<RAJA::sycl_local_0_loop>;
 
     //Caclulate amount of shared memory needed
     size_t shmem = 0;

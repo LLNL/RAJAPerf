@@ -31,8 +31,9 @@ void MAT_MAT_SHARED::runSyclVariantImpl(VariantID vid)
   const Index_type Nx = RAJA_DIVIDE_CEILING_INT(N, tile_size);
   const Index_type Ny = RAJA_DIVIDE_CEILING_INT(N, tile_size);
 
-  const ::sycl::range<2> blockSize(tile_size, tile_size);
-  const ::sycl::range<2> gridSize(Nx*tile_size, Ny*tile_size);
+  //Right most is the fastest index
+  const ::sycl::range<3> blockSize(1, tile_size, tile_size);
+  const ::sycl::range<3> gridSize(1, Ny*tile_size, Nx*tile_size);
 
   constexpr size_t shmem = tile_size * tile_size;
 
@@ -53,12 +54,12 @@ void MAT_MAT_SHARED::runSyclVariantImpl(VariantID vid)
        ::sycl::local_accessor<double, 2> Cs(::sycl::range<2>(tile_size, tile_size), h);
 
         h.parallel_for
-          (cl::sycl::nd_range<2>(gridSize, blockSize),
-           [=] (cl::sycl::nd_item<2> itm) {
+          (cl::sycl::nd_range<3>(gridSize, blockSize),
+           [=] (cl::sycl::nd_item<3> itm) {
 
-             Index_type tx = itm.get_local_id(0);
+             Index_type tx = itm.get_local_id(2);
              Index_type ty = itm.get_local_id(1);
-             Index_type bx = itm.get_group(0);
+             Index_type bx = itm.get_group(2);
              Index_type by = itm.get_group(1);
 
              MAT_MAT_SHARED_BODY_1(tile_size)
@@ -93,11 +94,11 @@ void MAT_MAT_SHARED::runSyclVariantImpl(VariantID vid)
 
     using launch_policy = RAJA::LaunchPolicy<RAJA::sycl_launch_t<async>>;
 
-    using teams_x = RAJA::LoopPolicy<RAJA::sycl_group_0_direct>;
+    using teams_x = RAJA::LoopPolicy<RAJA::sycl_group_2_direct>;
 
     using teams_y = RAJA::LoopPolicy<RAJA::sycl_group_1_direct>;
 
-    using threads_x = RAJA::LoopPolicy<RAJA::sycl_local_0_direct>;
+    using threads_x = RAJA::LoopPolicy<RAJA::sycl_local_2_direct>;
 
     using threads_y = RAJA::LoopPolicy<RAJA::sycl_local_1_direct>;
 
