@@ -31,8 +31,8 @@ void MASS3DPA::runSyclVariantImpl(VariantID vid) {
 
   MASS3DPA_DATA_SETUP;
 
-  const ::sycl::range<3> blockSize(MPA_Q1D, MPA_Q1D, 1);
-  const ::sycl::range<3> gridSize(NE*MPA_Q1D,MPA_Q1D,1);
+  const ::sycl::range<3> blockSize(1, MPA_Q1D, MPA_Q1D);
+  const ::sycl::range<3> gridSize(1, MPA_Q1D, MPA_Q1D*NE);
 
   switch (vid) {
 
@@ -55,7 +55,7 @@ void MASS3DPA::runSyclVariantImpl(VariantID vid) {
           (cl::sycl::nd_range<3>(gridSize, blockSize),
            [=] (cl::sycl::nd_item<3> itm) {
 
-             const Index_type e = itm.get_group(0);
+             const Index_type e = itm.get_group(2);
 
              double *sDQ = sDQ_vec.get_multi_ptr<::sycl::access::decorated::yes>().get();
              double *sm0 = sm0_vec.get_multi_ptr<::sycl::access::decorated::yes>().get();
@@ -72,56 +72,56 @@ void MASS3DPA::runSyclVariantImpl(VariantID vid) {
              double(*QDD)[MD1][MD1] = (double(*)[MD1][MD1])sm1;
 
              SYCL_FOREACH_THREAD(dy, 1, MPA_D1D) {
-               SYCL_FOREACH_THREAD(dx, 0, MPA_D1D){
+               SYCL_FOREACH_THREAD(dx, 2, MPA_D1D){
                  MASS3DPA_1
                }
-               SYCL_FOREACH_THREAD(dx, 0, MPA_Q1D) {
+               SYCL_FOREACH_THREAD(dx, 2, MPA_Q1D) {
                  MASS3DPA_2
                }
              }
              itm.barrier(::sycl::access::fence_space::local_space);
              SYCL_FOREACH_THREAD(dy, 1, MPA_D1D) {
-               SYCL_FOREACH_THREAD(qx, 0, MPA_Q1D) {
+               SYCL_FOREACH_THREAD(qx, 2, MPA_Q1D) {
                  MASS3DPA_3
                }
              }
              itm.barrier(::sycl::access::fence_space::local_space);
              SYCL_FOREACH_THREAD(qy, 1, MPA_Q1D) {
-               SYCL_FOREACH_THREAD(qx, 0, MPA_Q1D) {
+               SYCL_FOREACH_THREAD(qx, 2, MPA_Q1D) {
                  MASS3DPA_4
                }
              }
              itm.barrier(::sycl::access::fence_space::local_space);
              SYCL_FOREACH_THREAD(qy, 1, MPA_Q1D) {
-               SYCL_FOREACH_THREAD(qx, 0, MPA_Q1D) {
+               SYCL_FOREACH_THREAD(qx, 2, MPA_Q1D) {
                  MASS3DPA_5
                }
              }
 
              itm.barrier(::sycl::access::fence_space::local_space);
              SYCL_FOREACH_THREAD(d, 1, MPA_D1D) {
-               SYCL_FOREACH_THREAD(q, 0, MPA_Q1D) {
+               SYCL_FOREACH_THREAD(q, 2, MPA_Q1D) {
                  MASS3DPA_6
                }
              }
 
              itm.barrier(::sycl::access::fence_space::local_space);
              SYCL_FOREACH_THREAD(qy, 1, MPA_Q1D) {
-               SYCL_FOREACH_THREAD(dx, 0, MPA_D1D) {
+               SYCL_FOREACH_THREAD(dx, 2, MPA_D1D) {
                  MASS3DPA_7
                }
              }
              itm.barrier(::sycl::access::fence_space::local_space);
 
              SYCL_FOREACH_THREAD(dy, 1, MPA_D1D) {
-               SYCL_FOREACH_THREAD(dx, 0, MPA_D1D) {
+               SYCL_FOREACH_THREAD(dx, 2, MPA_D1D) {
                  MASS3DPA_8
                }
              }
 
              itm.barrier(::sycl::access::fence_space::local_space);
              SYCL_FOREACH_THREAD(dy, 1, MPA_D1D) {
-               SYCL_FOREACH_THREAD(dx, 0, MPA_D1D) {
+               SYCL_FOREACH_THREAD(dx, 2, MPA_D1D) {
                  MASS3DPA_9
                }
              }
@@ -141,9 +141,9 @@ void MASS3DPA::runSyclVariantImpl(VariantID vid) {
 
     using launch_policy = RAJA::LaunchPolicy<RAJA::sycl_launch_t<async>>;
 
-    using outer_x = RAJA::LoopPolicy<RAJA::sycl_group_0_direct>;
+    using outer_x = RAJA::LoopPolicy<RAJA::sycl_group_2_direct>;
 
-    using inner_x = RAJA::LoopPolicy<RAJA::sycl_local_0_direct>;
+    using inner_x = RAJA::LoopPolicy<RAJA::sycl_local_2_direct>;
 
     using inner_y = RAJA::LoopPolicy<RAJA::sycl_local_1_direct>;
 
@@ -163,7 +163,7 @@ void MASS3DPA::runSyclVariantImpl(VariantID vid) {
 
       RAJA::launch<launch_policy>( res,
         RAJA::LaunchParams(RAJA::Teams(NE),
-                           RAJA::Threads(MPA_Q1D, MPA_Q1D, 1), shmem),
+                           RAJA::Threads(MPA_Q1D, MPA_Q1D), shmem),
         [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
 
           RAJA::loop<outer_x>(ctx, RAJA::RangeSegment(0, NE),
