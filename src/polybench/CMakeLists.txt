@@ -21,6 +21,7 @@ blt_add_library(
           POLYBENCH_3MM-Cuda.cpp
           POLYBENCH_3MM-OMP.cpp
           POLYBENCH_3MM-OMPTarget.cpp
+          POLYBENCH_3MM-Sycl.cpp
           POLYBENCH_ADI.cpp
           POLYBENCH_ADI-Seq.cpp
           POLYBENCH_ADI-Hip.cpp
@@ -33,12 +34,14 @@ blt_add_library(
           POLYBENCH_ATAX-Cuda.cpp
           POLYBENCH_ATAX-OMP.cpp
           POLYBENCH_ATAX-OMPTarget.cpp
+          POLYBENCH_ATAX-Sycl.cpp
           POLYBENCH_FDTD_2D.cpp
           POLYBENCH_FDTD_2D-Seq.cpp
           POLYBENCH_FDTD_2D-Hip.cpp
           POLYBENCH_FDTD_2D-Cuda.cpp
           POLYBENCH_FDTD_2D-OMP.cpp
           POLYBENCH_FDTD_2D-OMPTarget.cpp
+          POLYBENCH_FDTD_2D-Sycl.cpp
           POLYBENCH_FLOYD_WARSHALL.cpp
           POLYBENCH_FLOYD_WARSHALL-Seq.cpp
           POLYBENCH_FLOYD_WARSHALL-Hip.cpp
@@ -69,6 +72,7 @@ blt_add_library(
           POLYBENCH_HEAT_3D-Cuda.cpp
           POLYBENCH_HEAT_3D-OMP.cpp
           POLYBENCH_HEAT_3D-OMPTarget.cpp
+          POLYBENCH_HEAT_3D-Sycl.cpp
           POLYBENCH_JACOBI_1D.cpp
           POLYBENCH_JACOBI_1D-Seq.cpp
           POLYBENCH_JACOBI_1D-Hip.cpp

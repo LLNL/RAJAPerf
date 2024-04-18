@@ -28,10 +28,11 @@ namespace polybench
 #define in_wg_sz (32)
 #define out_wg_sz (work_group_size / in_wg_sz)
 
+
 template <size_t work_group_size >
 void POLYBENCH_2MM::runSyclVariantImpl(VariantID vid)
 {
-  const unsigned long run_reps = getRunReps();
+  const Index_type run_reps = getRunReps();
 
   auto res{getSyclResource()};
   auto qu = res.get_queue();
