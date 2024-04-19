@@ -9,6 +9,8 @@
 #ifndef RAJAPerf_AppsData_HPP
 #define RAJAPerf_AppsData_HPP
 
+#include <ostream>
+
 #include "common/RPTypes.hpp"
 
 namespace rajaperf
@@ -130,6 +132,8 @@ public:
    Index_type  n_real_zones;
    Index_type  n_real_nodes;
 };
+
+std::ostream& operator<<(std::ostream& stream, const ADomain& domain);
 
 //
 // Routines for initializing real zone indices for 2d/3d domains.

@@ -16,6 +16,40 @@ namespace rajaperf
 namespace apps
 {
 
+
+std::ostream& operator<<(std::ostream& stream, const ADomain& domain)
+{
+   return stream
+
+     << "ADomain"
+
+     << " ndims " << domain.ndims
+     << " NPNL " << domain.NPNL
+     << " NPNR " << domain.NPNR
+
+     << " imin " << domain.imin
+     << " jmin " << domain.jmin
+     << " kmin " << domain.kmin
+     << " imax " << domain.imax
+     << " jmax " << domain.jmax
+     << " kmax " << domain.kmax
+
+     << " jp " << domain.jp
+     << " kp " << domain.kp
+     << " nnalls " << domain.nnalls
+
+     << " fpn " << domain.fpn
+     << " lpn " << domain.lpn
+     << " frn " << domain.frn
+     << " lrn " << domain.lrn
+
+     << " fpz " << domain.fpz
+     << " lpz " << domain.lpz
+
+     << " n_real_zones " << domain.n_real_zones
+     << " n_real_nodes " << domain.n_real_nodes ;
+}
+
 //
 // Set zone indices for 2d mesh.
 //
