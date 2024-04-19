@@ -38,10 +38,10 @@ void setRealZones_2d(Index_type* real_zones,
 
   for (Index_type j = jmin; j < jmax; j++) {
      for (Index_type i = imin; i < imax; i++) {
-        Index_type ip = i + j*jp ;
+        Index_type iz = i + j*jp ;
 
-        Index_type id = (i-imin) + (j-jmin)*j_stride ;
-        real_zones[id] = ip;
+        Index_type il = (i-imin) + (j-jmin)*j_stride ;
+        real_zones[il] = iz;
      }
   }
 }
@@ -73,10 +73,10 @@ void setRealZones_3d(Index_type* real_zones,
   for (Index_type k = kmin; k < kmax; k++) {
      for (Index_type j = jmin; j < jmax; j++) {
         for (Index_type i = imin; i < imax; i++) {
-           Index_type ip = i + j*jp + k*kp ;
+           Index_type iz = i + j*jp + k*kp ;
 
-           Index_type id = (i-imin) + (j-jmin)*j_stride + (k-kmin)*k_stride ;
-           real_zones[id] = ip;
+           Index_type il = (i-imin) + (j-jmin)*j_stride + (k-kmin)*k_stride ;
+           real_zones[il] = iz;
         }
      }
   }
