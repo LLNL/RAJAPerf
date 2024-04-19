@@ -80,7 +80,7 @@ public:
 
       if ( ndims >= 3 ) {
          kmin = NPNL;
-         kmax = NPNL + rzmax-1;
+         kmax = NPNL + real_nodes_per_dim-1;
          kp = nnalls;
          nnalls *= (kmax+1 - kmin + NPNL + NPNR);
          n_real_zones *= (kmax - kmin);
