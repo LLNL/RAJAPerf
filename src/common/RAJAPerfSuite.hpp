@@ -164,6 +164,7 @@ enum KernelID {
   Algorithm_REDUCE_SUM,
   Algorithm_MEMSET,
   Algorithm_MEMCPY,
+  Algorithm_ATOMIC,
 
 //
 // Comm kernels...
@@ -215,6 +216,9 @@ enum VariantID {
   RAJA_HIP,
 
   Kokkos_Lambda,
+
+  Base_SYCL,
+  RAJA_SYCL,
 
   NumVariants // Keep this one last and NEVER comment out (!!)
 
@@ -296,6 +300,10 @@ enum struct DataSpace {
   HipManagedAdviseCoarse,
   HipDevice,
   HipDeviceFine,
+
+  SyclPinned,
+  SyclManaged,
+  SyclDevice,
 
   NumSpaces, // Keep this one here and NEVER comment out (!!)
 

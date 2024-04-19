@@ -381,6 +381,7 @@ public:
 
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
+
   template < size_t block_size >
   void runCudaVariantImpl(VariantID vid);
   template < size_t block_size >
@@ -388,7 +389,7 @@ public:
 
 private:
   static const size_t default_gpu_block_size = CPA_Q1D * CPA_Q1D * CPA_Q1D;
-  using gpu_block_sizes_type = gpu_block_size::list_type<default_gpu_block_size>;
+  using gpu_block_sizes_type = integer::list_type<default_gpu_block_size>;
 
   Real_ptr m_B;
   Real_ptr m_Bt;

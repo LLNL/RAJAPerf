@@ -104,6 +104,7 @@
 #include "algorithm/REDUCE_SUM.hpp"
 #include "algorithm/MEMSET.hpp"
 #include "algorithm/MEMCPY.hpp"
+#include "algorithm/ATOMIC.hpp"
 
 //
 // Comm kernels...
@@ -254,6 +255,7 @@ static const std::string KernelNames [] =
   std::string("Algorithm_REDUCE_SUM"),
   std::string("Algorithm_MEMSET"),
   std::string("Algorithm_MEMCPY"),
+  std::string("Algorithm_ATOMIC"),
 
 //
 // Comm kernels...
@@ -306,6 +308,9 @@ static const std::string VariantNames [] =
   std::string("RAJA_HIP"),
 
   std::string("Kokkos_Lambda"),
+
+  std::string("Base_SYCL"),
+  std::string("RAJA_SYCL"),
 
   std::string("Unknown Variant")  // Keep this at the end and DO NOT remove....
 
@@ -387,6 +392,10 @@ static const std::string DataSpaceNames [] =
   std::string("HipManagedAdviseCoarse"),
   std::string("HipDevice"),
   std::string("HipDeviceFine"),
+
+  std::string("SyclPinned"),
+  std::string("SyclManaged"),
+  std::string("SyclDevice"),
 
   std::string("Unknown Memory"), // Keep this at the end and DO NOT remove....
 
@@ -509,6 +518,13 @@ bool isVariantAvailable(VariantID vid)
   }
 #endif
 
+#if defined(RAJA_ENABLE_SYCL)
+  if ( vid == Base_SYCL ||
+       vid == RAJA_SYCL ) {
+    ret_val = true;
+  }
+#endif
+
   return ret_val;
 }
 
@@ -570,6 +586,13 @@ bool isVariantGPU(VariantID vid)
   }
 #endif
 
+#if defined(RAJA_ENABLE_SYCL)
+  if ( vid == Base_SYCL ||
+       vid == RAJA_SYCL ) {
+    ret_val = true;
+  }
+#endif
+
   return ret_val;
 }
 
@@ -610,17 +633,24 @@ bool isDataSpaceAvailable(DataSpace dataSpace)
   bool ret_val = false;
 
   switch (dataSpace) {
-    case DataSpace::Host:
-      ret_val = true; break;
+
+    case DataSpace::Host: {
+      ret_val = true;
+      break;
+    }
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-    case DataSpace::Omp:
-      ret_val = true; break;
+    case DataSpace::Omp: {
+      ret_val = true;
+      break;
+    }
 #endif
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
-    case DataSpace::OmpTarget:
-      ret_val = true; break;
+    case DataSpace::OmpTarget: {
+      ret_val = true;
+      break;
+    }
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
@@ -630,8 +660,10 @@ bool isDataSpaceAvailable(DataSpace dataSpace)
     case DataSpace::CudaManagedDevicePreferred:
     case DataSpace::CudaManagedHostPreferredDeviceAccessed:
     case DataSpace::CudaManagedDevicePreferredHostAccessed:
-    case DataSpace::CudaDevice:
-      ret_val = true; break;
+    case DataSpace::CudaDevice: {
+      ret_val = true;
+      break;
+    }
 #endif
 
 #if defined(RAJA_ENABLE_HIP)
@@ -648,13 +680,27 @@ bool isDataSpaceAvailable(DataSpace dataSpace)
     case DataSpace::HipManagedAdviseCoarse:
 #endif
     case DataSpace::HipDevice:
-    case DataSpace::HipDeviceFine:
-      ret_val = true; break;
+    case DataSpace::HipDeviceFine: {
+      ret_val = true;
+      break;
+    } 
 #endif
 
-    default:
-      ret_val = false; break;
-  }
+#if defined(RAJA_ENABLE_SYCL)
+    case DataSpace::SyclPinned:
+    case DataSpace::SyclManaged:
+    case DataSpace::SyclDevice: {
+      ret_val = true;
+      break;
+    }
+#endif
+
+    default: {
+      ret_val = false;
+      break;
+    }
+
+  } // close switch (dataSpace)
 
   return ret_val;
 }
@@ -671,10 +717,16 @@ bool isPseudoDataSpace(DataSpace dataSpace)
   bool ret_val = false;
 
   switch (dataSpace) {
-    case DataSpace::Copy:
-      ret_val = true; break;
-    default:
-      ret_val = false; break;
+
+    case DataSpace::Copy: {
+      ret_val = true;
+      break;
+    }
+    default: {
+      ret_val = false;
+      break;
+    }
+
   }
 
   return ret_val;
@@ -986,6 +1038,10 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new algorithm::MEMCPY(run_params);
        break;
     }
+    case Algorithm_ATOMIC: {
+       kernel = new algorithm::ATOMIC(run_params);
+       break;
+    }
 
 //
 // Comm kernels...
@@ -1021,6 +1077,7 @@ KernelBase* getKernelObject(KernelID kid,
 
   return kernel;
 }
+
 
 // subclass of streambuf that ignores overflow
 // never printing anything to the underlying stream

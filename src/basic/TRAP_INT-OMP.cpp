@@ -10,26 +10,14 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include "TRAP_INT-func.hpp"
+
 #include <iostream>
 
 namespace rajaperf
 {
 namespace basic
 {
-
-//
-// Function used in TRAP_INT loop.
-//
-RAJA_INLINE
-Real_type trap_int_func(Real_type x,
-                        Real_type y,
-                        Real_type xp,
-                        Real_type yp)
-{
-   Real_type denom = (x - xp)*(x - xp) + (y - yp)*(y - yp);
-   denom = 1.0/sqrt(denom);
-   return denom;
-}
 
 
 void TRAP_INT::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

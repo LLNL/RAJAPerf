@@ -201,7 +201,7 @@ multiple versions of GPU kernels that will run with different GPU thread-block
 sizes. The CMake option for this is 
 ``-DRAJA_PERFSUITE_GPU_BLOCKSIZES=<list,of,block,sizes>``. For example::
 
-  $ mkdir my-gnu-build
+  $ mkdir my-gpu-build
   $ cd my-gpu-build
   $ cmake <cmake args> \
     -DRAJA_PERFSUITE_GPU_BLOCKSIZES=64,128,256,512,1024 \
@@ -210,6 +210,41 @@ sizes. The CMake option for this is
 
 will build versions of GPU kernels that use 64, 128, 256, 512, and 1024 threads
 per GPU thread-block.
+
+Building with specific GPU atomic replication tunings
+-----------------------------------------------------
+
+If desired, you can build a version of the RAJA Performance Suite code with
+multiple versions of GPU kernels that will run with different GPU atomic
+replication amounts. The CMake option for this is
+``-DRAJA_PERFSUITE_ATOMIC_REPLICATIONS=<list,of,atomic,replication,amounts>``. For example::
+
+  $ mkdir my-gpu-build
+  $ cd my-gpu-build
+  $ cmake <cmake args> \
+    -DRAJA_PERFSUITE_ATOMIC_REPLICATIONS=1,256,4096 \
+    ..
+  $ make -j
+
+will build versions of GPU kernels that use 1, 256, and 4096 atomic
+replications.
+
+Building with specific GPU items per thread tunings
+-----------------------------------------------------
+
+If desired, you can build a version of the RAJA Performance Suite code with
+multiple versions of GPU kernels that will run with different GPU items per
+thread amounts. The CMake option for this is
+``-DRAJA_PERFSUITE_GPU_ITEMS_PER_THREAD=<list,of,items,per,thread,amounts>``. For example::
+
+  $ mkdir my-gpu-build
+  $ cd my-gpu-build
+  $ cmake <cmake args> \
+    -DRAJA_PERFSUITE_GPU_ITEMS_PER_THREAD=1,2,4,8 \
+    ..
+  $ make -j
+
+will build versions of GPU kernels that use 1, 2, 4, and 8 items per thread.
 
 Building with Caliper
 ---------------------

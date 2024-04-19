@@ -168,8 +168,20 @@ Executor::Executor(int argc, char** argv)
   if (strlen(cc.adiak_cmake_hip_architectures) > 0) {
     adiak::value("cmake_hip_architectures", cc.adiak_cmake_hip_architectures);
   }
-  if (cc.adiak_gpu_targets_block_sizes.size() > 0) {
-    adiak::value("gpu_targets_block_sizes", cc.adiak_gpu_targets_block_sizes);
+  if (strlen(cc.adiak_tuning_cuda_arch) > 0) {
+    adiak::value("tuning_cuda_arch", cc.adiak_tuning_cuda_arch);
+  }
+  if (strlen(cc.adiak_tuning_hip_arch) > 0) {
+    adiak::value("tuning_hip_arch", cc.adiak_tuning_hip_arch);
+  }
+  if (cc.adiak_gpu_block_sizes.size() > 0) {
+    adiak::value("gpu_block_sizes", cc.adiak_gpu_block_sizes);
+  }
+  if (cc.adiak_atomic_replications.size() > 0) {
+    adiak::value("atomic_replications", cc.adiak_atomic_replications);
+  }
+  if (cc.adiak_gpu_items_per_thread.size() > 0) {
+    adiak::value("gpu_items_per_thread", cc.adiak_gpu_items_per_thread);
   }
   if (cc.adiak_raja_hipcc_flags.size() > 0) {
     adiak::value("raja_hipcc_flags", cc.adiak_raja_hipcc_flags);
@@ -418,6 +430,9 @@ void Executor::reportRunSummary(ostream& str) const
     }
     if (isVariantAvailable(VariantID::Base_HIP)) {
       str << "\nHip - " << getDataSpaceName(run_params.getHipDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Base_SYCL)) {
+      str << "\nSycl - " << getDataSpaceName(run_params.getSyclDataSpace());
     }
     if (isVariantAvailable(VariantID::Kokkos_Lambda)) {
       str << "\nKokkos - " << getDataSpaceName(run_params.getKokkosDataSpace());
