@@ -49,6 +49,7 @@ blt_add_library(
           POLYBENCH_FLOYD_WARSHALL-Cuda.cpp
           POLYBENCH_FLOYD_WARSHALL-OMP.cpp
           POLYBENCH_FLOYD_WARSHALL-OMPTarget.cpp
+          POLYBENCH_FLOYD_WARSHALL-Sycl.cpp
           POLYBENCH_GEMM.cpp
           POLYBENCH_GEMM-Seq.cpp
           POLYBENCH_GEMM-Hip.cpp
