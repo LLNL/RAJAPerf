@@ -44,11 +44,13 @@ void POLYBENCH_ATAX::runSyclVariantImpl(VariantID vid)
 
           Index_type i = item.get_global_id(0);
 
-          POLYBENCH_ATAX_BODY1;
-          for (Index_type j = 0; j < N; ++j ) {
-            POLYBENCH_ATAX_BODY2;
+          if (i < N) {
+            POLYBENCH_ATAX_BODY1;
+            for (Index_type j = 0; j < N; ++j ) {
+              POLYBENCH_ATAX_BODY2;
+            }
+            POLYBENCH_ATAX_BODY3;
           }
-          POLYBENCH_ATAX_BODY3;
 
         });
       });
@@ -59,11 +61,13 @@ void POLYBENCH_ATAX::runSyclVariantImpl(VariantID vid)
 
           Index_type j = item.get_global_id(0);
 
-          POLYBENCH_ATAX_BODY4;
-          for (Index_type i = 0; i < N; ++i ) {
-            POLYBENCH_ATAX_BODY5;
+          if (j < N) {
+            POLYBENCH_ATAX_BODY4;
+            for (Index_type i = 0; i < N; ++i ) {
+              POLYBENCH_ATAX_BODY5;
+            }
+            POLYBENCH_ATAX_BODY6;
           }
-          POLYBENCH_ATAX_BODY6;
 
         });
       });
@@ -77,7 +81,11 @@ void POLYBENCH_ATAX::runSyclVariantImpl(VariantID vid)
 
     using EXEC_POL1 =
       RAJA::KernelPolicy<
+#if 0
         RAJA::statement::SyclKernelAsync<
+#else
+        RAJA::statement::SyclKernel<
+#endif
           RAJA::statement::For<0, RAJA::sycl_global_0<work_group_size>,
             RAJA::statement::Lambda<0, RAJA::Segs<0>, RAJA::Params<0>>,
             RAJA::statement::For<1, RAJA::seq_exec,
@@ -90,7 +98,11 @@ void POLYBENCH_ATAX::runSyclVariantImpl(VariantID vid)
 
     using EXEC_POL2 =
       RAJA::KernelPolicy<
+#if 0
         RAJA::statement::SyclKernelAsync<
+#else
+        RAJA::statement::SyclKernel<
+#endif
           RAJA::statement::For<1, RAJA::sycl_global_0<work_group_size>,
             RAJA::statement::Lambda<0, RAJA::Segs<1>, RAJA::Params<0>>,
             RAJA::statement::For<0, RAJA::seq_exec,

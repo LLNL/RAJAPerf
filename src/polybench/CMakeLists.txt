@@ -28,6 +28,7 @@ blt_add_library(
           POLYBENCH_ADI-Cuda.cpp
           POLYBENCH_ADI-OMP.cpp
           POLYBENCH_ADI-OMPTarget.cpp
+          POLYBENCH_ADI-Sycl.cpp
           POLYBENCH_ATAX.cpp
           POLYBENCH_ATAX-Seq.cpp
           POLYBENCH_ATAX-Hip.cpp

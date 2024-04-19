@@ -119,7 +119,11 @@ void POLYBENCH_FDTD_2D::runSyclVariantImpl(VariantID vid)
 
     using EXEC_POL234 =
       RAJA::KernelPolicy<
+#if 0
         RAJA::statement::SyclKernelAsync<
+#else
+        RAJA::statement::SyclKernel<
+#endif
           RAJA::statement::For<0, RAJA::sycl_global_0<i_wg_sz>,
             RAJA::statement::For<1, RAJA::sycl_global_1<j_wg_sz>,
               RAJA::statement::Lambda<0>
