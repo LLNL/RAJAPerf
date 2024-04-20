@@ -187,6 +187,15 @@ then
     rm -rf ${build_dir} 2>/dev/null
     mkdir -p ${build_dir} && cd ${build_dir}
 
+    # We set the MPI tests command to allow overlapping.
+    # Shared allocation: Allows build_and_test.sh to run within a sub-allocation (see CI config).
+    # Use /dev/shm: Prevent MPI tests from running on a node where the build dir doesn't exist.
+    cmake_options=""
+    if [[ "${truehostname}" == "ruby" || "${truehostname}" == "poodle" ]]
+    then
+        cmake_options="-DBLT_MPI_COMMAND_APPEND:STRING=--overlap"
+    fi
+
     date
     if [[ "${truehostname}" == "corona"  || "${truehostname}" == "tioga" ]]
     then
@@ -194,6 +203,7 @@ then
     fi
     $cmake_exe \
       -C ${hostconfig_path} \
+      ${cmake_options} \
       ${project_dir}
     if ! $cmake_exe --build . -j ${core_counts[$truehostname]}
     then
