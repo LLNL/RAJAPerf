@@ -673,7 +673,7 @@ using float_sw4 = double;
 #define mu(i, j, k) a_mu[base + (i) + ni * (j) + nij * (k)]
 #define la(i, j, k) a_lambda[base + (i) + ni * (j) + nij * (k)]
 #define jac(i, j, k) a_jac[base + (i) + ni * (j) + nij * (k)]
-#define u(c, i, j, k) a_u[base3 + (i) + ni * (j) + nij * (k) + nijk * (c)]
+#define swck4_u(c, i, j, k) a_u[base3 + (i) + ni * (j) + nij * (k) + nijk * (c)]
 #define lu(c, i, j, k) a_lu[base3 + (i) + ni * (j) + nij * (k) + nijk * (c)]
 #define met(c, i, j, k) a_met[base4 + (i) + ni * (j) + nij * (k) + nijk * (c)]
 #define strx(i) a_strx[i - ifirst0]
@@ -1348,8 +1348,7 @@ for (int m = nk - 7; m <= nk; m++) {                                    \
 
   private:
     static const size_t default_gpu_block_size = 256;
-    using gpu_block_sizes_type =
-        gpu_block_size::make_list_type<default_gpu_block_size>;
+    using gpu_block_sizes_type = integer::list_type<default_gpu_block_size>;
 
     Real_ptr m_a_mu;
     Real_ptr m_a_lambda;

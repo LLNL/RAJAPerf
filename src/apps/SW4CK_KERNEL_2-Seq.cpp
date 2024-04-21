@@ -25,17 +25,6 @@ void SW4CK_KERNEL_2::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
   const Index_type run_reps = getRunReps();
 
   //To be populated later with
-  const int istart = 0;
-  const int ifirst = 0;
-  const int ilast = 1;
-  const int jstart = 0;
-  const int jfirst = 0;
-  const int jend = 0; 
-  const int jlast = 1;
-  const int kfirst = 0;
-  const int kstart = 0;
-  const int klast = 1;
-  const int kend = 1;
 
   char op = '=';
   

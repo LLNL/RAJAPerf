@@ -1,4 +1,3 @@
-
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
@@ -397,6 +396,18 @@ using float_sw4 = double;
     sgn = -1;                                               \
   }                                                         \
                                                             \
+  const int istart = m_istart;                              \
+  const int ifirst = m_first;                               \
+  const int ilast = m_ilast;                                \
+  const int jstart = m_jstart;                              \
+  const int jfirst = m_jfirst;                              \
+  const int jend = m_jend;                                  \
+  const int jlast = m_jlast;                                \
+  const int kfirst = m_kfirst;                              \
+  const int kstart = m_kstart;                              \
+  const int klast = m_klast;                                \
+  const int kend = m_kend;                                  \
+                                                            \
   const float_sw4 i6 = 1.0 / 6;                             \
   const float_sw4 tf = 0.75;                                \
   const float_sw4 c1 = 2.0 / 3;                             \
@@ -421,9 +432,9 @@ using float_sw4 = double;
   Real_ptr a_stry = m_a_stry;
 /*
   Real_ptr a_acof = m_a_acof;                                  \
-  Real_ptr a_bope = m_a_bope;                               \ 
-  Real_ptr a_ghcof = m_a_ghcof;                             \ 
-  Real_ptr a_acof_no_gp = m_a_acof_no_gp;      \ 
+  Real_ptr a_bope = m_a_bope;                               \
+  Real_ptr a_ghcof = m_a_ghcof;                             \
+  Real_ptr a_acof_no_gp = m_a_acof_no_gp;      \
   Real_ptr a_ghcof_no_gp = m_a_ghcof_no_gp;
 */
 
@@ -885,8 +896,7 @@ using float_sw4 = double;
 
   private:
     static const size_t default_gpu_block_size = 256;
-    using gpu_block_sizes_type =
-        gpu_block_size::make_list_type<default_gpu_block_size>;
+    using gpu_block_sizes_type = integer::list_type<default_gpu_block_size>;
 
     Real_ptr m_a_mu;
     Real_ptr m_a_lambda;
@@ -901,6 +911,18 @@ using float_sw4 = double;
     Real_ptr m_a_ghcof;
     Real_ptr m_a_acof_no_gp;
     Real_ptr m_a_ghcof_no_gp;
+
+    const int m_istart;
+    const int m_first;
+    const int m_ilast;
+    const int m_jstart;
+    const int m_jfirst;
+    const int m_jend;
+    const int m_jlast;
+    const int m_kfirst;
+    const int m_kstart;
+    const int m_klast;
+    const int m_kend;
 
   };
 
