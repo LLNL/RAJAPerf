@@ -21,7 +21,7 @@ blt_add_library(
           DEL_DOT_VEC_2D-Cuda.cpp 
           DEL_DOT_VEC_2D-OMP.cpp 
           DEL_DOT_VEC_2D-OMPTarget.cpp 
-	  DEL_DOT_VEC_2D-Sycl.cpp 
+      	  DEL_DOT_VEC_2D-Sycl.cpp 
           DIFFUSION3DPA.cpp
           DIFFUSION3DPA-Cuda.cpp
           DIFFUSION3DPA-Hip.cpp
@@ -86,7 +86,11 @@ blt_add_library(
           PRESSURE-Cuda.cpp 
           PRESSURE-OMP.cpp 
           PRESSURE-OMPTarget.cpp 
-          PRESSURE-Sycl.cpp 
+          PRESSURE-Sycl.cpp
+          SW4CK_KERNEL_2.cpp
+          SW4CK_KERNEL_2-Seq.cpp
+          SW4CK_KERNEL_5.cpp
+          SW4CK_KERNEL_5-Seq.cpp
           VOL3D.cpp
           VOL3D-Seq.cpp
           VOL3D-Hip.cpp 

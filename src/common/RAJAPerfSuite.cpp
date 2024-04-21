@@ -92,6 +92,8 @@
 #include "apps/MASS3DPA.hpp"
 #include "apps/NODAL_ACCUMULATION_3D.hpp"
 #include "apps/PRESSURE.hpp"
+#include "apps/SW4CK_KERNEL_2.hpp"
+#include "apps/SW4CK_KERNEL_5.hpp"
 #include "apps/VOL3D.hpp"
 #include "apps/ZONAL_ACCUMULATION_3D.hpp"
 
@@ -243,6 +245,8 @@ static const std::string KernelNames [] =
   std::string("Apps_MASS3DPA"),
   std::string("Apps_NODAL_ACCUMULATION_3D"),
   std::string("Apps_PRESSURE"),
+  std::string("Apps_SW4CK_KERNEL_2"),
+  std::string("Apps_SW4CK_KERNEL_5"),
   std::string("Apps_VOL3D"),
   std::string("Apps_ZONAL_ACCUMULATION_3D"),
 
@@ -813,10 +817,10 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new basic::REDUCE3_INT(run_params);
        break;
     }
-    case Basic_REDUCE_STRUCT : { 
+    case Basic_REDUCE_STRUCT : {
         kernel = new basic::REDUCE_STRUCT(run_params);
         break;
-    } 	
+    }
     case Basic_TRAP_INT : {
        kernel = new basic::TRAP_INT(run_params);
        break;
@@ -1000,6 +1004,14 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Apps_PRESSURE : {
        kernel = new apps::PRESSURE(run_params);
+       break;
+    }
+    case Apps_SW4CK_KERNEL_2 : {
+       kernel = new apps::SW4CK_KERNEL_2(run_params);
+       break;
+    }
+    case Apps_SW4CK_KERNEL_5 : {
+       kernel = new apps::SW4CK_KERNEL_5(run_params);
        break;
     }
     case Apps_VOL3D : {
