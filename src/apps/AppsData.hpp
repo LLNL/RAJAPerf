@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -8,6 +8,8 @@
 
 #ifndef RAJAPerf_AppsData_HPP
 #define RAJAPerf_AppsData_HPP
+
+#include <ostream>
 
 #include "common/RPTypes.hpp"
 
@@ -47,73 +49,61 @@ public:
 
    ADomain() = delete;
 
-   ADomain( Index_type rzmax, Index_type ndims ) 
+   ADomain( Index_type real_nodes_per_dim, Index_type ndims )
       : ndims(ndims), NPNL(2), NPNR(1)
    {
-      imin = NPNL;
-      jmin = NPNL;
-      imax = rzmax + NPNR;
-      jmax = rzmax + NPNR;
-      jp = imax - imin + 1 + NPNL + NPNR;
+      int NPZL = NPNL - 1;
+      int NPZR = NPNR+1 - 1;
 
-      if ( ndims == 2 ) {
+      if ( ndims >= 1 ) {
+         imin = NPNL;
+         imax = NPNL + real_nodes_per_dim-1;
+         nnalls = (imax+1 - imin + NPNL + NPNR);
+         n_real_zones = (imax - imin);
+         n_real_nodes = (imax+1 - imin);
+      } else {
+         imin = 0;
+         imax = 0;
+         nnalls = 0;
+      }
+
+      if ( ndims >= 2 ) {
+         jmin = NPNL;
+         jmax = NPNL + real_nodes_per_dim-1;
+         jp = nnalls;
+         nnalls *= (jmax+1 - jmin + NPNL + NPNR);
+         n_real_zones *= (jmax - jmin);
+         n_real_nodes *= (jmax+1 - jmin);
+      } else {
+         jmin = 0;
+         jmax = 0;
+         jp = 0;
+      }
+
+      if ( ndims >= 3 ) {
+         kmin = NPNL;
+         kmax = NPNL + real_nodes_per_dim-1;
+         kp = nnalls;
+         nnalls *= (kmax+1 - kmin + NPNL + NPNR);
+         n_real_zones *= (kmax - kmin);
+         n_real_nodes *= (kmax+1 - kmin);
+      } else {
          kmin = 0;
          kmax = 0;
          kp = 0;
-         nnalls = jp * (jmax - jmin + 1 + NPNL + NPNR) ;
-      } else if ( ndims == 3 ) {
-         kmin = NPNL;
-         kmax = rzmax + NPNR;
-         kp = jp * (jmax - jmin + 1 + NPNL + NPNR);
-         nnalls = kp * (kmax - kmin + 1 + NPNL + NPNR) ;
       }
 
-      fpn = 0;
-      lpn = nnalls - 1;
-      frn = fpn + NPNL * (kp + jp) + NPNL;
-      lrn = lpn - NPNR * (kp + jp) - NPNR;
+      frn = kmin*kp + jmin*jp + imin;
+      lrn = kmax*kp + jmax*jp + imax;
+      fpn = (kmin - NPNL)*kp + (jmin - NPNL)*jp + (imin - NPNL);
+      lpn = (kmax + NPNR)*kp + (jmax + NPNR)*jp + (imax + NPNR);
 
-      fpz = frn - jp - kp - 1;
-      lpz = lrn;
-
-      real_zones = new Index_type[nnalls];
-      for (Index_type i = 0; i < nnalls; ++i) real_zones[i] = -1;
-
-      n_real_zones = 0;
-
-      if ( ndims == 2 ) {
-
-         for (Index_type j = jmin; j < jmax; j++) {
-            for (Index_type i = imin; i < imax; i++) {
-               Index_type ip = i + j*jp ;
-
-               Index_type id = n_real_zones;
-               real_zones[id] = ip;
-               n_real_zones++;
-            }
-         }
-
-      } else if ( ndims == 3 ) {
-
-         for (Index_type k = kmin; k < kmax; k++) { 
-            for (Index_type j = jmin; j < jmax; j++) {
-               for (Index_type i = imin; i < imax; i++) {
-                  Index_type ip = i + j*jp + kp*k ;
-
-                  Index_type id = n_real_zones;
-                  real_zones[id] = ip;
-                  n_real_zones++;
-               }
-            }
-         } 
-
-      }
-
+      fpz = (kmin - NPZL)*kp + (jmin - NPZL)*jp + (imin - NPZL);
+      lpz = (kmax-1 + NPZR)*kp + (jmax-1 + NPZR)*jp + (imax-1 + NPZR);
    }
 
-   ~ADomain() 
+   ~ADomain()
    {
-      if (real_zones) delete [] real_zones; 
    }
 
    Index_type ndims;
@@ -139,9 +129,20 @@ public:
    Index_type fpz;
    Index_type lpz;
 
-   Index_type* real_zones;
    Index_type  n_real_zones;
+   Index_type  n_real_nodes;
 };
+
+std::ostream& operator<<(std::ostream& stream, const ADomain& domain);
+
+//
+// Routines for initializing real zone indices for 2d/3d domains.
+//
+void setRealZones_2d(Index_type* real_zones,
+                     const ADomain& domain);
+
+void setRealZones_3d(Index_type* real_zones,
+                     const ADomain& domain);
 
 //
 // Routines for initializing mesh positions for 2d/3d domains.

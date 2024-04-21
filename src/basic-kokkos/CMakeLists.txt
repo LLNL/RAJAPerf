@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors.
 # See the RAJAPerf/LICENSE file for details.
 #
@@ -12,6 +12,7 @@ blt_add_library(
   NAME basic-kokkos
   SOURCES
           PI_ATOMIC-Kokkos.cpp
+          ARRAY_OF_PTRS-Kokkos.cpp
           DAXPY-Kokkos.cpp
           IF_QUAD-Kokkos.cpp
           INIT3-Kokkos.cpp

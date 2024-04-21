@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -10,13 +10,15 @@
 
 #include "RunParams.hpp"
 
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
 #include <mpi.h>
 #endif
 
 //
 // Basic kernels...
 //
+#include "basic/ARRAY_OF_PTRS.hpp"
+#include "basic/COPY8.hpp"
 #include "basic/DAXPY.hpp"
 #include "basic/DAXPY_ATOMIC.hpp"
 #include "basic/IF_QUAD.hpp"
@@ -79,21 +81,21 @@
 // Apps kernels...
 //
 #include "apps/CONVECTION3DPA.hpp"
-#include "apps/WIP-COUPLE.hpp"
 #include "apps/DEL_DOT_VEC_2D.hpp"
 #include "apps/DIFFUSION3DPA.hpp"
+#include "apps/EDGE3D.hpp"
 #include "apps/ENERGY.hpp"
 #include "apps/FIR.hpp"
-#include "apps/HALOEXCHANGE.hpp"
-#include "apps/HALOEXCHANGE_FUSED.hpp"
 #include "apps/LTIMES.hpp"
 #include "apps/LTIMES_NOVIEW.hpp"
+#include "apps/MASS3DEA.hpp"
 #include "apps/MASS3DPA.hpp"
 #include "apps/NODAL_ACCUMULATION_3D.hpp"
 #include "apps/PRESSURE.hpp"
 #include "apps/SW4CK_KERNEL_2.hpp"
 #include "apps/SW4CK_KERNEL_5.hpp"
 #include "apps/VOL3D.hpp"
+#include "apps/ZONAL_ACCUMULATION_3D.hpp"
 
 //
 // Algorithm kernels...
@@ -104,6 +106,18 @@
 #include "algorithm/REDUCE_SUM.hpp"
 #include "algorithm/MEMSET.hpp"
 #include "algorithm/MEMCPY.hpp"
+#include "algorithm/ATOMIC.hpp"
+
+//
+// Comm kernels...
+//
+#include "comm/HALO_PACKING.hpp"
+#include "comm/HALO_PACKING_FUSED.hpp"
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+#include "comm/HALO_SENDRECV.hpp"
+#include "comm/HALO_EXCHANGE.hpp"
+#include "comm/HALO_EXCHANGE_FUSED.hpp"
+#endif
 
 
 #include <iostream>
@@ -119,7 +133,7 @@ namespace rajaperf
  * IMPORTANT: This is only modified when a group is added or removed.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
- *            ENUM OF GROUP IDS IN HEADER FILE!!!
+ *            ITEMS IN THE GroupID enum IN HEADER FILE!!!
  *
  *******************************************************************************
  */
@@ -131,6 +145,7 @@ static const std::string GroupNames [] =
   std::string("Stream"),
   std::string("Apps"),
   std::string("Algorithm"),
+  std::string("Comm"),
 
   std::string("Unknown Group")  // Keep this at the end and DO NOT remove....
 
@@ -145,7 +160,7 @@ static const std::string GroupNames [] =
  * IMPORTANT: This is only modified when a kernel is added or removed.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
- *            ENUM OF KERNEL IDS IN HEADER FILE!!!
+ *            ITEMS IN THE KernelID enum IN HEADER FILE!!! 
  *
  *******************************************************************************
  */
@@ -155,6 +170,8 @@ static const std::string KernelNames [] =
 //
 // Basic kernels...
 //
+  std::string("Basic_ARRAY_OF_PTRS"),
+  std::string("Basic_COPY8"),
   std::string("Basic_DAXPY"),
   std::string("Basic_DAXPY_ATOMIC"),
   std::string("Basic_IF_QUAD"),
@@ -217,21 +234,21 @@ static const std::string KernelNames [] =
 // Apps kernels...
 //
   std::string("Apps_CONVECTION3DPA"),
-  std::string("Apps_COUPLE"),
   std::string("Apps_DEL_DOT_VEC_2D"),
   std::string("Apps_DIFFUSION3DPA"),
+  std::string("Apps_EDGE3D"),
   std::string("Apps_ENERGY"),
   std::string("Apps_FIR"),
-  std::string("Apps_HALOEXCHANGE"),
-  std::string("Apps_HALOEXCHANGE_FUSED"),
   std::string("Apps_LTIMES"),
   std::string("Apps_LTIMES_NOVIEW"),
+  std::string("Apps_MASS3DEA"),
   std::string("Apps_MASS3DPA"),
   std::string("Apps_NODAL_ACCUMULATION_3D"),
   std::string("Apps_PRESSURE"),
   std::string("Apps_SW4CK_KERNEL_2"),
   std::string("Apps_SW4CK_KERNEL_5"),
   std::string("Apps_VOL3D"),
+  std::string("Apps_ZONAL_ACCUMULATION_3D"),
 
 //
 // Algorithm kernels...
@@ -242,6 +259,18 @@ static const std::string KernelNames [] =
   std::string("Algorithm_REDUCE_SUM"),
   std::string("Algorithm_MEMSET"),
   std::string("Algorithm_MEMCPY"),
+  std::string("Algorithm_ATOMIC"),
+
+//
+// Comm kernels...
+//
+  std::string("Comm_HALO_PACKING"),
+  std::string("Comm_HALO_PACKING_FUSED"),
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+  std::string("Comm_HALO_SENDRECV"),
+  std::string("Comm_HALO_EXCHANGE"),
+  std::string("Comm_HALO_EXCHANGE_FUSED"),
+#endif
 
   std::string("Unknown Kernel")  // Keep this at the end and DO NOT remove....
 
@@ -256,7 +285,7 @@ static const std::string KernelNames [] =
  * IMPORTANT: This is only modified when a new variant is added to the suite.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
- *            ENUM OF VARIANT IDS IN HEADER FILE!!!
+ *            ITEMS IN THE VariantID enum IN HEADER FILE!!!
  *
  *******************************************************************************
  */
@@ -284,6 +313,9 @@ static const std::string VariantNames [] =
 
   std::string("Kokkos_Lambda"),
 
+  std::string("Base_SYCL"),
+  std::string("RAJA_SYCL"),
+
   std::string("Unknown Variant")  // Keep this at the end and DO NOT remove....
 
 }; // END VariantNames
@@ -297,7 +329,7 @@ static const std::string VariantNames [] =
  * IMPORTANT: This is only modified when a new feature is used in suite.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
- *            ENUM OF FEATURE IDS IN HEADER FILE!!!
+ *            ITEMS IN THE FeatureID enum IN HEADER FILE!!!
  *
  *******************************************************************************
  */
@@ -317,9 +349,65 @@ static const std::string FeatureNames [] =
 
   std::string("View"),
 
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+  std::string("MPI"),
+#endif
+
   std::string("Unknown Feature")  // Keep this at the end and DO NOT remove....
 
 }; // END FeatureNames
+
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Array of names for each Memory Space in suite.
+ *
+ * IMPORTANT: This is only modified when a new memory space is added to the suite.
+ *
+ *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
+ *            ITEMS IN THE DataSpace enum IN HEADER FILE!!!
+ *
+ *******************************************************************************
+ */
+static const std::string DataSpaceNames [] =
+{
+  std::string("Host"),
+
+  std::string("Omp"),
+
+  std::string("OmpTarget"),
+
+  std::string("CudaPinned"),
+  std::string("CudaManaged"),
+  std::string("CudaManagedHostPreferred"),
+  std::string("CudaManagedDevicePreferred"),
+  std::string("CudaManagedHostPreferredDeviceAccessed"),
+  std::string("CudaManagedDevicePreferredHostAccessed"),
+  std::string("CudaDevice"),
+
+  std::string("HipHostAdviseFine"),
+  std::string("HipHostAdviseCoarse"),
+  std::string("HipPinned"),
+  std::string("HipPinnedFine"),
+  std::string("HipPinnedCoarse"),
+  std::string("HipManaged"),
+  std::string("HipManagedAdviseFine"),
+  std::string("HipManagedAdviseCoarse"),
+  std::string("HipDevice"),
+  std::string("HipDeviceFine"),
+
+  std::string("SyclPinned"),
+  std::string("SyclManaged"),
+  std::string("SyclDevice"),
+
+  std::string("Unknown Memory"), // Keep this at the end and DO NOT remove....
+
+  std::string("Copy"),
+
+  std::string("Unknown Memory")  // Keep this at the end and DO NOT remove....
+
+}; // END VariantNames
 
 
 /*
@@ -434,6 +522,13 @@ bool isVariantAvailable(VariantID vid)
   }
 #endif
 
+#if defined(RAJA_ENABLE_SYCL)
+  if ( vid == Base_SYCL ||
+       vid == RAJA_SYCL ) {
+    ret_val = true;
+  }
+#endif
+
   return ret_val;
 }
 
@@ -495,6 +590,13 @@ bool isVariantGPU(VariantID vid)
   }
 #endif
 
+#if defined(RAJA_ENABLE_SYCL)
+  if ( vid == Base_SYCL ||
+       vid == RAJA_SYCL ) {
+    ret_val = true;
+  }
+#endif
+
   return ret_val;
 }
 
@@ -508,6 +610,130 @@ bool isVariantGPU(VariantID vid)
 const std::string& getFeatureName(FeatureID fid)
 {
   return FeatureNames[fid];
+}
+
+
+/*
+ *******************************************************************************
+ *
+ * Return memory space name associated with DataSpace enum value.
+ *
+ *******************************************************************************
+ */
+const std::string& getDataSpaceName(DataSpace ds)
+{
+  return DataSpaceNames[static_cast<int>(ds)];
+}
+
+/*!
+ *******************************************************************************
+ *
+ * Return true if the allocator associated with DataSpace enum value is available.
+ *
+ *******************************************************************************
+ */
+bool isDataSpaceAvailable(DataSpace dataSpace)
+{
+  bool ret_val = false;
+
+  switch (dataSpace) {
+
+    case DataSpace::Host: {
+      ret_val = true;
+      break;
+    }
+
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+    case DataSpace::Omp: {
+      ret_val = true;
+      break;
+    }
+#endif
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+    case DataSpace::OmpTarget: {
+      ret_val = true;
+      break;
+    }
+#endif
+
+#if defined(RAJA_ENABLE_CUDA)
+    case DataSpace::CudaPinned:
+    case DataSpace::CudaManaged:
+    case DataSpace::CudaManagedHostPreferred:
+    case DataSpace::CudaManagedDevicePreferred:
+    case DataSpace::CudaManagedHostPreferredDeviceAccessed:
+    case DataSpace::CudaManagedDevicePreferredHostAccessed:
+    case DataSpace::CudaDevice: {
+      ret_val = true;
+      break;
+    }
+#endif
+
+#if defined(RAJA_ENABLE_HIP)
+    case DataSpace::HipHostAdviseFine:
+#if defined(RAJAPERF_USE_MEMADVISE_COARSE)
+    case DataSpace::HipHostAdviseCoarse:
+#endif
+    case DataSpace::HipPinned:
+    case DataSpace::HipPinnedFine:
+    case DataSpace::HipPinnedCoarse:
+    case DataSpace::HipManaged:
+    case DataSpace::HipManagedAdviseFine:
+#if defined(RAJAPERF_USE_MEMADVISE_COARSE)
+    case DataSpace::HipManagedAdviseCoarse:
+#endif
+    case DataSpace::HipDevice:
+    case DataSpace::HipDeviceFine: {
+      ret_val = true;
+      break;
+    } 
+#endif
+
+#if defined(RAJA_ENABLE_SYCL)
+    case DataSpace::SyclPinned:
+    case DataSpace::SyclManaged:
+    case DataSpace::SyclDevice: {
+      ret_val = true;
+      break;
+    }
+#endif
+
+    default: {
+      ret_val = false;
+      break;
+    }
+
+  } // close switch (dataSpace)
+
+  return ret_val;
+}
+
+/*!
+ *******************************************************************************
+ *
+ * Return true if the DataSpace enum value is a psuedo DataSpace.
+ *
+ *******************************************************************************
+ */
+bool isPseudoDataSpace(DataSpace dataSpace)
+{
+  bool ret_val = false;
+
+  switch (dataSpace) {
+
+    case DataSpace::Copy: {
+      ret_val = true;
+      break;
+    }
+    default: {
+      ret_val = false;
+      break;
+    }
+
+  }
+
+  return ret_val;
 }
 
 /*
@@ -527,6 +753,14 @@ KernelBase* getKernelObject(KernelID kid,
     //
     // Basic kernels...
     //
+    case Basic_ARRAY_OF_PTRS : {
+       kernel = new basic::ARRAY_OF_PTRS(run_params);
+       break;
+    }
+    case Basic_COPY8 : {
+       kernel = new basic::COPY8(run_params);
+       break;
+    }
     case Basic_DAXPY : {
        kernel = new basic::DAXPY(run_params);
        break;
@@ -727,16 +961,17 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::CONVECTION3DPA(run_params);
        break;
     }
-    case Apps_COUPLE : {
-       kernel = new apps::COUPLE(run_params);
-       break;
-    }
+
     case Apps_DEL_DOT_VEC_2D : {
        kernel = new apps::DEL_DOT_VEC_2D(run_params);
        break;
     }
     case Apps_DIFFUSION3DPA : {
        kernel = new apps::DIFFUSION3DPA(run_params);
+       break;
+    }
+    case Apps_EDGE3D : {
+       kernel = new apps::EDGE3D(run_params);
        break;
     }
     case Apps_ENERGY : {
@@ -747,14 +982,6 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::FIR(run_params);
        break;
     }
-    case Apps_HALOEXCHANGE : {
-       kernel = new apps::HALOEXCHANGE(run_params);
-       break;
-    }
-    case Apps_HALOEXCHANGE_FUSED : {
-       kernel = new apps::HALOEXCHANGE_FUSED(run_params);
-       break;
-    }
     case Apps_LTIMES : {
        kernel = new apps::LTIMES(run_params);
        break;
@@ -763,6 +990,10 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::LTIMES_NOVIEW(run_params);
        break;
     }
+    case Apps_MASS3DEA : {
+       kernel = new apps::MASS3DEA(run_params);
+       break;
+    }      
     case Apps_MASS3DPA : {
        kernel = new apps::MASS3DPA(run_params);
        break;
@@ -785,6 +1016,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Apps_VOL3D : {
        kernel = new apps::VOL3D(run_params);
+       break;
+    }
+    case Apps_ZONAL_ACCUMULATION_3D : {
+       kernel = new apps::ZONAL_ACCUMULATION_3D(run_params);
        break;
     }
 
@@ -815,6 +1050,36 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new algorithm::MEMCPY(run_params);
        break;
     }
+    case Algorithm_ATOMIC: {
+       kernel = new algorithm::ATOMIC(run_params);
+       break;
+    }
+
+//
+// Comm kernels...
+//
+    case Comm_HALO_PACKING : {
+       kernel = new comm::HALO_PACKING(run_params);
+       break;
+    }
+    case Comm_HALO_PACKING_FUSED : {
+       kernel = new comm::HALO_PACKING_FUSED(run_params);
+       break;
+    }
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+    case Comm_HALO_SENDRECV : {
+       kernel = new comm::HALO_SENDRECV(run_params);
+       break;
+    }
+    case Comm_HALO_EXCHANGE : {
+       kernel = new comm::HALO_EXCHANGE(run_params);
+       break;
+    }
+    case Comm_HALO_EXCHANGE_FUSED : {
+       kernel = new comm::HALO_EXCHANGE_FUSED(run_params);
+       break;
+    }
+#endif
 
     default: {
       getCout() << "\n Unknown Kernel ID = " << kid << std::endl;
@@ -824,6 +1089,7 @@ KernelBase* getKernelObject(KernelID kid,
 
   return kernel;
 }
+
 
 // subclass of streambuf that ignores overflow
 // never printing anything to the underlying stream
@@ -851,7 +1117,7 @@ std::ostream& getNullStream()
 std::ostream& getCout()
 {
   int rank = 0;
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
   if (rank == 0) {

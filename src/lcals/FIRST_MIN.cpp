@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -68,8 +68,14 @@ FIRST_MIN::~FIRST_MIN()
 void FIRST_MIN::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitDataConst(m_x, m_N, 0.0, vid);
-  m_x[ m_N / 2 ] = -1.0e+10;
-  m_xmin_init = m_x[0];
+
+  {
+    auto reset_x = scopedMoveData(m_x, m_N, vid);
+
+    m_x[ m_N / 2 ] = -1.0e+10;
+    m_xmin_init = m_x[0];
+  }
+
   m_initloc = 0;
   m_minloc = -1;
 }

@@ -1,5 +1,5 @@
 .. ##
-.. ## Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+.. ## Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 .. ## and RAJA Performance Suite project contributors.
 .. ## See the RAJAPerf/LICENSE file for details.
 .. ##
@@ -201,7 +201,7 @@ multiple versions of GPU kernels that will run with different GPU thread-block
 sizes. The CMake option for this is 
 ``-DRAJA_PERFSUITE_GPU_BLOCKSIZES=<list,of,block,sizes>``. For example::
 
-  $ mkdir my-gnu-build
+  $ mkdir my-gpu-build
   $ cd my-gpu-build
   $ cmake <cmake args> \
     -DRAJA_PERFSUITE_GPU_BLOCKSIZES=64,128,256,512,1024 \
@@ -210,3 +210,85 @@ sizes. The CMake option for this is
 
 will build versions of GPU kernels that use 64, 128, 256, 512, and 1024 threads
 per GPU thread-block.
+
+Building with specific GPU atomic replication tunings
+-----------------------------------------------------
+
+If desired, you can build a version of the RAJA Performance Suite code with
+multiple versions of GPU kernels that will run with different GPU atomic
+replication amounts. The CMake option for this is
+``-DRAJA_PERFSUITE_ATOMIC_REPLICATIONS=<list,of,atomic,replication,amounts>``. For example::
+
+  $ mkdir my-gpu-build
+  $ cd my-gpu-build
+  $ cmake <cmake args> \
+    -DRAJA_PERFSUITE_ATOMIC_REPLICATIONS=1,256,4096 \
+    ..
+  $ make -j
+
+will build versions of GPU kernels that use 1, 256, and 4096 atomic
+replications.
+
+Building with specific GPU items per thread tunings
+-----------------------------------------------------
+
+If desired, you can build a version of the RAJA Performance Suite code with
+multiple versions of GPU kernels that will run with different GPU items per
+thread amounts. The CMake option for this is
+``-DRAJA_PERFSUITE_GPU_ITEMS_PER_THREAD=<list,of,items,per,thread,amounts>``. For example::
+
+  $ mkdir my-gpu-build
+  $ cd my-gpu-build
+  $ cmake <cmake args> \
+    -DRAJA_PERFSUITE_GPU_ITEMS_PER_THREAD=1,2,4,8 \
+    ..
+  $ make -j
+
+will build versions of GPU kernels that use 1, 2, 4, and 8 items per thread.
+
+Building with Caliper
+---------------------
+
+RAJAPerf Suite may also use Caliper instrumentation, with per variant & tuning output into .cali files. While Caliper is low-overhead
+it is not zero, so it will add a small amount of timing skew in its data as 
+compared to the original. Caliper output enables usage of performance analysis tools like Hatchet and Thicket.
+For much more on Caliper, Hatchet and Thicket, read their documentation here:
+
+| - `Caliper Documentation <http://software.llnl.gov/Caliper/>`_ 
+| - `Hatchet User Guide <https://llnl-hatchet.readthedocs.io/en/latest/user_guide.html>`_ 
+| - `Thicket User Guide <https://thicket.readthedocs.io/en/latest/>`_ 
+
+
+Caliper *annotation* is in the following tree structure::
+
+  RAJAPerf
+    Group
+      Kernel
+
+| Build against these Caliper versions
+|
+|   **caliper@2.9.0** (preferred target)
+|   **caliper@master** (if using older Spack version)
+
+1: Use one of the caliper build scripts in `scripts/lc-builds/*_caliper.sh`
+
+2: Add the build options manually to an existing build::
+
+  In Cmake scripts add
+    **-DRAJA_PERFSUITE_USE_CALIPER=On**
+
+  Add to **-DCMAKE_PREFIX_PATH**
+    ;${CALIPER_PREFIX}/share/cmake/caliper;${ADIAK_PREFIX}/lib/cmake/adiak
+
+  or use
+    -Dcaliper_DIR -Dadiak_DIR package prefixes
+
+For Spack : raja_perf +caliper ^caliper@2.9.0
+
+For Uberenv: python3 scripts/uberenv/uberenv.py --spec +caliper ^caliper@2.9.0
+
+If you intend on passing nvtx or roctx annotation to Nvidia or AMD profiling tools, 
+build Caliper with +cuda cuda_arch=XX or +rocm respectively. Then you can specify
+an additional Caliper service for nvtx or roctx like so: roctx example:
+
+CALI_SERVICES_ENABLE=roctx rocprof --roctx-trace --hip-trace raja-perf.exe 

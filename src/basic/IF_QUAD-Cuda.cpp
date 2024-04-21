@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,22 +20,6 @@ namespace rajaperf
 {
 namespace basic
 {
-
-#define IF_QUAD_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(a, m_a, iend); \
-  allocAndInitCudaDeviceData(b, m_b, iend); \
-  allocAndInitCudaDeviceData(c, m_c, iend); \
-  allocAndInitCudaDeviceData(x1, m_x1, iend); \
-  allocAndInitCudaDeviceData(x2, m_x2, iend);
-
-#define IF_QUAD_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_x1, x1, iend); \
-  getCudaDeviceData(m_x2, x2, iend); \
-  deallocCudaDeviceData(a); \
-  deallocCudaDeviceData(b); \
-  deallocCudaDeviceData(c); \
-  deallocCudaDeviceData(x1); \
-  deallocCudaDeviceData(x2);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -58,66 +42,65 @@ void IF_QUAD::runCudaVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   IF_QUAD_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 
-    IF_QUAD_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      ifquad<block_size><<<grid_size, block_size>>>( x1, x2, a, b, c, iend );
-      cudaErrchk( cudaGetLastError() );
+      constexpr size_t shmem = 0;
+
+      RPlaunchCudaKernel( (ifquad<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          x1, x2,
+                          a, b, c,
+                          iend );
 
     }
     stopTimer();
-
-    IF_QUAD_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
 
-    IF_QUAD_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      lambda_cuda_forall<block_size><<<grid_size, block_size>>>(
-        ibegin, iend, [=] __device__ (Index_type i) {
+      auto ifquad_lambda = [=] __device__ (Index_type i) {
         IF_QUAD_BODY;
-      });
-      cudaErrchk( cudaGetLastError() );
+      };
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = 0;
+
+      RPlaunchCudaKernel( (lambda_cuda_forall<block_size,
+                                              decltype(ifquad_lambda)>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          ibegin, iend, ifquad_lambda );
 
     }
     stopTimer();
-
-    IF_QUAD_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    IF_QUAD_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
         IF_QUAD_BODY;
       });
 
     }
     stopTimer();
-
-    IF_QUAD_DATA_TEARDOWN_CUDA;
-
   } else {
      getCout() << "\n  IF_QUAD : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(IF_QUAD, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(IF_QUAD, Cuda)
 
 } // end namespace basic
 } // end namespace rajaperf

@@ -19,20 +19,6 @@
 namespace rajaperf {
 namespace basic {
 
-#define MAT_MAT_SHARED_DATA_SETUP_HIP                                          \
-  const Index_type NN = m_N * m_N;                                             \
-  allocAndInitHipDeviceData(A, m_A, NN);                                       \
-  allocAndInitHipDeviceData(B, m_B, NN);                                       \
-  allocAndInitHipDeviceData(C, m_C, NN);
-
-#define MAT_MAT_SHARED_DATA_TEARDOWN_HIP                                       \
-  getHipDeviceData(m_A, A, NN);                                                \
-  getHipDeviceData(m_B, B, NN);                                                \
-  getHipDeviceData(m_C, C, NN);                                                \
-  deallocHipDeviceData(A);                                                     \
-  deallocHipDeviceData(B);                                                     \
-  deallocHipDeviceData(C);
-
 template < Index_type tile_size >
   __launch_bounds__(tile_size*tile_size)
 __global__ void mat_mat_shared(Index_type N, Real_ptr C, Real_ptr A,
@@ -64,7 +50,7 @@ __global__ void mat_mat_shared(Index_type N, Real_ptr C, Real_ptr A,
 template < size_t block_size >
 void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
 {
-  constexpr Index_type tile_size = gpu_block_size::sqrt(block_size);
+  constexpr Index_type tile_size = integer::sqrt(block_size);
   static_assert(tile_size*tile_size == block_size, "Invalid block_size");
 
   const Index_type run_reps = getRunReps();
@@ -73,36 +59,33 @@ void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
   dim3 blockDim(tile_size, tile_size);
   dim3 gridDim(RAJA_DIVIDE_CEILING_INT(N, blockDim.x),
                RAJA_DIVIDE_CEILING_INT(N, blockDim.y));
+  constexpr size_t shmem = 0;
 
   const Index_type Nx = gridDim.x;
   const Index_type Ny = gridDim.y;
+
+  auto res{getHipResource()};
 
   MAT_MAT_SHARED_DATA_SETUP;
 
   if (vid == Base_HIP) {
 
-    MAT_MAT_SHARED_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipLaunchKernelGGL((mat_mat_shared<tile_size>), dim3(gridDim), dim3(blockDim), 0, 0,
-                         N, C, A, B);
-
-      hipErrchk( hipGetLastError() );
+      RPlaunchHipKernel( (mat_mat_shared<tile_size>),
+                         gridDim, blockDim,
+                         shmem, res.get_stream(),
+                         N, C, A, B );
     }
     stopTimer();
 
-    MAT_MAT_SHARED_DATA_TEARDOWN_HIP;
-
   } else if (vid == Lambda_HIP) {
-
-    MAT_MAT_SHARED_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      auto mat_mat_shared_lam = [=] __device__() {
+      auto mat_mat_shared_lambda = [=] __device__() {
 
         auto outer_y = [&](Index_type by) {
           auto outer_x = [&](Index_type bx) {
@@ -192,18 +175,15 @@ void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
         }
       };
 
-      hipLaunchKernelGGL((lambda_hip<tile_size*tile_size, decltype(mat_mat_shared_lam)>),
-        gridDim, blockDim, 0, 0, mat_mat_shared_lam);
-
-      hipErrchk( hipGetLastError() );
+      RPlaunchHipKernel( (lambda_hip<tile_size*tile_size,
+                                     decltype(mat_mat_shared_lambda)>),
+                         gridDim, blockDim,
+                         shmem, res.get_stream(),
+                         mat_mat_shared_lambda );
     }
     stopTimer();
 
-    MAT_MAT_SHARED_DATA_TEARDOWN_HIP;
-
   } else if (vid == RAJA_HIP) {
-
-    MAT_MAT_SHARED_DATA_SETUP_HIP;
 
     constexpr bool async = true;
 
@@ -213,14 +193,14 @@ void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
 
     using teams_y = RAJA::LoopPolicy<RAJA::hip_block_y_direct>;
 
-    using threads_x = RAJA::LoopPolicy<RAJA::hip_thread_x_direct>;
+    using threads_x = RAJA::LoopPolicy<RAJA::hip_thread_size_x_direct<tile_size>>;
 
-    using threads_y = RAJA::LoopPolicy<RAJA::hip_thread_y_direct>;
+    using threads_y = RAJA::LoopPolicy<RAJA::hip_thread_size_y_direct<tile_size>>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::launch<launch_policy>(
+      RAJA::launch<launch_policy>( res,
         RAJA::LaunchParams(RAJA::Teams(Nx, Ny),
                          RAJA::Threads(tile_size, tile_size)),
         [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
@@ -291,15 +271,13 @@ void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
     }  // loop over kernel reps
     stopTimer();
 
-    MAT_MAT_SHARED_DATA_TEARDOWN_HIP;
-
   } else {
     getCout() << "\n  MAT_MAT_SHARED : Unknown Hip variant id = " << vid
               << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(MAT_MAT_SHARED, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(MAT_MAT_SHARED, Hip)
 
 } // end namespace basic
 } // end namespace rajaperf

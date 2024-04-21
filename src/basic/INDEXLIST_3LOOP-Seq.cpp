@@ -117,27 +117,24 @@ void INDEXLIST_3LOOP::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::ReduceSum<RAJA::loop_reduce, Index_type> len(0);
-
-        RAJA::forall<RAJA::loop_exec>(
+        RAJA::forall<RAJA::seq_exec>(
           RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
           counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
         });
 
-        RAJA::exclusive_scan_inplace<RAJA::loop_exec>(
+        RAJA::exclusive_scan_inplace<RAJA::seq_exec>(
             RAJA::make_span(counts+ibegin, iend+1-ibegin));
 
-        RAJA::forall<RAJA::loop_exec>(
+        RAJA::forall<RAJA::seq_exec>(
           RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
           if (counts[i] != counts[i+1]) {
             list[counts[i]] = i;
-            len += 1;
           }
         });
 
-        m_len = len.get();
+        m_len = counts[iend];
 
       }
       stopTimer();

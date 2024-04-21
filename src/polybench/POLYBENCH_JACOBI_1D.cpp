@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -78,14 +78,14 @@ void POLYBENCH_JACOBI_1D::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
   (void) vid;
   allocAndInitData(m_Ainit, m_N, vid);
   allocAndInitData(m_Binit, m_N, vid);
-  allocAndInitDataConst(m_A, m_N, 0.0, vid);
-  allocAndInitDataConst(m_B, m_N, 0.0, vid);
+  allocData(m_A, m_N, vid);
+  allocData(m_B, m_N, vid);
 }
 
 void POLYBENCH_JACOBI_1D::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_A, m_N, checksum_scale_factor );
-  checksum[vid][tune_idx] += calcChecksum(m_B, m_N, checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_A, m_N, checksum_scale_factor , vid);
+  checksum[vid][tune_idx] += calcChecksum(m_B, m_N, checksum_scale_factor , vid);
 }
 
 void POLYBENCH_JACOBI_1D::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

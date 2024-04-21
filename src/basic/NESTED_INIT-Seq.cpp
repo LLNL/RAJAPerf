@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -24,9 +24,11 @@ void NESTED_INIT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
 
   NESTED_INIT_DATA_SETUP;
 
+#if defined(RUN_RAJA_SEQ)
   auto nestedinit_lam = [=](Index_type i, Index_type j, Index_type k) {
                           NESTED_INIT_BODY;
                         };
+#endif
 
   switch ( vid ) {
 
@@ -73,9 +75,9 @@ void NESTED_INIT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
 
       using EXEC_POL =
         RAJA::KernelPolicy<
-          RAJA::statement::For<2, RAJA::loop_exec,    // k
-            RAJA::statement::For<1, RAJA::loop_exec,  // j
-              RAJA::statement::For<0, RAJA::loop_exec,// i
+          RAJA::statement::For<2, RAJA::seq_exec,    // k
+            RAJA::statement::For<1, RAJA::seq_exec,  // j
+              RAJA::statement::For<0, RAJA::seq_exec,// i
                 RAJA::statement::Lambda<0>
               >
             >

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -12,20 +12,27 @@
 #include "common/KernelBase.hpp"
 #include "common/OutputUtils.hpp"
 
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
 #include <mpi.h>
 #endif
+
+#include "CudaDataUtils.hpp"
+#include "HipDataUtils.hpp"
 
 // Warmup kernels to run first to help reduce startup overheads in timings
 #include "basic/DAXPY.hpp"
 #include "basic/REDUCE3_INT.hpp"
 #include "basic/INDEXLIST_3LOOP.hpp"
 #include "algorithm/SORT.hpp"
-#include "apps/HALOEXCHANGE_FUSED.hpp"
+#include "comm/HALO_PACKING_FUSED.hpp"
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+#include "comm/HALO_EXCHANGE_FUSED.hpp"
+#endif
 
 #include <list>
 #include <vector>
 #include <string>
+#include <regex>
 #include <unordered_map>
 
 #include <iostream>
@@ -42,9 +49,19 @@ namespace rajaperf {
 
 using namespace std;
 
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
+vector<string> split(const string str, const string regex_str)
+{
+  regex regexz(regex_str);
+  vector<string> list(sregex_token_iterator(str.begin(), str.end(), regexz, -1),
+                                sregex_token_iterator());
+  return list;
+}
+#endif
+
 namespace {
 
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
 
 void Allreduce(const Checksum_type* send, Checksum_type* recv, int count,
                MPI_Op op, MPI_Comm comm)
@@ -105,6 +122,108 @@ Executor::Executor(int argc, char** argv)
     reference_vid(NumVariants),
     reference_tune_idx(KernelBase::getUnknownTuningIdx())
 {
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
+  configuration cc;
+  adiak::init(NULL);
+  adiak::user();
+  adiak::launchdate();
+  adiak::libraries();
+  adiak::cmdline();
+  adiak::clustername();
+  adiak::value("perfsuite_version", cc.adiak_perfsuite_version);
+  adiak::value("raja_version", cc.adiak_raja_version);
+  adiak::value("cmake_build_type", cc.adiak_cmake_build_type);
+  adiak::value("cmake_cxx_flags", cc.adiak_cmake_cxx_flags);
+  adiak::value("rajaperf_compiler", cc.adiak_rajaperf_compiler);
+  adiak::value("compiler_version", cc.adiak_compiler_version);
+
+  auto tokens = split(cc.adiak_rajaperf_compiler, "/");
+  string compiler_exec = tokens.back();
+  adiak::catstring compiler = compiler_exec + "-" + std::string(cc.adiak_compiler_version);
+  cout << "Compiler: " << (string)compiler << "\n";
+  adiak::value("compiler", compiler);
+  auto tsize = tokens.size();
+  if (tsize >= 3) {
+    // pickup path version <compiler-version-hash|date>/bin/exec
+    string path_version = tokens[tsize-3];
+    auto s = split(path_version,"-");
+    if (s.size() >= 2) {
+      adiak::path path_version_short = s[0] + "-" + s[1];
+      adiak::value("Compiler_path_version", (adiak::catstring)path_version_short);
+    } 
+  }
+
+  if (cc.adiak_cmake_exe_linker_flags.size() > 0) {
+    adiak::value("cmake_exe_linker_flags", cc.adiak_cmake_exe_linker_flags);
+  }
+  if (cc.adiak_rajaperf_compiler_options.size() > 0) {
+    adiak::value("rajaperf_compiler_options", cc.adiak_rajaperf_compiler_options);
+  }
+  if (std::string(cc.adiak_cuda_compiler_version).size() > 0) {
+    adiak::value("cuda_compiler_version", cc.adiak_cuda_compiler_version);
+  }
+  if (strlen(cc.adiak_gpu_targets) > 0) {
+    adiak::value("gpu_targets", cc.adiak_gpu_targets);
+  }
+  if (strlen(cc.adiak_cmake_hip_architectures) > 0) {
+    adiak::value("cmake_hip_architectures", cc.adiak_cmake_hip_architectures);
+  }
+  if (strlen(cc.adiak_tuning_cuda_arch) > 0) {
+    adiak::value("tuning_cuda_arch", cc.adiak_tuning_cuda_arch);
+  }
+  if (strlen(cc.adiak_tuning_hip_arch) > 0) {
+    adiak::value("tuning_hip_arch", cc.adiak_tuning_hip_arch);
+  }
+  if (cc.adiak_gpu_block_sizes.size() > 0) {
+    adiak::value("gpu_block_sizes", cc.adiak_gpu_block_sizes);
+  }
+  if (cc.adiak_atomic_replications.size() > 0) {
+    adiak::value("atomic_replications", cc.adiak_atomic_replications);
+  }
+  if (cc.adiak_gpu_items_per_thread.size() > 0) {
+    adiak::value("gpu_items_per_thread", cc.adiak_gpu_items_per_thread);
+  }
+  if (cc.adiak_raja_hipcc_flags.size() > 0) {
+    adiak::value("raja_hipcc_flags", cc.adiak_raja_hipcc_flags);
+  }
+  if (std::string(cc.adiak_mpi_cxx_compiler).size() > 0) {
+    adiak::value("mpi_cxx_compiler", cc.adiak_mpi_cxx_compiler);
+  }
+  if (std::string(cc.adiak_systype_build).size() > 0) {
+    adiak::value("systype_build", cc.adiak_systype_build);
+  }
+  if (std::string(cc.adiak_machine_build).size() > 0) {
+    adiak::value("machine_build", cc.adiak_machine_build);
+  }
+
+  adiak::value("SizeMeaning",(adiak::catstring)run_params.SizeMeaningToStr(run_params.getSizeMeaning()));
+  if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Factor) {
+    adiak::value("ProblemSizeRunParam",(uint)run_params.getSizeFactor());
+  } else if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Direct) {
+    adiak::value("ProblemSizeRunParam",(uint)run_params.getSize());
+  }
+
+  // Openmp section
+#if defined(_OPENMP)
+  std::string strval = "";
+  std::string test = std::to_string(_OPENMP);
+
+  std::unordered_map<unsigned,std::string> map{
+    {200505,"2.5"},{200805,"3.0"},{201107,"3.1"},{201307,"4.0"},{201511,"4.5"},{201611,"4.5"},{201811,"5.0"},{202011,"5.1"},{202111,"5.2"}};
+
+  if (map.find(_OPENMP) != map.end()) {
+    strval = map.at(_OPENMP);
+  } else {
+    strval="Version Not Detected";
+  }
+
+  std::cerr << "_OPENMP:" << test << " at version: " << strval << "\n";
+  adiak::value("omp_version",(adiak::version)strval);
+  uint ompthreads = omp_get_max_threads();
+  adiak::value("omp_max_threads",ompthreads);
+#endif
+
+#endif
 }
 
 
@@ -113,6 +232,9 @@ Executor::~Executor()
   for (size_t ik = 0; ik < kernels.size(); ++ik) {
     delete kernels[ik];
   }
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
+  adiak::fini();
+#endif
 }
 
 
@@ -125,534 +247,106 @@ void Executor::setupSuite()
 
   getCout() << "\nSetting up suite based on input..." << endl;
 
-  using Slist = list<string>;
   using Svector = vector<string>;
-  using COvector = vector<RunParams::CombinerOpt>;
-  using KIDset = set<KernelID>;
-  using VIDset = set<VariantID>;
 
   //
-  // Determine which kernels to exclude from input.
-  // exclude_kern will be non-duplicated ordered set of IDs of kernel to exclude.
+  // Configure suite to run based on kernel and variant input.
   //
-  const Svector& npasses_combiner_input = run_params.getNpassesCombinerOptInput();
-  if ( !npasses_combiner_input.empty() ) {
+  // Kernel and variant input is assumed to be good at this point.
+  //
 
-    COvector combiners;
-    Svector invalid;
-    for (const std::string& combiner_name : npasses_combiner_input) {
+  const std::set<KernelID>& run_kern = run_params.getKernelIDsToRun();
+  for (auto kid = run_kern.begin(); kid != run_kern.end(); ++kid) {
+    kernels.push_back( getKernelObject(*kid, run_params) );
+  }
 
-      if (combiner_name == RunParams::CombinerOptToStr(RunParams::CombinerOpt::Average)) {
-        combiners.emplace_back(RunParams::CombinerOpt::Average);
-      } else if (combiner_name == RunParams::CombinerOptToStr(RunParams::CombinerOpt::Minimum)) {
-        combiners.emplace_back(RunParams::CombinerOpt::Minimum);
-      } else if (combiner_name == RunParams::CombinerOptToStr(RunParams::CombinerOpt::Maximum)) {
-        combiners.emplace_back(RunParams::CombinerOpt::Maximum);
-      } else {
-        invalid.emplace_back(combiner_name);
-      }
-
-    }
-
-    run_params.setNpassesCombinerOpts(combiners);
-    run_params.setInvalidNpassesCombinerOptInput(invalid);
-
+  const std::set<VariantID>& run_var = run_params.getVariantIDsToRun();
+  for (auto vid = run_var.begin(); vid != run_var.end(); ++vid) {
+    variant_ids.push_back( *vid );
   }
 
   //
-  // Determine which kernels to exclude from input.
-  // exclude_kern will be non-duplicated ordered set of IDs of kernel to exclude.
+  // Set reference variant and reference tuning index IDs. 
   //
-  const Svector& exclude_kernel_input = run_params.getExcludeKernelInput();
-  const Svector& exclude_feature_input = run_params.getExcludeFeatureInput();
-
-  KIDset exclude_kern;
-
-  if ( !exclude_kernel_input.empty() ) {
-
-    // Make list copy of exclude kernel name input to manipulate for
-    // processing potential group names and/or kernel names, next
-    Slist exclude_kern_names(exclude_kernel_input.begin(), exclude_kernel_input.end());
-
-    //
-    // Search exclude_kern_names for matching group names.
-    // groups2exclude will contain names of groups to exclude.
-    //
-    Svector groups2exclude;
-    for (Slist::iterator it = exclude_kern_names.begin(); it != exclude_kern_names.end(); ++it)
-    {
-      for (size_t ig = 0; ig < NumGroups; ++ig) {
-        const string& group_name = getGroupName(static_cast<GroupID>(ig));
-        if ( group_name == *it ) {
-          groups2exclude.push_back(group_name);
-        }
-      }
-    }
-
-    //
-    // If group name(s) found in exclude_kern_names, assemble kernels in group(s)
-    // to run and remove those group name(s) from exclude_kern_names list.
-    //
-    for (size_t ig = 0; ig < groups2exclude.size(); ++ig) {
-      const string& gname(groups2exclude[ig]);
-
-      for (size_t ik = 0; ik < NumKernels; ++ik) {
-        KernelID kid = static_cast<KernelID>(ik);
-        if ( getFullKernelName(kid).find(gname) != string::npos ) {
-          exclude_kern.insert(kid);
-        }
-      }
-
-      exclude_kern_names.remove(gname);
-    }
-
-    //
-    // Look for matching names of individual kernels in remaining exclude_kern_names.
-    //
-    // Assemble invalid input for warning message.
-    //
-    Svector invalid;
-
-    for (Slist::iterator it = exclude_kern_names.begin(); it != exclude_kern_names.end(); ++it)
-    {
-      bool found_it = false;
-
-      for (size_t ik = 0; ik < NumKernels && !found_it; ++ik) {
-        KernelID kid = static_cast<KernelID>(ik);
-        if ( getKernelName(kid) == *it || getFullKernelName(kid) == *it ) {
-          exclude_kern.insert(kid);
-          found_it = true;
-        }
-      }
-
-      if ( !found_it )  invalid.push_back(*it);
-    }
-
-    run_params.setInvalidExcludeKernelInput(invalid);
-
+  // This logic seems a bit strange. Not sure why we do it this way.
+  //
+  reference_vid = run_params.getReferenceVariantID();
+  if ( reference_vid == NumVariants && !variant_ids.empty() ) {
+    reference_tune_idx = 0;
   }
-
-  if ( !exclude_feature_input.empty() ) {
-
-    // First, check for invalid exclude_feature input.
-    // Assemble invalid input for warning message.
-    //
-    Svector invalid;
-
-    for (size_t i = 0; i < exclude_feature_input.size(); ++i) {
-      bool found_it = false;
-
-      for (size_t fid = 0; fid < NumFeatures && !found_it; ++fid) {
-        FeatureID tfid = static_cast<FeatureID>(fid);
-        if ( getFeatureName(tfid) == exclude_feature_input[i] ) {
-          found_it = true;
-        }
-      }
-
-      if ( !found_it )  invalid.push_back( exclude_feature_input[i] );
-    }
-    run_params.setInvalidExcludeFeatureInput(invalid);
-
-    //
-    // If feature input is valid, determine which kernels use
-    // input-specified features and add to set of kernels to run.
-    //
-    if ( run_params.getInvalidExcludeFeatureInput().empty() ) {
-
-      for (size_t i = 0; i < exclude_feature_input.size(); ++i) {
-
-        const string& feature = exclude_feature_input[i];
-
-        bool found_it = false;
-        for (size_t fid = 0; fid < NumFeatures && !found_it; ++fid) {
-          FeatureID tfid = static_cast<FeatureID>(fid);
-          if ( getFeatureName(tfid) == feature ) {
-            found_it = true;
-
-            for (int kid = 0; kid < NumKernels; ++kid) {
-              KernelID tkid = static_cast<KernelID>(kid);
-              KernelBase* kern = getKernelObject(tkid, run_params);
-              if ( kern->usesFeature(tfid) ) {
-                 exclude_kern.insert( tkid );
-              }
-              delete kern;
-            }  // loop over kernels
-
-          }  // if input feature name matches feature id
-        }  // loop over feature ids until name match is found
-
-      }  // loop over feature name input
-
-    }  // if feature name input is valid
-  }
-
-  //
-  // Determine which kernels to execute from input.
-  // run_kern will be non-duplicated ordered set of IDs of kernel to run.
-  //
-  const Svector& kernel_input = run_params.getKernelInput();
-  const Svector& feature_input = run_params.getFeatureInput();
-
-  KIDset run_kern;
-
-  if ( kernel_input.empty() && feature_input.empty() ) {
-
-    //
-    // No kernels or features specified in input, run them all...
-    //
-    for (size_t kid = 0; kid < NumKernels; ++kid) {
-      KernelID tkid = static_cast<KernelID>(kid);
-      if (exclude_kern.find(tkid) == exclude_kern.end()) {
-        run_kern.insert( tkid );
-      }
-    }
-
-  } else {
-
-    //
-    // Need to parse input to determine which kernels to run
-    //
-
-    //
-    // Look for kernels using features if such input provided
-    //
-    if ( !feature_input.empty() ) {
-
-      // First, check for invalid feature input.
-      // Assemble invalid input for warning message.
-      //
-      Svector invalid;
-
-      for (size_t i = 0; i < feature_input.size(); ++i) {
-        bool found_it = false;
-
-        for (size_t fid = 0; fid < NumFeatures && !found_it; ++fid) {
-          FeatureID tfid = static_cast<FeatureID>(fid);
-          if ( getFeatureName(tfid) == feature_input[i] ) {
-            found_it = true;
-          }
-        }
-
-        if ( !found_it )  invalid.push_back( feature_input[i] );
-      }
-      run_params.setInvalidFeatureInput(invalid);
-
-      //
-      // If feature input is valid, determine which kernels use
-      // input-specified features and add to set of kernels to run.
-      //
-      if ( run_params.getInvalidFeatureInput().empty() ) {
-
-        for (size_t i = 0; i < feature_input.size(); ++i) {
-
-          const string& feature = feature_input[i];
-
-          bool found_it = false;
-          for (size_t fid = 0; fid < NumFeatures && !found_it; ++fid) {
-            FeatureID tfid = static_cast<FeatureID>(fid);
-            if ( getFeatureName(tfid) == feature ) {
-              found_it = true;
-
-              for (int kid = 0; kid < NumKernels; ++kid) {
-                KernelID tkid = static_cast<KernelID>(kid);
-                KernelBase* kern = getKernelObject(tkid, run_params);
-                if ( kern->usesFeature(tfid) &&
-                     exclude_kern.find(tkid) == exclude_kern.end() ) {
-                   run_kern.insert( tkid );
-                }
-                delete kern;
-              }  // loop over kernels
-
-            }  // if input feature name matches feature id
-          }  // loop over feature ids until name match is found
-
-        }  // loop over feature name input
-
-      }  // if feature name input is valid
-
-    } // if !feature_input.empty()
-
-    // Make list copy of kernel name input to manipulate for
-    // processing potential group names and/or kernel names, next
-    Slist kern_names(kernel_input.begin(), kernel_input.end());
-
-    //
-    // Search kern_names for matching group names.
-    // groups2run will contain names of groups to run.
-    //
-    Svector groups2run;
-    for (Slist::iterator it = kern_names.begin(); it != kern_names.end(); ++it)
-    {
-      for (size_t ig = 0; ig < NumGroups; ++ig) {
-        const string& group_name = getGroupName(static_cast<GroupID>(ig));
-        if ( group_name == *it ) {
-          groups2run.push_back(group_name);
-        }
-      }
-    }
-
-    //
-    // If group name(s) found in kern_names, assemble kernels in group(s)
-    // to run and remove those group name(s) from kern_names list.
-    //
-    for (size_t ig = 0; ig < groups2run.size(); ++ig) {
-      const string& gname(groups2run[ig]);
-
-      for (size_t kid = 0; kid < NumKernels; ++kid) {
-        KernelID tkid = static_cast<KernelID>(kid);
-        if ( getFullKernelName(tkid).find(gname) != string::npos &&
-             exclude_kern.find(tkid) == exclude_kern.end()) {
-          run_kern.insert(tkid);
-        }
-      }
-
-      kern_names.remove(gname);
-    }
-
-    //
-    // Look for matching names of individual kernels in remaining kern_names.
-    //
-    // Assemble invalid input for warning message.
-    //
-    Svector invalid;
-
-    for (Slist::iterator it = kern_names.begin(); it != kern_names.end(); ++it)
-    {
-      bool found_it = false;
-
-      for (size_t kid = 0; kid < NumKernels && !found_it; ++kid) {
-        KernelID tkid = static_cast<KernelID>(kid);
-        if ( getKernelName(tkid) == *it || getFullKernelName(tkid) == *it ) {
-          if (exclude_kern.find(tkid) == exclude_kern.end()) {
-            run_kern.insert(tkid);
-          }
-          found_it = true;
-        }
-      }
-
-      if ( !found_it )  invalid.push_back(*it);
-    }
-
-    run_params.setInvalidKernelInput(invalid);
-
-  }
-
-
-  //
-  // Assemble set of available variants to run
-  // (based on compile-time configuration).
-  //
-  VIDset available_var;
-  for (size_t iv = 0; iv < NumVariants; ++iv) {
-    VariantID vid = static_cast<VariantID>(iv);
-    if ( isVariantAvailable( vid ) ) {
-       available_var.insert( vid );
-    }
-  }
-
-
-  //
-  // Determine variants to execute from input.
-  // run_var will be non-duplicated ordered set of IDs of variants to run.
-  //
-  const Svector& exclude_variant_names = run_params.getExcludeVariantInput();
-
-  VIDset exclude_var;
-
-  if ( !exclude_variant_names.empty() ) {
-
-    //
-    // Parse input to determine which variants to exclude.
-    //
-    // Assemble invalid input for warning message.
-    //
-
-    Svector invalid;
-
-    for (size_t it = 0; it < exclude_variant_names.size(); ++it) {
-      bool found_it = false;
-
-      for (VIDset::iterator vid_it = available_var.begin();
-         vid_it != available_var.end(); ++vid_it) {
-        VariantID vid = *vid_it;
-        if ( getVariantName(vid) == exclude_variant_names[it] ) {
-          exclude_var.insert(vid);
-          found_it = true;
-        }
-      }
-
-      if ( !found_it )  invalid.push_back(exclude_variant_names[it]);
-    }
-
-    run_params.setInvalidExcludeVariantInput(invalid);
-
-  }
-
-  //
-  // Determine variants to execute from input.
-  // run_var will be non-duplicated ordered set of IDs of variants to run.
-  //
-  const Svector& variant_names = run_params.getVariantInput();
-
-  VIDset run_var;
-
-  if ( variant_names.empty() ) {
-
-    //
-    // No variants specified in input options, run all available.
-    // Also, set reference variant if specified.
-    //
-    for (VIDset::iterator vid_it = available_var.begin();
-         vid_it != available_var.end(); ++vid_it) {
-      VariantID vid = *vid_it;
-      if (exclude_var.find(vid) == exclude_var.end()) {
-        run_var.insert( vid );
-        if ( getVariantName(vid) == run_params.getReferenceVariant() ) {
-          reference_vid = vid;
-          reference_tune_idx = 0;
-        }
-      }
-    }
-
-    //
-    // Set reference variant if not specified.
-    //
-    if ( run_params.getReferenceVariant().empty() && !run_var.empty() ) {
-      reference_vid = *run_var.begin();
+  for (auto vid = variant_ids.begin(); vid != variant_ids.end(); ++vid) {
+    if ( *vid == reference_vid ) {
       reference_tune_idx = 0;
     }
-
-  } else {
-
-    //
-    // Parse input to determine which variants to run:
-    //   - variants to run will be the intersection of available variants
-    //     and those specified in input
-    //   - reference variant will be set to specified input if available
-    //     and variant will be run; else first variant that will be run.
-    //
-    // Assemble invalid input for warning message.
-    //
-
-    Svector invalid;
-
-    for (size_t it = 0; it < variant_names.size(); ++it) {
-      bool found_it = false;
-
-      for (VIDset::iterator vid_it = available_var.begin();
-         vid_it != available_var.end(); ++vid_it) {
-        VariantID vid = *vid_it;
-        if ( getVariantName(vid) == variant_names[it] ) {
-          if (exclude_var.find(vid) == exclude_var.end()) {
-            run_var.insert(vid);
-            if ( getVariantName(vid) == run_params.getReferenceVariant() ) {
-              reference_vid = vid;
-              reference_tune_idx = 0;
-            }
-          }
-          found_it = true;
-        }
-      }
-
-      if ( !found_it )  invalid.push_back(variant_names[it]);
-    }
-
-    //
-    // Set reference variant if not specified.
-    //
-    if ( run_params.getReferenceVariant().empty() && !run_var.empty() ) {
-      reference_vid = *run_var.begin();
-      reference_tune_idx = 0;
-    }
-
-    run_params.setInvalidVariantInput(invalid);
-
   }
 
+
   //
-  // Create kernel objects and variants to execute. If invalid input is not
-  // empty for either case, then there were unmatched input items.
+  // Set up ordered list of tuning names based on kernels and variants
+  // selected to run and tuning input.
   //
-  // A message will be emitted later so user can sort it out...
+  // Member variable tuning_names will hold ordered list of tunings.
+  //
+  // Note that all tuning input has been checked for correctness at this point.
   //
 
-  if ( !(run_params.getInvalidNpassesCombinerOptInput().empty()) ) {
+  const Svector& selected_tuning_names = run_params.getTuningInput();
+  const Svector& excluded_tuning_names = run_params.getExcludeTuningInput();
 
-    run_params.setInputState(RunParams::BadInput);
+  for (VariantID vid : variant_ids) {
 
-  } else if ( !(run_params.getInvalidKernelInput().empty()) ||
-              !(run_params.getInvalidExcludeKernelInput().empty()) ) {
+    std::unordered_map<std::string, size_t> tuning_names_order_map;
+    for (const KernelBase* kernel : kernels) {
 
-    run_params.setInputState(RunParams::BadInput);
+      for (std::string const& tuning_name :
+          kernel->getVariantTuningNames(vid)) {
 
-  } else if ( !(run_params.getInvalidFeatureInput().empty()) ||
-              !(run_params.getInvalidExcludeFeatureInput().empty()) ) {
+        if ( tuning_names_order_map.find(tuning_name) ==
+             tuning_names_order_map.end()) {
+          if ( (selected_tuning_names.empty() || 
+                find(selected_tuning_names.begin(), 
+                     selected_tuning_names.end(), tuning_name) != 
+                selected_tuning_names.end() ) 
+                  // If argument is not provided or name is selected
+                  &&
+             find(excluded_tuning_names.begin(), 
+                  excluded_tuning_names.end(), tuning_name) == 
+                  excluded_tuning_names.end()) { 
+               // name does not exist in exclusion list
+               tuning_names_order_map.emplace( tuning_name, 
+                                               tuning_names_order_map.size()); 
+             }  // find logic
+        }  //  tuning_name is not in map 
 
-    run_params.setInputState(RunParams::BadInput);
+      }  // iterate over kernel tuning variants
 
-  } else { // kernel and feature input looks good
+    }  // iterate over kernels
 
-    for (KIDset::iterator kid = run_kern.begin();
-         kid != run_kern.end(); ++kid) {
-///   RDH DISABLE COUPLE KERNEL until we find a reasonable way to do
-///   complex numbers in GPU code
-      if ( *kid != Apps_COUPLE ) {
-        kernels.push_back( getKernelObject(*kid, run_params) );
-      }
+    tuning_names[vid].resize(tuning_names_order_map.size());
+    for (auto const& tuning_name_idx_pair : tuning_names_order_map) {
+      size_t const& tid = tuning_name_idx_pair.second;
+      std::string const& tstr = tuning_name_idx_pair.first;
+      tuning_names[vid][tid] = tstr;
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
+      KernelBase::setCaliperMgrVariantTuning(vid,
+                                             tstr,
+                                             run_params.getOutputDirName(),
+                                             run_params.getAddToSpotConfig());
+#endif
     }
 
-    if ( !(run_params.getInvalidVariantInput().empty()) ||
-         !(run_params.getInvalidExcludeVariantInput().empty()) ) {
+    // reorder to put "default" first
+    auto default_order_iter = 
+      tuning_names_order_map.find(KernelBase::getDefaultTuningName());
+    if ( default_order_iter != tuning_names_order_map.end() ) {
+      size_t default_idx = default_order_iter->second;
+      std::string default_name = std::move(tuning_names[vid][default_idx]);
+      tuning_names[vid].erase(tuning_names[vid].begin()+default_idx);
+      tuning_names[vid].emplace(tuning_names[vid].begin(), 
+                                std::move(default_name));
+    }
 
-       run_params.setInputState(RunParams::BadInput);
-
-    } else { // variant input lools good
-
-      for (VIDset::iterator vid = run_var.begin();
-           vid != run_var.end(); ++vid) {
-        variant_ids.push_back( *vid );
-      }
-
-      //
-      // Make a single ordering of tuning names for each variant across kernels.
-      //
-      for (VariantID vid : variant_ids) {
-        std::unordered_map<std::string, size_t> tuning_names_order_map;
-        for (const KernelBase* kernel : kernels) {
-          for (std::string const& tuning_name :
-               kernel->getVariantTuningNames(vid)) {
-            if (tuning_names_order_map.find(tuning_name) ==
-                tuning_names_order_map.end()) {
-              tuning_names_order_map.emplace(
-                  tuning_name, tuning_names_order_map.size());
-            }
-          }
-        }
-        tuning_names[vid].resize(tuning_names_order_map.size());
-        for (auto const& tuning_name_idx_pair : tuning_names_order_map) {
-          tuning_names[vid][tuning_name_idx_pair.second] = tuning_name_idx_pair.first;
-        }
-        // reorder to put "default" first
-        auto default_order_iter = tuning_names_order_map.find(KernelBase::getDefaultTuningName());
-        if (default_order_iter != tuning_names_order_map.end()) {
-          size_t default_idx = default_order_iter->second;
-          std::string default_name = std::move(tuning_names[vid][default_idx]);
-          tuning_names[vid].erase(tuning_names[vid].begin()+default_idx);
-          tuning_names[vid].emplace(tuning_names[vid].begin(), std::move(default_name));
-        }
-      }
-
-      //
-      // If we've gotten to this point, we have good input to run.
-      //
-      if ( run_params.getInputState() != RunParams::DryRun &&
-           run_params.getInputState() != RunParams::CheckRun ) {
-        run_params.setInputState(RunParams::PerfRun);
-      }
-
-    } // kernel and variant input both look good
-
-  } // if kernel input looks good
+  }  // iterate over variant_ids to run
 
 }
 
@@ -713,7 +407,78 @@ void Executor::reportRunSummary(ostream& str) const
     str << "\t Kernel rep factor = " << run_params.getRepFactor() << endl;
     str << "\t Output files will be named " << ofiles << endl;
 
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+    str << "\nRunning with " << run_params.getMPISize() << " MPI procs" << endl;
+    auto div3d = run_params.getMPI3DDivision();
+    const char* valid3d = run_params.validMPI3DDivision() ? "" : "invalid";
+    str << "\t 3D division = " << div3d[0] << " x " << div3d[1] << " x " << div3d[2] << " " << valid3d << endl;
+#endif
+
     str << "\nThe following kernels and variants (when available for a kernel) will be run:" << endl;
+
+    str << "\nData Spaces"
+        << "\n--------";
+    str << "\nSeq - " << getDataSpaceName(run_params.getSeqDataSpace());
+    if (isVariantAvailable(VariantID::Base_OpenMP)) {
+      str << "\nOpenMP - " << getDataSpaceName(run_params.getOmpDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Base_OpenMPTarget)) {
+      str << "\nOpenMP Target - " << getDataSpaceName(run_params.getOmpTargetDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Base_CUDA)) {
+      str << "\nCuda - " << getDataSpaceName(run_params.getCudaDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Base_HIP)) {
+      str << "\nHip - " << getDataSpaceName(run_params.getHipDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Base_SYCL)) {
+      str << "\nSycl - " << getDataSpaceName(run_params.getSyclDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Kokkos_Lambda)) {
+      str << "\nKokkos - " << getDataSpaceName(run_params.getKokkosDataSpace());
+    }
+    str << endl;
+
+    str << "\nReduction Data Spaces"
+        << "\n--------";
+    str << "\nSeq - " << getDataSpaceName(run_params.getSeqReductionDataSpace());
+    if (isVariantAvailable(VariantID::Base_OpenMP)) {
+      str << "\nOpenMP - " << getDataSpaceName(run_params.getOmpReductionDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Base_OpenMPTarget)) {
+      str << "\nOpenMP Target - " << getDataSpaceName(run_params.getOmpTargetReductionDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Base_CUDA)) {
+      str << "\nCuda - " << getDataSpaceName(run_params.getCudaReductionDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Base_HIP)) {
+      str << "\nHip - " << getDataSpaceName(run_params.getHipReductionDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Kokkos_Lambda)) {
+      str << "\nKokkos - " << getDataSpaceName(run_params.getKokkosReductionDataSpace());
+    }
+    str << endl;
+
+    str << "\nMPI Data Spaces"
+        << "\n--------";
+    str << "\nSeq - " << getDataSpaceName(run_params.getSeqMPIDataSpace());
+    if (isVariantAvailable(VariantID::Base_OpenMP)) {
+      str << "\nOpenMP - " << getDataSpaceName(run_params.getOmpMPIDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Base_OpenMPTarget)) {
+      str << "\nOpenMP Target - " << getDataSpaceName(run_params.getOmpTargetMPIDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Base_CUDA)) {
+      str << "\nCuda - " << getDataSpaceName(run_params.getCudaMPIDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Base_HIP)) {
+      str << "\nHip - " << getDataSpaceName(run_params.getHipMPIDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Kokkos_Lambda)) {
+      str << "\nKokkos - " << getDataSpaceName(run_params.getKokkosMPIDataSpace());
+    }
+    str << endl;
+
 
     str << "\nVariants and Tunings"
         << "\n--------\n";
@@ -737,7 +502,7 @@ void Executor::reportRunSummary(ostream& str) const
 void Executor::writeKernelInfoSummary(ostream& str, bool to_file) const
 {
   if ( to_file ) {
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
     int num_ranks;
     MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
     str << "Kernels run on " << num_ranks << " MPI ranks" << endl;
@@ -849,25 +614,7 @@ void Executor::runSuite()
     return;
   }
 
-  if (!run_params.getDisableWarmup()) {
-    getCout() << "\n\nRun warmup kernels...\n";
-
-    vector<KernelBase*> warmup_kernels;
-
-    warmup_kernels.push_back(makeKernel<basic::DAXPY>());
-    warmup_kernels.push_back(makeKernel<basic::REDUCE3_INT>());
-    warmup_kernels.push_back(makeKernel<basic::INDEXLIST_3LOOP>());
-    warmup_kernels.push_back(makeKernel<algorithm::SORT>());
-    warmup_kernels.push_back(makeKernel<apps::HALOEXCHANGE_FUSED>());
-
-    for (size_t ik = 0; ik < warmup_kernels.size(); ++ik) {
-      KernelBase* warmup_kernel = warmup_kernels[ik];
-      runKernel(warmup_kernel, true);
-      delete warmup_kernel;
-      warmup_kernels[ik] = nullptr;
-    }
-  }
-
+  runWarmupKernels();
 
   getCout() << "\n\nRunning specified kernels and variants...\n";
 
@@ -880,9 +627,9 @@ void Executor::runSuite()
     for (size_t ik = 0; ik < kernels.size(); ++ik) {
       KernelBase* kernel = kernels[ik];
       runKernel(kernel, false);
-    } // loop over kernels
+    } // iterate over kernels
 
-  } // loop over passes through suite
+  } // iterate over passes through suite
 
 }
 
@@ -898,30 +645,132 @@ void Executor::runKernel(KernelBase* kernel, bool print_kernel_name)
   if ( run_params.showProgress() || print_kernel_name) {
     getCout()  << endl << "Run kernel -- " << kernel->getName() << endl;
   }
+
   for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
     VariantID vid = variant_ids[iv];
 
     if ( run_params.showProgress() ) {
       if ( kernel->hasVariantDefined(vid) ) {
-        getCout() << "   Running ";
+        getCout() << "\tRunning ";
       } else {
-        getCout() << "   No ";
+        getCout() << "\tNo ";
       }
       getCout() << getVariantName(vid) << " variant" << endl;
     }
 
-    for (size_t tune_idx = 0; tune_idx < kernel->getNumVariantTunings(vid); ++tune_idx) {
+    for (size_t tune_idx = 0; 
+         tune_idx < kernel->getNumVariantTunings(vid); 
+         ++tune_idx) {
+      std::string const& tuning_name = 
+        kernel->getVariantTuningName(vid, tune_idx);
 
-      if ( run_params.showProgress() ) {
-        getCout() << "     Running "
-                  << kernel->getVariantTuningName(vid, tune_idx) << " tuning";
+      if ( find(tuning_names[vid].begin(), 
+                tuning_names[vid].end(), tuning_name) != 
+             tuning_names[vid].end()) 
+      { 
+        // Check if valid tuning
+        if ( run_params.showProgress() ) {
+          getCout() << "\t\tRunning " << tuning_name << " tuning";
+        }
+
+        kernel->execute(vid, tune_idx); // Execute kernel
+
+        if ( run_params.showProgress() ) {
+          getCout() << " -- " << kernel->getLastTime() << " sec." << endl;
+        }
+
+      } else {
+        getCout() << "\t\tSkipping " << tuning_name << " tuning" << endl;
       }
-      kernel->execute(vid, tune_idx);
-      if ( run_params.showProgress() ) {
-        getCout() << " -- " << kernel->getLastTime() << " sec." << endl;
+
+    }  // iterate over tunings 
+
+  } // iterate over variants
+
+}
+
+void Executor::runWarmupKernels()
+{
+  if ( run_params.getDisableWarmup() ) {
+    return;
+  } 
+
+  getCout() << "\n\nRun warmup kernels...\n";
+
+  //
+  // For kernels to be run, assemble a set of feature IDs
+  //
+  std::set<FeatureID> feature_ids;
+  for (size_t ik = 0; ik < kernels.size(); ++ik) {
+    KernelBase* kernel = kernels[ik];
+
+    for (size_t fid = 0; fid < NumFeatures; ++fid) {
+      FeatureID tfid = static_cast<FeatureID>(fid);
+      if (kernel->usesFeature(tfid) ) {
+         feature_ids.insert( tfid );
       }
     }
-  } // loop over variants
+  
+  } // iterate over kernels
+
+  //
+  // Map feature IDs to set of warmup kernel IDs
+  //
+  std::set<KernelID> kernel_ids;
+  for ( auto fid = feature_ids.begin(); fid != feature_ids.end(); ++ fid ) {
+
+    switch (*fid) {
+
+      case Forall:
+      case Kernel:
+      case Launch:
+        kernel_ids.insert(Basic_DAXPY); break;
+
+      case Sort:
+        kernel_ids.insert(Algorithm_SORT); break;
+   
+      case Scan:
+        kernel_ids.insert(Basic_INDEXLIST_3LOOP); break;
+
+      case Workgroup:
+        kernel_ids.insert(Comm_HALO_PACKING_FUSED); break;
+
+      case Reduction:
+        kernel_ids.insert(Basic_REDUCE3_INT); break;
+
+      case Atomic:
+        kernel_ids.insert(Basic_PI_ATOMIC); break; 
+
+      case View:
+        break;
+
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+      case MPI:
+        kernel_ids.insert(Comm_HALO_EXCHANGE_FUSED); break;
+#endif
+
+      default:
+        break;
+
+    }
+
+  }
+
+  //
+  // Run warmup kernels
+  //
+  for ( auto kid = kernel_ids.begin(); kid != kernel_ids.end(); ++ kid ) {
+    KernelBase* kernel = getKernelObject(*kid, run_params);
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
+    kernel->caliperOff();
+#endif
+    runKernel(kernel, true);
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
+    kernel->caliperOn();
+#endif
+    delete kernel;
+  }
+
 }
 
 void Executor::outputRunData()
@@ -974,12 +823,16 @@ void Executor::outputRunData()
     bool to_file = true;
     writeKernelInfoSummary(*file, to_file);
   }
+
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
+  KernelBase::setCaliperMgrFlush();
+#endif
 }
 
 unique_ptr<ostream> Executor::openOutputFile(const string& filename) const
 {
   int rank = 0;
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
   if (rank == 0) {
@@ -1256,13 +1109,13 @@ void Executor::writeFOMReport(ostream& file, vector<FOMGroup>& fom_groups)
             col++;
           }
 
-        }  // loop over group variants
+        }  // iterate over group variants
 
-      }  // loop over fom_groups (i.e., columns)
+      }  // iterate over fom_groups (i.e., columns)
 
       file << endl;
 
-    } // loop over kernels
+    } // iterate over kernels
 
 
     //
@@ -1303,11 +1156,11 @@ void Executor::writeFOMReport(ostream& file, vector<FOMGroup>& fom_groups)
             col++;
           }
 
-        } // loop over group variants
+        } // iterate over group variants
 
-      }  // loop over groups
+      }  // iterate over groups
 
-    }  // loop over kernels
+    }  // iterate over kernels
 
     for (size_t ifg = 0; ifg < fom_groups.size(); ++ifg) {
       for (size_t col = 0; col < fom_group_ncols[ifg]; ++col) {
@@ -1376,7 +1229,7 @@ void Executor::writeChecksumReport(ostream& file)
 {
   if ( file ) {
 
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
     int num_ranks;
     MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
 #endif
@@ -1411,7 +1264,7 @@ void Executor::writeChecksumReport(ostream& file)
     //
     file << equal_line << endl;
     file << "Checksum Report ";
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
     file << "for " << num_ranks << " MPI ranks ";
 #endif
     file << endl;
@@ -1423,7 +1276,7 @@ void Executor::writeChecksumReport(ostream& file)
     file <<left<< setw(namecol_width) << "Kernel  " << endl;
     file << dot_line << endl;
     file <<left<< setw(namecol_width) << "Variants  "
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
          <<left<< setw(checksum_width) << "Average Checksum  "
          <<left<< setw(checksum_width) << "Max Checksum Diff  "
          <<left<< setw(checksum_width) << "Checksum Diff StdDev"
@@ -1435,7 +1288,7 @@ void Executor::writeChecksumReport(ostream& file)
     file <<left<< setw(namecol_width) << "  "
          <<left<< setw(checksum_width) << "  "
          <<left<< setw(checksum_width) << "(vs. first variant listed)  "
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
          <<left<< setw(checksum_width) << ""
 #endif
          << endl;
@@ -1483,7 +1336,7 @@ void Executor::writeChecksumReport(ostream& file)
         }
       }
 
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
 
       // get stats for checksums
       std::vector<std::vector<Checksum_type>> checksums_sum(variant_ids.size());
@@ -1573,7 +1426,7 @@ void Executor::writeChecksumReport(ostream& file)
           if ( kern->wasVariantTuningRun(vid, tune_idx) ) {
             file <<left<< setw(namecol_width) << (variant_name+"-"+tuning_name)
                  << showpoint << setprecision(prec)
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
                  <<left<< setw(checksum_width) << checksums_avg[iv][tune_idx]
                  <<left<< setw(checksum_width) << checksums_abs_diff_max[iv][tune_idx]
                  <<left<< setw(checksum_width) << checksums_abs_diff_stddev[iv][tune_idx] << endl;
@@ -1583,7 +1436,7 @@ void Executor::writeChecksumReport(ostream& file)
 #endif
           } else {
             file <<left<< setw(namecol_width) << (variant_name+"-"+tuning_name)
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
                  <<left<< setw(checksum_width) << "Not Run"
                  <<left<< setw(checksum_width) << "Not Run"
                  <<left<< setw(checksum_width) << "Not Run" << endl;

@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors.
 # See the RAJAPerf/LICENSE file for details.
 #
@@ -42,5 +42,11 @@ blt_add_library(
           MEMCPY-Cuda.cpp
           MEMCPY-OMP.cpp
           MEMCPY-OMPTarget.cpp
+          ATOMIC.cpp
+          ATOMIC-Seq.cpp
+          ATOMIC-Hip.cpp
+          ATOMIC-Cuda.cpp
+          ATOMIC-OMP.cpp
+          ATOMIC-OMPTarget.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

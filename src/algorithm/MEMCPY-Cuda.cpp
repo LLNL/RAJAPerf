@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -21,15 +21,6 @@ namespace rajaperf
 namespace algorithm
 {
 
-#define MEMCPY_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, iend); \
-  allocAndInitCudaDeviceData(y, m_y, iend);
-
-#define MEMCPY_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_y, y, iend); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(y);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void memcpy(Real_ptr x, Real_ptr y,
@@ -48,27 +39,23 @@ void MEMCPY::runCudaVariantLibrary(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   MEMCPY_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 
-    MEMCPY_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      cudaErrchk( cudaMemcpyAsync(MEMCPY_STD_ARGS, cudaMemcpyDefault, 0) );
+      cudaErrchk( cudaMemcpyAsync(MEMCPY_STD_ARGS,
+                                  cudaMemcpyDefault,
+                                  res.get_stream()) );
 
     }
     stopTimer();
 
-    MEMCPY_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    MEMCPY_DATA_SETUP_CUDA;
-
-    camp::resources::Cuda res = camp::resources::Cuda::get_default();
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -77,8 +64,6 @@ void MEMCPY::runCudaVariantLibrary(VariantID vid)
 
     }
     stopTimer();
-
-    MEMCPY_DATA_TEARDOWN_CUDA;
 
   } else {
 
@@ -95,28 +80,27 @@ void MEMCPY::runCudaVariantBlock(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   MEMCPY_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
-
-    MEMCPY_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      memcpy<block_size><<<grid_size, block_size>>>(
-          x, y, iend );
-      cudaErrchk( cudaGetLastError() );
+      constexpr size_t shmem = 0;
+
+      RPlaunchCudaKernel( (memcpy<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          x, y, iend );
 
     }
     stopTimer();
 
-    MEMCPY_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
-
-    MEMCPY_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -126,31 +110,29 @@ void MEMCPY::runCudaVariantBlock(VariantID vid)
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      lambda_cuda_forall<block_size><<<grid_size, block_size>>>(
-          ibegin, iend, memcpy_lambda );
-      cudaErrchk( cudaGetLastError() );
+      constexpr size_t shmem = 0;
+
+      RPlaunchCudaKernel( (lambda_cuda_forall<block_size,
+                                              decltype(memcpy_lambda)>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          ibegin, iend, memcpy_lambda );
 
     }
     stopTimer();
 
-    MEMCPY_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    MEMCPY_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           MEMCPY_BODY;
       });
 
     }
     stopTimer();
-
-    MEMCPY_DATA_TEARDOWN_CUDA;
 
   } else {
 
@@ -182,7 +164,7 @@ void MEMCPY::runCudaVariant(VariantID vid, size_t tune_idx)
         run_params.validGPUBlockSize(block_size)) {
 
       if (tune_idx == t) {
-
+        setBlockSize(block_size);
         runCudaVariantBlock<block_size>(vid);
 
       }

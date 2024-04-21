@@ -9,7 +9,7 @@
  */
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -22,44 +22,110 @@
 
 #include "RAJA/config.hpp"
 #include "camp/number.hpp"
+#include "camp/list.hpp"
 
+#include <type_traits>
 #include <string>
 
 #cmakedefine RAJA_PERFSUITE_ENABLE_MPI
 #cmakedefine RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN
 
-namespace rajaperf {
-
-struct configuration {
-#if 0
-// Version of RAJA Perf Suite (ex: 0.1.0)
-static const std::string perfsuite_version =
-"@RAJA_PERFSUITE_VERSION_MAJOR@" + std::string(".") +
-"@RAJA_PERFSUITE_VERSION_MINOR@" + std::string(".") +
-"@RAJA_PERFSUITE_VERSION_PATCHLEVEL@";
-
-// Version of RAJA used to build (ex: 0.2.4)
-static const std::string raja_version =
-std::to_string(RAJA::RAJA_VERSION_MAJOR) + std::string(".") +
-std::to_string(RAJA::RAJA_VERSION_MINOR) + std::string(".") +
-std::to_string(RAJA::RAJA_VERSION_PATCH_LEVEL);
-
-// Systype and machine code was built on (ex: chaos_5_x64_64, rzhasgpu18)
-static const std::string systype_build = "@RAJAPERF_BUILD_SYSTYPE@";
-static const std::string machine_build = "@RAJAPERF_BUILD_HOST@";
-
-// Compiler used to build (ex: gcc-4.9.3)
-static const std::string compiler = "@RAJAPERF_COMPILER@";
-
-// Command options used to build (ex: -Ofast -mavx)
-static const std::string compiler_options = "@RAJAPERF_COMPILER_OPTIONS@";
+#if defined(RAJA_ENABLE_CUDA)
+#define RAJA_PERFSUITE_TUNING_CUDA_ARCH @RAJA_PERFSUITE_TUNING_CUDA_ARCH@
 #endif
 
-// helper alias to void trailing comma in no-arg case
+#if defined(RAJA_ENABLE_HIP)
+#define RAJA_PERFSUITE_TUNING_HIP_ARCH @RAJA_PERFSUITE_TUNING_HIP_ARCH@
+#include <hip/hip_version.h>
+#if (HIP_VERSION_MAJOR > 5) || \
+    (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR >= 2)
+// enable memadvise coarse with rocm version >= 4.3
+#define RAJAPERF_USE_MEMADVISE_COARSE
+#endif
+#endif
+
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
+#include <adiak.hpp>
+#include <algorithm>
+#endif
+
+// Squash compiler warnings about unused variables
+template < typename ... Ts >
+inline void RAJAPERF_UNUSED_VAR(Ts&&...) { }
+
+// Squash compiler warnings about unused arguments
+#define RAJAPERF_UNUSED_ARG(...)
+
+namespace rajaperf {
+
+namespace integer {
+
+// helper alias to convert comma separated integer literals into list
 template < size_t... Is >
-using i_seq = camp::int_seq<size_t, Is...>;
+using list_type = camp::list< camp::integral_constant<size_t, Is>... >;
+
+} // closing brace for integer namespace
+
+struct configuration {
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
+
+template <typename T>
+std::vector<T> str_to_list(const std::string& str) {
+    /*Remove beginning and trailing spaces as well as replace spaces with commas.*/
+    // Remove beginning and trailing spaces
+    size_t start = str.find_first_not_of(' ');
+    size_t end = str.find_last_not_of(' ');
+
+    std::vector<T> vec = {};
+
+    // Handle the case when the str contains only spaces
+    if (start == std::string::npos || end == std::string::npos)
+        return vec;
+
+    std::string trimmed_str = str.substr(start, end - start + 1);
+
+    // Replace consecutive spaces in-between with a single space
+    auto end_unique = std::unique(trimmed_str.begin(), trimmed_str.end(),
+                                  [](char a, char b) { return a == ' ' && b == ' '; });
+    trimmed_str.erase(end_unique, trimmed_str.end());
+
+    // Replace spaces with commas
+    std::replace(trimmed_str.begin(), trimmed_str.end(), ' ', ',');
+
+    vec = {trimmed_str};
+    return vec;
+}
+
+const adiak::version adiak_perfsuite_version = std::string("@CMAKE_PROJECT_VERSION@");
+const adiak::version adiak_raja_version = std::string("@RAJA_LOADED@");
+const adiak::catstring adiak_cmake_build_type = std::string("@CMAKE_BUILD_TYPE@");
+const std::vector<adiak::catstring> adiak_cmake_cxx_flags = str_to_list<adiak::catstring>(std::string("@CMAKE_CXX_FLAGS@"));
+const std::vector<adiak::catstring> adiak_cmake_exe_linker_flags = str_to_list<adiak::catstring>(std::string("@CMAKE_EXE_LINKER_FLAGS@"));
+const adiak::path adiak_rajaperf_compiler = std::string("@RAJAPERF_COMPILER@");
+const std::vector<adiak::catstring> adiak_rajaperf_compiler_options = str_to_list<adiak::catstring>(std::string("@RAJAPERF_COMPILER_OPTIONS@"));
+const adiak::version adiak_compiler_version = std::string("@CMAKE_CXX_COMPILER_VERSION@");
+const adiak::version adiak_cuda_compiler_version = std::string("@CMAKE_CUDA_COMPILER_VERSION@");
+constexpr static const char* adiak_gpu_targets = "@GPU_TARGETS@";
+constexpr static const char* adiak_cmake_hip_architectures = "@CMAKE_HIP_ARCHIECTURES@";
+constexpr static const char* adiak_tuning_cuda_arch = "@RAJA_PERFSUITE_TUNING_CUDA_ARCH@";
+constexpr static const char* adiak_tuning_hip_arch = "@RAJA_PERFSUITE_TUNING_HIP_ARCH@";
+const std::vector<int> adiak_gpu_block_sizes = {@RAJA_PERFSUITE_GPU_BLOCKSIZES@};
+const std::vector<int> adiak_atomic_replications = {@RAJA_PERFSUITE_ATOMIC_REPLICATIONS@};
+const std::vector<int> adiak_gpu_items_per_thread = {@RAJA_PERFSUITE_GPU_ITEMS_PER_THREAD@};
+const std::vector<adiak::catstring> adiak_raja_hipcc_flags = str_to_list<adiak::catstring>(std::string("@RAJA_HIPCC_FLAGS@"));
+const adiak::catstring adiak_mpi_cxx_compiler = std::string("@MPI_CXX_COMPILER@");
+const adiak::catstring adiak_systype_build = std::string("@RAJAPERF_BUILD_SYSTYPE@");
+const adiak::catstring adiak_machine_build = std::string("@RAJAPERF_BUILD_HOST@");
+#endif
+
 // List of GPU block sizes
-using gpu_block_sizes = i_seq<@RAJA_PERFSUITE_GPU_BLOCKSIZES@>;
+using gpu_block_sizes = integer::list_type<@RAJA_PERFSUITE_GPU_BLOCKSIZES@>;
+
+// List of GPU atomic replications
+using atomic_replications = integer::list_type<@RAJA_PERFSUITE_ATOMIC_REPLICATIONS@>;
+
+// List of GPU items per thread
+using gpu_items_per_thread = integer::list_type<@RAJA_PERFSUITE_GPU_ITEMS_PER_THREAD@>;
 
 // Name of user who ran code
 std::string user_run;
@@ -73,13 +139,27 @@ std::string machine_run;
 
 };
 
+#if __cplusplus < 201703L
+// Implement std::conjunction from https://en.cppreference.com/w/cpp/types/conjunction
+template<class...> struct conjunction : std::true_type {};
+template<class B1> struct conjunction<B1> : B1 {};
+template<class B1, class... Bn>
+struct conjunction<B1, Bn...>
+  : std::conditional_t<bool(B1::value), conjunction<Bn...>, B1> {};
+#else
+using std::conjunction;
+#endif
+
+//compile time loop over an integer sequence
+//this allows for creating a loop over a compile time constant variable
+template <typename Func, typename... Ts>
+inline void seq_for(camp::list<Ts...> const&, Func&& func)
+{
+  // braced init lists are evaluated in order
+  int seq_unused_array[] = {(func(Ts{}), 0)...};
+  RAJAPERF_UNUSED_VAR(seq_unused_array);
+}
+
 } // closing brace for rajaperf namespace
-
-// Squash compiler warnings about unused variables
-template < typename ... Ts >
-inline void RAJAPERF_UNUSED_VAR(Ts&&...) { }
-
-// Squash compiler warnings about unused arguments
-#define RAJAPERF_UNUSED_ARG(...)
 
 #endif  // closing endif for header file include guard

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -31,11 +31,6 @@ void DEL_DOT_VEC_2D::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
   const Index_type iend = m_domain->n_real_zones;
 
   DEL_DOT_VEC_2D_DATA_SETUP;
-
-  NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
-  NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
-  NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
-  NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
 
   switch ( vid ) {
 
@@ -80,9 +75,8 @@ void DEL_DOT_VEC_2D::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
     case RAJA_OpenMP : {
 
       camp::resources::Resource working_res{camp::resources::Host::get_default()};
-      RAJA::TypedListSegment<Index_type> zones(m_domain->real_zones,
-                                               m_domain->n_real_zones,
-                                               working_res);
+      RAJA::TypedListSegment<Index_type> zones(real_zones, iend,
+                                               working_res, RAJA::Unowned);
 
       auto deldotvec2d_lam = [=](Index_type i) {
                                DEL_DOT_VEC_2D_BODY;

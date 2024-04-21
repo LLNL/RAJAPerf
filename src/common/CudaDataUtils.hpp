@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -15,11 +15,14 @@
 #define RAJAPerf_CudaDataUtils_HPP
 
 #include "RPTypes.hpp"
+#include <stdexcept>
 
 #if defined(RAJA_ENABLE_CUDA)
 
+#include "common/RAJAPerfSuite.hpp"
 #include "common/GPUUtils.hpp"
 
+#include "RAJA/policy/cuda/policy.hpp"
 #include "RAJA/policy/cuda/raja_cudaerrchk.hpp"
 
 
@@ -37,6 +40,33 @@ __device__ __forceinline__ unsigned long long device_timer()
   asm volatile ("mov.u64 %0, %globaltimer;" : "=l"(global_timer));
 #endif
   return global_timer;
+}
+
+/*!
+ * \brief Method for launching a CUDA kernel with given configuration.
+ *
+ *        Note: method checks whether number of args and their types in
+ *              kernel signature matches args passed to this method.
+ */
+template <typename... Args, typename...KernArgs>
+void RPlaunchCudaKernel(void (*kernel)(KernArgs...),
+                        const dim3& numBlocks, const dim3& dimBlocks,
+                        std::uint32_t sharedMemBytes, cudaStream_t stream,
+                        Args const&... args)
+{
+  static_assert(sizeof...(KernArgs) == sizeof...(Args),
+                "Number of kernel args doesn't match what's passed to method");
+
+  static_assert(conjunction<std::is_same<std::decay_t<KernArgs>, std::decay_t<Args>>...>::value,
+                "Kernel arg types don't match what's passed to method");
+
+  constexpr size_t count = sizeof...(Args);
+  void* arg_arr[count]{(void*)&args...};
+
+  auto k = reinterpret_cast<const void*>(kernel);
+  cudaErrchk( cudaLaunchKernel(k, numBlocks, dimBlocks,
+                               arg_arr,
+                               sharedMemBytes, stream) );
 }
 
 /*!
@@ -77,119 +107,190 @@ __global__ void lambda_cuda(Lambda body)
   body();
 }
 
-/*!
- * \brief Getters for cuda kernel indices.
- */
-template < typename Index >
-__device__ inline Index_type lambda_cuda_get_index();
 
-template < >
-__device__ inline Index_type lambda_cuda_get_index<RAJA::cuda_thread_x_direct>() {
-  return threadIdx.x;
-}
-template < >
-__device__ inline Index_type lambda_cuda_get_index<RAJA::cuda_thread_y_direct>() {
-  return threadIdx.y;
-}
-template < >
-__device__ inline Index_type lambda_cuda_get_index<RAJA::cuda_thread_z_direct>() {
-  return threadIdx.z;
-}
-
-template < >
-__device__ inline Index_type lambda_cuda_get_index<RAJA::cuda_block_x_direct>() {
-  return blockIdx.x;
-}
-template < >
-__device__ inline Index_type lambda_cuda_get_index<RAJA::cuda_block_y_direct>() {
-  return blockIdx.y;
-}
-template < >
-__device__ inline Index_type lambda_cuda_get_index<RAJA::cuda_block_z_direct>() {
-  return blockIdx.z;
-}
-
-/*!
- * \brief Copy given hptr (host) data to CUDA device (dptr).
- *
- * Method assumes both host and device data arrays are allocated
- * and of propoer size for copy operation to succeed.
- */
-template <typename T>
-void initCudaDeviceData(T& dptr, const T hptr, int len)
+namespace detail
 {
-  cudaErrchk( cudaMemcpy( dptr, hptr,
-                          len * sizeof(typename std::remove_pointer<T>::type),
-                          cudaMemcpyHostToDevice ) );
-
-  detail::incDataInitCount();
-}
 
 /*!
- * \brief Allocate CUDA device data array (dptr).
+ * \brief Get current cuda device.
  */
-template <typename T>
-void allocCudaDeviceData(T& dptr, int len)
+inline int getCudaDevice()
 {
-  cudaErrchk( cudaMalloc( (void**)&dptr,
-              len * sizeof(typename std::remove_pointer<T>::type) ) );
+  int device = -1;
+  cudaErrchk( cudaGetDevice( &device ) );
+  return device;
 }
 
 /*!
- * \brief Allocate CUDA pinned data array (pptr).
+ * \brief Get properties of the current cuda device.
  */
-template <typename T>
-void allocCudaPinnedData(T& pptr, int len)
+inline cudaDeviceProp getCudaDeviceProp()
 {
-  cudaErrchk( cudaHostAlloc( (void**)&pptr,
-              len * sizeof(typename std::remove_pointer<T>::type),
-              cudaHostAllocMapped ) );
+  cudaDeviceProp prop;
+  cudaErrchk(cudaGetDeviceProperties(&prop, getCudaDevice()));
+  return prop;
 }
 
 /*!
- * \brief Allocate CUDA device data array (dptr) and copy given hptr (host)
- * data to device array.
+ * \brief Get max occupancy in blocks for the given kernel for the current
+ *        cuda device.
  */
-template <typename T>
-void allocAndInitCudaDeviceData(T& dptr, const T hptr, int len)
+template < typename Func >
+RAJA_INLINE
+int getCudaOccupancyMaxBlocks(Func&& func, int num_threads, size_t shmem_size)
 {
-  allocCudaDeviceData(dptr, len);
-  initCudaDeviceData(dptr, hptr, len);
+  int max_blocks = -1;
+  cudaErrchk(cudaOccupancyMaxActiveBlocksPerMultiprocessor(
+      &max_blocks, func, num_threads, shmem_size));
+
+  size_t multiProcessorCount = getCudaDeviceProp().multiProcessorCount;
+
+  return max_blocks * multiProcessorCount;
 }
 
-/*!
- * \brief Copy given dptr (CUDA device) data to host (hptr).
- *
- * Method assumes both host and device data arrays are allocated
- * and of propoer size for copy operation to succeed.
+/*
+ * Copy memory len bytes from src to dst.
  */
-template <typename T>
-void getCudaDeviceData(T& hptr, const T dptr, int len)
+inline void copyCudaData(void* dst_ptr, const void* src_ptr, Size_type len)
 {
-  cudaErrchk( cudaMemcpy( hptr, dptr,
-              len * sizeof(typename std::remove_pointer<T>::type),
-              cudaMemcpyDeviceToHost ) );
+  cudaErrchk( cudaMemcpy( dst_ptr, src_ptr, len,
+              cudaMemcpyDefault ) );
 }
 
 /*!
- * \brief Free device data array.
+ * \brief Allocate CUDA device data array.
  */
-template <typename T>
-void deallocCudaDeviceData(T& dptr)
+inline void* allocCudaDeviceData(Size_type len)
+{
+  void* dptr = nullptr;
+  cudaErrchk( cudaMalloc( &dptr, len ) );
+  return dptr;
+}
+
+/*!
+ * \brief Allocate CUDA managed data array.
+ */
+inline void* allocCudaManagedData(Size_type len)
+{
+  void* mptr = nullptr;
+  cudaErrchk( cudaMallocManaged( &mptr, len, cudaMemAttachGlobal ) );
+  return mptr;
+}
+
+/*!
+ * \brief Allocate CUDA managed host preferred data array.
+ */
+inline void* allocCudaManagedHostPreferredData(Size_type len)
+{
+  void* mptr = nullptr;
+  cudaErrchk( cudaMallocManaged( &mptr, len, cudaMemAttachGlobal ) );
+  cudaErrchk( cudaMemAdvise( mptr, len, cudaMemAdviseSetPreferredLocation, cudaCpuDeviceId ) );
+  return mptr;
+}
+
+/*!
+ * \brief Allocate CUDA managed device preferred data array.
+ */
+inline void* allocCudaManagedDevicePreferredData(Size_type len)
+{
+  void* mptr = nullptr;
+  cudaErrchk( cudaMallocManaged( &mptr, len, cudaMemAttachGlobal ) );
+  cudaErrchk( cudaMemAdvise( mptr, len, cudaMemAdviseSetPreferredLocation, getCudaDevice() ) );
+  return mptr;
+}
+
+/*!
+ * \brief Allocate CUDA managed host preferred host accessed data array.
+ */
+inline void* allocCudaManagedHostPreferredDeviceAccessedData(Size_type len)
+{
+  void* mptr = nullptr;
+  cudaErrchk( cudaMallocManaged( &mptr, len, cudaMemAttachGlobal ) );
+  cudaErrchk( cudaMemAdvise( mptr, len, cudaMemAdviseSetPreferredLocation, cudaCpuDeviceId ) );
+  cudaErrchk( cudaMemAdvise( mptr, len, cudaMemAdviseSetAccessedBy, getCudaDevice() ) );
+  return mptr;
+}
+
+/*!
+ * \brief Allocate CUDA managed device preferred host accessed data array.
+ */
+inline void* allocCudaManagedDevicePreferredHostAccessedData(Size_type len)
+{
+  void* mptr = nullptr;
+  cudaErrchk( cudaMallocManaged( &mptr, len, cudaMemAttachGlobal ) );
+  cudaErrchk( cudaMemAdvise( mptr, len, cudaMemAdviseSetPreferredLocation, getCudaDevice() ) );
+  cudaErrchk( cudaMemAdvise( mptr, len, cudaMemAdviseSetAccessedBy, cudaCpuDeviceId ) );
+  return mptr;
+}
+
+/*!
+ * \brief Allocate CUDA pinned data array.
+ */
+inline void* allocCudaPinnedData(Size_type len)
+{
+  void* pptr = nullptr;
+  cudaErrchk( cudaHostAlloc( &pptr, len, cudaHostAllocMapped ) );
+  return pptr;
+}
+
+
+/*!
+ * \brief Free CUDA device data array.
+ */
+inline void deallocCudaDeviceData(void* dptr)
 {
   cudaErrchk( cudaFree( dptr ) );
-  dptr = nullptr;
 }
 
 /*!
- * \brief Free pinned data array.
+ * \brief Free CUDA managed data array.
  */
-template <typename T>
-void deallocCudaPinnedData(T& pptr)
+inline void deallocCudaManagedData(void* mptr)
+{
+  cudaErrchk( cudaFree( mptr ) );
+}
+
+/*!
+ * \brief Free CUDA managed host preferred data array.
+ */
+inline void deallocCudaManagedHostPreferredData(void* mptr)
+{
+  cudaErrchk( cudaFree( mptr ) );
+}
+
+/*!
+ * \brief Free CUDA managed device preferred data array.
+ */
+inline void deallocCudaManagedDevicePreferredData(void* mptr)
+{
+  cudaErrchk( cudaFree( mptr ) );
+}
+
+/*!
+ * \brief Free CUDA managed host preferred host accessed data array.
+ */
+inline void deallocCudaManagedHostPreferredDeviceAccessedData(void* mptr)
+{
+  cudaErrchk( cudaFree( mptr ) );
+}
+
+/*!
+ * \brief Free CUDA managed device preferred host accessed data array.
+ */
+inline void deallocCudaManagedDevicePreferredHostAccessedData(void* mptr)
+{
+  cudaErrchk( cudaFree( mptr ) );
+}
+
+/*!
+ * \brief Free CUDA pinned data array.
+ */
+inline void deallocCudaPinnedData(void* pptr)
 {
   cudaErrchk( cudaFreeHost( pptr ) );
-  pptr = nullptr;
 }
+
+}  // closing brace for detail namespace
 
 }  // closing brace for rajaperf namespace
 

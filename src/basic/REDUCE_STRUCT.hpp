@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -89,13 +89,19 @@ public:
 
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
-  template < size_t block_size >
-  void runCudaVariantImpl(VariantID vid);
-  template < size_t block_size >
-  void runHipVariantImpl(VariantID vid);
+
+  template < size_t block_size, typename MappingHelper >
+  void runCudaVariantBase(VariantID vid);
+  template < size_t block_size, typename MappingHelper >
+  void runHipVariantBase(VariantID vid);
+
+  template < size_t block_size, typename AlgorithmHelper, typename MappingHelper >
+  void runCudaVariantRAJA(VariantID vid);
+  template < size_t block_size, typename AlgorithmHelper, typename MappingHelper >
+  void runHipVariantRAJA(VariantID vid);
 
   struct PointsType {
-    Int_type N;
+    Index_type N;
     Real_ptr x, y;
 
     Real_ptr GetCenter(){return &center[0];};
@@ -118,7 +124,7 @@ public:
 
 private:
   static const size_t default_gpu_block_size = 256;
-  using gpu_block_sizes_type = gpu_block_size::make_list_type<default_gpu_block_size>;
+  using gpu_block_sizes_type = integer::make_gpu_block_size_list_type<default_gpu_block_size>;
   Real_ptr m_x; Real_ptr m_y;
   Real_type	m_init_sum; 
   Real_type	m_init_min; 

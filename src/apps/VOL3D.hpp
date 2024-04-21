@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -79,7 +79,11 @@
 \
   Real_ptr x0,x1,x2,x3,x4,x5,x6,x7 ; \
   Real_ptr y0,y1,y2,y3,y4,y5,y6,y7 ; \
-  Real_ptr z0,z1,z2,z3,z4,z5,z6,z7 ;
+  Real_ptr z0,z1,z2,z3,z4,z5,z6,z7 ; \
+\
+  NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ; \
+  NDPTRSET(m_domain->jp, m_domain->kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ; \
+  NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
 
 #define VOL3D_BODY \
   Real_type x71 = x7[i] - x1[i] ; \
@@ -169,17 +173,22 @@ public:
   void runCudaVariant(VariantID vid, size_t tune_idx);
   void runHipVariant(VariantID vid, size_t tune_idx);
   void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
+  void runSyclVariant(VariantID vid, size_t tune_idx);
 
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
+  void setSyclTuningDefinitions(VariantID vid);
+
   template < size_t block_size >
   void runCudaVariantImpl(VariantID vid);
   template < size_t block_size >
   void runHipVariantImpl(VariantID vid);
+  template < size_t work_group_size >
+  void runSyclVariantImpl(VariantID vid);
 
 private:
   static const size_t default_gpu_block_size = 256;
-  using gpu_block_sizes_type = gpu_block_size::make_list_type<default_gpu_block_size>;
+  using gpu_block_sizes_type = integer::make_gpu_block_size_list_type<default_gpu_block_size>;
 
   Real_ptr m_x;
   Real_ptr m_y;

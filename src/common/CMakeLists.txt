@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors.
 # See the RAJAPerf/LICENSE file for details.
 #
@@ -14,5 +14,6 @@ blt_add_library(
           OutputUtils.cpp 
           RAJAPerfSuite.cpp 
           RunParams.cpp
+  INCLUDES ${PROJECT_BINARY_DIR}/include/
   DEPENDS_ON ${RAJA_PERFSUITE_DEPENDS}
   )

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,23 +20,6 @@ namespace rajaperf
 {
 namespace basic
 {
-
-#define INIT3_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(out1, m_out1, iend); \
-  allocAndInitCudaDeviceData(out2, m_out2, iend); \
-  allocAndInitCudaDeviceData(out3, m_out3, iend); \
-  allocAndInitCudaDeviceData(in1, m_in1, iend); \
-  allocAndInitCudaDeviceData(in2, m_in2, iend);
-
-#define INIT3_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_out1, out1, iend); \
-  getCudaDeviceData(m_out2, out2, iend); \
-  getCudaDeviceData(m_out3, out3, iend); \
-  deallocCudaDeviceData(out1); \
-  deallocCudaDeviceData(out2); \
-  deallocCudaDeviceData(out3); \
-  deallocCudaDeviceData(in1); \
-  deallocCudaDeviceData(in2);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -59,52 +42,55 @@ void INIT3::runCudaVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   INIT3_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 
-    INIT3_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      init3<block_size><<<grid_size, block_size>>>( out1, out2, out3, in1, in2,
-                                        iend );
-      cudaErrchk( cudaGetLastError() );
+      constexpr size_t shmem = 0;
+
+      RPlaunchCudaKernel( (init3<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          out1, out2, out3,
+                          in1, in2,
+                          iend );
 
     }
     stopTimer();
-
-    INIT3_DATA_TEARDOWN_CUDA;
 
   } else if ( vid == Lambda_CUDA ) {
 
-    INIT3_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      lambda_cuda_forall<block_size><<<grid_size, block_size>>>(
-        ibegin, iend, [=] __device__ (Index_type i) {
+      auto init3_lambda = [=] __device__ (Index_type i) {
         INIT3_BODY;
-      });
-      cudaErrchk( cudaGetLastError() );
+      };
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = 0;
+
+      RPlaunchCudaKernel( (lambda_cuda_forall<block_size,
+                                              decltype(init3_lambda)>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          ibegin, iend, init3_lambda );
 
     }
     stopTimer();
 
-    INIT3_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    INIT3_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
         INIT3_BODY;
       });
@@ -112,14 +98,12 @@ void INIT3::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    INIT3_DATA_TEARDOWN_CUDA;
-
   } else {
      getCout() << "\n  INIT3 : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(INIT3, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(INIT3, Cuda)
 
 } // end namespace basic
 } // end namespace rajaperf

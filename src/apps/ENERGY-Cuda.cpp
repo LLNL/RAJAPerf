@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,42 +20,6 @@ namespace rajaperf
 {
 namespace apps
 {
-
-#define ENERGY_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(e_new, m_e_new, iend); \
-  allocAndInitCudaDeviceData(e_old, m_e_old, iend); \
-  allocAndInitCudaDeviceData(delvc, m_delvc, iend); \
-  allocAndInitCudaDeviceData(p_new, m_p_new, iend); \
-  allocAndInitCudaDeviceData(p_old, m_p_old, iend); \
-  allocAndInitCudaDeviceData(q_new, m_q_new, iend); \
-  allocAndInitCudaDeviceData(q_old, m_q_old, iend); \
-  allocAndInitCudaDeviceData(work, m_work, iend); \
-  allocAndInitCudaDeviceData(compHalfStep, m_compHalfStep, iend); \
-  allocAndInitCudaDeviceData(pHalfStep, m_pHalfStep, iend); \
-  allocAndInitCudaDeviceData(bvc, m_bvc, iend); \
-  allocAndInitCudaDeviceData(pbvc, m_pbvc, iend); \
-  allocAndInitCudaDeviceData(ql_old, m_ql_old, iend); \
-  allocAndInitCudaDeviceData(qq_old, m_qq_old, iend); \
-  allocAndInitCudaDeviceData(vnewc, m_vnewc, iend);
-
-#define ENERGY_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_e_new, e_new, iend); \
-  getCudaDeviceData(m_q_new, q_new, iend); \
-  deallocCudaDeviceData(e_new); \
-  deallocCudaDeviceData(e_old); \
-  deallocCudaDeviceData(delvc); \
-  deallocCudaDeviceData(p_new); \
-  deallocCudaDeviceData(p_old); \
-  deallocCudaDeviceData(q_new); \
-  deallocCudaDeviceData(q_old); \
-  deallocCudaDeviceData(work); \
-  deallocCudaDeviceData(compHalfStep); \
-  deallocCudaDeviceData(pHalfStep); \
-  deallocCudaDeviceData(bvc); \
-  deallocCudaDeviceData(pbvc); \
-  deallocCudaDeviceData(ql_old); \
-  deallocCudaDeviceData(qq_old); \
-  deallocCudaDeviceData(vnewc);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -150,68 +114,77 @@ void ENERGY::runCudaVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   ENERGY_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 
-    ENERGY_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = 0;
 
-       energycalc1<block_size><<<grid_size, block_size>>>( e_new, e_old, delvc,
-                                               p_old, q_old, work,
-                                               iend );
-       cudaErrchk( cudaGetLastError() );
+      RPlaunchCudaKernel( (energycalc1<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          e_new, e_old, delvc,
+                          p_old, q_old, work,
+                          iend );
 
-       energycalc2<block_size><<<grid_size, block_size>>>( delvc, q_new,
-                                               compHalfStep, pHalfStep,
-                                               e_new, bvc, pbvc,
-                                               ql_old, qq_old,
-                                               rho0,
-                                               iend );
-       cudaErrchk( cudaGetLastError() );
+      RPlaunchCudaKernel( (energycalc2<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          delvc, q_new,
+                          compHalfStep, pHalfStep,
+                          e_new, bvc, pbvc,
+                          ql_old, qq_old,
+                          rho0,
+                          iend );
 
-       energycalc3<block_size><<<grid_size, block_size>>>( e_new, delvc,
-                                               p_old, q_old,
-                                               pHalfStep, q_new,
-                                               iend );
-       cudaErrchk( cudaGetLastError() );
+      RPlaunchCudaKernel( (energycalc3<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          e_new, delvc,
+                          p_old, q_old,
+                          pHalfStep, q_new,
+                          iend );
 
-       energycalc4<block_size><<<grid_size, block_size>>>( e_new, work,
-                                               e_cut, emin,
-                                               iend );
-       cudaErrchk( cudaGetLastError() );
+      RPlaunchCudaKernel( (energycalc4<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          e_new, work,
+                          e_cut, emin,
+                          iend );
 
-       energycalc5<block_size><<<grid_size, block_size>>>( delvc,
-                                               pbvc, e_new, vnewc,
-                                               bvc, p_new,
-                                               ql_old, qq_old,
-                                               p_old, q_old,
-                                               pHalfStep, q_new,
-                                               rho0, e_cut, emin,
-                                               iend );
-       cudaErrchk( cudaGetLastError() );
+      RPlaunchCudaKernel( (energycalc5<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          delvc,
+                          pbvc, e_new, vnewc,
+                          bvc, p_new,
+                          ql_old, qq_old,
+                          p_old, q_old,
+                          pHalfStep, q_new,
+                          rho0, e_cut, emin,
+                          iend );
 
-       energycalc6<block_size><<<grid_size, block_size>>>( delvc,
-                                               pbvc, e_new, vnewc,
-                                               bvc, p_new,
-                                               q_new,
-                                               ql_old, qq_old,
-                                               rho0, q_cut,
-                                               iend );
-       cudaErrchk( cudaGetLastError() );
+      RPlaunchCudaKernel( (energycalc6<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          delvc,
+                          pbvc, e_new, vnewc,
+                          bvc, p_new,
+                          q_new,
+                          ql_old, qq_old,
+                          rho0, q_cut,
+                          iend );
 
     }
     stopTimer();
 
-    ENERGY_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    ENERGY_DATA_SETUP_CUDA;
 
     const bool async = true;
 
@@ -224,32 +197,32 @@ void ENERGY::runCudaVariantImpl(VariantID vid)
       RAJA::region<RAJA::seq_region>( [=]() {
 #endif
 
-        RAJA::forall< RAJA::cuda_exec<block_size, async> >(
+        RAJA::forall< RAJA::cuda_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY1;
         });
 
-        RAJA::forall< RAJA::cuda_exec<block_size, async> >(
+        RAJA::forall< RAJA::cuda_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY2;
         });
 
-        RAJA::forall< RAJA::cuda_exec<block_size, async> >(
+        RAJA::forall< RAJA::cuda_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY3;
         });
 
-        RAJA::forall< RAJA::cuda_exec<block_size, async> >(
+        RAJA::forall< RAJA::cuda_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY4;
         });
 
-        RAJA::forall< RAJA::cuda_exec<block_size, async> >(
+        RAJA::forall< RAJA::cuda_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY5;
         });
 
-        RAJA::forall< RAJA::cuda_exec<block_size, async> >(
+        RAJA::forall< RAJA::cuda_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY6;
         });
@@ -261,14 +234,12 @@ void ENERGY::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    ENERGY_DATA_TEARDOWN_CUDA;
-
   } else {
      getCout() << "\n  ENERGY : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(ENERGY, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(ENERGY, Cuda)
 
 } // end namespace apps
 } // end namespace rajaperf

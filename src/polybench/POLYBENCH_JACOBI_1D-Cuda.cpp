@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,18 +20,6 @@ namespace rajaperf
 {
 namespace polybench
 {
-
-#define POLYBENCH_JACOBI_1D_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(A, m_Ainit, m_N); \
-  allocAndInitCudaDeviceData(B, m_Binit, m_N);
-
-
-#define POLYBENCH_JACOBI_1D_TEARDOWN_CUDA \
-  getCudaDeviceData(m_A, A, m_N); \
-  getCudaDeviceData(m_B, B, m_N); \
-  deallocCudaDeviceData(A); \
-  deallocCudaDeviceData(B);
-
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -61,11 +49,11 @@ void POLYBENCH_JACOBI_1D::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getCudaResource()};
+
   POLYBENCH_JACOBI_1D_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
-
-    POLYBENCH_JACOBI_1D_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -73,23 +61,24 @@ void POLYBENCH_JACOBI_1D::runCudaVariantImpl(VariantID vid)
       for (Index_type t = 0; t < tsteps; ++t) {
 
         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
+        constexpr size_t shmem = 0;
 
-        poly_jacobi_1D_1<block_size><<<grid_size, block_size>>>(A, B, N);
-        cudaErrchk( cudaGetLastError() );
+        RPlaunchCudaKernel( (poly_jacobi_1D_1<block_size>),
+                            grid_size, block_size,
+                            shmem, res.get_stream(),
+                            A, B, N );
 
-        poly_jacobi_1D_2<block_size><<<grid_size, block_size>>>(A, B, N);
-        cudaErrchk( cudaGetLastError() );
+        RPlaunchCudaKernel( (poly_jacobi_1D_2<block_size>),
+                            grid_size, block_size,
+                            shmem, res.get_stream(),
+                            A, B, N );
 
       }
 
     }
     stopTimer();
 
-    POLYBENCH_JACOBI_1D_TEARDOWN_CUDA;
-
   } else if (vid == RAJA_CUDA) {
-
-    POLYBENCH_JACOBI_1D_DATA_SETUP_CUDA;
 
     using EXEC_POL = RAJA::cuda_exec<block_size, true /*async*/>;
 
@@ -98,12 +87,12 @@ void POLYBENCH_JACOBI_1D::runCudaVariantImpl(VariantID vid)
 
       for (Index_type t = 0; t < tsteps; ++t) {
 
-        RAJA::forall<EXEC_POL> ( RAJA::RangeSegment{1, N-1},
+        RAJA::forall<EXEC_POL> ( res, RAJA::RangeSegment{1, N-1},
           [=] __device__ (Index_type i) {
             POLYBENCH_JACOBI_1D_BODY1;
         });
 
-        RAJA::forall<EXEC_POL> ( RAJA::RangeSegment{1, N-1},
+        RAJA::forall<EXEC_POL> ( res, RAJA::RangeSegment{1, N-1},
           [=] __device__ (Index_type i) {
             POLYBENCH_JACOBI_1D_BODY2;
         });
@@ -113,14 +102,12 @@ void POLYBENCH_JACOBI_1D::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_JACOBI_1D_TEARDOWN_CUDA;
-
   } else {
       getCout() << "\n  POLYBENCH_JACOBI_1D : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(POLYBENCH_JACOBI_1D, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(POLYBENCH_JACOBI_1D, Cuda)
 
 } // end namespace polybench
 } // end namespace rajaperf

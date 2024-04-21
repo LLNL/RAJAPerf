@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -37,7 +37,9 @@
   \
   Real_ptr x0,x1,x2,x3,x4,x5,x6,x7; \
   \
-  Index_ptr real_zones = m_domain->real_zones;
+  NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ; \
+  \
+  Index_ptr real_zones = m_real_zones;
 
 #define NODAL_ACCUMULATION_3D_BODY_INDEX \
   Index_type i = real_zones[ii];
@@ -98,6 +100,7 @@ public:
 
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
+
   template < size_t block_size >
   void runCudaVariantImpl(VariantID vid);
   template < size_t block_size >
@@ -105,12 +108,13 @@ public:
 
 private:
   static const size_t default_gpu_block_size = 256;
-  using gpu_block_sizes_type = gpu_block_size::make_list_type<default_gpu_block_size>;
+  using gpu_block_sizes_type = integer::make_gpu_block_size_list_type<default_gpu_block_size>;
 
   Real_ptr m_x;
   Real_ptr m_vol;
 
   ADomain* m_domain;
+  Index_type* m_real_zones;
   Index_type m_nodal_array_length;
   Index_type m_zonal_array_length;
 };

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -60,9 +60,9 @@ void FIRST_MIN::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
         FIRST_MIN_MINLOC_INIT;
 
         for (Index_type i = ibegin; i < iend; ++i ) {
-          if ( firstmin_base_lam(i) < mymin.val ) { \
-            mymin.val = x[i]; \
-            mymin.loc = i; \
+          if ( firstmin_base_lam(i) < mymin.val ) {
+            mymin.val = x[i];
+            mymin.loc = i;
           }
         }
 
@@ -82,7 +82,7 @@ void FIRST_MIN::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
         RAJA::ReduceMinLoc<RAJA::seq_reduce, Real_type, Index_type> loc(
                                                         m_xmin_init, m_initloc);
 
-        RAJA::forall<RAJA::loop_exec>(
+        RAJA::forall<RAJA::seq_exec>(
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           FIRST_MIN_BODY_RAJA;
         });

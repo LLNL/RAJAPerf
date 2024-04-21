@@ -39,7 +39,9 @@ void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
         for (Index_type by = 0; by < Ny; ++by) {
           for (Index_type bx = 0; bx < Nx; ++bx) {
 
-            MAT_MAT_SHARED_BODY_0(TL_SZ)
+            //Work around for when compiling with CLANG and HIP
+            //See notes in MAT_MAT_SHARED.hpp
+            MAT_MAT_SHARED_BODY_0_CLANG_HIP_CPU(TL_SZ)
 
             for (Index_type ty = 0; ty < TL_SZ; ++ty) {
               for (Index_type tx = 0; tx < TL_SZ; ++tx) {
@@ -163,11 +165,11 @@ void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
 
     using outer_x = RAJA::LoopPolicy<RAJA::omp_for_exec>;
 
-    using outer_y = RAJA::LoopPolicy<RAJA::loop_exec>;
+    using outer_y = RAJA::LoopPolicy<RAJA::seq_exec>;
 
-    using inner_x = RAJA::LoopPolicy<RAJA::loop_exec>;
+    using inner_x = RAJA::LoopPolicy<RAJA::seq_exec>;
 
-    using inner_y = RAJA::LoopPolicy<RAJA::loop_exec>;
+    using inner_y = RAJA::LoopPolicy<RAJA::seq_exec>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -41,16 +41,14 @@
 #define RAJAPerf_POLYBENCH_HEAT_3D_HPP
 
 #define POLYBENCH_HEAT_3D_DATA_SETUP \
-  Real_ptr A = m_Ainit; \
-  Real_ptr B = m_Binit; \
+  Real_ptr A = m_A; \
+  Real_ptr B = m_B; \
+  \
+  copyData(getDataSpace(vid), A, getDataSpace(vid), m_Ainit, m_N*m_N*m_N); \
+  copyData(getDataSpace(vid), B, getDataSpace(vid), m_Binit, m_N*m_N*m_N); \
+  \
   const Index_type N = m_N; \
   const Index_type tsteps = m_tsteps;
-
-#define POLYBENCH_HEAT_3D_DATA_RESET \
-  m_Ainit = m_A; \
-  m_Binit = m_B; \
-  m_A = A; \
-  m_B = B;
 
 
 #define POLYBENCH_HEAT_3D_BODY1 \
@@ -134,8 +132,8 @@ public:
 
 private:
   static const size_t default_gpu_block_size = 256;
-  using gpu_block_sizes_type = gpu_block_size::make_list_type<default_gpu_block_size,
-                                                         gpu_block_size::MultipleOf<32>>;
+  using gpu_block_sizes_type = integer::make_gpu_block_size_list_type<default_gpu_block_size,
+                                                         integer::MultipleOf<32>>;
 
   Index_type m_N;
   Index_type m_tsteps;

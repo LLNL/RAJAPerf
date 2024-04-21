@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -107,7 +107,7 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
         RAJA::ReduceMax<RAJA::seq_reduce, Real_type> xmax(m_init_max);
         RAJA::ReduceMax<RAJA::seq_reduce, Real_type> ymax(m_init_max);
 
-        RAJA::forall<RAJA::loop_exec>(
+        RAJA::forall<RAJA::seq_exec>(
         RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
         REDUCE_STRUCT_BODY_RAJA;
         });

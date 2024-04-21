@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -62,6 +62,9 @@ ENERGY::ENERGY(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Base_SYCL );
+  setVariantDefined( RAJA_SYCL );
 }
 
 ENERGY::~ENERGY()
@@ -94,8 +97,8 @@ void ENERGY::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void ENERGY::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_e_new, getActualProblemSize());
-  checksum[vid][tune_idx] += calcChecksum(m_q_new, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_e_new, getActualProblemSize(), vid);
+  checksum[vid][tune_idx] += calcChecksum(m_q_new, getActualProblemSize(), vid);
 }
 
 void ENERGY::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

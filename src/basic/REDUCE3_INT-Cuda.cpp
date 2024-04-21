@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -15,17 +15,15 @@
 #include "common/CudaDataUtils.hpp"
 
 #include <iostream>
+#include <utility>
+#include <type_traits>
+#include <limits>
+
 
 namespace rajaperf
 {
 namespace basic
 {
-
-#define REDUCE3_INT_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(vec, m_vec, iend);
-
-#define REDUCE3_INT_DATA_TEARDOWN_CUDA \
-  deallocCudaDeviceData(vec);
 
 
 template < size_t block_size >
@@ -62,87 +60,95 @@ __global__ void reduce3int(Int_ptr vec,
      __syncthreads();
   }
 
-#if 1 // serialized access to shared data;
   if ( threadIdx.x == 0 ) {
     RAJA::atomicAdd<RAJA::cuda_atomic>( vsum, psum[ 0 ] );
     RAJA::atomicMin<RAJA::cuda_atomic>( vmin, pmin[ 0 ] );
     RAJA::atomicMax<RAJA::cuda_atomic>( vmax, pmax[ 0 ] );
   }
-#else // this doesn't work due to data races
-  if ( threadIdx.x == 0 ) {
-    *vsum += psum[ 0 ];
-    *vmin = RAJA_MIN( *vmin, pmin[ 0 ] );
-    *vmax = RAJA_MAX( *vmax, pmax[ 0 ] );
-  }
-#endif
 }
 
 
-
-template < size_t block_size >
-void REDUCE3_INT::runCudaVariantImpl(VariantID vid)
+template < size_t block_size, typename MappingHelper >
+void REDUCE3_INT::runCudaVariantBase(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
+
+  auto res{getCudaResource()};
 
   REDUCE3_INT_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 
-    REDUCE3_INT_DATA_SETUP_CUDA;
+    RAJAPERF_CUDA_REDUCER_SETUP(Int_ptr, vmem, hvmem, 3);
 
-    Int_ptr vmem_init;
-    allocCudaPinnedData(vmem_init, 3);
-
-    Int_ptr vmem;
-    allocCudaDeviceData(vmem, 3);
+    constexpr size_t shmem = 3*sizeof(Int_type)*block_size;
+    const size_t max_grid_size = RAJAPERF_CUDA_GET_MAX_BLOCKS(
+        MappingHelper, (reduce3int<block_size>), block_size, shmem);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      vmem_init[0] = m_vsum_init;
-      vmem_init[1] = m_vmin_init;
-      vmem_init[2] = m_vmax_init;
-      cudaErrchk( cudaMemcpyAsync( vmem, vmem_init, 3*sizeof(Int_type),
-                                   cudaMemcpyHostToDevice ) );
+      Int_type ivmem[3] {m_vsum_init, m_vmin_init, m_vmax_init};
+      RAJAPERF_CUDA_REDUCER_INITIALIZE(ivmem, vmem, hvmem, 3);
 
-      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      reduce3int<block_size><<<grid_size, block_size,
-                   3*sizeof(Int_type)*block_size>>>(vec,
-                                                    vmem + 0, m_vsum_init,
-                                                    vmem + 1, m_vmin_init,
-                                                    vmem + 2, m_vmax_init,
-                                                    iend );
-      cudaErrchk( cudaGetLastError() );
+      const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      const size_t grid_size = std::min(normal_grid_size, max_grid_size);
 
-      Int_type lmem[3];
-      Int_ptr plmem = &lmem[0];
-      getCudaDeviceData(plmem, vmem, 3);
-      m_vsum += lmem[0];
-      m_vmin = RAJA_MIN(m_vmin, lmem[1]);
-      m_vmax = RAJA_MAX(m_vmax, lmem[2]);
+      RPlaunchCudaKernel( (reduce3int<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          vec,
+                          vmem + 0, m_vsum_init,
+                          vmem + 1, m_vmin_init,
+                          vmem + 2, m_vmax_init,
+                          iend );
+
+      Int_type rvmem[3];
+      RAJAPERF_CUDA_REDUCER_COPY_BACK(rvmem, vmem, hvmem, 3);
+      m_vsum += rvmem[0];
+      m_vmin = RAJA_MIN(m_vmin, rvmem[1]);
+      m_vmax = RAJA_MAX(m_vmax, rvmem[2]);
 
     }
     stopTimer();
 
-    REDUCE3_INT_DATA_TEARDOWN_CUDA;
+    RAJAPERF_CUDA_REDUCER_TEARDOWN(vmem, hvmem);
 
-    deallocCudaDeviceData(vmem);
-    deallocCudaPinnedData(vmem_init);
+  } else {
+     getCout() << "\n  REDUCE3_INT : Unknown Cuda variant id = " << vid << std::endl;
+  }
+}
 
-  } else if ( vid == RAJA_CUDA ) {
+template < size_t block_size, typename AlgorithmHelper, typename MappingHelper >
+void REDUCE3_INT::runCudaVariantRAJA(VariantID vid)
+{
+  using reduction_policy = std::conditional_t<AlgorithmHelper::atomic,
+      RAJA::cuda_reduce_atomic,
+      RAJA::cuda_reduce>;
 
-    REDUCE3_INT_DATA_SETUP_CUDA;
+  using exec_policy = std::conditional_t<MappingHelper::direct,
+      RAJA::cuda_exec<block_size, true /*async*/>,
+      RAJA::cuda_exec_occ_calc<block_size, true /*async*/>>;
+
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  auto res{getCudaResource()};
+
+  REDUCE3_INT_DATA_SETUP;
+
+  if ( vid == RAJA_CUDA ) {
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::cuda_reduce, Int_type> vsum(m_vsum_init);
-      RAJA::ReduceMin<RAJA::cuda_reduce, Int_type> vmin(m_vmin_init);
-      RAJA::ReduceMax<RAJA::cuda_reduce, Int_type> vmax(m_vmax_init);
+      RAJA::ReduceSum<reduction_policy, Int_type> vsum(m_vsum_init);
+      RAJA::ReduceMin<reduction_policy, Int_type> vmin(m_vmin_init);
+      RAJA::ReduceMax<reduction_policy, Int_type> vmax(m_vmax_init);
 
-      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+      RAJA::forall<exec_policy>( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
         REDUCE3_INT_BODY_RAJA;
       });
@@ -154,14 +160,108 @@ void REDUCE3_INT::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    REDUCE3_INT_DATA_TEARDOWN_CUDA;
-
   } else {
      getCout() << "\n  REDUCE3_INT : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(REDUCE3_INT, Cuda)
+void REDUCE3_INT::runCudaVariant(VariantID vid, size_t tune_idx)
+{
+  size_t t = 0;
+
+  if ( vid == Base_CUDA || vid == RAJA_CUDA ) {
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        seq_for(gpu_mapping::reducer_helpers{}, [&](auto mapping_helper) {
+
+          if ( vid == Base_CUDA ) {
+
+            if (tune_idx == t) {
+
+              setBlockSize(block_size);
+              runCudaVariantBase<decltype(block_size){},
+                                 decltype(mapping_helper)>(vid);
+
+            }
+
+            t += 1;
+
+          } else if ( vid == RAJA_CUDA ) {
+
+            seq_for(gpu_algorithm::reducer_helpers{}, [&](auto algorithm_helper) {
+
+              if (tune_idx == t) {
+
+                setBlockSize(block_size);
+                runCudaVariantRAJA<decltype(block_size){},
+                                   decltype(algorithm_helper),
+                                   decltype(mapping_helper)>(vid);
+
+              }
+
+              t += 1;
+
+            });
+
+          }
+
+        });
+
+      }
+
+    });
+
+  } else {
+
+    getCout() << "\n  REDUCE3_INT : Unknown Cuda variant id = " << vid << std::endl;
+
+  }
+
+}
+
+void REDUCE3_INT::setCudaTuningDefinitions(VariantID vid)
+{
+  if ( vid == Base_CUDA || vid == RAJA_CUDA ) {
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        seq_for(gpu_mapping::reducer_helpers{}, [&](auto mapping_helper) {
+
+          if ( vid == Base_CUDA ) {
+
+            auto algorithm_helper = gpu_algorithm::block_atomic_helper{};
+
+            addVariantTuningName(vid, decltype(algorithm_helper)::get_name()+"_"+
+                                      decltype(mapping_helper)::get_name()+"_"+
+                                      std::to_string(block_size));
+
+          } else if ( vid == RAJA_CUDA ) {
+
+            seq_for(gpu_algorithm::reducer_helpers{}, [&](auto algorithm_helper) {
+
+              addVariantTuningName(vid, decltype(algorithm_helper)::get_name()+"_"+
+                                        decltype(mapping_helper)::get_name()+"_"+
+                                        std::to_string(block_size));
+
+            });
+
+          }
+
+        });
+
+      }
+
+    });
+
+  }
+}
 
 } // end namespace basic
 } // end namespace rajaperf

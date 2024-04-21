@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -21,15 +21,6 @@ namespace rajaperf
 namespace algorithm
 {
 
-#define MEMCPY_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, iend); \
-  allocAndInitHipDeviceData(y, m_y, iend);
-
-#define MEMCPY_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_y, y, iend); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(y);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void memcpy(Real_ptr x, Real_ptr y,
@@ -48,27 +39,23 @@ void MEMCPY::runHipVariantLibrary(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   MEMCPY_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
 
-    MEMCPY_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipErrchk( hipMemcpyAsync(MEMCPY_STD_ARGS, hipMemcpyDefault, 0) );
+      hipErrchk( hipMemcpyAsync(MEMCPY_STD_ARGS,
+                                hipMemcpyDefault,
+                                res.get_stream()) );
 
     }
     stopTimer();
 
-    MEMCPY_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    MEMCPY_DATA_SETUP_HIP;
-
-    camp::resources::Hip res = camp::resources::Hip::get_default();
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -77,8 +64,6 @@ void MEMCPY::runHipVariantLibrary(VariantID vid)
 
     }
     stopTimer();
-
-    MEMCPY_DATA_TEARDOWN_HIP;
 
   } else {
 
@@ -95,29 +80,27 @@ void MEMCPY::runHipVariantBlock(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   MEMCPY_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
-
-    MEMCPY_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL( (memcpy<block_size>),
-          dim3(grid_size), dim3(block_size), 0, 0,
-          x, y, iend );
-      hipErrchk( hipGetLastError() );
+      constexpr size_t shmem = 0;
+
+      RPlaunchHipKernel( (memcpy<block_size>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         x, y, iend );
 
     }
     stopTimer();
 
-    MEMCPY_DATA_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    MEMCPY_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -127,32 +110,29 @@ void MEMCPY::runHipVariantBlock(VariantID vid)
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(memcpy_lambda)>),
-          grid_size, block_size, 0, 0,
-          ibegin, iend, memcpy_lambda);
-      hipErrchk( hipGetLastError() );
+      constexpr size_t shmem = 0;
+
+      RPlaunchHipKernel( (lambda_hip_forall<block_size,
+                                            decltype(memcpy_lambda)>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         ibegin, iend, memcpy_lambda );
 
     }
     stopTimer();
 
-    MEMCPY_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    MEMCPY_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           MEMCPY_BODY;
       });
 
     }
     stopTimer();
-
-    MEMCPY_DATA_TEARDOWN_HIP;
 
   } else {
 
@@ -184,7 +164,7 @@ void MEMCPY::runHipVariant(VariantID vid, size_t tune_idx)
         run_params.validGPUBlockSize(block_size)) {
 
       if (tune_idx == t) {
-
+        setBlockSize(block_size);
         runHipVariantBlock<block_size>(vid);
 
       }

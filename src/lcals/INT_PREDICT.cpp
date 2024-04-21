@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -50,6 +50,9 @@ INT_PREDICT::INT_PREDICT(const RunParams& params)
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
 
+  setVariantDefined( Base_SYCL );
+  setVariantDefined( RAJA_SYCL );
+
   setVariantDefined( Kokkos_Lambda );
 }
 
@@ -77,11 +80,15 @@ void INT_PREDICT::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void INT_PREDICT::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  for (Index_type i = 0; i < getActualProblemSize(); ++i) {
-    m_px[i] -= m_px_initval;
+  {
+    auto reset_px = scopedMoveData(m_px, m_array_length, vid);
+
+    for (Index_type i = 0; i < getActualProblemSize(); ++i) {
+      m_px[i] -= m_px_initval;
+    }
   }
 
-  checksum[vid][tune_idx] += calcChecksum(m_px, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_px, getActualProblemSize(), vid);
 }
 
 void INT_PREDICT::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

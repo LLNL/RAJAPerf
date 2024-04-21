@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -12,6 +12,8 @@
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
 
+#include "TRAP_INT-func.hpp"
+
 #include "common/OpenMPTargetDataUtils.hpp"
 
 #include <iostream>
@@ -21,29 +23,10 @@ namespace rajaperf
 namespace basic
 {
 
-//
-// Function used in TRAP_INT loop.
-//
-RAJA_INLINE
-Real_type trap_int_func(Real_type x,
-                        Real_type y,
-                        Real_type xp,
-                        Real_type yp)
-{
-   Real_type denom = (x - xp)*(x - xp) + (y - yp)*(y - yp);
-   denom = 1.0/sqrt(denom);
-   return denom;
-}
-
   //
   // Define threads per team for target execution
   //
   const size_t threads_per_team = 256;
-
-
-#define TRAP_INT_DATA_SETUP_OMP_TARGET  // nothing to do here...
-
-#define TRAP_INT_DATA_TEARDOWN_OMP_TARGET // nothing to do here...
 
 
 void TRAP_INT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
@@ -55,8 +38,6 @@ void TRAP_INT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
   TRAP_INT_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    TRAP_INT_DATA_SETUP_OMP_TARGET;
 
     #pragma omp target enter data map(to:x0,xp,y,yp,h)
 
@@ -81,8 +62,6 @@ void TRAP_INT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
 
   } else if ( vid == RAJA_OpenMPTarget ) {
 
-    TRAP_INT_DATA_SETUP_OMP_TARGET;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -97,8 +76,6 @@ void TRAP_INT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
 
     }
     stopTimer();
-
-    TRAP_INT_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
      getCout() << "\n  TRAP_INT : Unknown OMP Targetvariant id = " << vid << std::endl;

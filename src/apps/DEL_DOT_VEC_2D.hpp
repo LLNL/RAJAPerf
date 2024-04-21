@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -55,7 +55,12 @@
   Real_ptr fx1,fx2,fx3,fx4 ; \
   Real_ptr fy1,fy2,fy3,fy4 ; \
 \
-  Index_ptr real_zones = m_domain->real_zones;
+  NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ; \
+  NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ; \
+  NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ; \
+  NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ; \
+\
+  Index_ptr real_zones = m_real_zones;
 
 #define DEL_DOT_VEC_2D_BODY_INDEX \
   Index_type i = real_zones[ii];
@@ -113,17 +118,22 @@ public:
   void runCudaVariant(VariantID vid, size_t tune_idx);
   void runHipVariant(VariantID vid, size_t tune_idx);
   void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
+  void runSyclVariant(VariantID vid, size_t tune_idx);
 
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
+  void setSyclTuningDefinitions(VariantID vid);
+
   template < size_t block_size >
   void runCudaVariantImpl(VariantID vid);
   template < size_t block_size >
   void runHipVariantImpl(VariantID vid);
+  template < size_t work_group_size >
+  void runSyclVariantImpl(VariantID vid);
 
 private:
   static const size_t default_gpu_block_size = 256;
-  using gpu_block_sizes_type = gpu_block_size::make_list_type<default_gpu_block_size>;
+  using gpu_block_sizes_type = integer::make_gpu_block_size_list_type<default_gpu_block_size>;
 
   Real_ptr m_x;
   Real_ptr m_y;
@@ -135,6 +145,7 @@ private:
   Real_type m_half;
 
   ADomain* m_domain;
+  Index_type* m_real_zones;
   Index_type m_array_length;
 };
 

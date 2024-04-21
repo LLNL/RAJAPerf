@@ -21,6 +21,7 @@
 #endif
 
 #include "common/HipDataUtils.hpp"
+#include "common/HipGridScan.hpp"
 
 #include <iostream>
 
@@ -29,29 +30,64 @@ namespace rajaperf
 namespace algorithm
 {
 
-#define SCAN_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, iend); \
-  allocAndInitHipDeviceData(y, m_y, iend);
-
-#define SCAN_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_y, y, iend); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(y);
+template < size_t block_size >
+using hip_items_per_thread_type = integer::make_gpu_items_per_thread_list_type<
+    detail::hip::grid_scan_default_items_per_thread<Real_type, block_size, RAJA_PERFSUITE_TUNING_HIP_ARCH>::value,
+    integer::LessEqual<detail::hip::grid_scan_max_items_per_thread<Real_type, block_size>::value>>;
 
 
-void SCAN::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+template < size_t block_size, size_t items_per_thread >
+__launch_bounds__(block_size)
+__global__ void scan(Real_ptr x,
+                     Real_ptr y,
+                     Real_ptr block_counts,
+                     Real_ptr grid_counts,
+                     unsigned* block_readys,
+                     Index_type iend)
+{
+  // It looks like blocks do not start running in order in hip, so a block
+  // with a higher index can't wait on a block with a lower index without
+  // deadlocking (have to replace with an atomicInc)
+  const int block_id = blockIdx.x;
+
+  Real_type vals[items_per_thread];
+
+  for (size_t ti = 0; ti < items_per_thread; ++ti) {
+    Index_type i = block_id * block_size * items_per_thread + ti * block_size + threadIdx.x;
+    if (i < iend) {
+      vals[ti] = x[i];
+    } else {
+      vals[ti] = 0;
+    }
+  }
+
+  Real_type exclusives[items_per_thread];
+  Real_type inclusives[items_per_thread];
+  detail::hip::GridScan<Real_type, block_size, items_per_thread>::grid_scan(
+      block_id, vals, exclusives, inclusives, block_counts, grid_counts, block_readys);
+
+  for (size_t ti = 0; ti < items_per_thread; ++ti) {
+    Index_type i = block_id * block_size * items_per_thread + ti * block_size + threadIdx.x;
+    if (i < iend) {
+      y[i] = exclusives[ti];
+    }
+  }
+}
+
+
+void SCAN::runHipVariantLibrary(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   SCAN_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
 
-    SCAN_DATA_SETUP_HIP;
-
-    hipStream_t stream = 0;
+    hipStream_t stream = res.get_stream();
 
     RAJA::operators::plus<Real_type> binary_op;
     Real_type init_val = 0.0;
@@ -83,7 +119,7 @@ void SCAN::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
     // Allocate temporary storage
     unsigned char* temp_storage;
-    allocHipDeviceData(temp_storage, temp_storage_bytes);
+    allocData(DataSpace::HipDevice, temp_storage, temp_storage_bytes);
     d_temp_storage = temp_storage;
 
     startTimer();
@@ -114,26 +150,153 @@ void SCAN::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
     stopTimer();
 
     // Free temporary storage
-    deallocHipDeviceData(temp_storage);
-
-    SCAN_DATA_TEARDOWN_HIP;
+    deallocData(DataSpace::HipDevice, temp_storage);
 
   } else if ( vid == RAJA_HIP ) {
-
-    SCAN_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::exclusive_scan< RAJA::hip_exec<default_gpu_block_size, true /*async*/> >(RAJA_SCAN_ARGS);
+      RAJA::exclusive_scan< RAJA::hip_exec<0, true /*async*/> >(res, RAJA_SCAN_ARGS);
 
     }
     stopTimer();
 
-    SCAN_DATA_TEARDOWN_HIP;
+  } else {
+     getCout() << "\n  SCAN : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+template < size_t block_size, size_t items_per_thread >
+void SCAN::runHipVariantImpl(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  auto res{getHipResource()};
+
+  SCAN_DATA_SETUP;
+
+  if ( vid == Base_HIP ) {
+
+    const size_t grid_size = RAJA_DIVIDE_CEILING_INT((iend-ibegin), block_size*items_per_thread);
+    const size_t shmem_size = 0;
+
+    Real_ptr block_counts;
+    allocData(DataSpace::HipDevice, block_counts, grid_size);
+    Real_ptr grid_counts;
+    allocData(DataSpace::HipDevice, grid_counts, grid_size);
+    unsigned* block_readys;
+    allocData(DataSpace::HipDevice, block_readys, grid_size);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      hipErrchk( hipMemsetAsync(block_readys, 0, sizeof(unsigned)*grid_size,
+                                res.get_stream()) );
+
+      RPlaunchHipKernel( (scan<block_size, items_per_thread>),
+                         grid_size, block_size,
+                         shmem_size, res.get_stream(),
+                         x+ibegin, y+ibegin,
+                         block_counts, grid_counts, block_readys,
+                         iend-ibegin );
+
+    }
+    stopTimer();
+
+    deallocData(DataSpace::HipDevice, block_counts);
+    deallocData(DataSpace::HipDevice, grid_counts);
+    deallocData(DataSpace::HipDevice, block_readys);
 
   } else {
      getCout() << "\n  SCAN : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+
+void SCAN::runHipVariant(VariantID vid, size_t tune_idx)
+{
+  size_t t = 0;
+
+  if ( vid == Base_HIP || vid == RAJA_HIP ) {
+
+    if (tune_idx == t) {
+
+      runHipVariantLibrary(vid);
+
+    }
+
+    t += 1;
+
+    if ( vid == Base_HIP ) {
+
+      seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+        if (run_params.numValidGPUBlockSize() == 0u ||
+            run_params.validGPUBlockSize(block_size)) {
+
+          seq_for(hip_items_per_thread_type<block_size>{}, [&](auto items_per_thread) {
+
+            if (run_params.numValidItemsPerThread() == 0u ||
+                run_params.validItemsPerThread(block_size)) {
+
+              if (tune_idx == t) {
+
+                runHipVariantImpl<block_size, items_per_thread>(vid);
+
+              }
+
+              t += 1;
+
+            }
+
+          });
+
+        }
+
+      });
+    }
+
+  } else {
+
+    getCout() << "\n  SCAN : Unknown Hip variant id = " << vid << std::endl;
+
+  }
+}
+
+void SCAN::setHipTuningDefinitions(VariantID vid)
+{
+  if ( vid == Base_HIP || vid == RAJA_HIP ) {
+
+    addVariantTuningName(vid, "rocprim");
+
+    if ( vid == Base_HIP ) {
+
+      seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+        if (run_params.numValidGPUBlockSize() == 0u ||
+            run_params.validGPUBlockSize(block_size)) {
+
+          seq_for(hip_items_per_thread_type<block_size>{}, [&](auto items_per_thread) {
+
+            if (run_params.numValidItemsPerThread() == 0u ||
+                run_params.validItemsPerThread(block_size)) {
+
+              addVariantTuningName(vid, "block_"+std::to_string(block_size)+
+                                        "_itemsPerThread_"+std::to_string(items_per_thread));
+
+            }
+
+          });
+
+        }
+
+      });
+
+    }
+
   }
 }
 

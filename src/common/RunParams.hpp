@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -10,10 +10,13 @@
 #define RAJAPerf_RunParams_HPP
 
 #include <string>
+#include <set>
 #include <vector>
+#include <array>
 #include <iosfwd>
 
 #include "RAJAPerfSuite.hpp"
+#include "RPTypes.hpp"
 
 namespace rajaperf
 {
@@ -77,6 +80,9 @@ public:
     Direct,   /*!< directly use as kernel iteration space */
   };
 
+  /*!
+   * \brief Translate SizeMeaning enum value to string
+   */
   static std::string SizeMeaningToStr(SizeMeaning sm)
   {
     switch (sm) {
@@ -91,17 +97,10 @@ public:
     }
   }
 
-//@{
-//! @name Methods to get/set input state
-
-  InputOpt getInputState() const { return input_state; }
-
   /*!
-   * \brief Set whether run parameters (from input) are valid.
+   * \brief Return state of input parsed to this point.
    */
-  void setInputState(InputOpt is) { input_state = is; }
-
-//@}
+  InputOpt getInputState() const { return input_state; }
 
 
 //@{
@@ -115,9 +114,6 @@ public:
 
   const std::vector<CombinerOpt>& getNpassesCombinerOpts() const
   { return npasses_combiners; }
-  void setNpassesCombinerOpts( std::vector<CombinerOpt>& cvec )
-  { npasses_combiners = cvec; }
-
 
   SizeMeaning getSizeMeaning() const { return size_meaning; }
 
@@ -125,8 +121,9 @@ public:
 
   double getSizeFactor() const { return size_factor; }
 
-  size_t getDataAlignment() const { return data_alignment; }
+  Size_type getDataAlignment() const { return data_alignment; }
 
+  int getGPUStream() const { return gpu_stream; }
   size_t numValidGPUBlockSize() const { return gpu_block_sizes.size(); }
   bool validGPUBlockSize(size_t block_size) const
   {
@@ -137,6 +134,55 @@ public:
     }
     return false;
   }
+  size_t numValidAtomicReplication() const { return atomic_replications.size(); }
+  bool validAtomicReplication(size_t atomic_replication) const
+  {
+    for (size_t valid_atomic_replication : atomic_replications) {
+      if (valid_atomic_replication == atomic_replication) {
+        return true;
+      }
+    }
+    return false;
+  }
+  size_t numValidItemsPerThread() const { return items_per_threads.size(); }
+  bool validItemsPerThread(size_t items_per_thread) const
+  {
+    for (size_t valid_items_per_thread : items_per_threads) {
+      if (valid_items_per_thread == items_per_thread) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  int getMPISize() const { return mpi_size; }
+  int getMPIRank() const { return mpi_rank; }
+  bool validMPI3DDivision() const { return (mpi_3d_division[0]*mpi_3d_division[1]*mpi_3d_division[2] == mpi_size); }
+  std::array<int, 3> const& getMPI3DDivision() const { return mpi_3d_division; }
+
+  DataSpace getSeqDataSpace() const { return seqDataSpace; }
+  DataSpace getOmpDataSpace() const { return ompDataSpace; }
+  DataSpace getOmpTargetDataSpace() const { return ompTargetDataSpace; }
+  DataSpace getCudaDataSpace() const { return cudaDataSpace; }
+  DataSpace getHipDataSpace() const { return hipDataSpace; }
+  DataSpace getKokkosDataSpace() const { return kokkosDataSpace; }
+  DataSpace getSyclDataSpace() const { return syclDataSpace; }
+
+  DataSpace getSeqReductionDataSpace() const { return seqReductionDataSpace; }
+  DataSpace getOmpReductionDataSpace() const { return ompReductionDataSpace; }
+  DataSpace getOmpTargetReductionDataSpace() const { return ompTargetReductionDataSpace; }
+  DataSpace getCudaReductionDataSpace() const { return cudaReductionDataSpace; }
+  DataSpace getHipReductionDataSpace() const { return hipReductionDataSpace; }
+  DataSpace getSyclReductionDataSpace() const { return syclReductionDataSpace; }
+  DataSpace getKokkosReductionDataSpace() const { return kokkosReductionDataSpace; }
+
+  DataSpace getSeqMPIDataSpace() const { return seqMPIDataSpace; }
+  DataSpace getOmpMPIDataSpace() const { return ompMPIDataSpace; }
+  DataSpace getOmpTargetMPIDataSpace() const { return ompTargetMPIDataSpace; }
+  DataSpace getCudaMPIDataSpace() const { return cudaMPIDataSpace; }
+  DataSpace getHipMPIDataSpace() const { return hipMPIDataSpace; }
+  DataSpace getSyclMPIDataSpace() const { return syclMPIDataSpace; }
+  DataSpace getKokkosMPIDataSpace() const { return kokkosMPIDataSpace; }
 
   double getPFTolerance() const { return pf_tol; }
 
@@ -144,59 +190,23 @@ public:
 
   const std::string& getReferenceVariant() const { return reference_variant; }
 
-  const std::vector<std::string>& getKernelInput() const
-                                  { return kernel_input; }
-  void setInvalidKernelInput( std::vector<std::string>& svec )
-                              { invalid_kernel_input = svec; }
-  const std::vector<std::string>& getInvalidKernelInput() const
-                                  { return invalid_kernel_input; }
-
-  const std::vector<std::string>& getExcludeKernelInput() const
-                                  { return exclude_kernel_input; }
-  void setInvalidExcludeKernelInput( std::vector<std::string>& svec )
-                              { invalid_exclude_kernel_input = svec; }
-  const std::vector<std::string>& getInvalidExcludeKernelInput() const
-                                  { return invalid_exclude_kernel_input; }
-
-  const std::vector<std::string>& getVariantInput() const
-                                  { return variant_input; }
-  void setInvalidVariantInput( std::vector<std::string>& svec )
-                               { invalid_variant_input = svec; }
-  const std::vector<std::string>& getInvalidVariantInput() const
-                                  { return invalid_variant_input; }
-
-  const std::vector<std::string>& getExcludeVariantInput() const
-                                  { return exclude_variant_input; }
-  void setInvalidExcludeVariantInput( std::vector<std::string>& svec )
-                               { invalid_exclude_variant_input = svec; }
-  const std::vector<std::string>& getInvalidExcludeVariantInput() const
-                                  { return invalid_exclude_variant_input; }
-
-  const std::vector<std::string>& getFeatureInput() const
-                                  { return feature_input; }
-  void setInvalidFeatureInput( std::vector<std::string>& svec )
-                               { invalid_feature_input = svec; }
-  const std::vector<std::string>& getInvalidFeatureInput() const
-                                  { return invalid_feature_input; }
-
-  const std::vector<std::string>& getExcludeFeatureInput() const
-                                  { return exclude_feature_input; }
-  void setInvalidExcludeFeatureInput( std::vector<std::string>& svec )
-                               { invalid_exclude_feature_input = svec; }
-  const std::vector<std::string>& getInvalidExcludeFeatureInput() const
-                                  { return invalid_exclude_feature_input; }
-
-  const std::vector<std::string>& getNpassesCombinerOptInput() const
-                                  { return npasses_combiner_input; }
-  const std::vector<std::string>& getInvalidNpassesCombinerOptInput() const
-                                  { return invalid_npasses_combiner_input; }
-  void setInvalidNpassesCombinerOptInput( std::vector<std::string>& svec )
-                              { invalid_npasses_combiner_input = svec; }
+  const std::vector<std::string>& getTuningInput() const
+                                  { return tuning_input; }
+  const std::vector<std::string>& getExcludeTuningInput() const
+                                  { return exclude_tuning_input; }
 
   const std::string& getOutputDirName() const { return outdir; }
   const std::string& getOutputFilePrefix() const { return outfile_prefix; }
 
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
+  const std::string& getAddToSpotConfig() const { return add_to_spot_config; }
+#endif
+
   bool getDisableWarmup() const { return disable_warmup; }
+
+  const std::set<KernelID>& getKernelIDsToRun() const { return run_kernels; }
+  const std::set<VariantID>& getVariantIDsToRun() const { return run_variants; }
+  VariantID getReferenceVariantID() const { return reference_vid; }
 
 //@}
 
@@ -216,10 +226,16 @@ private:
   void printFullKernelNames(std::ostream& str) const;
   void printKernelNames(std::ostream& str) const;
   void printVariantNames(std::ostream& str) const;
+  void printDataSpaceNames(std::ostream& str) const;
   void printGroupNames(std::ostream& str) const;
   void printFeatureNames(std::ostream& str) const;
   void printFeatureKernels(std::ostream& str) const;
   void printKernelFeatures(std::ostream& str) const;
+
+  void processNpassesCombinerInput();
+  void processKernelInput();
+  void processVariantInput();
+  void processTuningInput();
 //@}
 
   InputOpt input_state;  /*!< state of command line input */
@@ -236,8 +252,15 @@ private:
   SizeMeaning size_meaning; /*!< meaning of size value */
   double size;           /*!< kernel size to run (input option) */
   double size_factor;    /*!< default kernel size multipier (input option) */
-  size_t data_alignment;
+  Size_type data_alignment;
+
+  int gpu_stream; /*!< 0 -> use stream 0; anything else -> use raja default stream */
   std::vector<size_t> gpu_block_sizes; /*!< Block sizes for gpu tunings to run (input option) */
+  std::vector<size_t> atomic_replications; /*!< Atomic replications for gpu tunings to run (input option) */
+  std::vector<size_t> items_per_threads; /*!< Items per thread for gpu tunings to run (input option) */
+  int mpi_size;           /*!< Number of MPI ranks */
+  int mpi_rank;           /*!< Rank of this MPI process */
+  std::array<int, 3> mpi_3d_division; /*!< Number of MPI ranks in each dimension of a 3D grid */
 
   double pf_tol;         /*!< pct RAJA variant run time can exceed base for
                               each PM case to pass/fail acceptance */
@@ -245,7 +268,32 @@ private:
   int checkrun_reps;     /*!< Num reps each kernel is run in check run */
 
   std::string reference_variant;   /*!< Name of reference variant for speedup
-                                        calculations */
+                                        calculations given in input */
+  VariantID reference_vid;  /*!< ID of reference variant */
+
+  DataSpace seqDataSpace = DataSpace::Host;
+  DataSpace ompDataSpace = DataSpace::Omp;
+  DataSpace ompTargetDataSpace = DataSpace::OmpTarget;
+  DataSpace cudaDataSpace = DataSpace::CudaDevice;
+  DataSpace hipDataSpace = DataSpace::HipDevice;
+  DataSpace kokkosDataSpace = DataSpace::Host;
+  DataSpace syclDataSpace = DataSpace::SyclDevice;
+
+  DataSpace seqReductionDataSpace = DataSpace::Host;
+  DataSpace ompReductionDataSpace = DataSpace::Omp;
+  DataSpace ompTargetReductionDataSpace = DataSpace::OmpTarget;
+  DataSpace cudaReductionDataSpace = DataSpace::CudaManagedDevicePreferredHostAccessed;
+  DataSpace hipReductionDataSpace = DataSpace::HipDevice;
+  DataSpace syclReductionDataSpace = DataSpace::SyclDevice;
+  DataSpace kokkosReductionDataSpace = DataSpace::Host;
+
+  DataSpace seqMPIDataSpace = DataSpace::Host;
+  DataSpace ompMPIDataSpace = DataSpace::Omp;
+  DataSpace ompTargetMPIDataSpace = DataSpace::Copy;
+  DataSpace cudaMPIDataSpace = DataSpace::CudaPinned;
+  DataSpace hipMPIDataSpace = DataSpace::HipPinned;
+  DataSpace syclMPIDataSpace = DataSpace::SyclPinned;
+  DataSpace kokkosMPIDataSpace = DataSpace::Copy;
 
   //
   // Arrays to hold input strings for valid/invalid input. Helpful for
@@ -259,6 +307,10 @@ private:
   std::vector<std::string> invalid_variant_input;
   std::vector<std::string> exclude_variant_input;
   std::vector<std::string> invalid_exclude_variant_input;
+  std::vector<std::string> tuning_input;
+  std::vector<std::string> invalid_tuning_input;
+  std::vector<std::string> exclude_tuning_input;
+  std::vector<std::string> invalid_exclude_tuning_input;
   std::vector<std::string> feature_input;
   std::vector<std::string> invalid_feature_input;
   std::vector<std::string> exclude_feature_input;
@@ -270,7 +322,14 @@ private:
   std::string outdir;          /*!< Output directory name. */
   std::string outfile_prefix;  /*!< Prefix for output data file names. */
 
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
+  std::string add_to_spot_config;
+#endif
+
   bool disable_warmup;
+
+  std::set<KernelID>  run_kernels;
+  std::set<VariantID> run_variants;
 
 };
 

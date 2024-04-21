@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -41,7 +41,7 @@ NODAL_ACCUMULATION_3D::NODAL_ACCUMULATION_3D(const RunParams& params)
   // touched data size, not actual number of stores and loads
   setBytesPerRep( (0*sizeof(Index_type) + 1*sizeof(Index_type)) * getItsPerRep() +
                   (0*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() +
-                  (1*sizeof(Real_type) + 1*sizeof(Real_type)) * (m_domain->imax+1 - m_domain->imin)*(m_domain->jmax+1 - m_domain->jmin)*(m_domain->kmax+1 - m_domain->kmin));
+                  (1*sizeof(Real_type) + 1*sizeof(Real_type)) * m_domain->n_real_nodes);
   setFLOPsPerRep(9 * getItsPerRep());
 
   checksum_scale_factor = 0.001 *
@@ -78,11 +78,19 @@ void NODAL_ACCUMULATION_3D::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
 {
   allocAndInitDataConst(m_x, m_nodal_array_length, 0.0, vid);
   allocAndInitDataConst(m_vol, m_zonal_array_length, 1.0, vid);
+  allocAndInitDataConst(m_real_zones, m_domain->n_real_zones,
+                        static_cast<Index_type>(-1), vid);
+
+  {
+    auto reset_rz = scopedMoveData(m_real_zones, m_domain->n_real_zones, vid);
+
+    setRealZones_3d(m_real_zones, *m_domain);
+  }
 }
 
 void NODAL_ACCUMULATION_3D::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid].at(tune_idx) += calcChecksum(m_x, m_nodal_array_length, checksum_scale_factor );
+  checksum[vid].at(tune_idx) += calcChecksum(m_x, m_nodal_array_length, checksum_scale_factor , vid);
 }
 
 void NODAL_ACCUMULATION_3D::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
@@ -91,6 +99,7 @@ void NODAL_ACCUMULATION_3D::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
 
   deallocData(m_x, vid);
   deallocData(m_vol, vid);
+  deallocData(m_real_zones, vid);
 }
 
 } // end namespace apps

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -19,6 +19,12 @@
 #include <string>
 #include <ostream>
 
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
+#include <caliper/cali.h>
+#include <caliper/cali-manager.h>
+#include <adiak.hpp>
+#endif
+
 namespace rajaperf
 {
 
@@ -33,8 +39,8 @@ class RunParams;
  *
  * IMPORTANT: This is only modified when a group is added or removed.
  *
- *            ENUM VALUES MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE)
- *            WITH ARRAY OF GROUP NAMES IN IMPLEMENTATION FILE!!!
+ *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
+ *            ITEMS IN THE GroupNames ARRAY IN IMPLEMENTATION FILE!!!
  *
  *******************************************************************************
  */
@@ -46,6 +52,7 @@ enum GroupID {
   Stream,
   Apps,
   Algorithm,
+  Comm,
 
   NumGroups // Keep this one last and DO NOT remove (!!)
 
@@ -60,8 +67,8 @@ enum GroupID {
  *
  * IMPORTANT: This is only modified when a kernel is added or removed.
  *
- *            ENUM VALUES MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE)
- *            WITH ARRAY OF KERNEL NAMES IN IMPLEMENTATION FILE!!!
+ *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
+ *            ITEMS IN THE KernelNames ARRAY IN IMPLEMENTATION FILE!!!
  *
  *******************************************************************************
  */
@@ -70,7 +77,9 @@ enum KernelID {
 //
 // Basic kernels...
 //
-  Basic_DAXPY = 0,
+  Basic_ARRAY_OF_PTRS = 0,
+  Basic_COPY8,
+  Basic_DAXPY,
   Basic_DAXPY_ATOMIC,
   Basic_IF_QUAD,
   Basic_INDEXLIST,
@@ -132,21 +141,21 @@ enum KernelID {
 // Apps kernels...
 //
   Apps_CONVECTION3DPA,
-  Apps_COUPLE,
   Apps_DEL_DOT_VEC_2D,
   Apps_DIFFUSION3DPA,
+  Apps_EDGE3D,
   Apps_ENERGY,
   Apps_FIR,
-  Apps_HALOEXCHANGE,
-  Apps_HALOEXCHANGE_FUSED,
   Apps_LTIMES,
   Apps_LTIMES_NOVIEW,
+  Apps_MASS3DEA,
   Apps_MASS3DPA,
   Apps_NODAL_ACCUMULATION_3D,
   Apps_PRESSURE,
   Apps_SW4CK_KERNEL_2,
   Apps_SW4CK_KERNEL_5,
   Apps_VOL3D,
+  Apps_ZONAL_ACCUMULATION_3D,
 
 //
 // Algorithm kernels...
@@ -157,6 +166,18 @@ enum KernelID {
   Algorithm_REDUCE_SUM,
   Algorithm_MEMSET,
   Algorithm_MEMCPY,
+  Algorithm_ATOMIC,
+
+//
+// Comm kernels...
+//
+  Comm_HALO_PACKING,
+  Comm_HALO_PACKING_FUSED,
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+  Comm_HALO_SENDRECV,
+  Comm_HALO_EXCHANGE,
+  Comm_HALO_EXCHANGE_FUSED,
+#endif
 
   NumKernels // Keep this one last and NEVER comment out (!!)
 
@@ -171,7 +192,7 @@ enum KernelID {
  * IMPORTANT: This is only modified when a new variant is added to the suite.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
- *            ARRAY OF VARIANT NAMES IN IMPLEMENTATION FILE!!!
+ *            ITEMS IN THE VariantNames ARRAY IN IMPLEMENTATION FILE!!!
  *
  *******************************************************************************
  */
@@ -198,6 +219,9 @@ enum VariantID {
 
   Kokkos_Lambda,
 
+  Base_SYCL,
+  RAJA_SYCL,
+
   NumVariants // Keep this one last and NEVER comment out (!!)
 
 };
@@ -211,7 +235,7 @@ enum VariantID {
  * IMPORTANT: This is only modified when a new feature is used in suite.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
- *            ARRAY OF FEATURE NAMES IN IMPLEMENTATION FILE!!!
+ *            ITEMS IN THE FeatureNames ARRAY IN IMPLEMENTATION FILE!!!
  *
  *******************************************************************************
  */
@@ -230,7 +254,64 @@ enum FeatureID {
 
   View,
 
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+  MPI,
+#endif
+
   NumFeatures // Keep this one last and NEVER comment out (!!)
+
+};
+
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Enumeration defining unique id for each Data memory space
+ * used in suite.
+ *
+ * IMPORTANT: This is only modified when a new memory space is used in suite.
+ *
+ *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
+ *            ITEMS IN THE DataSpaceNames ARRAY IN IMPLEMENTATION FILE!!!
+ *
+ *******************************************************************************
+ */
+enum struct DataSpace {
+
+  Host = 0,
+
+  Omp,
+
+  OmpTarget,
+
+  CudaPinned,
+  CudaManaged,
+  CudaManagedHostPreferred,
+  CudaManagedDevicePreferred,
+  CudaManagedHostPreferredDeviceAccessed,
+  CudaManagedDevicePreferredHostAccessed,
+  CudaDevice,
+
+  HipHostAdviseFine,
+  HipHostAdviseCoarse,
+  HipPinned,
+  HipPinnedFine,
+  HipPinnedCoarse,
+  HipManaged,
+  HipManagedAdviseFine,
+  HipManagedAdviseCoarse,
+  HipDevice,
+  HipDeviceFine,
+
+  SyclPinned,
+  SyclManaged,
+  SyclDevice,
+
+  NumSpaces, // Keep this one here and NEVER comment out (!!)
+
+  Copy,
+
+  EndPseudoSpaces // Keep this one last and NEVER comment out (!!)
 
 };
 
@@ -303,6 +384,33 @@ bool isVariantGPU(VariantID vid);
  *******************************************************************************
  */
 const std::string& getFeatureName(FeatureID vid);
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Return memory space name associated with CudaDataSpace enum value.
+ *
+ *******************************************************************************
+ */
+const std::string& getDataSpaceName(DataSpace cd);
+
+/*!
+ *******************************************************************************
+ *
+ * Return true if the allocator associated with DataSpace enum value is available.
+ *
+ *******************************************************************************
+ */
+bool isDataSpaceAvailable(DataSpace dataSpace);
+
+/*!
+ *******************************************************************************
+ *
+ * Return true if the DataSpace enum value is a pseudo DataSpace.
+ *
+ *******************************************************************************
+ */
+bool isPseudoDataSpace(DataSpace dataSpace);
 
 /*!
  *******************************************************************************

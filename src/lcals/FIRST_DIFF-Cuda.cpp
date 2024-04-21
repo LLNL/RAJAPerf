@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -21,15 +21,6 @@ namespace rajaperf
 namespace lcals
 {
 
-#define FIRST_DIFF_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, m_N); \
-  allocAndInitCudaDeviceData(y, m_y, m_N);
-
-#define FIRST_DIFF_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_x, x, m_N); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(y);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void first_diff(Real_ptr x, Real_ptr y,
@@ -49,33 +40,33 @@ void FIRST_DIFF::runCudaVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   FIRST_DIFF_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
-
-    FIRST_DIFF_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       first_diff<block_size><<<grid_size, block_size>>>( x, y,
-                                              iend );
-       cudaErrchk( cudaGetLastError() );
+       constexpr size_t shmem = 0;
+
+       RPlaunchCudaKernel( (first_diff<block_size>),
+                           grid_size, block_size,
+                           shmem, res.get_stream(),
+                           x, y,
+                           iend );
 
     }
     stopTimer();
 
-    FIRST_DIFF_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    FIRST_DIFF_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          FIRST_DIFF_BODY;
        });
@@ -83,14 +74,12 @@ void FIRST_DIFF::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    FIRST_DIFF_DATA_TEARDOWN_CUDA;
-
   } else {
      getCout() << "\n  FIRST_DIFF : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(FIRST_DIFF, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(FIRST_DIFF, Cuda)
 
 } // end namespace lcals
 } // end namespace rajaperf
