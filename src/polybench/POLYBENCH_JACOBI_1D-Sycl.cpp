@@ -71,20 +71,20 @@ void POLYBENCH_JACOBI_1D::runSyclVariantImpl(VariantID vid)
 
   } else if (vid == RAJA_SYCL) {
 
-    const bool async = true;
+    using EXEC_POL = RAJA::sycl_exec<work_group_size, true /*async*/>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       for (Index_type t = 0; t < tsteps; ++t) {
 
-        RAJA::forall< RAJA::sycl_exec<work_group_size, async>>(
-           RAJA::RangeSegment{1, N-1}, [=] (Index_type i) {
+        RAJA::forall<EXEC_POL> ( res, RAJA::RangeSegment{1, N-1},
+          [=] (Index_type i) {
             POLYBENCH_JACOBI_1D_BODY1;
         });
 
-        RAJA::forall< RAJA::sycl_exec<work_group_size, async>>(
-           RAJA::RangeSegment{1, N-1}, [=] (Index_type i) {
+        RAJA::forall<EXEC_POL> ( res, RAJA::RangeSegment{1, N-1},
+          [=] (Index_type i) {
             POLYBENCH_JACOBI_1D_BODY2;
         });
 

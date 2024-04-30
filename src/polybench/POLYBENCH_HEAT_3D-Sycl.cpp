@@ -114,19 +114,21 @@ void POLYBENCH_HEAT_3D::runSyclVariantImpl(VariantID vid)
 
       for (Index_type t = 0; t < tsteps; ++t) {
 
-        RAJA::kernel<EXEC_POL>(
+        RAJA::kernel_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
                            RAJA::RangeSegment{1, N-1},
                            RAJA::RangeSegment{1, N-1}),
+          res,
           [=] (Index_type i, Index_type j, Index_type k) {
             POLYBENCH_HEAT_3D_BODY1_RAJA;
           }
         );
 
-        RAJA::kernel<EXEC_POL>(
+        RAJA::kernel_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
                            RAJA::RangeSegment{1, N-1},
                            RAJA::RangeSegment{1, N-1}),
+          res,
           [=] (Index_type i, Index_type j, Index_type k) {
             POLYBENCH_HEAT_3D_BODY2_RAJA;
           }

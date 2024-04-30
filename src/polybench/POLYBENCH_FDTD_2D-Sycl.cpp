@@ -137,30 +137,33 @@ void POLYBENCH_FDTD_2D::runSyclVariantImpl(VariantID vid)
 
       for (t = 0; t < tsteps; ++t) {
 
-        RAJA::forall<EXEC_POL1>( RAJA::RangeSegment(0, ny),
+        RAJA::forall<EXEC_POL1>( res, RAJA::RangeSegment(0, ny),
         [=] (Index_type j) {
           POLYBENCH_FDTD_2D_BODY1_RAJA;
         });
 
-        RAJA::kernel<EXEC_POL234>(
+        RAJA::kernel_resource<EXEC_POL234>(
           RAJA::make_tuple(RAJA::RangeSegment{1, nx},
                            RAJA::RangeSegment{0, ny}),
+          res,
           [=] (Index_type i, Index_type j) {
             POLYBENCH_FDTD_2D_BODY2_RAJA;
           }
         );
 
-        RAJA::kernel<EXEC_POL234>(
+        RAJA::kernel_resource<EXEC_POL234>(
           RAJA::make_tuple(RAJA::RangeSegment{0, nx},
                            RAJA::RangeSegment{1, ny}),
+          res,
           [=] (Index_type i, Index_type j) {
             POLYBENCH_FDTD_2D_BODY3_RAJA;
           }
         );
 
-        RAJA::kernel<EXEC_POL234>(
+        RAJA::kernel_resource<EXEC_POL234>(
           RAJA::make_tuple(RAJA::RangeSegment{0, nx-1},
                            RAJA::RangeSegment{0, ny-1}),
+          res, 
           [=] (Index_type i, Index_type j) {
             POLYBENCH_FDTD_2D_BODY4_RAJA;
           }

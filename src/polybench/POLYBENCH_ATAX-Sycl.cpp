@@ -117,10 +117,11 @@ void POLYBENCH_ATAX::runSyclVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel_param<EXEC_POL1>(
+      RAJA::kernel_param_resource<EXEC_POL1>(
         RAJA::make_tuple(RAJA::RangeSegment{0, N},
                          RAJA::RangeSegment{0, N}),
         RAJA::tuple<Real_type>{0.0},
+        res,
 
         [=] (Index_type i, Real_type &dot) {
           POLYBENCH_ATAX_BODY1_RAJA;
@@ -134,10 +135,11 @@ void POLYBENCH_ATAX::runSyclVariantImpl(VariantID vid)
 
       );
 
-      RAJA::kernel_param<EXEC_POL2>(
+      RAJA::kernel_param_resource<EXEC_POL2>(
         RAJA::make_tuple(RAJA::RangeSegment{0, N},
                          RAJA::RangeSegment{0, N}),
         RAJA::tuple<Real_type>{0.0},
+        res,
 
         [=] (Index_type j, Real_type &dot) {
           POLYBENCH_ATAX_BODY4_RAJA;
