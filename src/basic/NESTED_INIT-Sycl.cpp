@@ -70,7 +70,11 @@ void NESTED_INIT::runSyclVariantImpl(VariantID vid)
 
     using EXEC_POL =
       RAJA::KernelPolicy<
+#if 0
         RAJA::statement::SyclKernelAsync<
+#else
+        RAJA::statement::SyclKernel<
+#endif
           RAJA::statement::For<2, RAJA::sycl_global_0<k_wg_sz>,
             RAJA::statement::For<1, RAJA::sycl_global_1<j_wg_sz>,
               RAJA::statement::For<0, RAJA::sycl_global_2<i_wg_sz>,
@@ -84,9 +88,11 @@ void NESTED_INIT::runSyclVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, ni),
-                                               RAJA::RangeSegment(0, nj),
-                                               RAJA::RangeSegment(0, nk)),
+      RAJA::kernel_resource<EXEC_POL>(
+        RAJA::make_tuple(RAJA::RangeSegment(0, ni),
+                         RAJA::RangeSegment(0, nj),
+                         RAJA::RangeSegment(0, nk)),
+        res,
         [=] (Index_type i, Index_type j, Index_type k) {
         NESTED_INIT_BODY;
       });

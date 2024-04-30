@@ -78,12 +78,12 @@ void PRESSURE::runSyclVariantImpl(VariantID vid)
 
       RAJA::region<RAJA::seq_region>( [=]() {
 
-        RAJA::forall< RAJA::sycl_exec<work_group_size, async> >(
+        RAJA::forall< RAJA::sycl_exec<work_group_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] (Index_type i) {
           PRESSURE_BODY1;
         });
 
-        RAJA::forall< RAJA::sycl_exec<work_group_size, async> >(
+        RAJA::forall< RAJA::sycl_exec<work_group_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] (Index_type i) {
           PRESSURE_BODY2;
         });

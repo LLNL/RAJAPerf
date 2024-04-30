@@ -71,7 +71,11 @@ void LTIMES_NOVIEW::runSyclVariantImpl(VariantID vid)
 
     using EXEC_POL =
       RAJA::KernelPolicy<
+#if 0
+        RAJA::statement::SyclKernelAsync<
+#else
         RAJA::statement::SyclKernel<
+#endif
           RAJA::statement::For<1, RAJA::sycl_global_2<z_wg_sz>,      //z
             RAJA::statement::For<2, RAJA::sycl_global_1<g_wg_sz>,    //g
               RAJA::statement::For<3, RAJA::sycl_global_0<m_wg_sz>,  //m
@@ -87,10 +91,12 @@ void LTIMES_NOVIEW::runSyclVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, num_d),
-                                               RAJA::RangeSegment(0, num_z),
-                                               RAJA::RangeSegment(0, num_g),
-                                               RAJA::RangeSegment(0, num_m)),
+      RAJA::kernel_resource<EXEC_POL>( 
+        RAJA::make_tuple(RAJA::RangeSegment(0, num_d),
+                         RAJA::RangeSegment(0, num_z),
+                         RAJA::RangeSegment(0, num_g),
+                         RAJA::RangeSegment(0, num_m)),
+        res,
         [=] (Index_type d, Index_type z, Index_type g, Index_type m) {
         LTIMES_NOVIEW_BODY;
       });

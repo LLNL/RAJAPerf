@@ -66,7 +66,7 @@ void DEL_DOT_VEC_2D::runSyclVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::sycl_exec<work_group_size, true /*async*/> >(
+      RAJA::forall< RAJA::sycl_exec<work_group_size, true /*async*/> >( res,
          zones, [=] (Index_type i) {
          DEL_DOT_VEC_2D_BODY;
        });

@@ -81,7 +81,7 @@ void TRAP_INT::runSyclVariantImpl(VariantID vid)
 
       RAJA::ReduceSum<RAJA::sycl_reduce, Real_type> sumx(m_sumx_init);
 
-      RAJA::forall< RAJA::sycl_exec<work_group_size, false /*async*/> >(
+      RAJA::forall< RAJA::sycl_exec<work_group_size, false /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] (Index_type i) {
         TRAP_INT_BODY;
       });

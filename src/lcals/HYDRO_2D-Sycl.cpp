@@ -102,7 +102,11 @@ void HYDRO_2D::runSyclVariantImpl(VariantID vid) {
 
     using EXECPOL =
       RAJA::KernelPolicy<
+#if 0
         RAJA::statement::SyclKernelAsync<
+#else
+        RAJA::statement::SyclKernel<
+#endif
           RAJA::statement::For<0, RAJA::sycl_global_0<k_wg_sz>,
             RAJA::statement::For<1, RAJA::sycl_global_1<j_wg_sz>,
               RAJA::statement::Lambda<0>
