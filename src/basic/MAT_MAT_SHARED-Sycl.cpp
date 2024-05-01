@@ -19,11 +19,11 @@
 namespace rajaperf {
 namespace basic {
 
-template < size_t block_size >
+template < size_t work_group_size >
 void MAT_MAT_SHARED::runSyclVariantImpl(VariantID vid)
 {
-  constexpr Index_type tile_size = integer::sqrt(block_size);
-  static_assert(tile_size*tile_size == block_size, "Invalid block_size");
+  constexpr Index_type tile_size = integer::sqrt(work_group_size);
+  static_assert(tile_size*tile_size == work_group_size, "Invalid block_size");
 
   const Index_type run_reps = getRunReps();
   const Index_type N = m_N;
@@ -32,7 +32,7 @@ void MAT_MAT_SHARED::runSyclVariantImpl(VariantID vid)
   const Index_type Ny = RAJA_DIVIDE_CEILING_INT(N, tile_size);
 
   //Right most is the fastest index
-  const ::sycl::range<3> blockSize(1, tile_size, tile_size);
+  const ::sycl::range<3> workGroupSize(1, tile_size, tile_size);
   const ::sycl::range<3> gridSize(1, Ny*tile_size, Nx*tile_size);
 
   constexpr size_t shmem = tile_size * tile_size;
@@ -54,7 +54,7 @@ void MAT_MAT_SHARED::runSyclVariantImpl(VariantID vid)
        ::sycl::local_accessor<double, 2> Cs(::sycl::range<2>(tile_size, tile_size), h);
 
         h.parallel_for
-          (cl::sycl::nd_range<3>(gridSize, blockSize),
+          (cl::sycl::nd_range<3>(gridSize, workGroupSize),
            [=] (cl::sycl::nd_item<3> itm) {
 
              Index_type tx = itm.get_local_id(2);
@@ -118,13 +118,18 @@ void MAT_MAT_SHARED::runSyclVariantImpl(VariantID vid)
                   //We only support dynamic shared memory in Sycl
                   //Thus requiring a different setup than other backends
                   //which use static shared memory
-                  MAT_MAT_SHARED_BODY_SYCL_0(tile_size)
+                  double * As_ptr = ctx.getSharedMemory<double>(tile_size * tile_size);
+                  double * Bs_ptr = ctx.getSharedMemory<double>(tile_size * tile_size);
+                  double * Cs_ptr = ctx.getSharedMemory<double>(tile_size * tile_size);
+                  double (*As)[tile_size] = (double (*)[tile_size]) As_ptr;
+                  double (*Bs)[tile_size] = (double (*)[tile_size]) Bs_ptr;
+                  double (*Cs)[tile_size] = (double (*)[tile_size]) Cs_ptr;
 
                   RAJA::loop<threads_y>(ctx, RAJA::RangeSegment(0, tile_size),
                     [&](Index_type ty) {
                       RAJA::loop<threads_x>(ctx, RAJA::RangeSegment(0, tile_size),
                         [&](Index_type tx) {
-                          MAT_MAT_SHARED_BODY_1(tile_size)                  
+                          MAT_MAT_SHARED_BODY_1(tile_size)
                         }
                       );  // RAJA::loop<threads_x>
                     }

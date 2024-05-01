@@ -19,7 +19,7 @@
 namespace rajaperf {
 namespace apps {
 
-template < size_t block_size >
+template < size_t work_group_size >
 void CONVECTION3DPA::runSyclVariantImpl(VariantID vid) {
   const Index_type run_reps = getRunReps();
 
@@ -28,7 +28,7 @@ void CONVECTION3DPA::runSyclVariantImpl(VariantID vid) {
 
   CONVECTION3DPA_DATA_SETUP;
 
-  const ::sycl::range<3> blockSize(CPA_Q1D, CPA_Q1D, CPA_Q1D);
+  const ::sycl::range<3> workGroupSize(CPA_Q1D, CPA_Q1D, CPA_Q1D);
   const ::sycl::range<3> gridSize(CPA_Q1D,CPA_Q1D,CPA_Q1D*NE);
 
   constexpr size_t shmem = 0;
@@ -39,8 +39,6 @@ void CONVECTION3DPA::runSyclVariantImpl(VariantID vid) {
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      //constexpr size_t shmem = 0;
 
       qu->submit([&](cl::sycl::handler& h) {
 
@@ -56,7 +54,7 @@ void CONVECTION3DPA::runSyclVariantImpl(VariantID vid) {
         auto sm5_vec = ::sycl::local_accessor<double, 1>(::sycl::range<1>(max_DQ*max_DQ*max_DQ), h);
 
         h.parallel_for
-          (cl::sycl::nd_range<3>(gridSize, blockSize),
+          (cl::sycl::nd_range<3>(gridSize, workGroupSize),
            [=] (cl::sycl::nd_item<3> itm) {
 
              const Index_type e = itm.get_group(2);

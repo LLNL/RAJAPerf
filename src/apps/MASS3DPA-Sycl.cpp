@@ -22,7 +22,7 @@
 namespace rajaperf {
 namespace apps {
 
-template < size_t block_size >
+template < size_t work_group_size >
 void MASS3DPA::runSyclVariantImpl(VariantID vid) {
   const Index_type run_reps = getRunReps();
 
@@ -31,7 +31,7 @@ void MASS3DPA::runSyclVariantImpl(VariantID vid) {
 
   MASS3DPA_DATA_SETUP;
 
-  const ::sycl::range<3> blockSize(1, MPA_Q1D, MPA_Q1D);
+  const ::sycl::range<3> workGroupSize(1, MPA_Q1D, MPA_Q1D);
   const ::sycl::range<3> gridSize(1, MPA_Q1D, MPA_Q1D*NE);
 
   switch (vid) {
@@ -52,7 +52,7 @@ void MASS3DPA::runSyclVariantImpl(VariantID vid) {
         auto sm1_vec = ::sycl::local_accessor<double, 1>(::sycl::range<1>(MDQ * MDQ * MDQ), h);
 
         h.parallel_for
-          (cl::sycl::nd_range<3>(gridSize, blockSize),
+          (cl::sycl::nd_range<3>(gridSize, workGroupSize),
            [=] (cl::sycl::nd_item<3> itm) {
 
              const Index_type e = itm.get_group(2);

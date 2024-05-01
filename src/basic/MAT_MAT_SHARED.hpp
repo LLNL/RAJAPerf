@@ -94,14 +94,6 @@ constexpr rajaperf::Index_type TL_SZ = 16;
   RAJA_TEAM_SHARED double Bs[tile_size][tile_size];                            \
   RAJA_TEAM_SHARED double Cs[tile_size][tile_size];
 
-#define MAT_MAT_SHARED_BODY_SYCL_0(tile_size)                           \
-  double * As_ptr = ctx.getSharedMemory<double>(tile_size * tile_size); \
-  double * Bs_ptr = ctx.getSharedMemory<double>(tile_size * tile_size); \
-  double * Cs_ptr = ctx.getSharedMemory<double>(tile_size * tile_size); \
-  double (*As)[tile_size] = (double (*)[tile_size]) As_ptr;             \
-  double (*Bs)[tile_size] = (double (*)[tile_size]) Bs_ptr;             \
-  double (*Cs)[tile_size] = (double (*)[tile_size]) Cs_ptr;             \
-
 #define MAT_MAT_SHARED_BODY_1(tile_size)        \
   Cs[ty][tx] = 0;
 
@@ -157,7 +149,7 @@ public:
   void runCudaVariantImpl(VariantID vid);
   template < size_t block_size >
   void runHipVariantImpl(VariantID vid);
-  template < size_t block_size >
+  template < size_t work_group_size >
   void runSyclVariantImpl(VariantID vid);
 
 private:
