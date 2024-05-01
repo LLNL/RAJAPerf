@@ -54,6 +54,7 @@ void VOL3D::runSyclVariantImpl(VariantID vid)
 
         });
       });
+
     }
     stopTimer();
  

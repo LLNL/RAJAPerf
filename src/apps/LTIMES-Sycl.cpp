@@ -64,6 +64,7 @@ void LTIMES::runSyclVariantImpl(VariantID vid)
 
         });
       });
+
     }
     stopTimer();
 

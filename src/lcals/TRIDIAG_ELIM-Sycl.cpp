@@ -51,6 +51,7 @@ void TRIDIAG_ELIM::runSyclVariantImpl(VariantID vid)
 
         });
       });
+
     }
     stopTimer();
 

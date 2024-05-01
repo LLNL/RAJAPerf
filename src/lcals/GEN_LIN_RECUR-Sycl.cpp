@@ -63,6 +63,7 @@ void GEN_LIN_RECUR::runSyclVariantImpl(VariantID vid)
 
         });
       });
+
     }
     stopTimer();
 

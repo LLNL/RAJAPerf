@@ -52,6 +52,7 @@ void DIFF_PREDICT::runSyclVariantImpl(VariantID vid)
 
         });
       });
+
     }
     stopTimer();
 

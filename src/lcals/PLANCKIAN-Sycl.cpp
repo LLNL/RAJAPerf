@@ -54,6 +54,7 @@ void PLANCKIAN::runSyclVariantImpl(VariantID vid)
 
         });
       });
+
     }
     stopTimer();
 

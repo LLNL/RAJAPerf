@@ -51,6 +51,7 @@ void HYDRO_1D::runSyclVariantImpl(VariantID vid)
 
         });
       });
+
     }
     stopTimer();
 

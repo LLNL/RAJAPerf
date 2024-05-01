@@ -51,6 +51,7 @@ void INT_PREDICT::runSyclVariantImpl(VariantID vid)
 
         });
       });
+
     }
     stopTimer();
 

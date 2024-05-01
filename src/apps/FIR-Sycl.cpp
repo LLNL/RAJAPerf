@@ -71,6 +71,7 @@ void FIR::runSyclVariantImpl(VariantID vid)
 
         });
       });
+
     }
     stopTimer();
 

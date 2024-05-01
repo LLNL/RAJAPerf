@@ -51,6 +51,7 @@ void EOS::runSyclVariantImpl(VariantID vid)
 
         });
       });
+
     }
     stopTimer();
 

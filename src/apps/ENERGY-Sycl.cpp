@@ -113,6 +113,7 @@ void ENERGY::runSyclVariantImpl(VariantID vid)
 
         });
       });
+
     }
     stopTimer();
 
