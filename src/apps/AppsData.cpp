@@ -16,6 +16,40 @@ namespace rajaperf
 namespace apps
 {
 
+
+std::ostream& operator<<(std::ostream& stream, const ADomain& domain)
+{
+   return stream
+
+     << "ADomain"
+
+     << " ndims " << domain.ndims
+     << " NPNL " << domain.NPNL
+     << " NPNR " << domain.NPNR
+
+     << " imin " << domain.imin
+     << " jmin " << domain.jmin
+     << " kmin " << domain.kmin
+     << " imax " << domain.imax
+     << " jmax " << domain.jmax
+     << " kmax " << domain.kmax
+
+     << " jp " << domain.jp
+     << " kp " << domain.kp
+     << " nnalls " << domain.nnalls
+
+     << " fpn " << domain.fpn
+     << " lpn " << domain.lpn
+     << " frn " << domain.frn
+     << " lrn " << domain.lrn
+
+     << " fpz " << domain.fpz
+     << " lpz " << domain.lpz
+
+     << " n_real_zones " << domain.n_real_zones
+     << " n_real_nodes " << domain.n_real_nodes ;
+}
+
 //
 // Set zone indices for 2d mesh.
 //
@@ -38,10 +72,10 @@ void setRealZones_2d(Index_type* real_zones,
 
   for (Index_type j = jmin; j < jmax; j++) {
      for (Index_type i = imin; i < imax; i++) {
-        Index_type ip = i + j*jp ;
+        Index_type iz = i + j*jp ;
 
-        Index_type id = (i-imin) + (j-jmin)*j_stride ;
-        real_zones[id] = ip;
+        Index_type il = (i-imin) + (j-jmin)*j_stride ;
+        real_zones[il] = iz;
      }
   }
 }
@@ -73,10 +107,10 @@ void setRealZones_3d(Index_type* real_zones,
   for (Index_type k = kmin; k < kmax; k++) {
      for (Index_type j = jmin; j < jmax; j++) {
         for (Index_type i = imin; i < imax; i++) {
-           Index_type ip = i + j*jp + k*kp ;
+           Index_type iz = i + j*jp + k*kp ;
 
-           Index_type id = (i-imin) + (j-jmin)*j_stride + (k-kmin)*k_stride ;
-           real_zones[id] = ip;
+           Index_type il = (i-imin) + (j-jmin)*j_stride + (k-kmin)*k_stride ;
+           real_zones[il] = iz;
         }
      }
   }
@@ -104,20 +138,13 @@ void setMeshPositions_2d(Real_ptr x, Real_type dx,
   Index_type npnl = domain.NPNL;
   Index_type npnr = domain.NPNR;
 
-  Real_ptr x1, x2, x3, x4;
-  Real_ptr y1, y2, y3, y4;
-  NDSET2D(domain.jp, x, x1,x2,x3,x4) ;
-  NDSET2D(domain.jp, y, y1,y2,y3,y4) ;
+  for (Index_type j = jmin - npnl; j < jmax+1 + npnr; j++) {
+     for (Index_type i = imin - npnl; i < imax+1 + npnr; i++) {
+        Index_type in = i + j*jp ;
 
-  for (Index_type j = jmin - npnl; j < jmax + npnr; j++) {
-     for (Index_type i = imin - npnl; i < imax + npnr; i++) {
-        Index_type iz = i + j*jp ;
+        x[in] = i*dx;
 
-        x3[iz] = x4[iz] = i*dx;
-        x1[iz] = x2[iz] = (i+1)*dx;
-
-        y1[iz] = y4[iz] = j*dy;
-        y2[iz] = y3[iz] = (j+1)*dy;
+        y[in] = j*dy;
 
      }
   }
@@ -150,26 +177,16 @@ void setMeshPositions_3d(Real_ptr x, Real_type dx,
   Index_type npnl = domain.NPNL;
   Index_type npnr = domain.NPNR;
 
-  Real_ptr x0, x1, x2, x3, x4, x5, x6, x7;
-  Real_ptr y0, y1, y2, y3, y4, y5, y6, y7;
-  Real_ptr z0, z1, z2, z3, z4, z5, z6, z7;
-  NDPTRSET(domain.jp, domain.kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
-  NDPTRSET(domain.jp, domain.kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ;
-  NDPTRSET(domain.jp, domain.kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
+  for (Index_type k = kmin - npnl; k < kmax+1 + npnr; k++) {
+     for (Index_type j = jmin - npnl; j < jmax+1 + npnr; j++) {
+        for (Index_type i = imin - npnl; i < imax+1 + npnr; i++) {
+           Index_type in = i + j*jp + k*kp ;
 
-  for (Index_type k = kmin - npnl; k < kmax + npnr; k++) {
-     for (Index_type j = jmin - npnl; j < jmax + npnr; j++) {
-        for (Index_type i = imin - npnl; i < imax + npnr; i++) {
-           Index_type iz = i + j*jp + k*kp ;
+           x[in] = i*dx;
 
-           x0[iz] = x2[iz] = x4[iz] = x6[iz] = i*dx;
-           x1[iz] = x3[iz] = x5[iz] = x7[iz] = (i+1)*dx;
+           y[in] = j*dy;
 
-           y0[iz] = y1[iz] = y4[iz] = y5[iz] = j*dy;
-           y2[iz] = y3[iz] = y6[iz] = y7[iz] = (j+1)*dy;
-
-           z0[iz] = z1[iz] = z2[iz] = z3[iz] = k*dz;
-           z4[iz] = z5[iz] = z6[iz] = z7[iz] = (k+1)*dz;
+           z[in] = k*dz;
 
         }
      }

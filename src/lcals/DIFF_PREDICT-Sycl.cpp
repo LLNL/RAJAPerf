@@ -28,7 +28,8 @@ void DIFF_PREDICT::runSyclVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
-  auto res{getSyclResource()}; 
+  auto res{getSyclResource()};
+  auto qu = res.get_queue();
 
   DIFF_PREDICT_DATA_SETUP;
 
@@ -52,7 +53,6 @@ void DIFF_PREDICT::runSyclVariantImpl(VariantID vid)
         });
       });
     }
-    qu->wait();
     stopTimer();
 
   } else if ( vid == RAJA_SYCL ) {
@@ -66,7 +66,6 @@ void DIFF_PREDICT::runSyclVariantImpl(VariantID vid)
        });
 
     }
-    qu->wait();
     stopTimer();
 
   } else {

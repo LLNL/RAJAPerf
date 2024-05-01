@@ -12,6 +12,8 @@
 
 #if defined(RAJA_ENABLE_CUDA)
 
+#include "TRAP_INT-func.hpp"
+
 #include "common/CudaDataUtils.hpp"
 
 #include <iostream>
@@ -24,21 +26,6 @@ namespace rajaperf
 {
 namespace basic
 {
-
-//
-// Function used in TRAP_INT loop.
-//
-RAJA_INLINE
-RAJA_DEVICE
-Real_type trap_int_func(Real_type x,
-                        Real_type y,
-                        Real_type xp,
-                        Real_type yp)
-{
-   Real_type denom = (x - xp)*(x - xp) + (y - yp)*(y - yp);
-   denom = 1.0/sqrt(denom);
-   return denom;
-}
 
 
 template < size_t block_size >

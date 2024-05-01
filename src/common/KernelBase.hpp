@@ -27,9 +27,9 @@
 #endif
 #if defined(RAJA_ENABLE_SYCL)
 #include <sycl.hpp>
-#include "camp/resource.hpp"
 #endif
 
+#include "camp/resource.hpp"
 
 #include <string>
 #include <vector>
@@ -280,7 +280,7 @@ public:
 #if defined(RAJA_ENABLE_SYCL)
     if ( running_variant == Base_SYCL ||
          running_variant == RAJA_SYCL ) {
-      getSyclResource().wait();
+      getSyclResource().get_queue()->wait();
     }
 #endif
 
@@ -465,19 +465,18 @@ public:
   virtual void runOpenMPTargetVariant(VariantID vid, size_t tune_idx) = 0;
 #endif
 
-#if defined(RUN_KOKKOS)
-  virtual void runKokkosVariant(VariantID vid, size_t tune_idx)
-  {
-     getCout() << "\n KernelBase: Unimplemented Kokkos variant id = " << vid << std::endl;
-  }
-#endif
 #if defined(RAJA_ENABLE_SYCL)
   virtual void runSyclVariant(VariantID vid, size_t tune_idx)
   {
      getCout() << "\n KernelBase: Unimplemented Sycl variant id = " << vid << std::endl;
   }
-  static sycl::queue* qu;
-  static camp::resources::Resource sycl_res;
+#endif
+
+#if defined(RUN_KOKKOS)
+  virtual void runKokkosVariant(VariantID vid, size_t tune_idx)
+  {
+     getCout() << "\n KernelBase: Unimplemented Kokkos variant id = " << vid << std::endl;
+  }
 #endif
 
 

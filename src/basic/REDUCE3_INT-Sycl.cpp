@@ -41,6 +41,9 @@ void REDUCE3_INT::runSyclVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getSyclResource()};
+  auto qu = res.get_queue();
+
   REDUCE3_INT_DATA_SETUP;
 
   if ( vid == Base_SYCL ) {
@@ -93,7 +96,6 @@ void REDUCE3_INT::runSyclVariantImpl(VariantID vid)
       m_vmax = RAJA_MAX(m_vmax, lmax);
 
     } // for (RepIndex_type irep = ...
-    qu->wait();
     stopTimer();
   
     REDUCE3_INT_DATA_TEARDOWN_SYCL;
@@ -117,7 +119,6 @@ void REDUCE3_INT::runSyclVariantImpl(VariantID vid)
       m_vmax = RAJA_MAX(m_vmax, static_cast<Int_type>(vmax.get()));
 
     }
-    qu->wait();
     stopTimer();
 
   } else {

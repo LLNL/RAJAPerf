@@ -15,7 +15,6 @@
 #include <iostream>
 #include <cmath>
 
-#include <sycl.hpp>
 #include "common/SyclDataUtils.hpp"
 
 namespace rajaperf 
@@ -51,6 +50,9 @@ void POLYBENCH_2MM::runSyclVariant(VariantID vid)
 {
   const unsigned long run_reps = getRunReps();
 
+  auto res{getSyclResource()};
+  auto qu = res.get_queue();
+
   POLYBENCH_2MM_DATA_SETUP;
 
   if ( vid == Base_SYCL ) {
@@ -63,12 +65,11 @@ void POLYBENCH_2MM::runSyclVariant(VariantID vid)
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-        qu->submit([&] (sycl::handler& h)
-        {
 
+        qu->submit([&] (sycl::handler& h) {
           h.parallel_for<class polybench2MM_1>(sycl::nd_range<2> 
-                                                 {sycl::range<2> {ni_grid_size, nj_grid_size},
-                                                  sycl::range<2> {block_size, block_size}},
+                                               {sycl::range<2> {ni_grid_size, nj_grid_size},
+                                                sycl::range<2> {block_size, block_size}},
                                                [=] (sycl::nd_item<2> item) {
 
            Index_type i = item.get_global_id(0); 
@@ -81,12 +82,11 @@ void POLYBENCH_2MM::runSyclVariant(VariantID vid)
               }
               POLYBENCH_2MM_BODY3;
             }
+
           });
         });
 
-        qu->submit([&] (sycl::handler& h)
-        {
-
+        qu->submit([&] (sycl::handler& h) {
           h.parallel_for<class polybench2MM_2>(sycl::nd_range<2>
                                                  {sycl::range<2> {ni_grid_size, nl_grid_size},
                                                   sycl::range<2> {block_size, block_size}},
@@ -105,8 +105,8 @@ void POLYBENCH_2MM::runSyclVariant(VariantID vid)
           });
         });
       }
-      qu->wait(); // Wait for computation to finish before stopping timer
       stopTimer();
+
     }
 
     POLYBENCH_2MM_TEARDOWN_SYCL;

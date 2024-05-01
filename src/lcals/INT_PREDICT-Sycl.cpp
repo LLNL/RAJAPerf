@@ -28,6 +28,9 @@ void INT_PREDICT::runSyclVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getSyclResource()};
+  auto qu = res.get_queue();
+
   INT_PREDICT_DATA_SETUP;
 
   if ( vid == Base_SYCL ) {
@@ -37,8 +40,7 @@ void INT_PREDICT::runSyclVariantImpl(VariantID vid)
 
       const size_t global_size = work_group_size * RAJA_DIVIDE_CEILING_INT(iend, work_group_size);
 
-      qu->submit([&] (sycl::handler& h)
-      {
+      qu->submit([&] (sycl::handler& h) {
         h.parallel_for(sycl::nd_range<1>(global_size, work_group_size),
                        [=] (sycl::nd_item<1> item) {
 
@@ -50,7 +52,6 @@ void INT_PREDICT::runSyclVariantImpl(VariantID vid)
         });
       });
     }
-    qu->wait();
     stopTimer();
 
   } else if ( vid == RAJA_SYCL ) {
@@ -64,7 +65,6 @@ void INT_PREDICT::runSyclVariantImpl(VariantID vid)
        });
 
     }
-    qu->wait();
     stopTimer();
 
   } else {

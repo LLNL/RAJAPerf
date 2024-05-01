@@ -350,7 +350,7 @@ void copyData(DataSpace dst_dataSpace, void* dst_ptr,
   else if (isSyclDataSpace(dst_dataSpace) ||
            isSyclDataSpace(src_dataSpace)) {
     auto qu = camp::resources::Sycl::get_default().get_queue();
-    detail::copySyclData(dst_ptr, src_ptr, nbytes,qu);
+    detail::copySyclData(dst_ptr, src_ptr, nbytes, qu);
   }
 #endif
 
@@ -441,17 +441,17 @@ void deallocData(DataSpace dataSpace, void* ptr)
     case DataSpace::SyclPinned:
     {
       auto qu = camp::resources::Sycl::get_default().get_queue();
-      detail::deallocSyclPinnedData(ptr,qu);
+      detail::deallocSyclPinnedData(ptr, qu);
     } break;
     case DataSpace::SyclManaged:
     {
       auto qu = camp::resources::Sycl::get_default().get_queue();
-      detail::deallocSyclManagedData(ptr,qu);
+      detail::deallocSyclManagedData(ptr, qu);
     } break;
     case DataSpace::SyclDevice:
     {
       auto qu = camp::resources::Sycl::get_default().get_queue();
-      detail::deallocSyclDeviceData(ptr,qu);
+      detail::deallocSyclDeviceData(ptr, qu);
     } break;
 #endif
 

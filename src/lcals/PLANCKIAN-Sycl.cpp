@@ -15,7 +15,6 @@
 #include <iostream>
 #include <cmath>
 
-#include <sycl.hpp>
 #include "common/SyclDataUtils.hpp"
 
 namespace rajaperf 
@@ -29,6 +28,9 @@ void PLANCKIAN::runSyclVariantImpl(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
+
+  auto res{getSyclResource()};
+  auto qu = res.get_queue(); 
 
   PLANCKIAN_DATA_SETUP;
 
@@ -53,7 +55,6 @@ void PLANCKIAN::runSyclVariantImpl(VariantID vid)
         });
       });
     }
-    qu->wait();
     stopTimer();
 
   } else if ( vid == RAJA_SYCL ) {
@@ -67,7 +68,6 @@ void PLANCKIAN::runSyclVariantImpl(VariantID vid)
        });
 
     }
-    qu->wait();
     stopTimer();
 
   } else {

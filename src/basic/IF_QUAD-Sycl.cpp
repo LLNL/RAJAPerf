@@ -14,7 +14,6 @@
 
 #include <iostream>
 
-#include <sycl.hpp>
 #include "common/SyclDataUtils.hpp"
 
 namespace rajaperf
@@ -28,6 +27,9 @@ void IF_QUAD::runSyclVariantImpl(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
+
+  auto res{getSyclResource()};
+  auto qu = res.get_queue();
 
   IF_QUAD_DATA_SETUP;
 
@@ -50,7 +52,6 @@ void IF_QUAD::runSyclVariantImpl(VariantID vid)
         });
       });
     }
-    qu->wait(); // Wait for computation to finish before stopping timer
     stopTimer();
 
   } else if ( vid == RAJA_SYCL ) {
@@ -64,7 +65,6 @@ void IF_QUAD::runSyclVariantImpl(VariantID vid)
        });
 
     }
-    qu->wait();
     stopTimer();
 
   } else {

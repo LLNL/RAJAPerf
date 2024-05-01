@@ -12,6 +12,8 @@
 
 #if defined(RAJA_ENABLE_SYCL)
 
+#include "TRAP_INT-func.hpp"
+
 #include "common/SyclDataUtils.hpp"
 
 #include <iostream>
@@ -21,20 +23,6 @@ namespace rajaperf
 namespace basic
 {
 
-//
-// Function used in TRAP_INT loop.
-//
-RAJA_INLINE
-RAJA_DEVICE
-Real_type trap_int_func(Real_type x,
-                        Real_type y,
-                        Real_type xp,
-                        Real_type yp)
-{
-   Real_type denom = (x - xp)*(x - xp) + (y - yp)*(y - yp);
-   denom = 1.0/sqrt(denom);
-   return denom;
-}
 
 template <size_t work_group_size >
 void TRAP_INT::runSyclVariantImpl(VariantID vid)
@@ -42,6 +30,9 @@ void TRAP_INT::runSyclVariantImpl(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
+
+  auto res{getSyclResource()};
+  auto qu = res.get_queue();
 
   TRAP_INT_DATA_SETUP;
 
@@ -79,7 +70,6 @@ void TRAP_INT::runSyclVariantImpl(VariantID vid)
       m_sumx += lsumx * h;
 
     }
-    qu->wait();
     stopTimer();
   
     deallocSyclDeviceData(sumx, qu);
@@ -99,7 +89,6 @@ void TRAP_INT::runSyclVariantImpl(VariantID vid)
       m_sumx += static_cast<Real_type>(sumx.get()) * h;
 
     }
-    qu->wait();
     stopTimer();
 
   } else {

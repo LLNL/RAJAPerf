@@ -29,6 +29,7 @@ void DAXPY::runSyclVariantImpl(VariantID vid)
   const Index_type iend = getActualProblemSize();
 
   auto res{getSyclResource()};
+  auto qu = res.get_queue();
 
   DAXPY_DATA_SETUP;
 
@@ -51,7 +52,6 @@ void DAXPY::runSyclVariantImpl(VariantID vid)
         });
       });
     }
-    qu->wait();
     stopTimer();
 
   } else if ( vid == RAJA_SYCL ) {
@@ -65,7 +65,6 @@ void DAXPY::runSyclVariantImpl(VariantID vid)
       });
 
     }
-    qu->wait();
     stopTimer();
 
   } else {
