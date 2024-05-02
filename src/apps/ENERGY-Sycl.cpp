@@ -41,10 +41,10 @@ void ENERGY::runSyclVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      const size_t grid_size = work_group_size * RAJA_DIVIDE_CEILING_INT(iend, work_group_size); 
+      const size_t global_size = work_group_size * RAJA_DIVIDE_CEILING_INT(iend, work_group_size); 
 
       qu->submit([&] (sycl::handler& h) {
-        h.parallel_for(sycl::nd_range<1> (grid_size, work_group_size),
+        h.parallel_for(sycl::nd_range<1> (global_size, work_group_size),
                        [=] (sycl::nd_item<1> item) {
 
           Index_type i = item.get_global_id(0);
@@ -56,7 +56,7 @@ void ENERGY::runSyclVariantImpl(VariantID vid)
       });
 
       qu->submit([&] (sycl::handler& h) {
-        h.parallel_for(sycl::nd_range<1> (grid_size, work_group_size),
+        h.parallel_for(sycl::nd_range<1> (global_size, work_group_size),
                        [=] (sycl::nd_item<1> item) {
             
           Index_type i = item.get_global_id(0);            
@@ -68,7 +68,7 @@ void ENERGY::runSyclVariantImpl(VariantID vid)
       });
 
       qu->submit([&] (sycl::handler& h) {
-        h.parallel_for(sycl::nd_range<1> (grid_size, work_group_size),
+        h.parallel_for(sycl::nd_range<1> (global_size, work_group_size),
                        [=] (sycl::nd_item<1> item) {
 
           Index_type i = item.get_global_id(0);
@@ -79,7 +79,7 @@ void ENERGY::runSyclVariantImpl(VariantID vid)
       });
 
       qu->submit([&] (sycl::handler& h) {
-        h.parallel_for(sycl::nd_range<1> (grid_size, work_group_size),
+        h.parallel_for(sycl::nd_range<1> (global_size, work_group_size),
                        [=] (sycl::nd_item<1> item) {
 
           Index_type i = item.get_global_id(0);
@@ -91,7 +91,7 @@ void ENERGY::runSyclVariantImpl(VariantID vid)
       });
 
       qu->submit([&] (sycl::handler& h) {
-        h.parallel_for(sycl::nd_range<1> (grid_size, work_group_size),
+        h.parallel_for(sycl::nd_range<1> (global_size, work_group_size),
                        [=] (sycl::nd_item<1> item) {
 
           Index_type i = item.get_global_id(0);
@@ -103,7 +103,7 @@ void ENERGY::runSyclVariantImpl(VariantID vid)
       });
 
       qu->submit([&] (sycl::handler& h) {
-        h.parallel_for(sycl::nd_range<1> (grid_size, work_group_size),
+        h.parallel_for(sycl::nd_range<1> (global_size, work_group_size),
                        [=] (sycl::nd_item<1> item) {
 
           Index_type i = item.get_global_id(0);

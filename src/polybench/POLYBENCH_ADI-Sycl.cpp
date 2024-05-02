@@ -38,10 +38,10 @@ void POLYBENCH_ADI::runSyclVariantImpl(VariantID vid)
 
       for (Index_type t = 1; t <= tsteps; ++t) {
 
-        const size_t grid_size = work_group_size * RAJA_DIVIDE_CEILING_INT(n-2, work_group_size);
+        const size_t global_size = work_group_size * RAJA_DIVIDE_CEILING_INT(n-2, work_group_size);
 
         qu->submit([&] (sycl::handler& h) {
-          h.parallel_for(sycl::nd_range<1> (grid_size, work_group_size),
+          h.parallel_for(sycl::nd_range<1> (global_size, work_group_size),
                          [=] (sycl::nd_item<1> item) {
 
             Index_type i = item.get_global_id(0) + 1;
@@ -61,7 +61,7 @@ void POLYBENCH_ADI::runSyclVariantImpl(VariantID vid)
         });
 
         qu->submit([&] (sycl::handler& h) {
-          h.parallel_for(sycl::nd_range<1> (grid_size, work_group_size),
+          h.parallel_for(sycl::nd_range<1> (global_size, work_group_size),
                          [=] (sycl::nd_item<1> item) {
 
             Index_type i = item.get_global_id(0) + 1;
