@@ -24,6 +24,11 @@
   for (int i = threadIdx.k; i < N; i += blockDim.k)
 #endif
 
+#if defined(RAJA_ENABLE_SYCL)
+#define SYCL_FOREACH_THREAD(i, k, N) \
+  for (int i = itm.get_local_id(k); i < N; i += itm.get_local_range(k))
+#endif
+
 #define CPU_FOREACH(i, k, N) for (int i = 0; i < N; i++)
 
 #endif // closing endif for header file include guard

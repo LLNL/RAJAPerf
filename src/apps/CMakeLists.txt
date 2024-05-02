@@ -15,19 +15,21 @@ blt_add_library(
           CONVECTION3DPA-Seq.cpp
           CONVECTION3DPA-OMP.cpp
           CONVECTION3DPA-OMPTarget.cpp
-          DEL_DOT_VEC_2D.cpp 
-          DEL_DOT_VEC_2D-Seq.cpp 
-          DEL_DOT_VEC_2D-Hip.cpp 
-          DEL_DOT_VEC_2D-Cuda.cpp 
-          DEL_DOT_VEC_2D-OMP.cpp 
-          DEL_DOT_VEC_2D-OMPTarget.cpp 
-	  DEL_DOT_VEC_2D-Sycl.cpp 
+          CONVECTION3DPA-Sycl.cpp
+          DEL_DOT_VEC_2D.cpp
+          DEL_DOT_VEC_2D-Seq.cpp
+          DEL_DOT_VEC_2D-Hip.cpp
+          DEL_DOT_VEC_2D-Cuda.cpp
+          DEL_DOT_VEC_2D-OMP.cpp
+          DEL_DOT_VEC_2D-OMPTarget.cpp
+	  DEL_DOT_VEC_2D-Sycl.cpp
           DIFFUSION3DPA.cpp
           DIFFUSION3DPA-Cuda.cpp
           DIFFUSION3DPA-Hip.cpp
           DIFFUSION3DPA-Seq.cpp
           DIFFUSION3DPA-OMP.cpp
           DIFFUSION3DPA-OMPTarget.cpp
+          DIFFUSION3DPA-Sycl.cpp
           EDGE3D.cpp
           EDGE3D-Cuda.cpp
           EDGE3D-Hip.cpp
@@ -36,11 +38,11 @@ blt_add_library(
           EDGE3D-OMPTarget.cpp
           ENERGY.cpp
           ENERGY-Seq.cpp
-          ENERGY-Hip.cpp 
-          ENERGY-Cuda.cpp 
-          ENERGY-OMP.cpp 
-          ENERGY-OMPTarget.cpp 
-          ENERGY-Sycl.cpp 
+          ENERGY-Hip.cpp
+          ENERGY-Cuda.cpp
+          ENERGY-OMP.cpp
+          ENERGY-OMPTarget.cpp
+          ENERGY-Sycl.cpp
           FIR.cpp
           FIR-Seq.cpp
           FIR-Hip.cpp
@@ -67,33 +69,35 @@ blt_add_library(
           MASS3DEA-Hip.cpp
           MASS3DEA-Seq.cpp
           MASS3DEA-OMP.cpp
-          MASS3DEA-OMPTarget.cpp          
+          MASS3DEA-OMPTarget.cpp
+          MASS3DEA-Sycl.cpp
           MASS3DPA.cpp
           MASS3DPA-Cuda.cpp
           MASS3DPA-Hip.cpp
           MASS3DPA-Seq.cpp
           MASS3DPA-OMP.cpp
           MASS3DPA-OMPTarget.cpp
+          MASS3DPA-Sycl.cpp
           NODAL_ACCUMULATION_3D.cpp
           NODAL_ACCUMULATION_3D-Seq.cpp
           NODAL_ACCUMULATION_3D-Hip.cpp
           NODAL_ACCUMULATION_3D-Cuda.cpp
           NODAL_ACCUMULATION_3D-OMP.cpp
           NODAL_ACCUMULATION_3D-OMPTarget.cpp
-          PRESSURE.cpp 
-          PRESSURE-Seq.cpp 
-          PRESSURE-Hip.cpp 
-          PRESSURE-Cuda.cpp 
-          PRESSURE-OMP.cpp 
-          PRESSURE-OMPTarget.cpp 
-          PRESSURE-Sycl.cpp 
+          PRESSURE.cpp
+          PRESSURE-Seq.cpp
+          PRESSURE-Hip.cpp
+          PRESSURE-Cuda.cpp
+          PRESSURE-OMP.cpp
+          PRESSURE-OMPTarget.cpp
+          PRESSURE-Sycl.cpp
           VOL3D.cpp
           VOL3D-Seq.cpp
-          VOL3D-Hip.cpp 
-          VOL3D-Cuda.cpp 
-          VOL3D-OMP.cpp 
-          VOL3D-OMPTarget.cpp 
-          VOL3D-Sycl.cpp 
+          VOL3D-Hip.cpp
+          VOL3D-Cuda.cpp
+          VOL3D-OMP.cpp
+          VOL3D-OMPTarget.cpp
+          VOL3D-Sycl.cpp
           ZONAL_ACCUMULATION_3D.cpp
           ZONAL_ACCUMULATION_3D-Seq.cpp
           ZONAL_ACCUMULATION_3D-Hip.cpp
