@@ -50,6 +50,7 @@ void MUL::runSyclVariantImpl(VariantID vid)
           }
         });
       });
+
     }
     stopTimer();
 

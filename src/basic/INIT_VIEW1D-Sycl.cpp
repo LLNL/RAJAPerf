@@ -51,6 +51,7 @@ void INIT_VIEW1D::runSyclVariantImpl(VariantID vid)
 
         });
       });
+
     }
     stopTimer();
 

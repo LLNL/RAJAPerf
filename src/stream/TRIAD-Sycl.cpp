@@ -51,6 +51,7 @@ void TRIAD::runSyclVariantImpl(VariantID vid)
 
         });
       });
+
     }
     stopTimer();
 

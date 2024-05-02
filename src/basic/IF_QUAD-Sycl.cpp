@@ -51,6 +51,7 @@ void IF_QUAD::runSyclVariantImpl(VariantID vid)
           }
         });
       });
+
     }
     stopTimer();
 
