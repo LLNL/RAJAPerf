@@ -43,23 +43,26 @@ void POLYBENCH_3MM::runSyclVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      sycl::range<2> global_dim1(out_wg_sz * RAJA_DIVIDE_CEILING_INT(ni, out_wg_sz),
+      sycl::range<3> global_dim1(1,
+                                 out_wg_sz * RAJA_DIVIDE_CEILING_INT(ni, out_wg_sz),
                                  in_wg_sz * RAJA_DIVIDE_CEILING_INT(nj, in_wg_sz));
 
-      sycl::range<2> global_dim2(out_wg_sz * RAJA_DIVIDE_CEILING_INT(nj, out_wg_sz),
+      sycl::range<3> global_dim2(1,
+                                 out_wg_sz * RAJA_DIVIDE_CEILING_INT(nj, out_wg_sz),
                                  in_wg_sz * RAJA_DIVIDE_CEILING_INT(nl, in_wg_sz));
 
-      sycl::range<2> global_dim3(out_wg_sz * RAJA_DIVIDE_CEILING_INT(ni, out_wg_sz),
+      sycl::range<3> global_dim3(1,
+                                 out_wg_sz * RAJA_DIVIDE_CEILING_INT(ni, out_wg_sz),
                                  in_wg_sz * RAJA_DIVIDE_CEILING_INT(nl, in_wg_sz));
 
-      sycl::range<2> wkgroup_dim(out_wg_sz, in_wg_sz);
+      sycl::range<3> wkgroup_dim(1, out_wg_sz, in_wg_sz);
 
       qu->submit([&] (sycl::handler& h) {
-        h.parallel_for(sycl::nd_range<2>( global_dim1, wkgroup_dim),
-                       [=] (sycl::nd_item<2> item) {
+        h.parallel_for(sycl::nd_range<3>( global_dim1, wkgroup_dim),
+                       [=] (sycl::nd_item<3> item) {
 
-          Index_type i = item.get_global_id(0);
-          Index_type j = item.get_global_id(1);
+          Index_type i = item.get_global_id(1);
+          Index_type j = item.get_global_id(2);
 
           if (i < ni && j < nj) {
             POLYBENCH_3MM_BODY1;
@@ -73,11 +76,11 @@ void POLYBENCH_3MM::runSyclVariantImpl(VariantID vid)
       });
 
       qu->submit([&] (sycl::handler& h) {
-        h.parallel_for(sycl::nd_range<2>( global_dim2, wkgroup_dim),
-                       [=] (sycl::nd_item<2> item) {
+        h.parallel_for(sycl::nd_range<3>( global_dim2, wkgroup_dim),
+                       [=] (sycl::nd_item<3> item) {
 
-          Index_type j = item.get_global_id(0);
-          Index_type l = item.get_global_id(1);
+          Index_type j = item.get_global_id(1);
+          Index_type l = item.get_global_id(2);
 
           if (j < nj && l < nl) {
             POLYBENCH_3MM_BODY4;
@@ -91,11 +94,11 @@ void POLYBENCH_3MM::runSyclVariantImpl(VariantID vid)
       });
 
       qu->submit([&] (sycl::handler& h) {
-        h.parallel_for(sycl::nd_range<2>( global_dim2, wkgroup_dim),
-                       [=] (sycl::nd_item<2> item) {
+        h.parallel_for(sycl::nd_range<3>( global_dim2, wkgroup_dim),
+                       [=] (sycl::nd_item<3> item) {
 
-          Index_type i = item.get_global_id(0);
-          Index_type l = item.get_global_id(1);
+          Index_type i = item.get_global_id(1);
+          Index_type l = item.get_global_id(2);
 
           if (i < ni && l < nl) {
             POLYBENCH_3MM_BODY7;
@@ -122,8 +125,8 @@ void POLYBENCH_3MM::runSyclVariantImpl(VariantID vid)
 #else
         RAJA::statement::SyclKernel<
 #endif
-          RAJA::statement::For<0, RAJA::sycl_global_0<out_wg_sz>,
-            RAJA::statement::For<1, RAJA::sycl_global_1<in_wg_sz>,
+          RAJA::statement::For<0, RAJA::sycl_global_1<out_wg_sz>,
+            RAJA::statement::For<1, RAJA::sycl_global_2<in_wg_sz>,
               RAJA::statement::Lambda<0, RAJA::Params<0>>,
               RAJA::statement::For<2, RAJA::seq_exec,
                 RAJA::statement::Lambda<1, RAJA::Segs<0,1,2>, RAJA::Params<0>>

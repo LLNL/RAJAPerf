@@ -38,10 +38,11 @@ void POLYBENCH_FLOYD_WARSHALL::runSyclVariantImpl(VariantID vid)
 
   if ( vid == Base_SYCL ) {
 
-    sycl::range<2> global_dim(i_wg_sz * RAJA_DIVIDE_CEILING_INT(N, i_wg_sz),
+    sycl::range<3> global_dim(1,
+                              i_wg_sz * RAJA_DIVIDE_CEILING_INT(N, i_wg_sz),
                               j_wg_sz * RAJA_DIVIDE_CEILING_INT(N, j_wg_sz));
 
-    sycl::range<2> wkgroup_dim(i_wg_sz, j_wg_sz);
+    sycl::range<3> wkgroup_dim(1, i_wg_sz, j_wg_sz);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -49,11 +50,11 @@ void POLYBENCH_FLOYD_WARSHALL::runSyclVariantImpl(VariantID vid)
       for (Index_type k = 0; k < N; ++k) {
 
         qu->submit([&] (sycl::handler& h) {
-          h.parallel_for(sycl::nd_range<2>( global_dim, wkgroup_dim),
-                         [=] (sycl::nd_item<2> item) {
+          h.parallel_for(sycl::nd_range<3>( global_dim, wkgroup_dim),
+                         [=] (sycl::nd_item<3> item) {
 
-            Index_type i = item.get_global_id(0);
-            Index_type j = item.get_global_id(1);
+            Index_type i = item.get_global_id(1);
+            Index_type j = item.get_global_id(2);
 
             if ( i < N && j < N ) {
               POLYBENCH_FLOYD_WARSHALL_BODY;
@@ -79,8 +80,8 @@ void POLYBENCH_FLOYD_WARSHALL::runSyclVariantImpl(VariantID vid)
 #else
           RAJA::statement::SyclKernel<
 #endif
-            RAJA::statement::For<1, RAJA::sycl_global_0<i_wg_sz>,
-              RAJA::statement::For<2, RAJA::sycl_global_1<j_wg_sz>,
+            RAJA::statement::For<1, RAJA::sycl_global_1<i_wg_sz>,
+              RAJA::statement::For<2, RAJA::sycl_global_2<j_wg_sz>,
                 RAJA::statement::Lambda<0>
               >
             >

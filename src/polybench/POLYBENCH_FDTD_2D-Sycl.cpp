@@ -45,10 +45,10 @@ void POLYBENCH_FDTD_2D::runSyclVariantImpl(VariantID vid)
 
       for (t = 0; t < tsteps; ++t) {
 
-        const size_t grid_size1 = work_group_size * RAJA_DIVIDE_CEILING_INT(ny, work_group_size);
+        const size_t global_size1 = work_group_size * RAJA_DIVIDE_CEILING_INT(ny, work_group_size);
 
         qu->submit([&] (sycl::handler& h) {
-          h.parallel_for(sycl::nd_range<1> (grid_size1, work_group_size),
+          h.parallel_for(sycl::nd_range<1> (global_size1, work_group_size),
                          [=] (sycl::nd_item<1> item) {
 
             Index_type j = item.get_global_id(0);
@@ -59,17 +59,18 @@ void POLYBENCH_FDTD_2D::runSyclVariantImpl(VariantID vid)
           });
         });
 
-        sycl::range<2> global_dim234(i_wg_sz * RAJA_DIVIDE_CEILING_INT(nx, i_wg_sz),
+        sycl::range<3> global_dim234(1,
+                                     i_wg_sz * RAJA_DIVIDE_CEILING_INT(nx, i_wg_sz),
                                      j_wg_sz * RAJA_DIVIDE_CEILING_INT(ny, j_wg_sz));
 
-        sycl::range<2> wkgroup_dim234(i_wg_sz, j_wg_sz);
+        sycl::range<3> wkgroup_dim234(1, i_wg_sz, j_wg_sz);
 
         qu->submit([&] (sycl::handler& h) {
-          h.parallel_for(sycl::nd_range<2>( global_dim234, wkgroup_dim234),
-                         [=] (sycl::nd_item<2> item) {
+          h.parallel_for(sycl::nd_range<3>( global_dim234, wkgroup_dim234),
+                         [=] (sycl::nd_item<3> item) {
 
-            Index_type i = item.get_global_id(0);
-            Index_type j = item.get_global_id(1);
+            Index_type i = item.get_global_id(1);
+            Index_type j = item.get_global_id(2);
 
             if (i > 0 && i < nx && j < ny) {
               POLYBENCH_FDTD_2D_BODY2;
@@ -79,11 +80,11 @@ void POLYBENCH_FDTD_2D::runSyclVariantImpl(VariantID vid)
         });
 
         qu->submit([&] (sycl::handler& h) {
-          h.parallel_for(sycl::nd_range<2>( global_dim234, wkgroup_dim234),
-                         [=] (sycl::nd_item<2> item) {
+          h.parallel_for(sycl::nd_range<3>( global_dim234, wkgroup_dim234),
+                         [=] (sycl::nd_item<3> item) {
 
-            Index_type i = item.get_global_id(0);
-            Index_type j = item.get_global_id(1);
+            Index_type i = item.get_global_id(1);
+            Index_type j = item.get_global_id(2);
 
             if (i < nx && j > 0 && j < ny) {
               POLYBENCH_FDTD_2D_BODY3;
@@ -93,11 +94,11 @@ void POLYBENCH_FDTD_2D::runSyclVariantImpl(VariantID vid)
         });
 
         qu->submit([&] (sycl::handler& h) {
-          h.parallel_for(sycl::nd_range<2>( global_dim234, wkgroup_dim234),
-                         [=] (sycl::nd_item<2> item) {
+          h.parallel_for(sycl::nd_range<3>( global_dim234, wkgroup_dim234),
+                         [=] (sycl::nd_item<3> item) {
 
-            Index_type i = item.get_global_id(0);
-            Index_type j = item.get_global_id(1);
+            Index_type i = item.get_global_id(1);
+            Index_type j = item.get_global_id(2);
 
             if (i < nx-1 && j < ny-1) {
               POLYBENCH_FDTD_2D_BODY4;
@@ -124,8 +125,8 @@ void POLYBENCH_FDTD_2D::runSyclVariantImpl(VariantID vid)
 #else
         RAJA::statement::SyclKernel<
 #endif
-          RAJA::statement::For<0, RAJA::sycl_global_0<i_wg_sz>,
-            RAJA::statement::For<1, RAJA::sycl_global_1<j_wg_sz>,
+          RAJA::statement::For<0, RAJA::sycl_global_1<i_wg_sz>,
+            RAJA::statement::For<1, RAJA::sycl_global_2<j_wg_sz>,
               RAJA::statement::Lambda<0>
             >
           >
