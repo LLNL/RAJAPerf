@@ -1,0 +1,139 @@
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
+// and RAJA Performance Suite project contributors.
+// See the RAJAPerf/LICENSE file for details.
+//
+// SPDX-License-Identifier: (BSD-3-Clause)
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+
+#include "POLYBENCH_GEMM.hpp"
+
+#include "RAJA/RAJA.hpp"
+
+#if defined(RAJA_ENABLE_SYCL)
+
+#include "common/SyclDataUtils.hpp"
+
+#include <iostream>
+
+namespace rajaperf
+{
+namespace polybench
+{
+
+  //
+  // Define work-group shape for SYCL execution
+  //
+#define j_wg_sz (32)
+#define i_wg_sz (work_group_size / j_wg_sz)
+
+
+template < size_t work_group_size >
+void POLYBENCH_GEMM::runSyclVariantImpl(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+
+  auto res{getSyclResource()};
+  auto qu = res.get_queue();
+
+  POLYBENCH_GEMM_DATA_SETUP;
+
+  if ( vid == Base_SYCL ) {
+
+    sycl::range<3> global_dim(1,
+                              i_wg_sz * RAJA_DIVIDE_CEILING_INT(ni, i_wg_sz),
+                              j_wg_sz * RAJA_DIVIDE_CEILING_INT(nj, j_wg_sz));
+
+    sycl::range<3> wkgroup_dim(1, i_wg_sz, j_wg_sz); 
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      qu->submit([&] (sycl::handler& h) {
+        h.parallel_for(sycl::nd_range<3>( global_dim, wkgroup_dim),
+                       [=] (sycl::nd_item<3> item) {
+
+          Index_type i = item.get_global_id(1);
+          Index_type j = item.get_global_id(2);
+
+          if (i < ni && j < nj) {
+            POLYBENCH_GEMM_BODY1;
+            POLYBENCH_GEMM_BODY2;
+            for (Index_type k = 0; k < nk; ++k) {
+              POLYBENCH_GEMM_BODY3;
+            }
+            POLYBENCH_GEMM_BODY4;
+          }
+
+        });
+      });
+
+    }
+    stopTimer();
+
+  } else if (vid == RAJA_SYCL) {
+
+    POLYBENCH_GEMM_VIEWS_RAJA;
+
+    using EXEC_POL =
+      RAJA::KernelPolicy<
+#if 0
+        RAJA::statement::SyclKernelAsync<
+#else
+        RAJA::statement::SyclKernel<
+#endif
+          RAJA::statement::For<0, RAJA::sycl_global_1<i_wg_sz>,
+            RAJA::statement::For<1, RAJA::sycl_global_2<j_wg_sz>,
+              RAJA::statement::Lambda<0, RAJA::Params<0>>,
+              RAJA::statement::Lambda<1, RAJA::Segs<0,1>>,
+              RAJA::statement::For<2, RAJA::seq_exec,
+                RAJA::statement::Lambda<2, RAJA::Segs<0,1,2>, RAJA::Params<0>>
+              >,
+              RAJA::statement::Lambda<3, RAJA::Segs<0,1>, RAJA::Params<0>>
+            >
+          >
+        >
+      >;
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::kernel_param_resource<EXEC_POL>(
+
+          RAJA::make_tuple( RAJA::RangeSegment{0, ni},
+                            RAJA::RangeSegment{0, nj},
+                            RAJA::RangeSegment{0, nk} ),
+          RAJA::tuple<Real_type>{0.0},   // variable for dot
+          res,
+
+          [=] (Real_type& dot) {
+            POLYBENCH_GEMM_BODY1_RAJA;
+          },
+          [=] (Index_type i, Index_type j) {
+            POLYBENCH_GEMM_BODY2_RAJA;
+          },
+          [=] (Index_type i, Index_type j, Index_type k,
+               Real_type& dot) {
+            POLYBENCH_GEMM_BODY3_RAJA;
+          },
+          [=] (Index_type i, Index_type j,
+               Real_type& dot) {
+            POLYBENCH_GEMM_BODY4_RAJA;
+          }
+        );
+
+      }
+      stopTimer();
+
+  } else {
+      getCout() << "\n  POLYBENCH_GEMM : Unknown Cuda variant id = " << vid << std::endl;
+  }
+}
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(POLYBENCH_GEMM, Sycl)
+
+} // end namespace polybench
+} // end namespace rajaperf
+
+#endif  // RAJA_ENABLE_SYCL
+
