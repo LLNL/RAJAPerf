@@ -70,6 +70,7 @@ blt_add_library(
           POLYBENCH_GESUMMV-Cuda.cpp
           POLYBENCH_GESUMMV-OMP.cpp
           POLYBENCH_GESUMMV-OMPTarget.cpp
+          POLYBENCH_GESUMMV-Sycl.cpp
           POLYBENCH_HEAT_3D.cpp
           POLYBENCH_HEAT_3D-Seq.cpp
           POLYBENCH_HEAT_3D-Hip.cpp
@@ -90,6 +91,7 @@ blt_add_library(
           POLYBENCH_JACOBI_2D-Cuda.cpp
           POLYBENCH_JACOBI_2D-OMP.cpp
           POLYBENCH_JACOBI_2D-OMPTarget.cpp
+          POLYBENCH_JACOBI_2D-Sycl.cpp
           POLYBENCH_MVT.cpp
           POLYBENCH_MVT-Seq.cpp
           POLYBENCH_MVT-Hip.cpp
