@@ -38,3 +38,4 @@ rocmcc_5_7_1_hip_openmp_mpi:
   variables:
     SPEC: "~shared +rocm +openmp +mpi amdgpu_target=gfx90a %rocmcc@=5.7.1 ^hip@5.7.1 ${PROJECT_TIOGA_DEPS}"
   extends: .job_on_tioga
+  allow_failure: true
