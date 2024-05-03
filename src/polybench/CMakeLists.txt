@@ -98,5 +98,6 @@ blt_add_library(
           POLYBENCH_MVT-Cuda.cpp
           POLYBENCH_MVT-OMP.cpp
           POLYBENCH_MVT-OMPTarget.cpp
+          POLYBENCH_MVT-Sycl.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )
