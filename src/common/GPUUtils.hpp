@@ -224,6 +224,72 @@ using reducer_helpers = camp::list<
 
 } // closing brace for gpu_mapping namespace
 
+
+
+/*!
+    \brief evaluate log base 2 of n
+
+    For positive n calculate log base 2 of n, and round the result down to the
+    nearest integer.
+    For zero or negative n return 0
+
+*/
+template < typename T,
+           std::enable_if_t<std::is_integral<T>::value>* = nullptr >
+constexpr T log2(T n) noexcept
+{
+  T result = 0;
+  if (n > 0) {
+    while(n >>= 1) {
+      ++result;
+    }
+  }
+  return result;
+}
+
+/*!
+    \brief "round up" to the next greatest power of 2
+
+    For a integer n,
+      if n is non-negative,
+        if n is a power of 2, return n
+        if n is not a power of 2, return the next greater power of 2
+      if n is negative, return 0
+*/
+template < typename T,
+           std::enable_if_t<std::is_integral<T>::value>* = nullptr >
+constexpr T next_pow2(T n) noexcept
+{
+  --n;
+  for (size_t s = 1; s < CHAR_BIT*sizeof(T); s *= 2) {
+    n |= n >> s;
+  }
+  ++n;
+  return n;
+}
+
+/*!
+    \brief "round down" to the next smallest power of 2
+
+    For a integer n,
+      if n is non-negative,
+        if n is a power of 2, return n
+        if n is not a power of 2, return the next smaller power of 2
+      if n is negative, return 0
+*/
+template < typename T,
+           std::enable_if_t<std::is_integral<T>::value>* = nullptr >
+constexpr T prev_pow2(T n) noexcept
+{
+  if ( n < 0 ) return 0;
+  for (size_t s = 1; s < CHAR_BIT*sizeof(T); s *= 2) {
+    n |= n >> s;
+  }
+  return n - (n >> 1);
+}
+
+
+
 } // closing brace for rajaperf namespace
 
 // Get the max number of blocks to launch with the given MappingHelper
