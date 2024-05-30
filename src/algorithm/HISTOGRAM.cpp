@@ -73,8 +73,9 @@ void HISTOGRAM::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
     bool init_even_sizes = false;
     bool init_random_sizes = true;
+    bool init_all_one = false;
     bool init_random_per_iterate = false;
-    if (init_even_sizes || init_random_sizes) {
+    if (init_even_sizes || init_random_sizes || init_all_one) {
       Real_ptr data = nullptr;
       if (init_even_sizes) {
         allocData(data, m_num_bins, Base_Seq);
@@ -84,6 +85,11 @@ void HISTOGRAM::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
       } else if (init_random_sizes) {
         allocAndInitDataRandValue(data, m_num_bins, Base_Seq);
         std::sort(data, data+m_num_bins);
+      } else if (init_all_one) {
+        allocData(data, m_num_bins, Base_Seq);
+        for (Index_type b = 0; b < m_num_bins; ++b) {
+          data[b] = static_cast<Real_type>(0);
+        }
       }
 
       Index_type actual_prob_size = getActualProblemSize();
