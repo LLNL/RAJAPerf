@@ -24,15 +24,15 @@ namespace rajaperf
 namespace algorithm
 {
 
-template < size_t block_size, size_t replication >
+template < Index_type block_size, Index_type global_replication >
 __launch_bounds__(block_size)
-__global__ void histogram(HISTOGRAM::Data_ptr counts,
-                          Index_ptr bins,
-                          Index_type iend)
+__global__ void histogram_atomic_global(HISTOGRAM::Data_ptr counts,
+                                        Index_ptr bins,
+                                        Index_type iend)
 {
   Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < iend) {
-    HISTOGRAM_GPU_RAJA_BODY(RAJA::cuda_atomic);
+    HISTOGRAM_GPU_RAJA_BODY(RAJA::cuda_atomic, counts, HISTOGRAM_GPU_BIN_INDEX(bins[i], i, global_replication), HISTOGRAM::Data_type(1));
   }
 }
 
@@ -106,7 +106,7 @@ void HISTOGRAM::runCudaVariantLibrary(VariantID vid)
 
 }
 
-template < size_t block_size, size_t replication >
+template < size_t block_size, size_t global_replication >
 void HISTOGRAM::runCudaVariantAtomicGlobal(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
@@ -117,27 +117,27 @@ void HISTOGRAM::runCudaVariantAtomicGlobal(VariantID vid)
 
   HISTOGRAM_GPU_DATA_SETUP;
 
-  RAJAPERF_CUDA_REDUCER_SETUP(Data_ptr, counts, hcounts, num_bins, replication);
+  RAJAPERF_CUDA_REDUCER_SETUP(Data_ptr, counts, hcounts, num_bins, global_replication);
 
   if ( vid == Base_CUDA ) {
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJAPERF_CUDA_REDUCER_INITIALIZE(counts_init, counts, hcounts, num_bins, replication);
+      RAJAPERF_CUDA_REDUCER_INITIALIZE(counts_init, counts, hcounts, num_bins, global_replication);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
 
-      RPlaunchCudaKernel( (histogram<block_size, replication>),
+      RPlaunchCudaKernel( (histogram_atomic_global<block_size, global_replication>),
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           counts,
                           bins,
                           iend );
 
-      RAJAPERF_CUDA_REDUCER_COPY_BACK(counts, hcounts, num_bins, replication);
-      HISTOGRAM_GPU_FINALIZE_VALUES(hcounts, num_bins, replication);
+      RAJAPERF_CUDA_REDUCER_COPY_BACK(counts, hcounts, num_bins, global_replication);
+      HISTOGRAM_GPU_FINALIZE_VALUES(hcounts, num_bins, global_replication);
 
     }
     stopTimer();
@@ -147,10 +147,10 @@ void HISTOGRAM::runCudaVariantAtomicGlobal(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJAPERF_CUDA_REDUCER_INITIALIZE(counts_init, counts, hcounts, num_bins, replication);
+      RAJAPERF_CUDA_REDUCER_INITIALIZE(counts_init, counts, hcounts, num_bins, global_replication);
 
       auto histogram_lambda = [=] __device__ (Index_type i) {
-        HISTOGRAM_GPU_RAJA_BODY(RAJA::cuda_atomic);
+        HISTOGRAM_GPU_RAJA_BODY(RAJA::cuda_atomic, counts, HISTOGRAM_GPU_BIN_INDEX(bins[i], i, global_replication), HISTOGRAM::Data_type(1));
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
@@ -162,8 +162,8 @@ void HISTOGRAM::runCudaVariantAtomicGlobal(VariantID vid)
                           shmem, res.get_stream(),
                           ibegin, iend, histogram_lambda );
 
-      RAJAPERF_CUDA_REDUCER_COPY_BACK(counts, hcounts, num_bins, replication);
-      HISTOGRAM_GPU_FINALIZE_VALUES(hcounts, num_bins, replication);
+      RAJAPERF_CUDA_REDUCER_COPY_BACK(counts, hcounts, num_bins, global_replication);
+      HISTOGRAM_GPU_FINALIZE_VALUES(hcounts, num_bins, global_replication);
 
     }
     stopTimer();
@@ -173,15 +173,15 @@ void HISTOGRAM::runCudaVariantAtomicGlobal(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJAPERF_CUDA_REDUCER_INITIALIZE(counts_init, counts, hcounts, num_bins, replication);
+      RAJAPERF_CUDA_REDUCER_INITIALIZE(counts_init, counts, hcounts, num_bins, global_replication);
 
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-          HISTOGRAM_GPU_RAJA_BODY(RAJA::cuda_atomic);
+          HISTOGRAM_GPU_RAJA_BODY(RAJA::cuda_atomic, counts, HISTOGRAM_GPU_BIN_INDEX(bins[i], i, global_replication), HISTOGRAM::Data_type(1));
       });
 
-      RAJAPERF_CUDA_REDUCER_COPY_BACK(counts, hcounts, num_bins, replication);
-      HISTOGRAM_GPU_FINALIZE_VALUES(hcounts, num_bins, replication);
+      RAJAPERF_CUDA_REDUCER_COPY_BACK(counts, hcounts, num_bins, global_replication);
+      HISTOGRAM_GPU_FINALIZE_VALUES(hcounts, num_bins, global_replication);
 
     }
     stopTimer();

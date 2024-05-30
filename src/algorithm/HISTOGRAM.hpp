@@ -41,8 +41,11 @@
 #define HISTOGRAM_RAJA_BODY(policy) \
   RAJA::atomicAdd<policy>(&counts[bins[i]], static_cast<Data_type>(1));
 
-#define HISTOGRAM_GPU_RAJA_BODY(policy) \
-  RAJA::atomicAdd<policy>(&counts[bins[i]*replication + (i%replication)], static_cast<HISTOGRAM::Data_type>(1));
+#define HISTOGRAM_GPU_BIN_INDEX(bin, offset, replication) \
+  ((bin)*(replication) + ((offset)%(replication)))
+
+#define HISTOGRAM_GPU_RAJA_BODY(policy, counts, index, value) \
+  RAJA::atomicAdd<policy>(&(counts)[(index)], (value));
 
 #define HISTOGRAM_INIT_VALUES \
   for (Index_type b = 0; b < num_bins; ++b ) { \
@@ -58,7 +61,7 @@
   for (Index_type b = 0; b < (num_bins); ++b) { \
     Data_type count_final = 0; \
     for (size_t r = 0; r < (replication); ++r) { \
-      count_final += (hcounts)[b*(replication) + r]; \
+      count_final += (hcounts)[HISTOGRAM_GPU_BIN_INDEX(b, r, replication)]; \
     } \
     counts_final[b] = count_final; \
   }
