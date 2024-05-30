@@ -90,7 +90,7 @@ void HISTOGRAM::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
       Index_type bin = 0;
       for (Index_type i = 0; i < actual_prob_size; ++i) {
         Real_type pos = static_cast<Real_type>(i) / actual_prob_size;
-        while (pos >= data[bin]) {
+        while (bin+1 < m_num_bins && pos >= data[bin]) {
           bin += 1;
         }
         m_bins[i] = bin;
