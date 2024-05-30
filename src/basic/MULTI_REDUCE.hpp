@@ -99,9 +99,9 @@ public:
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
   template < size_t block_size, size_t replication >
-  void runCudaVariantReplicateGlobal(VariantID vid);
+  void runCudaVariantAtomicGlobal(VariantID vid);
   template < size_t block_size, size_t replication >
-  void runHipVariantReplicateGlobal(VariantID vid);
+  void runHipVariantAtomicGlobal(VariantID vid);
 
 private:
   static const size_t default_gpu_block_size = 256;

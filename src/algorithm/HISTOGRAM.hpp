@@ -98,10 +98,10 @@ public:
   void setHipTuningDefinitions(VariantID vid);
   void runCudaVariantLibrary(VariantID vid);
   void runHipVariantLibrary(VariantID vid);
-  template < size_t block_size, size_t replication >
-  void runCudaVariantReplicateGlobal(VariantID vid);
-  template < size_t block_size, size_t replication >
-  void runHipVariantReplicateGlobal(VariantID vid);
+  template < size_t block_size, size_t global_replication >
+  void runCudaVariantAtomicGlobal(VariantID vid);
+  template < size_t block_size, size_t global_replication >
+  void runHipVariantAtomicGlobal(VariantID vid);
 
 private:
   static const size_t default_gpu_block_size = 256;

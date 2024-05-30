@@ -37,7 +37,7 @@ __global__ void multi_reduce(MULTI_REDUCE::Data_ptr values,
 
 
 template < size_t block_size, size_t replication >
-void MULTI_REDUCE::runHipVariantReplicateGlobal(VariantID vid)
+void MULTI_REDUCE::runHipVariantAtomicGlobal(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -144,7 +144,7 @@ void MULTI_REDUCE::runHipVariant(VariantID vid, size_t tune_idx)
             if (tune_idx == t) {
 
               setBlockSize(block_size);
-              runHipVariantReplicateGlobal<decltype(block_size)::value, replication>(vid);
+              runHipVariantAtomicGlobal<decltype(block_size)::value, replication>(vid);
 
             }
 

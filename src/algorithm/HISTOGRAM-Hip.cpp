@@ -136,7 +136,7 @@ void HISTOGRAM::runHipVariantLibrary(VariantID vid)
 }
 
 template < size_t block_size, size_t replication >
-void HISTOGRAM::runHipVariantReplicateGlobal(VariantID vid)
+void HISTOGRAM::runHipVariantAtomicGlobal(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -246,15 +246,15 @@ void HISTOGRAM::runHipVariant(VariantID vid, size_t tune_idx)
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
 
-        seq_for(gpu_atomic_replications_type{}, [&](auto replication) {
+        seq_for(gpu_atomic_global_replications_type{}, [&](auto global_replication) {
 
           if (run_params.numValidAtomicReplication() == 0u ||
-              run_params.validAtomicReplication(replication)) {
+              run_params.validAtomicReplication(global_replication)) {
 
             if (tune_idx == t) {
 
               setBlockSize(block_size);
-              runHipVariantReplicateGlobal<decltype(block_size)::value, replication>(vid);
+              runHipVariantAtomicGlobal<decltype(block_size)::value, global_replication>(vid);
 
             }
 
@@ -291,12 +291,12 @@ void HISTOGRAM::setHipTuningDefinitions(VariantID vid)
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
 
-        seq_for(gpu_atomic_replications_type{}, [&](auto replication) {
+        seq_for(gpu_atomic_global_replications_type{}, [&](auto global_replication) {
 
           if (run_params.numValidAtomicReplication() == 0u ||
-              run_params.validAtomicReplication(replication)) {
+              run_params.validAtomicReplication(global_replication)) {
 
-            addVariantTuningName(vid, "replicate_"+std::to_string(replication)+
+            addVariantTuningName(vid, "replicate_"+std::to_string(global_replication)+
                                       "_global_"+std::to_string(block_size));
 
           }
