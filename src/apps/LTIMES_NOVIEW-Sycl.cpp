@@ -72,11 +72,7 @@ void LTIMES_NOVIEW::runSyclVariantImpl(VariantID vid)
 
     using EXEC_POL =
       RAJA::KernelPolicy<
-#if 0
         RAJA::statement::SyclKernelAsync<
-#else
-        RAJA::statement::SyclKernel<
-#endif
           RAJA::statement::For<1, RAJA::sycl_global_2<z_wg_sz>,      //z
             RAJA::statement::For<2, RAJA::sycl_global_1<g_wg_sz>,    //g
               RAJA::statement::For<3, RAJA::sycl_global_0<m_wg_sz>,  //m

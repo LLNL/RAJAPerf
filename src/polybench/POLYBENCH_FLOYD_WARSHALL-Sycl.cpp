@@ -75,11 +75,7 @@ void POLYBENCH_FLOYD_WARSHALL::runSyclVariantImpl(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::For<0, RAJA::seq_exec,
-#if 0
           RAJA::statement::SyclKernelAsync<
-#else
-          RAJA::statement::SyclKernel<
-#endif
             RAJA::statement::For<1, RAJA::sycl_global_1<i_wg_sz>,
               RAJA::statement::For<2, RAJA::sycl_global_2<j_wg_sz>,
                 RAJA::statement::Lambda<0>

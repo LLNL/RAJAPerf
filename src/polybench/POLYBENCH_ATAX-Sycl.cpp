@@ -81,11 +81,7 @@ void POLYBENCH_ATAX::runSyclVariantImpl(VariantID vid)
 
     using EXEC_POL1 =
       RAJA::KernelPolicy<
-#if 0
         RAJA::statement::SyclKernelAsync<
-#else
-        RAJA::statement::SyclKernel<
-#endif
           RAJA::statement::For<0, RAJA::sycl_global_0<work_group_size>,
             RAJA::statement::Lambda<0, RAJA::Segs<0>, RAJA::Params<0>>,
             RAJA::statement::For<1, RAJA::seq_exec,
@@ -98,11 +94,7 @@ void POLYBENCH_ATAX::runSyclVariantImpl(VariantID vid)
 
     using EXEC_POL2 =
       RAJA::KernelPolicy<
-#if 0
         RAJA::statement::SyclKernelAsync<
-#else
-        RAJA::statement::SyclKernel<
-#endif
           RAJA::statement::For<1, RAJA::sycl_global_0<work_group_size>,
             RAJA::statement::Lambda<0, RAJA::Segs<1>, RAJA::Params<0>>,
             RAJA::statement::For<0, RAJA::seq_exec,

@@ -93,11 +93,7 @@ void POLYBENCH_HEAT_3D::runSyclVariantImpl(VariantID vid)
 
     using EXEC_POL =
       RAJA::KernelPolicy<
-#if 0
         RAJA::statement::SyclKernelAsync<
-#else
-        RAJA::statement::SyclKernel<
-#endif
           RAJA::statement::For<0, RAJA::sycl_global_0<i_wg_sz>,
             RAJA::statement::For<1, RAJA::sycl_global_1<j_wg_sz>,
               RAJA::statement::For<2, RAJA::sycl_global_2<k_wg_sz>,

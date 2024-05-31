@@ -77,11 +77,7 @@ void POLYBENCH_GEMM::runSyclVariantImpl(VariantID vid)
 
     using EXEC_POL =
       RAJA::KernelPolicy<
-#if 0
         RAJA::statement::SyclKernelAsync<
-#else
-        RAJA::statement::SyclKernel<
-#endif
           RAJA::statement::For<0, RAJA::sycl_global_1<i_wg_sz>,
             RAJA::statement::For<1, RAJA::sycl_global_2<j_wg_sz>,
               RAJA::statement::Lambda<0, RAJA::Params<0>>,

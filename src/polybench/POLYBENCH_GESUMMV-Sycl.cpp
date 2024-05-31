@@ -65,11 +65,7 @@ void POLYBENCH_GESUMMV::runSyclVariantImpl(VariantID vid)
 
     using EXEC_POL =
       RAJA::KernelPolicy<
-#if 0
         RAJA::statement::SyclKernelAsync<
-#else
-        RAJA::statement::SyclKernel<
-#endif
           RAJA::statement::For<0, RAJA::sycl_global_0<work_group_size>,
             RAJA::statement::Lambda<0, RAJA::Params<0,1>>,
             RAJA::statement::For<1, RAJA::seq_exec,

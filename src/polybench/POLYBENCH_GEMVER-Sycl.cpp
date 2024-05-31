@@ -117,11 +117,7 @@ void POLYBENCH_GEMVER::runSyclVariantImpl(VariantID vid)
 
     using EXEC_POL1 =
       RAJA::KernelPolicy<
-#if 0
         RAJA::statement::SyclKernelAsync<
-#else
-        RAJA::statement::SyclKernel<
-#endif
           RAJA::statement::For<0, RAJA::sycl_global_1<i_wg_sz>,
             RAJA::statement::For<1, RAJA::sycl_global_2<j_wg_sz>,
               RAJA::statement::Lambda<0>
@@ -132,11 +128,7 @@ void POLYBENCH_GEMVER::runSyclVariantImpl(VariantID vid)
 
     using EXEC_POL24 =
       RAJA::KernelPolicy<
-#if 0
         RAJA::statement::SyclKernelAsync<
-#else
-        RAJA::statement::SyclKernel<
-#endif
           RAJA::statement::For<0, RAJA::sycl_global_0<work_group_size>,
             RAJA::statement::Lambda<0, RAJA::Segs<0>, RAJA::Params<0>>,
             RAJA::statement::For<1, RAJA::seq_exec,
