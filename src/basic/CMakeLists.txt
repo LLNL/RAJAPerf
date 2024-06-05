@@ -21,6 +21,7 @@ blt_add_library(
           COPY8-Cuda.cpp
           COPY8-OMP.cpp
           COPY8-OMPTarget.cpp
+          COPY8-Sycl.cpp
           DAXPY.cpp
           DAXPY-Seq.cpp
           DAXPY-Hip.cpp
