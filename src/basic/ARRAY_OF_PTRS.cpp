@@ -54,6 +54,9 @@ ARRAY_OF_PTRS::ARRAY_OF_PTRS(const RunParams& params)
   setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
 
+  setVariantDefined( Base_SYCL );
+  setVariantDefined( RAJA_SYCL );
+
   setVariantDefined( Kokkos_Lambda );
 }
 
