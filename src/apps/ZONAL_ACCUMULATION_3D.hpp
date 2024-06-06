@@ -83,8 +83,6 @@ public:
   void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
   void runSyclVariant(VariantID vid, size_t tune_idx);
 
-  void runKokkosVariant(VariantID vid, size_t tune_idx);
-
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
   void setSyclTuningDefinitions(VariantID vid);
