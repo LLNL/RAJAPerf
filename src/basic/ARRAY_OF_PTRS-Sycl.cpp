@@ -36,8 +36,6 @@ void ARRAY_OF_PTRS::runSyclVariantImpl(VariantID vid)
 
   if ( vid == Base_SYCL ) {
 
-    ARRAY_OF_PTRS_Array x_array = x;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -49,7 +47,7 @@ void ARRAY_OF_PTRS::runSyclVariantImpl(VariantID vid)
 
           Index_type i = item.get_global_id(0);
           if (i < iend) {
-            ARRAY_OF_PTRS_BODY(x_array.array);
+            ARRAY_OF_PTRS_BODY(x);
           }
 
         });
