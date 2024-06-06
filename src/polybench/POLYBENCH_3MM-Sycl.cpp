@@ -94,7 +94,7 @@ void POLYBENCH_3MM::runSyclVariantImpl(VariantID vid)
       });
 
       qu->submit([&] (sycl::handler& h) {
-        h.parallel_for(sycl::nd_range<3>( global_dim2, wkgroup_dim),
+        h.parallel_for(sycl::nd_range<3>( global_dim3, wkgroup_dim),
                        [=] (sycl::nd_item<3> item) {
 
           Index_type i = item.get_global_id(1);
