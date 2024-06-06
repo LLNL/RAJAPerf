@@ -92,7 +92,7 @@ void POLYBENCH_ADI::runSyclVariantImpl(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::SyclKernelAsync<
-          RAJA::statement::For<0, RAJA::sycl_global_0<work_group_size>,
+          RAJA::statement::For<0, RAJA::sycl_global_2<work_group_size>,
             RAJA::statement::Lambda<0, RAJA::Segs<0>>,
             RAJA::statement::For<1, RAJA::seq_exec,
               RAJA::statement::Lambda<1, RAJA::Segs<0,1>>
