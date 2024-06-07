@@ -75,6 +75,7 @@ void DOT::runSyclVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+#if 0 // RDH
        RAJA::ReduceSum<RAJA::sycl_reduce, Real_type> dot(m_dot_init);
 
        RAJA::forall< RAJA::sycl_exec<work_group_size, true /*async*/> >(
@@ -83,6 +84,18 @@ void DOT::runSyclVariantImpl(VariantID vid)
        });
 
        m_dot += static_cast<Real_type>(dot.get());
+#else
+       Real_type tdot = m_dot_init;
+       RAJA::forall< RAJA::sycl_exec<work_group_size, true /*async*/> >(
+         RAJA::RangeSegment(ibegin, iend), 
+         RAJA::expt::Reduce<RAJA::operators::plus>(&tdot),
+         [=]  (Index_type i, Real_type& dot) {
+           DOT_BODY;
+         }
+       );
+
+       m_dot += static_cast<Real_type>(tdot);
+#endif
 
     }
     stopTimer();
