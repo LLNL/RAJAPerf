@@ -79,14 +79,17 @@ void TRAP_INT::runSyclVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::sycl_reduce, Real_type> sumx(m_sumx_init);
+      Real_type tsumx = m_sumx_init;
 
       RAJA::forall< RAJA::sycl_exec<work_group_size, false /*async*/> >(
-        RAJA::RangeSegment(ibegin, iend), [=] (Index_type i) {
-        TRAP_INT_BODY;
-      });
+        RAJA::RangeSegment(ibegin, iend),
+        RAJA::expt::Reduce<RAJA::operators::plus>(&tsumx),
+        [=] (Index_type i, Real_type& sumx) {
+          TRAP_INT_BODY;
+        }
+      );
 
-      m_sumx += static_cast<Real_type>(sumx.get()) * h;
+      m_sumx += static_cast<Real_type>(tsumx) * h;
 
     }
     stopTimer();
