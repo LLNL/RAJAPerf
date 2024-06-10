@@ -6,32 +6,33 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "MUL.hpp"
+#include "FIRST_SUM.hpp"
 
 #include "RAJA/RAJA.hpp"
 
 #if defined(RAJA_ENABLE_SYCL)
 
-#include <iostream>
-
 #include "common/SyclDataUtils.hpp"
 
-namespace rajaperf 
+#include <iostream>
+
+namespace rajaperf
 {
-namespace stream
+namespace lcals
 {
 
-template <size_t work_group_size >
-void MUL::runSyclVariantImpl(VariantID vid)
+
+template < size_t work_group_size >
+void FIRST_SUM::runSyclVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
+  const Index_type ibegin = 1;
   const Index_type iend = getActualProblemSize();
 
   auto res{getSyclResource()};
   auto qu = res.get_queue();
 
-  MUL_DATA_SETUP;
+  FIRST_SUM_DATA_SETUP;
 
   if ( vid == Base_SYCL ) {
 
@@ -41,13 +42,14 @@ void MUL::runSyclVariantImpl(VariantID vid)
       const size_t global_size = work_group_size * RAJA_DIVIDE_CEILING_INT(iend, work_group_size);
 
       qu->submit([&] (sycl::handler& h) {
-        h.parallel_for(sycl::nd_range<1> (global_size, work_group_size),
-                       [=] (sycl::nd_item<1> item) {
+        h.parallel_for(sycl::nd_range<1>(global_size, work_group_size),
+                       [=] (sycl::nd_item<1> item ) {
 
           Index_type i = item.get_global_id(0);
-          if (i < iend) {
-            MUL_BODY
+          if (i > 0 && i < iend) {
+            FIRST_SUM_BODY;
           }
+
         });
       });
 
@@ -61,20 +63,20 @@ void MUL::runSyclVariantImpl(VariantID vid)
 
        RAJA::forall< RAJA::sycl_exec<work_group_size, true /*async*/> >( res,
          RAJA::RangeSegment(ibegin, iend), [=] (Index_type i) {
-         MUL_BODY;
+         FIRST_SUM_BODY;
        });
 
     }
     stopTimer();
 
   } else {
-     std::cout << "\n  MUL : Unknown Sycl variant id = " << vid << std::endl;
+     getCout() << "\n  FIRST_SUM : Unknown Syclvariant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(MUL, Sycl)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(FIRST_SUM, Sycl)
 
-} // end namespace stream
+} // end namespace lcals
 } // end namespace rajaperf
 
-#endif  // RAJA_ENABLE_Sycl
+#endif  // RAJA_ENABLE_SYCL

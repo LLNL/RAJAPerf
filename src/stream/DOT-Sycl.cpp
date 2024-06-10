@@ -77,7 +77,7 @@ void DOT::runSyclVariantImpl(VariantID vid)
 
        RAJA::ReduceSum<RAJA::sycl_reduce, Real_type> dot(m_dot_init);
 
-       RAJA::forall< RAJA::sycl_exec<work_group_size, true /*async*/> >(
+       RAJA::forall< RAJA::sycl_exec<work_group_size, true /*async*/> >( res,
          RAJA::RangeSegment(ibegin, iend), [=]  (Index_type i) {
          DOT_BODY;
        });
