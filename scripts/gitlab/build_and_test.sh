@@ -102,7 +102,7 @@ mkdir -p ${prefix}
 
 spack_cmd="${prefix}/spack/bin/spack"
 spack_env_path="${prefix}/spack_env"
-uberenv_cmd="./tpl/RAJA/scripts/uberenv/uberenv.py --project-json=\".uberenv_config.json\""
+uberenv_cmd="$(pwd)/tpl/RAJA/scripts/uberenv/uberenv.py --project-json=\"$(pwd)/.uberenv_config.json\""
 if [[ ${spack_debug} == true ]]
 then
     spack_cmd="${spack_cmd} --debug --stacktrace"
