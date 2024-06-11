@@ -26,6 +26,8 @@ spec=${SPEC:-""}
 module_list=${MODULE_LIST:-""}
 job_unique_id=${CI_JOB_ID:-""}
 use_dev_shm=${USE_DEV_SHM:-true}
+spack_debug=${SPACK_DEBUG:-false}
+debug_mode=${DEBUG_MODE:-false}
 
 raja_version=${UPDATE_RAJA:-""}
 sys_type=${SYS_TYPE:-""}
