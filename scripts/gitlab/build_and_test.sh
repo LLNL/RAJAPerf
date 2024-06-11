@@ -37,7 +37,7 @@ update_spack_upstream=${UPDATE_SPACK_UPSTREAM:-false}
 # registry. Be sure to set the token with at least read access to the registry.
 registry_token=${REGISTRY_TOKEN:-""}
 ci_registry_user=${CI_REGISTRY_USER:-"${USER}"}
-ci_registry_image=${CI_REGISTRY_IMAGE:-"czregistry.llnl.gov:5050/radiuss/raja"}
+ci_registry_image=${CI_REGISTRY_IMAGE:-"czregistry.llnl.gov:5050/radiuss/rajaperf"}
 ci_registry_token=${CI_JOB_TOKEN:-"${registry_token}"}
 
 timed_message ()
