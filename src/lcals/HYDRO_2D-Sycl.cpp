@@ -43,20 +43,21 @@ void HYDRO_2D::runSyclVariantImpl(VariantID vid) {
 
   if ( vid == Base_SYCL ) {
 
-    sycl::range<2> global_dim(k_wg_sz * RAJA_DIVIDE_CEILING_INT(kn-2, k_wg_sz),
+    sycl::range<3> global_dim(1,
+                              k_wg_sz * RAJA_DIVIDE_CEILING_INT(kn-2, k_wg_sz),
                               j_wg_sz * RAJA_DIVIDE_CEILING_INT(jn-2, j_wg_sz));
-    sycl::range<2> wkgroup_dim(k_wg_sz, j_wg_sz);
+    sycl::range<3> wkgroup_dim(1, k_wg_sz, j_wg_sz);
  
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       qu->submit([&] (sycl::handler& h) { 
 
-        h.parallel_for(sycl::nd_range<2>( global_dim, wkgroup_dim),
-                       [=] (sycl::nd_item<2> item) {
+        h.parallel_for(sycl::nd_range<3>( global_dim, wkgroup_dim),
+                       [=] (sycl::nd_item<3> item) {
 
-          int j = item.get_global_id(1) + 1;
-          int k = item.get_global_id(0) + 1; 
+          int j = item.get_global_id(2) + 1;
+          int k = item.get_global_id(1) + 1; 
 
           if (j < jn-1 && k < kn-1) {
             HYDRO_2D_BODY1
@@ -66,11 +67,11 @@ void HYDRO_2D::runSyclVariantImpl(VariantID vid) {
       });
 
       qu->submit([&] (sycl::handler& h) { 
-        h.parallel_for(sycl::nd_range<2>( global_dim, wkgroup_dim),
-                       [=] (sycl::nd_item<2> item) {
+        h.parallel_for(sycl::nd_range<3>( global_dim, wkgroup_dim),
+                       [=] (sycl::nd_item<3> item) {
 
-          int j = item.get_global_id(1) + 1;
-          int k = item.get_global_id(0) + 1; 
+          int j = item.get_global_id(2) + 1;
+          int k = item.get_global_id(1) + 1; 
 
           if (j < jn-1 && k < kn-1) {
             HYDRO_2D_BODY2
@@ -80,11 +81,11 @@ void HYDRO_2D::runSyclVariantImpl(VariantID vid) {
       });
 
       qu->submit([&] (sycl::handler& h) { 
-        h.parallel_for(sycl::nd_range<2>( global_dim, wkgroup_dim),
-                       [=] (sycl::nd_item<2> item) {
+        h.parallel_for(sycl::nd_range<3>( global_dim, wkgroup_dim),
+                       [=] (sycl::nd_item<3> item) {
 
-          int j = item.get_global_id(1) + 1;
-          int k = item.get_global_id(0) + 1; 
+          int j = item.get_global_id(2) + 1;
+          int k = item.get_global_id(1) + 1; 
 
           if (j < jn-1 && k < kn-1) {
             HYDRO_2D_BODY3
@@ -114,23 +115,26 @@ void HYDRO_2D::runSyclVariantImpl(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel<EXECPOL>(
+      RAJA::kernel_resource<EXECPOL>(
         RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                           RAJA::RangeSegment(jbeg, jend)),
+        res, 
         [=] (Index_type k, Index_type j) {
         HYDRO_2D_BODY1_RAJA;
       });
 
-      RAJA::kernel<EXECPOL>(
+      RAJA::kernel_resource<EXECPOL>(
         RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                           RAJA::RangeSegment(jbeg, jend)),
+        res, 
         [=] (Index_type k, Index_type j) {
         HYDRO_2D_BODY2_RAJA;
       });
 
-      RAJA::kernel<EXECPOL>(
+      RAJA::kernel_resource<EXECPOL>(
         RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                           RAJA::RangeSegment(jbeg, jend)),
+        res, 
         [=] (Index_type k, Index_type j) {
         HYDRO_2D_BODY3_RAJA;
       });

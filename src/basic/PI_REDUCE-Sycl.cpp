@@ -84,6 +84,7 @@ void PI_REDUCE::runSyclVariantImpl(VariantID vid)
       Real_type tpi = m_pi_init;
 
       RAJA::forall< RAJA::sycl_exec<work_group_size, false /*async*/> >(
+        res,
         RAJA::RangeSegment(ibegin, iend),
         RAJA::expt::Reduce<RAJA::operators::plus>(&tpi),
         [=] (Index_type i, Real_type& pi) {

@@ -82,6 +82,7 @@ void TRAP_INT::runSyclVariantImpl(VariantID vid)
       Real_type tsumx = m_sumx_init;
 
       RAJA::forall< RAJA::sycl_exec<work_group_size, false /*async*/> >(
+        res,
         RAJA::RangeSegment(ibegin, iend),
         RAJA::expt::Reduce<RAJA::operators::plus>(&tsumx),
         [=] (Index_type i, Real_type& sumx) {

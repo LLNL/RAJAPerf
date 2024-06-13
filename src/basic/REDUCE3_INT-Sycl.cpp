@@ -105,6 +105,7 @@ void REDUCE3_INT::runSyclVariantImpl(VariantID vid)
       Int_type tvmax = m_vmax_init;
 
       RAJA::forall< RAJA::sycl_exec<work_group_size, false /*async*/> >(
+        res,
         RAJA::RangeSegment(ibegin, iend),
         RAJA::expt::Reduce<RAJA::operators::plus>(&tvsum),
         RAJA::expt::Reduce<RAJA::operators::minimum>(&tvmin),
