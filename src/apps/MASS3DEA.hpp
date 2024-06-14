@@ -104,11 +104,9 @@
 #define MASS3DEA_1 s_B[q][d] = B_MEA_(q, d);
 
 #define MASS3DEA_2                                                      \
-  double(*l_B)[MEA_D1D] = (double(*)[MEA_D1D])s_B;                      \
   RAJA_TEAM_SHARED double s_D[MEA_Q1D][MEA_Q1D][MEA_Q1D];
 
 #define MASS3DEA_2_CPU                                                  \
-  double(*l_B)[MEA_D1D] = (double(*)[MEA_D1D])s_B;                      \
   double s_D[MEA_Q1D][MEA_Q1D][MEA_Q1D];
 
 #define MASS3DEA_3 s_D[k1][k2][k3] = D_MEA_(k1, k2, k3, e);
@@ -123,9 +121,9 @@
           for (int k2 = 0; k2 < MEA_Q1D; ++k2) {                        \
             for (int k3 = 0; k3 < MEA_Q1D; ++k3) {                      \
                                                                         \
-              val += l_B[k1][i1] * l_B[k1][j1] * l_B[k2][i2]            \
-                * l_B[k2][j2] *                                         \
-                l_B[k3][i3] * l_B[k3][j3] * s_D[k1][k2][k3];            \
+              val += s_B[k1][i1] * s_B[k1][j1] * s_B[k2][i2]            \
+                * s_B[k2][j2] *                                         \
+                s_B[k3][i3] * s_B[k3][j3] * s_D[k1][k2][k3];            \
             }                                                           \
           }                                                             \
         }                                                               \
@@ -154,11 +152,18 @@ public:
   void runCudaVariant(VariantID vid, size_t tune_idx);
   void runHipVariant(VariantID vid, size_t tune_idx);
   void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
+  void runSyclVariant(VariantID vid, size_t tune_idx);
 
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
-  template <size_t block_size> void runCudaVariantImpl(VariantID vid);
-  template <size_t block_size> void runHipVariantImpl(VariantID vid);
+  void setSyclTuningDefinitions(VariantID vid);
+
+  template <size_t block_size>
+  void runCudaVariantImpl(VariantID vid);
+  template <size_t block_size>
+  void runHipVariantImpl(VariantID vid);
+  template <size_t work_group_size>
+  void runSyclVariantImpl(VariantID vid);
 
 private:
   static const size_t default_gpu_block_size = MEA_D1D * MEA_D1D * MEA_D1D;

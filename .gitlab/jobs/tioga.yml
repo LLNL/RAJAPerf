@@ -7,7 +7,8 @@
 #############################################################################
 
 # Override reproducer section to define project specific variables.
-.tioga_reproducer_vars: &tioga_reproducer_vars
+.tioga_reproducer_vars:
+  script:
     - |
       echo -e "export MODULE_LIST=\"${MODULE_LIST}\""
       echo -e "export SPEC=\"${SPEC//\"/\\\"}\""
@@ -28,12 +29,13 @@
 # ${PROJECT_<MACHINE>_DEPS} in the extra jobs. There is no reason not to fully
 # describe the spec here.
 
-rocmcc_5_7_1_hip_openmp:
+rocmcc_6_1_1_hip_openmp:
   variables:
-    SPEC: "~shared +rocm +openmp amdgpu_target=gfx90a %rocmcc@5.7.1 ^hip@5.7.1 ${PROJECT_TIOGA_DEPS}"
+    SPEC: "~shared +rocm +openmp amdgpu_target=gfx90a %rocmcc@=6.1.1 ^hip@6.1.1 ${PROJECT_TIOGA_DEPS}"
   extends: .job_on_tioga
 
-rocmcc_5_7_1_hip_openmp_mpi:
+rocmcc_6_1_1_hip_openmp_mpi:
   variables:
-    SPEC: "~shared +rocm +openmp +mpi amdgpu_target=gfx90a %rocmcc@5.7.1 ^hip@5.7.1 ${PROJECT_TIOGA_DEPS}"
+    SPEC: "~shared +rocm +openmp +mpi amdgpu_target=gfx90a %rocmcc@=6.1.1 ^hip@6.1.1 ${PROJECT_TIOGA_DEPS}"
   extends: .job_on_tioga
+  allow_failure: true

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -94,7 +94,7 @@ constexpr rajaperf::Index_type TL_SZ = 16;
   RAJA_TEAM_SHARED double Bs[tile_size][tile_size];                            \
   RAJA_TEAM_SHARED double Cs[tile_size][tile_size];
 
-#define MAT_MAT_SHARED_BODY_1(tile_size)                                       \
+#define MAT_MAT_SHARED_BODY_1(tile_size)        \
   Cs[ty][tx] = 0;
 
 #define MAT_MAT_SHARED_BODY_2(tile_size)                                       \
@@ -139,13 +139,18 @@ public:
   void runCudaVariant(VariantID vid, size_t tune_idx);
   void runHipVariant(VariantID vid, size_t tune_idx);
   void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
+  void runSyclVariant(VariantID vid, size_t tune_idx);
 
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
+  void setSyclTuningDefinitions(VariantID vid);
+
   template < size_t block_size >
   void runCudaVariantImpl(VariantID vid);
   template < size_t block_size >
   void runHipVariantImpl(VariantID vid);
+  template < size_t work_group_size >
+  void runSyclVariantImpl(VariantID vid);
 
 private:
   static const size_t default_gpu_block_size = TL_SZ * TL_SZ;

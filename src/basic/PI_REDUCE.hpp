@@ -59,10 +59,12 @@ public:
 
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
+
   template < size_t block_size, typename MappingHelper >
   void runCudaVariantBase(VariantID vid);
   template < size_t block_size, typename MappingHelper >
   void runHipVariantBase(VariantID vid);
+
   template < size_t block_size, typename AlgorithmHelper, typename MappingHelper >
   void runCudaVariantRAJA(VariantID vid);
   template < size_t block_size, typename AlgorithmHelper, typename MappingHelper >
