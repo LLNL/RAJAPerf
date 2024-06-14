@@ -22,6 +22,15 @@ namespace rajaperf
 namespace lcals
 {
 
+template <typename VAL_TYPE, typename IDX_TYPE>
+struct reduce_pair {
+  bool operator<(const reduce_pair& o) const {
+    return (val < o.val);
+  }
+  VAL_TYPE val;
+  IDX_TYPE idx;
+};
+
 template <size_t work_group_size >
 void FIRST_MIN::runSyclVariantImpl(VariantID vid)
 {
@@ -36,33 +45,42 @@ void FIRST_MIN::runSyclVariantImpl(VariantID vid)
 
   if ( vid == Base_SYCL ) {
 
-#if 0 // RDH
+    using result_type = reduce_pair<Real_type, Index_type>;
+
+    auto result = sycl::malloc_shared< result_type >(1, *qu); 
+ 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t global_size = work_group_size * RAJA_DIVIDE_CEILING_INT(iend, work_group_size);
 
-      define and init reduction...
+      result_type result_init = { m_xmin_init, m_initloc };
+      *result = result_init;
+      auto reduction_obj = sycl::reduction( result, result_init, sycl::minimum<result_type>() ); 
 
       qu->submit([&] (sycl::handler& h) {
 
         h.parallel_for(sycl::nd_range<1>(global_size, work_group_size),
-                       pass reduction...,
-                       [=] (sycl::nd_item<1> item, auto& dot) {
+                       reduction_obj,
+                       [=] (sycl::nd_item<1> item, auto& loc) {
 
           Index_type i = item.get_global_id(0);
           if (i < iend) {
-            // body
+            loc.combine( {x[i], i} );
           }
 
         });
+
       });
 
-      m_minloc = get loc value... 
+      qu->wait();
+
+      m_minloc = static_cast<Index_type>(result->idx);
 
     }
     stopTimer();
-#endif
+
+    sycl::free(result, *qu);
 
   } else if ( vid == RAJA_SYCL ) {
 
