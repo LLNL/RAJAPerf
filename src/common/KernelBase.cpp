@@ -77,48 +77,13 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params)
                                            CALI_ATTR_ASVALUE |
                                            CALI_ATTR_AGGREGATABLE |
                                            CALI_ATTR_SKIP_EVENTS);
-  Forall_attr = cali_create_attribute("Forall", CALI_TYPE_INT,
-                                            CALI_ATTR_ASVALUE |
-                                            CALI_ATTR_AGGREGATABLE |
-                                            CALI_ATTR_SKIP_EVENTS);
-  Kernel_attr = cali_create_attribute("Kernel", CALI_TYPE_INT,
-                                            CALI_ATTR_ASVALUE |
-                                            CALI_ATTR_AGGREGATABLE |
-                                            CALI_ATTR_SKIP_EVENTS);
-  Launch_attr = cali_create_attribute("Launch", CALI_TYPE_INT,
-                                            CALI_ATTR_ASVALUE |
-                                            CALI_ATTR_AGGREGATABLE |
-                                            CALI_ATTR_SKIP_EVENTS);
-  Sort_attr = cali_create_attribute("Sort", CALI_TYPE_INT,
-                                            CALI_ATTR_ASVALUE |
-                                            CALI_ATTR_AGGREGATABLE |
-                                            CALI_ATTR_SKIP_EVENTS);
-  Scan_attr = cali_create_attribute("Scan", CALI_TYPE_INT,
-                                            CALI_ATTR_ASVALUE |
-                                            CALI_ATTR_AGGREGATABLE |
-                                            CALI_ATTR_SKIP_EVENTS);
-  Workgroup_attr = cali_create_attribute("Workgroup", CALI_TYPE_INT,
-                                            CALI_ATTR_ASVALUE |
-                                            CALI_ATTR_AGGREGATABLE |
-                                            CALI_ATTR_SKIP_EVENTS);
-  Reduction_attr = cali_create_attribute("Reduction", CALI_TYPE_INT,
-                                            CALI_ATTR_ASVALUE |
-                                            CALI_ATTR_AGGREGATABLE |
-                                            CALI_ATTR_SKIP_EVENTS);
-  Atomic_attr = cali_create_attribute("Atomic", CALI_TYPE_INT,
-                                            CALI_ATTR_ASVALUE |
-                                            CALI_ATTR_AGGREGATABLE |
-                                            CALI_ATTR_SKIP_EVENTS);
-  View_attr = cali_create_attribute("View", CALI_TYPE_INT,
-                                            CALI_ATTR_ASVALUE |
-                                            CALI_ATTR_AGGREGATABLE |
-                                            CALI_ATTR_SKIP_EVENTS);
-  #if defined(RAJA_PERFSUITE_ENABLE_MPI)
-    MPI_attr = cali_create_attribute("MPI", CALI_TYPE_INT,
-                                            CALI_ATTR_ASVALUE |
-                                            CALI_ATTR_AGGREGATABLE |
-                                            CALI_ATTR_SKIP_EVENTS);
-  #endif
+  for (unsigned i = 0; i < FeatureID::NumFeatures; ++i) {
+    std::string feature = getFeatureName(static_cast<FeatureID>(i));
+    Features[feature] = cali_create_attribute(feature.c_str(), CALI_TYPE_INT,
+                                              CALI_ATTR_ASVALUE |
+                                              CALI_ATTR_AGGREGATABLE |
+                                              CALI_ATTR_SKIP_EVENTS);
+  }
 #endif
 }
 
@@ -584,18 +549,10 @@ void KernelBase::doOnceCaliMetaBegin(VariantID vid, size_t tune_idx)
     cali_set_double(Bytes_Rep_attr,(double)getBytesPerRep());
     cali_set_double(Flops_Rep_attr,(double)getFLOPsPerRep());
     cali_set_double(BlockSize_attr, getBlockSize());
-    cali_set_int(Forall_attr, usesFeature(static_cast<FeatureID>(0)));
-    cali_set_int(Kernel_attr, usesFeature(static_cast<FeatureID>(1)));
-    cali_set_int(Launch_attr, usesFeature(static_cast<FeatureID>(2)));
-    cali_set_int(Sort_attr, usesFeature(static_cast<FeatureID>(3)));
-    cali_set_int(Scan_attr, usesFeature(static_cast<FeatureID>(4)));
-    cali_set_int(Workgroup_attr, usesFeature(static_cast<FeatureID>(5)));
-    cali_set_int(Reduction_attr, usesFeature(static_cast<FeatureID>(6)));
-    cali_set_int(Atomic_attr, usesFeature(static_cast<FeatureID>(7)));
-    cali_set_int(View_attr, usesFeature(static_cast<FeatureID>(8)));
-    #if defined(RAJA_PERFSUITE_ENABLE_MPI)
-        cali_set_int(MPI_attr, usesFeature(static_cast<FeatureID>(9)));
-    #endif
+    for (unsigned i = 0; i < FeatureID::NumFeatures; ++i) {
+        std::string feature = getFeatureName(static_cast<FeatureID>(i));
+        cali_set_int(Features[feature], usesFeature(static_cast<FeatureID>(i)));
+    }
   }
 }
 

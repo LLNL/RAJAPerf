@@ -570,18 +570,7 @@ private:
   cali_id_t Bytes_Rep_attr;
   cali_id_t Flops_Rep_attr;
   cali_id_t BlockSize_attr;
-  cali_id_t Forall_attr,
-    Kernel_attr,
-    Launch_attr,
-    Sort_attr,
-    Scan_attr,
-    Workgroup_attr,
-    Reduction_attr,
-    Atomic_attr,
-    View_attr;
-  #if defined(RAJA_PERFSUITE_ENABLE_MPI)
-    cali_id_t MPI_attr;
-  #endif
+  std::map<std::string, cali_id_t> Features;
 
 
   // we need a Caliper Manager object per variant
