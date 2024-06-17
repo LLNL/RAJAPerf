@@ -550,8 +550,9 @@ void KernelBase::doOnceCaliMetaBegin(VariantID vid, size_t tune_idx)
     cali_set_double(Flops_Rep_attr,(double)getFLOPsPerRep());
     cali_set_double(BlockSize_attr, getBlockSize());
     for (unsigned i = 0; i < FeatureID::NumFeatures; ++i) {
-        std::string feature = getFeatureName(static_cast<FeatureID>(i));
-        cali_set_int(Features[feature], usesFeature(static_cast<FeatureID>(i)));
+        FeatureID fid = static_cast<FeatureID>(i);
+        std::string feature = getFeatureName(fid);
+        cali_set_int(Features[feature], usesFeature(fid));
     }
   }
 }
