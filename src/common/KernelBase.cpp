@@ -78,7 +78,8 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params)
                                            CALI_ATTR_AGGREGATABLE |
                                            CALI_ATTR_SKIP_EVENTS);
   for (unsigned i = 0; i < FeatureID::NumFeatures; ++i) {
-    std::string feature = getFeatureName(static_cast<FeatureID>(i));
+    FeatureID fid = static_cast<FeatureID>(i);
+    std::string feature = getFeatureName(fid);
     Features[feature] = cali_create_attribute(feature.c_str(), CALI_TYPE_INT,
                                               CALI_ATTR_ASVALUE |
                                               CALI_ATTR_AGGREGATABLE |
