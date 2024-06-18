@@ -14,12 +14,14 @@ blt_add_library(
           ARRAY_OF_PTRS-Cuda.cpp
           ARRAY_OF_PTRS-OMP.cpp
           ARRAY_OF_PTRS-OMPTarget.cpp
+          ARRAY_OF_PTRS-Sycl.cpp
           COPY8.cpp
           COPY8-Seq.cpp
           COPY8-Hip.cpp
           COPY8-Cuda.cpp
           COPY8-OMP.cpp
           COPY8-OMPTarget.cpp
+          COPY8-Sycl.cpp
           DAXPY.cpp
           DAXPY-Seq.cpp
           DAXPY-Hip.cpp
@@ -106,6 +108,7 @@ blt_add_library(
           PI_REDUCE-Cuda.cpp
           PI_REDUCE-OMP.cpp
           PI_REDUCE-OMPTarget.cpp
+          PI_REDUCE-Sycl.cpp
           REDUCE3_INT.cpp
           REDUCE3_INT-Seq.cpp
           REDUCE3_INT-Hip.cpp

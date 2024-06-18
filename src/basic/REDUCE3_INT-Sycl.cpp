@@ -21,18 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-#define REDUCE3_INT_DATA_SETUP_SYCL \
-  Int_ptr hsum; \
-  allocAndInitSyclDeviceData(hsum, &m_vsum_init, 1, qu); \
-  Int_ptr hmin; \
-  allocAndInitSyclDeviceData(hmin, &m_vmin_init, 1, qu); \
-  Int_ptr hmax; \
-  allocAndInitSyclDeviceData(hmax, &m_vmax_init, 1, qu);
-
-#define REDUCE3_INT_DATA_TEARDOWN_SYCL \
-  deallocSyclDeviceData(hsum, qu); \
-  deallocSyclDeviceData(hmin, qu); \
-  deallocSyclDeviceData(hmax, qu);
 
 template <size_t work_group_size >
 void REDUCE3_INT::runSyclVariantImpl(VariantID vid)
@@ -48,7 +36,12 @@ void REDUCE3_INT::runSyclVariantImpl(VariantID vid)
 
   if ( vid == Base_SYCL ) {
 
-    REDUCE3_INT_DATA_SETUP_SYCL;
+    Int_ptr hsum;
+    allocAndInitSyclDeviceData(hsum, &m_vsum_init, 1, qu);
+    Int_ptr hmin;
+    allocAndInitSyclDeviceData(hmin, &m_vmin_init, 1, qu);
+    Int_ptr hmax;
+    allocAndInitSyclDeviceData(hmax, &m_vmax_init, 1, qu);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -98,25 +91,33 @@ void REDUCE3_INT::runSyclVariantImpl(VariantID vid)
     } // for (RepIndex_type irep = ...
     stopTimer();
   
-    REDUCE3_INT_DATA_TEARDOWN_SYCL;
+    deallocSyclDeviceData(hsum, qu);
+    deallocSyclDeviceData(hmin, qu);
+    deallocSyclDeviceData(hmax, qu);
 
   } else if ( vid == RAJA_SYCL ) {
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::sycl_reduce, Int_type> vsum(m_vsum_init);
-      RAJA::ReduceMin<RAJA::sycl_reduce, Int_type> vmin(m_vmin_init);
-      RAJA::ReduceMax<RAJA::sycl_reduce, Int_type> vmax(m_vmax_init);
+      Int_type tvsum = m_vsum_init;
+      Int_type tvmin = m_vmin_init;
+      Int_type tvmax = m_vmax_init;
 
       RAJA::forall< RAJA::sycl_exec<work_group_size, false /*async*/> >(
-        RAJA::RangeSegment(ibegin, iend), [=] (Index_type i) {
-        REDUCE3_INT_BODY_RAJA;
-      });
+        res,
+        RAJA::RangeSegment(ibegin, iend),
+        RAJA::expt::Reduce<RAJA::operators::plus>(&tvsum),
+        RAJA::expt::Reduce<RAJA::operators::minimum>(&tvmin),
+        RAJA::expt::Reduce<RAJA::operators::maximum>(&tvmax),
+        [=] (Index_type i, Int_type& vsum, Int_type& vmin, Int_type& vmax) {
+          REDUCE3_INT_BODY;
+        }
+      );
 
-      m_vsum += static_cast<Int_type>(vsum.get());
-      m_vmin = RAJA_MIN(m_vmin, static_cast<Int_type>(vmin.get()));
-      m_vmax = RAJA_MAX(m_vmax, static_cast<Int_type>(vmax.get()));
+      m_vsum += static_cast<Int_type>(tvsum);
+      m_vmin = RAJA_MIN(m_vmin, static_cast<Int_type>(tvmin));
+      m_vmax = RAJA_MAX(m_vmax, static_cast<Int_type>(tvmax));
 
     }
     stopTimer();

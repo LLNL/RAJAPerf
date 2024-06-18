@@ -64,6 +64,7 @@ void LTIMES::runSyclVariantImpl(VariantID vid)
 
         });
       });
+
     }
     stopTimer();
 
@@ -73,7 +74,7 @@ void LTIMES::runSyclVariantImpl(VariantID vid)
 
     using EXEC_POL =
       RAJA::KernelPolicy<
-        RAJA::statement::SyclKernel<
+        RAJA::statement::SyclKernelAsync<
           RAJA::statement::For<1, RAJA::sycl_global_2<z_wg_sz>,      //z 
             RAJA::statement::For<2, RAJA::sycl_global_1<g_wg_sz>,    //g
               RAJA::statement::For<3, RAJA::sycl_global_0<m_wg_sz>,  //m
@@ -89,10 +90,12 @@ void LTIMES::runSyclVariantImpl(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(IDRange(0, num_d),
-                                                 IZRange(0, num_z),
-                                                 IGRange(0, num_g),
-                                                 IMRange(0, num_m)),
+        RAJA::kernel_resource<EXEC_POL>( 
+          RAJA::make_tuple(IDRange(0, num_d),
+                           IZRange(0, num_z),
+                           IGRange(0, num_g),
+                           IMRange(0, num_m)),
+          res,
           [=] (ID d, IZ z, IG g, IM m) {
           LTIMES_BODY_RAJA;
         });
