@@ -6,17 +6,19 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "TRAP_INT.hpp"
+#include "PI_REDUCE.hpp"
 
 #include "RAJA/RAJA.hpp"
 
 #if defined(RAJA_ENABLE_SYCL)
 
-#include "TRAP_INT-func.hpp"
-
 #include "common/SyclDataUtils.hpp"
 
 #include <iostream>
+#include <utility>
+#include <type_traits>
+#include <limits>
+
 
 namespace rajaperf
 {
@@ -24,8 +26,8 @@ namespace basic
 {
 
 
-template <size_t work_group_size >
-void TRAP_INT::runSyclVariantImpl(VariantID vid)
+template < size_t work_group_size >
+void PI_REDUCE::runSyclVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -34,73 +36,73 @@ void TRAP_INT::runSyclVariantImpl(VariantID vid)
   auto res{getSyclResource()};
   auto qu = res.get_queue();
 
-  TRAP_INT_DATA_SETUP;
+  PI_REDUCE_DATA_SETUP;
 
   if ( vid == Base_SYCL ) {
 
-    Real_ptr sumx;
-    allocAndInitSyclDeviceData(sumx, &m_sumx_init, 1, qu);
+    Real_ptr pi;
+    allocAndInitSyclDeviceData(pi, &m_pi_init, 1, qu);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t global_size = work_group_size * RAJA_DIVIDE_CEILING_INT(iend, work_group_size);
 
-      initSyclDeviceData(sumx, &m_sumx_init, 1, qu);
-  
+      initSyclDeviceData(pi, &m_pi_init, 1, qu);
+
       qu->submit([&] (sycl::handler& hdl) {
 
-        auto sum_reduction = sycl::reduction(sumx, sycl::plus<>());
+        auto sum_reduction = sycl::reduction(pi, sycl::plus<>());
 
         hdl.parallel_for(sycl::nd_range<1>(global_size, work_group_size),
-                       sum_reduction,
-                       [=] (sycl::nd_item<1> item, auto& sumx) {
+                         sum_reduction,
+                         [=] (sycl::nd_item<1> item, auto& pi) {
 
           Index_type i = item.get_global_id(0);
           if (i < iend) {
-            TRAP_INT_BODY
+            PI_REDUCE_BODY;
           }
 
         });
       });
 
-      Real_type lsumx;
-      Real_ptr plsumx = &lsumx;
-      getSyclDeviceData(plsumx, sumx, 1, qu);
-      m_sumx += lsumx * h;
+      Real_type lpi;
+      Real_ptr plpi = &lpi;
+      getSyclDeviceData(plpi, pi, 1, qu);
+      m_pi = 4.0 * lpi;
 
     }
     stopTimer();
-  
-    deallocSyclDeviceData(sumx, qu);
+
+    deallocSyclDeviceData(pi, qu);
 
   } else if ( vid == RAJA_SYCL ) {
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      Real_type tsumx = m_sumx_init;
+      Real_type tpi = m_pi_init;
 
       RAJA::forall< RAJA::sycl_exec<work_group_size, false /*async*/> >(
         res,
         RAJA::RangeSegment(ibegin, iend),
-        RAJA::expt::Reduce<RAJA::operators::plus>(&tsumx),
-        [=] (Index_type i, Real_type& sumx) {
-          TRAP_INT_BODY;
+        RAJA::expt::Reduce<RAJA::operators::plus>(&tpi),
+        [=] (Index_type i, Real_type& pi) {
+          PI_REDUCE_BODY;
         }
       );
 
-      m_sumx += static_cast<Real_type>(tsumx) * h;
+      m_pi = static_cast<Real_type>(tpi) * 4.0;
 
     }
     stopTimer();
 
   } else {
-     std::cout << "\n  TRAP_INT : Unknown Sycl variant id = " << vid << std::endl;
+     getCout() << "\n  PI_REDUCE : Unknown Sycl variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(TRAP_INT, Sycl)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(PI_REDUCE, Sycl)
 
 } // end namespace basic
 } // end namespace rajaperf
