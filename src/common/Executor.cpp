@@ -130,7 +130,6 @@ Executor::Executor(int argc, char** argv)
   adiak::libraries();
   adiak::cmdline();
   adiak::clustername();
-  adiak::numhosts();
   adiak::value("perfsuite_version", cc.adiak_perfsuite_version);
   adiak::value("raja_version", cc.adiak_raja_version);
   adiak::value("cmake_build_type", cc.adiak_cmake_build_type);
