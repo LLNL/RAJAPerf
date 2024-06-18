@@ -79,11 +79,13 @@ public:
   void runCudaVariant(VariantID vid, size_t tune_idx);
   void runHipVariant(VariantID vid, size_t tune_idx);
   void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
+  void runSyclVariant(VariantID vid, size_t tune_idx);
 
   void runKokkosVariant(VariantID vid, size_t tune_idx);
 
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
+  void setSyclTuningDefinitions(VariantID vid); 
 
   template < size_t block_size, typename MappingHelper >
   void runCudaVariantBase(VariantID vid);
@@ -94,6 +96,9 @@ public:
   void runCudaVariantRAJA(VariantID vid);
   template < size_t block_size, typename MappingHelper >
   void runHipVariantRAJA(VariantID vid);
+
+  template < size_t work_group_size >
+  void runSyclVariantImpl(VariantID vid);
 
 private:
   static const size_t default_gpu_block_size = 256;
