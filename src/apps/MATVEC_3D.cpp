@@ -100,6 +100,9 @@ MATVEC_3D::MATVEC_3D(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Base_SYCL );
+  setVariantDefined( RAJA_SYCL );
 }
 
 MATVEC_3D::~MATVEC_3D()

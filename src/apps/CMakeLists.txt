@@ -85,6 +85,7 @@ blt_add_library(
           MATVEC_3D-Cuda.cpp
           MATVEC_3D-OMP.cpp
           MATVEC_3D-OMPTarget.cpp
+          MATVEC_3D-Sycl.cpp
           NODAL_ACCUMULATION_3D.cpp
           NODAL_ACCUMULATION_3D-Seq.cpp
           NODAL_ACCUMULATION_3D-Hip.cpp
