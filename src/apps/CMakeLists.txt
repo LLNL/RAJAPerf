@@ -36,6 +36,7 @@ blt_add_library(
           EDGE3D-Seq.cpp
           EDGE3D-OMP.cpp
           EDGE3D-OMPTarget.cpp
+          EDGE3D-Sycl.cpp
           ENERGY.cpp
           ENERGY-Seq.cpp
           ENERGY-Hip.cpp
@@ -110,5 +111,6 @@ blt_add_library(
           ZONAL_ACCUMULATION_3D-Cuda.cpp
           ZONAL_ACCUMULATION_3D-OMP.cpp
           ZONAL_ACCUMULATION_3D-OMPTarget.cpp
+          ZONAL_ACCUMULATION_3D-Sycl.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )
