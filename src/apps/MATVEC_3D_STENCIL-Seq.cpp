@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "MATVEC_3D.hpp"
+#include "MATVEC_3D_STENCIL.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -20,13 +20,13 @@ namespace apps
 {
 
 
-void MATVEC_3D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+void MATVEC_3D_STENCIL::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = m_domain->n_real_zones;
 
-  MATVEC_3D_DATA_SETUP;
+  MATVEC_3D_STENCIL_DATA_SETUP;
 
   switch ( vid ) {
 
@@ -36,8 +36,8 @@ void MATVEC_3D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (Index_type ii = ibegin ; ii < iend ; ++ii ) {
-          MATVEC_3D_BODY_INDEX;
-          MATVEC_3D_BODY;
+          MATVEC_3D_STENCIL_BODY_INDEX;
+          MATVEC_3D_STENCIL_BODY;
         }
 
       }
@@ -50,8 +50,8 @@ void MATVEC_3D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
     case Lambda_Seq : {
 
       auto matvec_3d_lam = [=](Index_type ii) {
-                         MATVEC_3D_BODY_INDEX;
-                         MATVEC_3D_BODY;
+                         MATVEC_3D_STENCIL_BODY_INDEX;
+                         MATVEC_3D_STENCIL_BODY;
                        };
 
       startTimer();
@@ -74,7 +74,7 @@ void MATVEC_3D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
                                                working_res, RAJA::Unowned);
 
       auto matvec_3d_lam = [=](Index_type i) {
-                         MATVEC_3D_BODY;
+                         MATVEC_3D_STENCIL_BODY;
                        };
 
       startTimer();
@@ -90,7 +90,7 @@ void MATVEC_3D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
 #endif // RUN_RAJA_SEQ
 
     default : {
-      getCout() << "\n  MATVEC_3D : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  MATVEC_3D_STENCIL : Unknown variant id = " << vid << std::endl;
     }
 
   }

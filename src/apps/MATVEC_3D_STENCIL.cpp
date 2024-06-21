@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "MATVEC_3D.hpp"
+#include "MATVEC_3D_STENCIL.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -22,8 +22,8 @@ namespace apps
 {
 
 
-MATVEC_3D::MATVEC_3D(const RunParams& params)
-  : KernelBase(rajaperf::Apps_MATVEC_3D, params)
+MATVEC_3D_STENCIL::MATVEC_3D_STENCIL(const RunParams& params)
+  : KernelBase(rajaperf::Apps_MATVEC_3D_STENCIL, params)
 {
   setDefaultProblemSize(100*100*100);  // See rzmax in ADomain struct
   setDefaultReps(100);
@@ -105,12 +105,12 @@ MATVEC_3D::MATVEC_3D(const RunParams& params)
   setVariantDefined( RAJA_SYCL );
 }
 
-MATVEC_3D::~MATVEC_3D()
+MATVEC_3D_STENCIL::~MATVEC_3D_STENCIL()
 {
   delete m_domain;
 }
 
-void MATVEC_3D::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+void MATVEC_3D_STENCIL::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitDataConst(m_b, m_zonal_array_length, 0.0, vid);
   allocAndInitData(m_x, m_zonal_array_length, vid);
@@ -154,12 +154,12 @@ void MATVEC_3D::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 }
 
-void MATVEC_3D::updateChecksum(VariantID vid, size_t tune_idx)
+void MATVEC_3D_STENCIL::updateChecksum(VariantID vid, size_t tune_idx)
 {
   checksum[vid].at(tune_idx) += calcChecksum(m_b, m_zonal_array_length, checksum_scale_factor , vid);
 }
 
-void MATVEC_3D::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+void MATVEC_3D_STENCIL::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
 

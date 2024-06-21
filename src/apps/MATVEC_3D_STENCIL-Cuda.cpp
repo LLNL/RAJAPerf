@@ -6,13 +6,13 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "MATVEC_3D.hpp"
+#include "MATVEC_3D_STENCIL.hpp"
 
 #include "RAJA/RAJA.hpp"
 
-#if defined(RAJA_ENABLE_HIP)
+#if defined(RAJA_ENABLE_CUDA)
 
-#include "common/HipDataUtils.hpp"
+#include "common/CudaDataUtils.hpp"
 
 #include "AppsData.hpp"
 
@@ -86,24 +86,24 @@ __global__ void matvec_3d(Real_ptr b,
    Index_type ii = blockIdx.x * blockDim.x + threadIdx.x;
    Index_type i = ii + ibegin;
    if (i < iend) {
-     MATVEC_3D_BODY_INDEX;
-     MATVEC_3D_BODY;
+     MATVEC_3D_STENCIL_BODY_INDEX;
+     MATVEC_3D_STENCIL_BODY;
    }
 }
 
 
 template < size_t block_size >
-void MATVEC_3D::runHipVariantImpl(VariantID vid)
+void MATVEC_3D_STENCIL::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = m_domain->n_real_zones;
 
-  auto res{getHipResource()};
+  auto res{getCudaResource()};
 
-  MATVEC_3D_DATA_SETUP;
+  MATVEC_3D_STENCIL_DATA_SETUP;
 
-  if ( vid == Base_HIP ) {
+  if ( vid == Base_CUDA ) {
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -111,71 +111,71 @@ void MATVEC_3D::runHipVariantImpl(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
 
-      RPlaunchHipKernel( (matvec_3d<block_size>),
-                         grid_size, block_size,
-                         shmem, res.get_stream(),
-                         b,
-                         xdbl,
-                         xdbc,
-                         xdbr,
-                         xdcl,
-                         xdcc,
-                         xdcr,
-                         xdfl,
-                         xdfc,
-                         xdfr,
-                         xcbl,
-                         xcbc,
-                         xcbr,
-                         xccl,
-                         xccc,
-                         xccr,
-                         xcfl,
-                         xcfc,
-                         xcfr,
-                         xubl,
-                         xubc,
-                         xubr,
-                         xucl,
-                         xucc,
-                         xucr,
-                         xufl,
-                         xufc,
-                         xufr,
-                         dbl,
-                         dbc,
-                         dbr,
-                         dcl,
-                         dcc,
-                         dcr,
-                         dfl,
-                         dfc,
-                         dfr,
-                         cbl,
-                         cbc,
-                         cbr,
-                         ccl,
-                         ccc,
-                         ccr,
-                         cfl,
-                         cfc,
-                         cfr,
-                         ubl,
-                         ubc,
-                         ubr,
-                         ucl,
-                         ucc,
-                         ucr,
-                         ufl,
-                         ufc,
-                         ufr,
-                         real_zones,
-                         ibegin, iend );
+      RPlaunchCudaKernel( (matvec_3d<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          b,
+                          xdbl,
+                          xdbc,
+                          xdbr,
+                          xdcl,
+                          xdcc,
+                          xdcr,
+                          xdfl,
+                          xdfc,
+                          xdfr,
+                          xcbl,
+                          xcbc,
+                          xcbr,
+                          xccl,
+                          xccc,
+                          xccr,
+                          xcfl,
+                          xcfc,
+                          xcfr,
+                          xubl,
+                          xubc,
+                          xubr,
+                          xucl,
+                          xucc,
+                          xucr,
+                          xufl,
+                          xufc,
+                          xufr,
+                          dbl,
+                          dbc,
+                          dbr,
+                          dcl,
+                          dcc,
+                          dcr,
+                          dfl,
+                          dfc,
+                          dfr,
+                          cbl,
+                          cbc,
+                          cbr,
+                          ccl,
+                          ccc,
+                          ccr,
+                          cfl,
+                          cfc,
+                          cfr,
+                          ubl,
+                          ubc,
+                          ubr,
+                          ucl,
+                          ucc,
+                          ucr,
+                          ufl,
+                          ufc,
+                          ufr,
+                          real_zones,
+                          ibegin, iend );
 
     }
     stopTimer();
 
-  } else if ( vid == RAJA_HIP ) {
+  } else if ( vid == RAJA_CUDA ) {
 
     RAJA::TypedListSegment<Index_type> zones(real_zones, iend,
                                              res, RAJA::Unowned);
@@ -183,22 +183,22 @@ void MATVEC_3D::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
+      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         zones, [=] __device__ (Index_type i) {
-          MATVEC_3D_BODY;
+          MATVEC_3D_STENCIL_BODY;
       });
 
     }
     stopTimer();
 
   } else {
-     getCout() << "\n  MATVEC_3D : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  MATVEC_3D_STENCIL : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(MATVEC_3D, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(MATVEC_3D_STENCIL, Cuda)
 
 } // end namespace apps
 } // end namespace rajaperf
 
-#endif  // RAJA_ENABLE_HIP
+#endif  // RAJA_ENABLE_CUDA

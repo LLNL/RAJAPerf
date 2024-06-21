@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "MATVEC_3D.hpp"
+#include "MATVEC_3D_STENCIL.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -29,13 +29,13 @@ namespace apps
   const size_t threads_per_team = 256;
 
 
-void MATVEC_3D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+void MATVEC_3D_STENCIL::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = m_domain->n_real_zones;
 
-  MATVEC_3D_DATA_SETUP;
+  MATVEC_3D_STENCIL_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
 
@@ -46,8 +46,8 @@ void MATVEC_3D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
                                        vol, real_zones) device( did )
       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type ii = ibegin ; ii < iend ; ++ii ) {
-        MATVEC_3D_BODY_INDEX;
-        MATVEC_3D_BODY;
+        MATVEC_3D_STENCIL_BODY_INDEX;
+        MATVEC_3D_STENCIL_BODY;
       }
 
     }
@@ -64,14 +64,14 @@ void MATVEC_3D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
 
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
         zones, [=](Index_type i) {
-        MATVEC_3D_BODY;
+        MATVEC_3D_STENCIL_BODY;
       });
 
     }
     stopTimer();
 
   } else {
-    getCout() << "\n  MATVEC_3D : Unknown OMP Target variant id = " << vid << std::endl;
+    getCout() << "\n  MATVEC_3D_STENCIL : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

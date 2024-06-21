@@ -7,7 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 ///
-/// MATVEC_3D kernel reference implementation:
+/// MATVEC_3D_STENCIL kernel reference implementation:
 ///
 /// for (Index_type ii = ibegin; ii < iend; ++ii ) {
 ///   Index_type i = real_zones[ii];
@@ -27,10 +27,10 @@
 /// }
 ///
 
-#ifndef RAJAPerf_Apps_MATVEC_3D_HPP
-#define RAJAPerf_Apps_MATVEC_3D_HPP
+#ifndef RAJAPerf_Apps_MATVEC_3D_STENCIL_HPP
+#define RAJAPerf_Apps_MATVEC_3D_STENCIL_HPP
 
-#define MATVEC_3D_DATA_SETUP \
+#define MATVEC_3D_STENCIL_DATA_SETUP \
   Real_ptr b = m_b; \
   \
   Real_ptr xdbl = m_x - m_domain->kp - m_domain->jp - 1 ; \
@@ -91,10 +91,10 @@
   \
   Index_ptr real_zones = m_real_zones;
 
-#define MATVEC_3D_BODY_INDEX \
+#define MATVEC_3D_STENCIL_BODY_INDEX \
   Index_type i = real_zones[ii];
 
-#define MATVEC_3D_BODY \
+#define MATVEC_3D_STENCIL_BODY \
   b[i] = dbl[i] * xdbl[i] + dbc[i] * xdbc[i] + dbr[i] * xdbr[i] + \
          dcl[i] * xdcl[i] + dcc[i] * xdcc[i] + dcr[i] * xdcr[i] + \
          dfl[i] * xdfl[i] + dfc[i] * xdfc[i] + dfr[i] * xdfr[i] + \
@@ -119,13 +119,13 @@ namespace apps
 {
 class ADomain;
 
-class MATVEC_3D : public KernelBase
+class MATVEC_3D_STENCIL : public KernelBase
 {
 public:
 
-  MATVEC_3D(const RunParams& params);
+  MATVEC_3D_STENCIL(const RunParams& params);
 
-  ~MATVEC_3D();
+  ~MATVEC_3D_STENCIL();
 
   void setUp(VariantID vid, size_t tune_idx);
   void updateChecksum(VariantID vid, size_t tune_idx);
