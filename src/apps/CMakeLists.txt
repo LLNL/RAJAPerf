@@ -79,6 +79,13 @@ blt_add_library(
           MASS3DPA-OMP.cpp
           MASS3DPA-OMPTarget.cpp
           MASS3DPA-Sycl.cpp
+          MATVEC_3D_STENCIL.cpp
+          MATVEC_3D_STENCIL-Seq.cpp
+          MATVEC_3D_STENCIL-Hip.cpp
+          MATVEC_3D_STENCIL-Cuda.cpp
+          MATVEC_3D_STENCIL-OMP.cpp
+          MATVEC_3D_STENCIL-OMPTarget.cpp
+          MATVEC_3D_STENCIL-Sycl.cpp
           NODAL_ACCUMULATION_3D.cpp
           NODAL_ACCUMULATION_3D-Seq.cpp
           NODAL_ACCUMULATION_3D-Hip.cpp
