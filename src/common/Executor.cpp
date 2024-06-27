@@ -331,7 +331,8 @@ void Executor::setupSuite()
       KernelBase::setCaliperMgrVariantTuning(vid,
                                              tstr,
                                              run_params.getOutputDirName(),
-                                             run_params.getAddToSpotConfig());
+                                             run_params.getAddToSpotConfig(),
+                                             run_params.getAddToCaliperConfig());
 #endif
     }
 

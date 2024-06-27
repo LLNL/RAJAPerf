@@ -568,7 +568,8 @@ void KernelBase::doOnceCaliMetaEnd(VariantID vid, size_t tune_idx)
 void KernelBase::setCaliperMgrVariantTuning(VariantID vid,
                                   std::string tstr,
                                   const std::string& outdir,
-                                  const std::string& addToSpotConfig)
+                                  const std::string& addToSpotConfig,
+                                  const std::string& addToCaliConfig)
 {
   static bool ran_spot_config_check = false;
   bool config_ok = true;
@@ -631,13 +632,16 @@ void KernelBase::setCaliperMgrVariantTuning(VariantID vid,
   }
   )json";
 
-  if(!ran_spot_config_check && (!addToSpotConfig.empty())) {
+  if(!ran_spot_config_check && ((!addToSpotConfig.empty()) || (!addToCaliConfig.empty()))) {
     cali::ConfigManager cm;
     std::string check_profile = "spot(" + addToSpotConfig + ")";
+    if (!addToCaliConfig.empty()) {
+        check_profile += "," + addToCaliConfig;
+    }
     std::string msg = cm.check(check_profile.c_str());
     if(!msg.empty()) {
       std::cerr << "Problem with Cali Config: " << check_profile << "\n";
-      std::cerr << "Check your command line argument: " << addToSpotConfig << "\n";
+      std::cerr << msg << "\n";
       config_ok = false;
       exit(-1);
     }
@@ -658,6 +662,9 @@ void KernelBase::setCaliperMgrVariantTuning(VariantID vid,
       profile += "," + addToSpotConfig;
     }
     profile += ")";
+    if (!addToCaliConfig.empty()) {
+      profile += "," + addToCaliConfig;
+    }
     std::cout << "Profile: " << profile << std::endl;
     mgr[vid][tstr].add_option_spec(kernel_info_spec);
     mgr[vid][tstr].set_default_parameter("rajaperf_kernel_info", "true");
