@@ -488,7 +488,7 @@ public:
   static void setCaliperMgrVariantTuning(VariantID vid,
                                     std::string tstr,
                                     const std::string& outdir,
-                                    const std::string& addToConfig);
+                                    const std::string& addToSpotConfig);
 
   static void setCaliperMgrStart(VariantID vid, std::string tstr) { mgr[vid][tstr].start(); }
   static void setCaliperMgrStop(VariantID vid, std::string tstr) { mgr[vid][tstr].stop(); }
