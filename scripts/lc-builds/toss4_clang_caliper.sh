@@ -25,7 +25,7 @@ ADIAK_DIR=$3
 shift 3
 
 BUILD_SUFFIX=lc_toss4-clang-${COMP_VER}
-RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/toss3/clang_X.cmake
+RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/toss4/clang_X.cmake
 
 echo
 echo "Creating build directory build_${BUILD_SUFFIX} and generating configuration in it"
