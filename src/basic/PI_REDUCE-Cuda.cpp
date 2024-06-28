@@ -138,8 +138,29 @@ void PI_REDUCE::runCudaVariantRAJA(VariantID vid)
     }
     stopTimer();
 
-  } else if ( vid == RAJA_CUDA_NewReduce ) {
- 
+  } else {
+     getCout() << "\n  PI_REDUCE : Unknown Cuda variant id = " << vid << std::endl;
+  }
+}
+
+
+template < size_t block_size, typename AlgorithmHelper, typename MappingHelper >
+void PI_REDUCE::runCudaVariantNewRAJA(VariantID vid)
+{
+  using exec_policy = std::conditional_t<MappingHelper::direct,
+      RAJA::cuda_exec<block_size, true /*async*/>,
+      RAJA::cuda_exec_occ_calc<block_size, true /*async*/>>;
+
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  auto res{getCudaResource()};
+
+  PI_REDUCE_DATA_SETUP;
+
+  if ( vid == RAJA_CUDA ) {
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -168,7 +189,7 @@ void PI_REDUCE::runCudaVariant(VariantID vid, size_t tune_idx)
 {
   size_t t = 0;
 
-  if ( vid == Base_CUDA || vid == RAJA_CUDA || RAJA_CUDA_NewReduce ) {
+  if ( vid == Base_CUDA || vid == RAJA_CUDA ) {
 
     seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
 
@@ -189,7 +210,7 @@ void PI_REDUCE::runCudaVariant(VariantID vid, size_t tune_idx)
 
             t += 1;
 
-          } else if ( vid == RAJA_CUDA || RAJA_CUDA_NewReduce) {
+          } else if ( vid == RAJA_CUDA ) {
 
             seq_for(gpu_algorithm::reducer_helpers{}, [&](auto algorithm_helper) {
 
@@ -205,6 +226,18 @@ void PI_REDUCE::runCudaVariant(VariantID vid, size_t tune_idx)
               t += 1;
 
             });
+
+            if (tune_idx == t) {
+  
+              auto algorithm_helper = gpu_algorithm::block_device_helper{};
+              setBlockSize(block_size);
+              runCudaVariantNewRAJA<decltype(block_size){},
+                                    decltype(algorithm_helper),
+                                    decltype(mapping_helper)>(vid);
+  
+            }
+  
+            t += 1;
 
           }
 
@@ -224,7 +257,7 @@ void PI_REDUCE::runCudaVariant(VariantID vid, size_t tune_idx)
 
 void PI_REDUCE::setCudaTuningDefinitions(VariantID vid)
 {
-  if ( vid == Base_CUDA || vid == RAJA_CUDA || RAJA_CUDA_NewReduce ) {
+  if ( vid == Base_CUDA || vid == RAJA_CUDA ) {
 
     seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
 
@@ -241,7 +274,7 @@ void PI_REDUCE::setCudaTuningDefinitions(VariantID vid)
                                       decltype(mapping_helper)::get_name()+"_"+
                                       std::to_string(block_size));
 
-          } else if ( vid == RAJA_CUDA || RAJA_CUDA_NewReduce ) {
+          } else if ( vid == RAJA_CUDA ) {
 
             seq_for(gpu_algorithm::reducer_helpers{}, [&](auto algorithm_helper) {
 
@@ -250,6 +283,11 @@ void PI_REDUCE::setCudaTuningDefinitions(VariantID vid)
                                         std::to_string(block_size));
 
             });
+              
+            auto algorithm_helper = gpu_algorithm::block_device_helper{};
+              
+            addVariantTuningName(vid, decltype(algorithm_helper)::get_name()+"_"+
+                                      "new_"+std::to_string(block_size));
 
           }
 
