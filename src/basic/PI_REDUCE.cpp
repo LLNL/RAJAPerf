@@ -48,7 +48,6 @@ PI_REDUCE::PI_REDUCE(const RunParams& params)
 
   setVariantDefined( Base_CUDA );
   setVariantDefined( RAJA_CUDA );
-  setVariantDefined( RAJA_CUDA_NewReduce );
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );

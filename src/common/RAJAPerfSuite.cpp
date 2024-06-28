@@ -304,7 +304,6 @@ static const std::string VariantNames [] =
   std::string("Base_CUDA"),
   std::string("Lambda_CUDA"),
   std::string("RAJA_CUDA"),
-  std::string("RAJA_CUDA_NewReduce"),
 
   std::string("Base_HIP"),
   std::string("Lambda_HIP"),
@@ -502,8 +501,7 @@ bool isVariantAvailable(VariantID vid)
 #if defined(RAJA_ENABLE_CUDA)
   if ( vid == Base_CUDA ||
        vid == Lambda_CUDA ||
-       vid == RAJA_CUDA ||
-       vid == RAJA_CUDA_NewReduce ) {
+       vid == RAJA_CUDA ) {
     ret_val = true;
   }
 #endif
@@ -571,8 +569,7 @@ bool isVariantGPU(VariantID vid)
 #if defined(RAJA_ENABLE_CUDA)
   if ( vid == Base_CUDA ||
        vid == Lambda_CUDA ||
-       vid == RAJA_CUDA ||
-       vid == RAJA_CUDA_NewReduce ) {
+       vid == RAJA_CUDA ) {
     ret_val = true;
   }
 #endif

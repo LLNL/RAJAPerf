@@ -160,7 +160,6 @@ void KernelBase::setVariantDefined(VariantID vid)
     case Base_CUDA :
     case Lambda_CUDA :
     case RAJA_CUDA :
-    case RAJA_CUDA_NewReduce :
     {
 #if defined(RAJA_ENABLE_CUDA)
       setCudaTuningDefinitions(vid);
@@ -240,7 +239,6 @@ DataSpace KernelBase::getDataSpace(VariantID vid) const
     case Base_CUDA :
     case Lambda_CUDA :
     case RAJA_CUDA :
-    case RAJA_CUDA_NewReduce :
       return run_params.getCudaDataSpace();
 
     case Base_HIP :
@@ -281,7 +279,6 @@ DataSpace KernelBase::getMPIDataSpace(VariantID vid) const
     case Base_CUDA :
     case Lambda_CUDA :
     case RAJA_CUDA :
-    case RAJA_CUDA_NewReduce :
       return run_params.getCudaMPIDataSpace();
 
     case Base_HIP :
@@ -322,7 +319,6 @@ DataSpace KernelBase::getReductionDataSpace(VariantID vid) const
     case Base_CUDA :
     case Lambda_CUDA :
     case RAJA_CUDA :
-    case RAJA_CUDA_NewReduce :
       return run_params.getCudaReductionDataSpace();
 
     case Base_HIP :
@@ -425,7 +421,6 @@ void KernelBase::runKernel(VariantID vid, size_t tune_idx)
     case Base_CUDA :
     case Lambda_CUDA :
     case RAJA_CUDA :
-    case RAJA_CUDA_NewReduce :
     {
 #if defined(RAJA_ENABLE_CUDA)
       runCudaVariant(vid, tune_idx);

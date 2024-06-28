@@ -145,7 +145,7 @@ void PI_REDUCE::runCudaVariantRAJA(VariantID vid)
 
 
 template < size_t block_size, typename AlgorithmHelper, typename MappingHelper >
-void PI_REDUCE::runCudaVariantNewRAJA(VariantID vid)
+void PI_REDUCE::runCudaVariantRAJANewReduce(VariantID vid)
 {
   using exec_policy = std::conditional_t<MappingHelper::direct,
       RAJA::cuda_exec<block_size, true /*async*/>,
@@ -231,9 +231,9 @@ void PI_REDUCE::runCudaVariant(VariantID vid, size_t tune_idx)
   
               auto algorithm_helper = gpu_algorithm::block_device_helper{};
               setBlockSize(block_size);
-              runCudaVariantNewRAJA<decltype(block_size){},
-                                    decltype(algorithm_helper),
-                                    decltype(mapping_helper)>(vid);
+              runCudaVariantRAJANewReduce<decltype(block_size){},
+                                          decltype(algorithm_helper),
+                                          decltype(mapping_helper)>(vid);
   
             }
   
