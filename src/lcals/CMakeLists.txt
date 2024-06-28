@@ -35,12 +35,14 @@ blt_add_library(
           FIRST_MIN-Cuda.cpp
           FIRST_MIN-OMP.cpp
           FIRST_MIN-OMPTarget.cpp
+          FIRST_MIN-Sycl.cpp
           FIRST_SUM.cpp
           FIRST_SUM-Seq.cpp
           FIRST_SUM-Hip.cpp
           FIRST_SUM-Cuda.cpp
           FIRST_SUM-OMP.cpp
           FIRST_SUM-OMPTarget.cpp
+          FIRST_SUM-Sycl.cpp
           GEN_LIN_RECUR.cpp
           GEN_LIN_RECUR-Seq.cpp
           GEN_LIN_RECUR-Hip.cpp

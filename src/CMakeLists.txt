@@ -20,7 +20,7 @@ add_subdirectory(stream-kokkos)
 add_subdirectory(algorithm)
 add_subdirectory(comm)
 
-set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
+set(RAJA_PERFSUITE_LIBS
     common
     apps
     basic
@@ -32,6 +32,7 @@ set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     stream-kokkos
     algorithm
     comm)
+set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_LIBS})
 list(APPEND RAJA_PERFSUITE_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_DEPENDS})
 
 if(RAJA_ENABLE_TARGET_OPENMP)
@@ -71,6 +72,9 @@ blt_add_executable(
   apps/MASS3DPA.cpp
   apps/MASS3DPA-Seq.cpp
   apps/MASS3DPA-OMPTarget.cpp
+  apps/MATVEC_3D_STENCIL.cpp
+  apps/MATVEC_3D_STENCIL-Seq.cpp
+  apps/MATVEC_3D_STENCIL-OMPTarget.cpp
   apps/NODAL_ACCUMULATION_3D.cpp
   apps/NODAL_ACCUMULATION_3D-Seq.cpp
   apps/NODAL_ACCUMULATION_3D-OMPTarget.cpp
@@ -284,5 +288,8 @@ blt_add_executable(
   )
 install( TARGETS raja-perf.exe
          RUNTIME DESTINATION bin
+       )
+install( TARGETS ${RAJA_PERFSUITE_LIBS}
+         LIBRARY DESTINATION lib
        )
 endif()

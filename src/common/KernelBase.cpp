@@ -77,6 +77,14 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params)
                                            CALI_ATTR_ASVALUE |
                                            CALI_ATTR_AGGREGATABLE |
                                            CALI_ATTR_SKIP_EVENTS);
+  for (unsigned i = 0; i < FeatureID::NumFeatures; ++i) {
+    FeatureID fid = static_cast<FeatureID>(i);
+    std::string feature = getFeatureName(fid);
+    Feature_attrs[feature] = cali_create_attribute(feature.c_str(), CALI_TYPE_INT,
+                                              CALI_ATTR_ASVALUE |
+                                              CALI_ATTR_AGGREGATABLE |
+                                              CALI_ATTR_SKIP_EVENTS);
+  }
 #endif
 }
 
@@ -542,6 +550,11 @@ void KernelBase::doOnceCaliMetaBegin(VariantID vid, size_t tune_idx)
     cali_set_double(Bytes_Rep_attr,(double)getBytesPerRep());
     cali_set_double(Flops_Rep_attr,(double)getFLOPsPerRep());
     cali_set_double(BlockSize_attr, getBlockSize());
+    for (unsigned i = 0; i < FeatureID::NumFeatures; ++i) {
+        FeatureID fid = static_cast<FeatureID>(i);
+        std::string feature = getFeatureName(fid);
+        cali_set_int(Feature_attrs[feature], usesFeature(fid));
+    }
   }
 }
 
@@ -578,7 +591,17 @@ void KernelBase::setCaliperMgrVariantTuning(VariantID vid,
           { "expr": "any(max#Kernels/Rep)", "as": "Kernels/Rep" },
           { "expr": "any(max#Bytes/Rep)", "as": "Bytes/Rep" },
           { "expr": "any(max#Flops/Rep)", "as": "Flops/Rep" },
-          { "expr": "any(max#BlockSize)", "as": "BlockSize" }
+          { "expr": "any(max#BlockSize)", "as": "BlockSize" },
+          { "expr": "any(max#Forall)", "as": "FeatureForall" },
+          { "expr": "any(max#Kernel)", "as": "FeatureKernel" },
+          { "expr": "any(max#Launch)", "as": "FeatureLaunch" },
+          { "expr": "any(max#Sort)", "as": "FeatureSort" },
+          { "expr": "any(max#Scan)", "as": "FeatureScan" },
+          { "expr": "any(max#Workgroup)", "as": "FeatureWorkgroup" },
+          { "expr": "any(max#Reduction)", "as": "FeatureReduction" },
+          { "expr": "any(max#Atomic)", "as": "FeatureAtomic" },
+          { "expr": "any(max#View)", "as": "FeatureView" },
+          { "expr": "any(max#MPI)", "as": "FeatureMPI" }
         ]
       },
       {
@@ -591,7 +614,17 @@ void KernelBase::setCaliperMgrVariantTuning(VariantID vid,
           { "expr": "any(any#max#Kernels/Rep)", "as": "Kernels/Rep" },
           { "expr": "any(any#max#Bytes/Rep)", "as": "Bytes/Rep" },
           { "expr": "any(any#max#Flops/Rep)", "as": "Flops/Rep" },
-          { "expr": "any(any#max#BlockSize)", "as": "BlockSize" }
+          { "expr": "any(any#max#BlockSize)", "as": "BlockSize" },
+          { "expr": "any(any#max#Forall)", "as": "FeatureForall" },
+          { "expr": "any(any#max#Kernel)", "as": "FeatureKernel" },
+          { "expr": "any(any#max#Launch)", "as": "FeatureLaunch" },
+          { "expr": "any(any#max#Sort)", "as": "FeatureSort" },
+          { "expr": "any(any#max#Scan)", "as": "FeatureScan" },
+          { "expr": "any(any#max#Workgroup)", "as": "FeatureWorkgroup" },
+          { "expr": "any(any#max#Reduction)", "as": "FeatureReduction" },
+          { "expr": "any(any#max#Atomic)", "as": "FeatureAtomic" },
+          { "expr": "any(any#max#View)", "as": "FeatureView" },
+          { "expr": "any(any#max#MPI)", "as": "FeatureMPI" }
         ]
       }
     ]

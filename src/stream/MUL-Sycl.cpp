@@ -50,6 +50,7 @@ void MUL::runSyclVariantImpl(VariantID vid)
           }
         });
       });
+
     }
     stopTimer();
 
@@ -58,7 +59,7 @@ void MUL::runSyclVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::sycl_exec<work_group_size, true /*async*/> >(
+       RAJA::forall< RAJA::sycl_exec<work_group_size, true /*async*/> >( res,
          RAJA::RangeSegment(ibegin, iend), [=] (Index_type i) {
          MUL_BODY;
        });
