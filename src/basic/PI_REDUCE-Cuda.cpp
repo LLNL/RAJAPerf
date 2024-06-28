@@ -234,6 +234,7 @@ void PI_REDUCE::runCudaVariant(VariantID vid, size_t tune_idx)
               runCudaVariantRAJANewReduce<decltype(block_size){},
                                           decltype(algorithm_helper),
                                           decltype(mapping_helper)>(vid);
+              RAJA_UNUSED_VAR(algorithm_helper); // to quiet compiler warning
   
             }
   
@@ -273,6 +274,7 @@ void PI_REDUCE::setCudaTuningDefinitions(VariantID vid)
             addVariantTuningName(vid, decltype(algorithm_helper)::get_name()+"_"+
                                       decltype(mapping_helper)::get_name()+"_"+
                                       std::to_string(block_size));
+            RAJA_UNUSED_VAR(algorithm_helper); // to quiet compiler warning
 
           } else if ( vid == RAJA_CUDA ) {
 
@@ -288,6 +290,7 @@ void PI_REDUCE::setCudaTuningDefinitions(VariantID vid)
               
             addVariantTuningName(vid, decltype(algorithm_helper)::get_name()+"_"+
                                       "new_"+std::to_string(block_size));
+            RAJA_UNUSED_VAR(algorithm_helper); // to quiet compiler warning
 
           }
 

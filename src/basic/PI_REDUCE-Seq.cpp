@@ -18,7 +18,7 @@ namespace basic
 {
 
 
-void PI_REDUCE::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+void PI_REDUCE::runSeqVariant(VariantID vid, size_t tune_idx)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -74,20 +74,45 @@ void PI_REDUCE::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
 
     case RAJA_Seq : {
 
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+      if (tune_idx == 0) {
 
-        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> pi(m_pi_init);
+        startTimer();
+        for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::seq_exec>( RAJA::RangeSegment(ibegin, iend),
-          [=](Index_type i) {
-            PI_REDUCE_BODY;
-        });
+          RAJA::ReduceSum<RAJA::seq_reduce, Real_type> pi(m_pi_init);
+  
+          RAJA::forall<RAJA::seq_exec>( RAJA::RangeSegment(ibegin, iend),
+            [=](Index_type i) {
+              PI_REDUCE_BODY;
+          });
 
-        m_pi = 4.0 * pi.get();
+          m_pi = 4.0 * pi.get();
+
+        }
+        stopTimer();
 
       }
-      stopTimer();
+
+      if (tune_idx == 1) {
+
+        startTimer();
+        for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+          Real_type tpi = m_pi_init;
+ 
+          RAJA::forall<RAJA::seq_exec>( RAJA::RangeSegment(ibegin, iend),
+            RAJA::expt::Reduce<RAJA::operators::plus>(&tpi),
+            [=] __device__ (Index_type i, Real_type& pi) {
+              PI_REDUCE_BODY;
+            }
+          );
+
+          m_pi = static_cast<Real_type>(tpi) * 4.0;
+
+        }
+        stopTimer();       
+  
+      }
 
       break;
     }
@@ -99,6 +124,14 @@ void PI_REDUCE::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
 
   }
 
+}
+
+void PI_REDUCE::setSeqTuningDefinitions(VariantID vid)
+{
+  if (vid == RAJA_Seq) {
+    addVariantTuningName(vid, "default");
+    addVariantTuningName(vid, "new");
+  }
 }
 
 } // end namespace basic
