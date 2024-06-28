@@ -54,23 +54,6 @@ void HISTOGRAM::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
     }
     stopTimer();
 
-  } else if ( vid == RAJA_OpenMPTarget ) {
-
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      initOpenMPDeviceData(counts, counts_init, num_bins);
-
-      RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
-        RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          HISTOGRAM_RAJA_BODY(RAJA::omp_atomic);
-      });
-
-      getOpenMPDeviceData(counts_final, counts, num_bins);
-
-    }
-    stopTimer();
-
   } else {
      getCout() << "\n  HISTOGRAM : Unknown OMP Target variant id = " << vid << std::endl;
   }

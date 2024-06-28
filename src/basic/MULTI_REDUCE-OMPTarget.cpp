@@ -54,23 +54,6 @@ void MULTI_REDUCE::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_
     }
     stopTimer();
 
-  } else if ( vid == RAJA_OpenMPTarget ) {
-
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      initOpenMPDeviceData(values, values_init, num_bins);
-
-      RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
-        RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          MULTI_REDUCE_RAJA_BODY(RAJA::omp_atomic);
-      });
-
-      getOpenMPDeviceData(values_final, values, num_bins);
-
-    }
-    stopTimer();
-
   } else {
      getCout() << "\n  MULTI_REDUCE : Unknown OMP Target variant id = " << vid << std::endl;
   }
