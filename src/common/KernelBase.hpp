@@ -266,7 +266,8 @@ public:
 #if defined(RAJA_ENABLE_CUDA)
     if ( running_variant == Base_CUDA ||
          running_variant == Lambda_CUDA ||
-         running_variant == RAJA_CUDA ) {
+         running_variant == RAJA_CUDA ||
+         running_variant == RAJA_CUDA_NewReduce ) {
       cudaErrchk( cudaDeviceSynchronize() );
     }
 #endif

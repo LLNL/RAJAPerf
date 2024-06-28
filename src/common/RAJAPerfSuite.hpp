@@ -211,6 +211,7 @@ enum VariantID {
   Base_CUDA,
   Lambda_CUDA,
   RAJA_CUDA,
+  RAJA_CUDA_NewReduce,
 
   Base_HIP,
   Lambda_HIP,

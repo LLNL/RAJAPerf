@@ -138,6 +138,27 @@ void PI_REDUCE::runCudaVariantRAJA(VariantID vid)
     }
     stopTimer();
 
+  } else if ( vid == RAJA_CUDA_NewReduce ) {
+ 
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      Real_type tpi = m_pi_init;
+
+      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+        res,
+        RAJA::RangeSegment(ibegin, iend),
+        RAJA::expt::Reduce<RAJA::operators::plus>(&tpi),
+        [=] __device__ (Index_type i, Real_type& pi) {
+          PI_REDUCE_BODY;
+        }
+      );
+
+      m_pi = static_cast<Real_type>(tpi) * 4.0;
+
+    }
+    stopTimer();
+
   } else {
      getCout() << "\n  PI_REDUCE : Unknown Cuda variant id = " << vid << std::endl;
   }
@@ -147,7 +168,7 @@ void PI_REDUCE::runCudaVariant(VariantID vid, size_t tune_idx)
 {
   size_t t = 0;
 
-  if ( vid == Base_CUDA || vid == RAJA_CUDA ) {
+  if ( vid == Base_CUDA || vid == RAJA_CUDA || RAJA_CUDA_NewReduce ) {
 
     seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
 
@@ -168,7 +189,7 @@ void PI_REDUCE::runCudaVariant(VariantID vid, size_t tune_idx)
 
             t += 1;
 
-          } else if ( vid == RAJA_CUDA ) {
+          } else if ( vid == RAJA_CUDA || RAJA_CUDA_NewReduce) {
 
             seq_for(gpu_algorithm::reducer_helpers{}, [&](auto algorithm_helper) {
 
@@ -203,7 +224,7 @@ void PI_REDUCE::runCudaVariant(VariantID vid, size_t tune_idx)
 
 void PI_REDUCE::setCudaTuningDefinitions(VariantID vid)
 {
-  if ( vid == Base_CUDA || vid == RAJA_CUDA ) {
+  if ( vid == Base_CUDA || vid == RAJA_CUDA || RAJA_CUDA_NewReduce ) {
 
     seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
 
@@ -220,7 +241,7 @@ void PI_REDUCE::setCudaTuningDefinitions(VariantID vid)
                                       decltype(mapping_helper)::get_name()+"_"+
                                       std::to_string(block_size));
 
-          } else if ( vid == RAJA_CUDA ) {
+          } else if ( vid == RAJA_CUDA || RAJA_CUDA_NewReduce ) {
 
             seq_for(gpu_algorithm::reducer_helpers{}, [&](auto algorithm_helper) {
 
