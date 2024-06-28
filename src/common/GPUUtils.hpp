@@ -16,6 +16,8 @@
 
 #include "rajaperf_config.hpp"
 
+#include <climits>
+
 namespace rajaperf
 {
 
