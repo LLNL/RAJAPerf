@@ -102,7 +102,7 @@ void PI_REDUCE::runSeqVariant(VariantID vid, size_t tune_idx)
  
           RAJA::forall<RAJA::seq_exec>( RAJA::RangeSegment(ibegin, iend),
             RAJA::expt::Reduce<RAJA::operators::plus>(&tpi),
-            [=] __device__ (Index_type i, Real_type& pi) {
+            [=] (Index_type i, Real_type& pi) {
               PI_REDUCE_BODY;
             }
           );
