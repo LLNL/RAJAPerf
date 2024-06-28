@@ -32,6 +32,8 @@ void MULTI_REDUCE::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
 
     case Base_OpenMP : {
 
+      MULTI_REDUCE_SETUP_VALUES;
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -48,10 +50,14 @@ void MULTI_REDUCE::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
       }
       stopTimer();
 
+      MULTI_REDUCE_TEARDOWN_VALUES;
+
       break;
     }
 
     case Lambda_OpenMP : {
+
+      MULTI_REDUCE_SETUP_VALUES;
 
       auto multi_reduce_base_lam = [=](Index_type i) {
                                  #pragma omp atomic
@@ -73,6 +79,8 @@ void MULTI_REDUCE::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
       }
       stopTimer();
 
+      MULTI_REDUCE_TEARDOWN_VALUES;
+
       break;
     }
 
@@ -81,14 +89,14 @@ void MULTI_REDUCE::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        MULTI_REDUCE_INIT_VALUES;
+        MULTI_REDUCE_INIT_VALUES_RAJA(RAJA::omp_multi_reduce);
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-            MULTI_REDUCE_RAJA_BODY(RAJA::omp_atomic);
+            MULTI_REDUCE_BODY;
         });
 
-        MULTI_REDUCE_FINALIZE_VALUES;
+        MULTI_REDUCE_FINALIZE_VALUES_RAJA(RAJA::omp_multi_reduce);
 
       }
       stopTimer();

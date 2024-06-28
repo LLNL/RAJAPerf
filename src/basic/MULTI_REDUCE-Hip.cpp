@@ -45,7 +45,7 @@ void MULTI_REDUCE::runHipVariantAtomicGlobal(VariantID vid)
 
   auto res{getHipResource()};
 
-  MULTI_REDUCE_GPU_DATA_SETUP;
+  MULTI_REDUCE_DATA_SETUP;
 
   RAJAPERF_HIP_REDUCER_SETUP(Data_ptr, values, hvalues, num_bins, replication);
 

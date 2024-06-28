@@ -22,29 +22,18 @@
   Index_type num_bins = m_num_bins; \
   Index_ptr bins = m_bins; \
   Data_ptr data = m_data; \
-  Data_ptr values_init = m_values_init.data(); \
-  Data_ptr values_final = m_values_final.data(); \
+  std::vector<Data_type>& values_init = m_values_init; \
+  std::vector<Data_type>& values_final = m_values_final;
+
+#define MULTI_REDUCE_DATA_TEARDOWN
+
+
+#define MULTI_REDUCE_SETUP_VALUES \
   Data_ptr values; \
   allocData(getReductionDataSpace(vid), values, num_bins);
 
-#define MULTI_REDUCE_DATA_TEARDOWN \
+#define MULTI_REDUCE_TEARDOWN_VALUES \
   deallocData(values, vid);
-
-#define MULTI_REDUCE_GPU_DATA_SETUP \
-  Index_type num_bins = m_num_bins; \
-  Index_ptr bins = m_bins; \
-  Data_ptr data = m_data; \
-  Data_ptr values_init = m_values_init.data(); \
-  Data_ptr values_final = m_values_final.data();
-
-#define MULTI_REDUCE_BODY \
-  values[bins[i]] += data[i];
-
-#define MULTI_REDUCE_RAJA_BODY(policy) \
-  RAJA::atomicAdd<policy>(&values[bins[i]], data[i]);
-
-#define MULTI_REDUCE_GPU_RAJA_BODY(policy) \
-  RAJA::atomicAdd<policy>(&values[bins[i]*replication + (i%replication)], data[i]);
 
 #define MULTI_REDUCE_INIT_VALUES \
   for (Index_type b = 0; b < num_bins; ++b ) { \
@@ -56,6 +45,12 @@
     values_final[b] = values[b]; \
   }
 
+#define MULTI_REDUCE_INIT_VALUES_RAJA(policy) \
+  RAJA::MultiReduceSum<policy, Data_type> values(values_init);
+
+#define MULTI_REDUCE_FINALIZE_VALUES_RAJA(policy) \
+  values.get_all(values_final);
+
 #define MULTI_REDUCE_GPU_FINALIZE_VALUES(hvalues, num_bins, replication) \
   for (Index_type b = 0; b < (num_bins); ++b) { \
     Data_type val_final = 0; \
@@ -64,6 +59,16 @@
     } \
     values_final[b] = val_final; \
   }
+
+
+#define MULTI_REDUCE_BODY \
+  values[bins[i]] += data[i];
+
+#define MULTI_REDUCE_RAJA_BODY(policy) \
+  RAJA::atomicAdd<policy>(&values[bins[i]], data[i]);
+
+#define MULTI_REDUCE_GPU_RAJA_BODY(policy) \
+  RAJA::atomicAdd<policy>(&values[bins[i]*replication + (i%replication)], data[i]);
 
 
 #include "common/KernelBase.hpp"

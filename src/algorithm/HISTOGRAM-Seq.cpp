@@ -30,25 +30,31 @@ void HISTOGRAM::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
 
     case Base_Seq : {
 
+      HISTOGRAM_SETUP_COUNTS;
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        HISTOGRAM_INIT_VALUES;
+        HISTOGRAM_INIT_COUNTS;
 
         for (Index_type i = ibegin; i < iend; ++i ) {
           HISTOGRAM_BODY;
         }
 
-        HISTOGRAM_FINALIZE_VALUES;
+        HISTOGRAM_FINALIZE_COUNTS;
 
       }
       stopTimer();
+
+      HISTOGRAM_TEARDOWN_COUNTS;
 
       break;
     }
 
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
+
+      HISTOGRAM_SETUP_COUNTS;
 
       auto histogram_base_lam = [=](Index_type i) {
                                  HISTOGRAM_BODY;
@@ -57,16 +63,18 @@ void HISTOGRAM::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        HISTOGRAM_INIT_VALUES;
+        HISTOGRAM_INIT_COUNTS;
 
         for (Index_type i = ibegin; i < iend; ++i ) {
           histogram_base_lam(i);
         }
 
-        HISTOGRAM_FINALIZE_VALUES;
+        HISTOGRAM_FINALIZE_COUNTS;
 
       }
       stopTimer();
+
+      HISTOGRAM_TEARDOWN_COUNTS;
 
       break;
     }
@@ -76,14 +84,14 @@ void HISTOGRAM::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        HISTOGRAM_INIT_VALUES;
+        HISTOGRAM_INIT_COUNTS_RAJA(RAJA::seq_multi_reduce);
 
         RAJA::forall<RAJA::seq_exec>( RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
-            HISTOGRAM_RAJA_BODY(RAJA::seq_atomic);
+            HISTOGRAM_BODY;
         });
 
-        HISTOGRAM_FINALIZE_VALUES;
+        HISTOGRAM_FINALIZE_COUNTS_RAJA(RAJA::seq_multi_reduce);
 
       }
       stopTimer();

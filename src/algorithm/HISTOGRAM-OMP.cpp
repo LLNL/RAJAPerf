@@ -32,10 +32,12 @@ void HISTOGRAM::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
 
     case Base_OpenMP : {
 
+      HISTOGRAM_SETUP_COUNTS;
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        HISTOGRAM_INIT_VALUES;
+        HISTOGRAM_INIT_COUNTS;
 
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
@@ -43,15 +45,19 @@ void HISTOGRAM::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
           HISTOGRAM_BODY;
         }
 
-        HISTOGRAM_FINALIZE_VALUES;
+        HISTOGRAM_FINALIZE_COUNTS;
 
       }
       stopTimer();
+
+      HISTOGRAM_TEARDOWN_COUNTS;
 
       break;
     }
 
     case Lambda_OpenMP : {
+
+      HISTOGRAM_SETUP_COUNTS;
 
       auto histogram_base_lam = [=](Index_type i) {
                                  #pragma omp atomic
@@ -61,17 +67,19 @@ void HISTOGRAM::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        HISTOGRAM_INIT_VALUES;
+        HISTOGRAM_INIT_COUNTS;
 
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
           histogram_base_lam(i);
         }
 
-        HISTOGRAM_FINALIZE_VALUES;
+        HISTOGRAM_FINALIZE_COUNTS;
 
       }
       stopTimer();
+
+      HISTOGRAM_TEARDOWN_COUNTS;
 
       break;
     }
@@ -81,14 +89,14 @@ void HISTOGRAM::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        HISTOGRAM_INIT_VALUES;
+        HISTOGRAM_INIT_COUNTS_RAJA(RAJA::omp_multi_reduce);
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-            HISTOGRAM_RAJA_BODY(RAJA::omp_atomic);
+            HISTOGRAM_BODY;
         });
 
-        HISTOGRAM_FINALIZE_VALUES;
+        HISTOGRAM_FINALIZE_COUNTS_RAJA(RAJA::omp_multi_reduce);
 
       }
       stopTimer();

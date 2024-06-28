@@ -21,19 +21,44 @@
 #define HISTOGRAM_DATA_SETUP \
   Index_type num_bins = m_num_bins; \
   Index_ptr bins = m_bins; \
-  Data_ptr counts_init = m_counts_init.data(); \
-  Data_ptr counts_final = m_counts_final.data(); \
+  std::vector<Data_type>& counts_init = m_counts_init; \
+  std::vector<Data_type>& counts_final = m_counts_final;
+
+#define HISTOGRAM_DATA_TEARDOWN
+
+
+#define HISTOGRAM_SETUP_COUNTS \
   Data_ptr counts; \
   allocData(getReductionDataSpace(vid), counts, num_bins);
 
-#define HISTOGRAM_DATA_TEARDOWN \
+#define HISTOGRAM_TEARDOWN_COUNTS \
   deallocData(counts, vid);
 
-#define HISTOGRAM_GPU_DATA_SETUP \
-  Index_type num_bins = m_num_bins; \
-  Index_ptr bins = m_bins; \
-  Data_ptr counts_init = m_counts_init.data(); \
-  Data_ptr counts_final = m_counts_final.data();
+#define HISTOGRAM_INIT_COUNTS \
+  for (Index_type b = 0; b < num_bins; ++b ) { \
+    counts[b] = counts_init[b]; \
+  }
+
+#define HISTOGRAM_FINALIZE_COUNTS \
+  for (Index_type b = 0; b < num_bins; ++b ) { \
+    counts_final[b] = counts[b]; \
+  }
+
+#define HISTOGRAM_INIT_COUNTS_RAJA(policy) \
+  RAJA::MultiReduceSum<policy, Data_type> counts(counts_init);
+
+#define HISTOGRAM_FINALIZE_COUNTS_RAJA(policy) \
+  counts.get_all(counts_final);
+
+#define HISTOGRAM_GPU_FINALIZE_COUNTS(hcounts, num_bins, replication) \
+  for (Index_type b = 0; b < (num_bins); ++b) { \
+    Data_type count_final = 0; \
+    for (size_t r = 0; r < (replication); ++r) { \
+      count_final += (hcounts)[HISTOGRAM_GPU_BIN_INDEX(b, r, replication)]; \
+    } \
+    counts_final[b] = count_final; \
+  }
+
 
 #define HISTOGRAM_BODY \
   counts[bins[i]] += static_cast<Data_type>(1);
@@ -46,25 +71,6 @@
 
 #define HISTOGRAM_GPU_RAJA_BODY(policy, counts, index, value) \
   RAJA::atomicAdd<policy>(&(counts)[(index)], (value));
-
-#define HISTOGRAM_INIT_VALUES \
-  for (Index_type b = 0; b < num_bins; ++b ) { \
-    counts[b] = counts_init[b]; \
-  }
-
-#define HISTOGRAM_FINALIZE_VALUES \
-  for (Index_type b = 0; b < num_bins; ++b ) { \
-    counts_final[b] = counts[b]; \
-  }
-
-#define HISTOGRAM_GPU_FINALIZE_VALUES(hcounts, num_bins, replication) \
-  for (Index_type b = 0; b < (num_bins); ++b) { \
-    Data_type count_final = 0; \
-    for (size_t r = 0; r < (replication); ++r) { \
-      count_final += (hcounts)[HISTOGRAM_GPU_BIN_INDEX(b, r, replication)]; \
-    } \
-    counts_final[b] = count_final; \
-  }
 
 
 #include "common/KernelBase.hpp"
@@ -128,6 +134,8 @@ private:
   std::vector<Data_type> m_counts_final;
 };
 
+
+#if defined(RAJA_ENABLE_CUDA) || defined(RAJA_ENABLE_HP)
 
 // Compute lhs % rhs between non-negative lhs and positive power of 2 rhs
 template < typename L, typename R >
@@ -256,6 +264,8 @@ private:
   IndexType m_shared_replication;
   IndexType m_global_replication;
 };
+
+#endif
 
 } // end namespace algorithm
 } // end namespace rajaperf

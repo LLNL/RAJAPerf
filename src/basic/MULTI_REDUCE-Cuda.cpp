@@ -45,7 +45,7 @@ void MULTI_REDUCE::runCudaVariantAtomicGlobal(VariantID vid)
 
   auto res{getCudaResource()};
 
-  MULTI_REDUCE_GPU_DATA_SETUP;
+  MULTI_REDUCE_DATA_SETUP;
 
   RAJAPERF_CUDA_REDUCER_SETUP(Data_ptr, values, hvalues, num_bins, replication);
 

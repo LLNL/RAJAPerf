@@ -154,7 +154,7 @@ void HISTOGRAM::runCudaVariantLibrary(VariantID vid)
 
   auto res{getCudaResource()};
 
-  HISTOGRAM_GPU_DATA_SETUP;
+  HISTOGRAM_DATA_SETUP;
 
   RAJAPERF_CUDA_REDUCER_SETUP(Data_ptr, counts, hcounts, num_bins, 1);
 
@@ -199,7 +199,7 @@ void HISTOGRAM::runCudaVariantLibrary(VariantID vid)
                                                        stream));
 
       RAJAPERF_CUDA_REDUCER_COPY_BACK(counts, hcounts, num_bins, 1);
-      HISTOGRAM_GPU_FINALIZE_VALUES(hcounts, num_bins, 1);
+      HISTOGRAM_GPU_FINALIZE_COUNTS(hcounts, num_bins, 1);
 
     }
     stopTimer();
@@ -224,7 +224,7 @@ void HISTOGRAM::runCudaVariantAtomicGlobal(VariantID vid)
 
   auto res{getCudaResource()};
 
-  HISTOGRAM_GPU_DATA_SETUP;
+  HISTOGRAM_DATA_SETUP;
 
   RAJAPERF_CUDA_REDUCER_SETUP(Data_ptr, counts, hcounts, num_bins, global_replication);
 
@@ -246,7 +246,7 @@ void HISTOGRAM::runCudaVariantAtomicGlobal(VariantID vid)
                           iend );
 
       RAJAPERF_CUDA_REDUCER_COPY_BACK(counts, hcounts, num_bins, global_replication);
-      HISTOGRAM_GPU_FINALIZE_VALUES(hcounts, num_bins, global_replication);
+      HISTOGRAM_GPU_FINALIZE_COUNTS(hcounts, num_bins, global_replication);
 
     }
     stopTimer();
@@ -272,7 +272,7 @@ void HISTOGRAM::runCudaVariantAtomicGlobal(VariantID vid)
                           ibegin, iend, histogram_lambda );
 
       RAJAPERF_CUDA_REDUCER_COPY_BACK(counts, hcounts, num_bins, global_replication);
-      HISTOGRAM_GPU_FINALIZE_VALUES(hcounts, num_bins, global_replication);
+      HISTOGRAM_GPU_FINALIZE_COUNTS(hcounts, num_bins, global_replication);
 
     }
     stopTimer();
@@ -290,7 +290,7 @@ void HISTOGRAM::runCudaVariantAtomicGlobal(VariantID vid)
       });
 
       RAJAPERF_CUDA_REDUCER_COPY_BACK(counts, hcounts, num_bins, global_replication);
-      HISTOGRAM_GPU_FINALIZE_VALUES(hcounts, num_bins, global_replication);
+      HISTOGRAM_GPU_FINALIZE_COUNTS(hcounts, num_bins, global_replication);
 
     }
     stopTimer();
@@ -311,7 +311,7 @@ void HISTOGRAM::runCudaVariantAtomicShared(VariantID vid)
 
   auto res{getCudaResource()};
 
-  HISTOGRAM_GPU_DATA_SETUP;
+  HISTOGRAM_DATA_SETUP;
 
   RAJAPERF_CUDA_REDUCER_SETUP(Data_ptr, counts, hcounts, num_bins, global_replication);
 
@@ -334,7 +334,7 @@ void HISTOGRAM::runCudaVariantAtomicShared(VariantID vid)
                           iend );
 
       RAJAPERF_CUDA_REDUCER_COPY_BACK(counts, hcounts, num_bins, global_replication);
-      HISTOGRAM_GPU_FINALIZE_VALUES(hcounts, num_bins, global_replication);
+      HISTOGRAM_GPU_FINALIZE_COUNTS(hcounts, num_bins, global_replication);
 
     }
     stopTimer();
@@ -356,7 +356,7 @@ void HISTOGRAM::runCudaVariantAtomicRuntime(MultiReduceInfo info, VariantID vid)
 
   auto res{getCudaResource()};
 
-  HISTOGRAM_GPU_DATA_SETUP;
+  HISTOGRAM_DATA_SETUP;
 
   static constexpr size_t block_size = info.block_size;
   const size_t grid_size = info.grid_size;
