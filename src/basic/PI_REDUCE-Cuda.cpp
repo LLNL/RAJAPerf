@@ -166,7 +166,7 @@ void PI_REDUCE::runCudaVariantRAJANewReduce(VariantID vid)
 
       Real_type tpi = m_pi_init;
 
-      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+      RAJA::forall< exec_policy >(
         res,
         RAJA::RangeSegment(ibegin, iend),
         RAJA::expt::Reduce<RAJA::operators::plus>(&tpi),
@@ -289,6 +289,7 @@ void PI_REDUCE::setCudaTuningDefinitions(VariantID vid)
             auto algorithm_helper = gpu_algorithm::block_device_helper{};
               
             addVariantTuningName(vid, decltype(algorithm_helper)::get_name()+"_"+
+                                      decltype(mapping_helper)::get_name()+"_"+
                                       "new_"+std::to_string(block_size));
             RAJA_UNUSED_VAR(algorithm_helper); // to quiet compiler warning
 

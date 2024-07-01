@@ -128,7 +128,9 @@ void PI_REDUCE::runSeqVariant(VariantID vid, size_t tune_idx)
 
 void PI_REDUCE::setSeqTuningDefinitions(VariantID vid)
 {
-  if (vid == RAJA_Seq) {
+  if (vid == Base_Seq || vid == Lambda_Seq) {
+    addVariantTuningName(vid, "default");
+  } else if (vid == RAJA_Seq) {
     addVariantTuningName(vid, "default");
     addVariantTuningName(vid, "new");
   }
