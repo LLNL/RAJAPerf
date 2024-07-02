@@ -27,7 +27,7 @@ namespace basic
   const size_t threads_per_team = 256;
 
 
-void PI_REDUCE::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+void PI_REDUCE::runOpenMPTargetVariant(VariantID vid, size_t tune_idx)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -56,26 +56,61 @@ void PI_REDUCE::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
 
   } else if ( vid == RAJA_OpenMPTarget ) {
 
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+    if (tune_idx == 0) {
 
-      RAJA::ReduceSum<RAJA::omp_target_reduce, Real_type> pi(m_pi_init);
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
-        RAJA::RangeSegment(ibegin, iend),
-        [=](Index_type i) {
-          PI_REDUCE_BODY;
-      });
+        RAJA::ReduceSum<RAJA::omp_target_reduce, Real_type> pi(m_pi_init);
 
-      m_pi = 4.0 * pi.get();
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
+          RAJA::RangeSegment(ibegin, iend),
+          [=](Index_type i) {
+            PI_REDUCE_BODY;
+        });
 
-    }
-    stopTimer();
+        m_pi = 4.0 * pi.get();
+
+      }
+      stopTimer();
+
+      }
+
+      if (tune_idx == 1) {
+
+        startTimer();
+        for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+          Real_type tpi = m_pi_init;
+#if 0 
+          RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
+            RAJA::RangeSegment(ibegin, iend),
+            RAJA::expt::Reduce<RAJA::operators::plus>(&tpi),
+            [=] (Index_type i, Real_type& pi) {
+              PI_REDUCE_BODY;
+            }
+          );
+#endif
+
+          m_pi = static_cast<Real_type>(tpi) * 4.0;
+
+        }
+        stopTimer();
+
+      }
 
   } else {
     getCout() << "\n  PI_REDUCE : Unknown OMP Target variant id = " << vid << std::endl;
   }
 
+}
+
+void PI_REDUCE::setOpenMPTargetTuningDefinitions(VariantID vid)
+{
+  addVariantTuningName(vid, "default");
+  if (vid == RAJA_OpenMP) {
+    addVariantTuningName(vid, "new");
+  }
 }
 
 } // end namespace basic

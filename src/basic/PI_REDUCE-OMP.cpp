@@ -135,10 +135,8 @@ void PI_REDUCE::runOpenMPVariant(VariantID vid, size_t tune_idx)
 
 void PI_REDUCE::setOpenMPTuningDefinitions(VariantID vid)
 {
-  if (vid == Base_OpenMP || vid == Lambda_OpenMP) {
-    addVariantTuningName(vid, "default");
-  } else if (vid == RAJA_OpenMP) {
-    addVariantTuningName(vid, "default");
+  addVariantTuningName(vid, "default");
+  if (vid == RAJA_OpenMP) {
     addVariantTuningName(vid, "new");
   }
 }
