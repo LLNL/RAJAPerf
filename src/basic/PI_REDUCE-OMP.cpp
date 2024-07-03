@@ -130,6 +130,7 @@ void PI_REDUCE::runOpenMPVariant(VariantID vid, size_t tune_idx)
 
 #else
   RAJA_UNUSED_VAR(vid);
+  RAJA_UNUSED_VAR(tune_idx);
 #endif
 }
 
