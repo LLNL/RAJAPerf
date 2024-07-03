@@ -82,7 +82,6 @@ void PI_REDUCE::runOpenMPTargetVariant(VariantID vid, size_t tune_idx)
         for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
           Real_type tpi = m_pi_init;
-#if 0 
           RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
             RAJA::RangeSegment(ibegin, iend),
             RAJA::expt::Reduce<RAJA::operators::plus>(&tpi),
@@ -90,7 +89,6 @@ void PI_REDUCE::runOpenMPTargetVariant(VariantID vid, size_t tune_idx)
               PI_REDUCE_BODY;
             }
           );
-#endif
 
           m_pi = static_cast<Real_type>(tpi) * 4.0;
 
@@ -108,7 +106,7 @@ void PI_REDUCE::runOpenMPTargetVariant(VariantID vid, size_t tune_idx)
 void PI_REDUCE::setOpenMPTargetTuningDefinitions(VariantID vid)
 {
   addVariantTuningName(vid, "default");
-  if (vid == RAJA_OpenMP) {
+  if (vid == RAJA_OpenMPTarget) {
     addVariantTuningName(vid, "new");
   }
 }
