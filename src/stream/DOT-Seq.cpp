@@ -18,8 +18,11 @@ namespace stream
 {
 
 
-void DOT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+void DOT::runSeqVariant(VariantID vid, size_t tune_idx)
 {
+#if !defined(RUN_RAJA_SEQ)
+  RAJA_UNUSED_VAR(tune_idx);
+#endif
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
@@ -73,20 +76,45 @@ void DOT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
     case RAJA_Seq : {
 
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+      if (tune_idx == 0) {
 
-        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> dot(m_dot_init);
+        startTimer();
+        for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::seq_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          DOT_BODY;
-        });
+          RAJA::ReduceSum<RAJA::seq_reduce, Real_type> dot(m_dot_init);
+  
+          RAJA::forall<RAJA::seq_exec>(
+            RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
+            DOT_BODY;
+          });
 
-        m_dot += static_cast<Real_type>(dot.get());
+          m_dot += static_cast<Real_type>(dot.get());
+
+        }
+        stopTimer();
 
       }
-      stopTimer();
+
+      if (tune_idx == 1) {
+
+        startTimer();
+        for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+          Real_type tdot = m_dot_init;
+
+          RAJA::forall<RAJA::seq_exec>( RAJA::RangeSegment(ibegin, iend),
+            RAJA::expt::Reduce<RAJA::operators::plus>(&tdot),
+            [=] (Index_type i, Real_type& dot) {
+              DOT_BODY;
+            }
+          );
+
+          m_dot += static_cast<Real_type>(tdot);
+
+        }
+        stopTimer();
+
+      }
 
       break;
     }
@@ -98,6 +126,14 @@ void DOT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
   }
 
+}
+
+void DOT::setSeqTuningDefinitions(VariantID vid)
+{
+  addVariantTuningName(vid, "default");
+  if (vid == RAJA_Seq) {
+    addVariantTuningName(vid, "new");
+  }
 }
 
 } // end namespace stream
