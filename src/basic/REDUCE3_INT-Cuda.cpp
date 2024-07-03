@@ -165,6 +165,53 @@ void REDUCE3_INT::runCudaVariantRAJA(VariantID vid)
   }
 }
 
+template < size_t block_size, typename AlgorithmHelper, typename MappingHelper >
+void REDUCE3_INT::runCudaVariantRAJANewReduce(VariantID vid)
+{
+  using exec_policy = std::conditional_t<MappingHelper::direct,
+      RAJA::cuda_exec<block_size, true /*async*/>,
+      RAJA::cuda_exec_occ_calc<block_size, true /*async*/>>;
+
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  auto res{getCudaResource()};
+
+  REDUCE3_INT_DATA_SETUP;
+
+  if ( vid == RAJA_CUDA ) {
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      Int_type tvsum = m_vsum_init;
+      Int_type tvmin = m_vmin_init;
+      Int_type tvmax = m_vmax_init;
+
+      RAJA::forall<exec_policy>( res,
+        RAJA::RangeSegment(ibegin, iend),
+        RAJA::expt::Reduce<RAJA::operators::plus>(&tvsum),
+        RAJA::expt::Reduce<RAJA::operators::minimum>(&tvmin),
+        RAJA::expt::Reduce<RAJA::operators::maximum>(&tvmax),
+        [=] __device__ (Index_type i,
+                        Int_type& vsum, Int_type& vmin, Int_type& vmax) {
+          REDUCE3_INT_BODY;
+        }
+      );
+
+      m_vsum += static_cast<Int_type>(tvsum);
+      m_vmin = RAJA_MIN(m_vmin, static_cast<Int_type>(tvmin));
+      m_vmax = RAJA_MAX(m_vmax, static_cast<Int_type>(tvmax));
+
+    }
+    stopTimer();
+
+  } else {
+     getCout() << "\n  REDUCE3_INT : Unknown Cuda variant id = " << vid << std::endl;
+  }
+}
+
 void REDUCE3_INT::runCudaVariant(VariantID vid, size_t tune_idx)
 {
   size_t t = 0;
@@ -207,6 +254,19 @@ void REDUCE3_INT::runCudaVariant(VariantID vid, size_t tune_idx)
 
             });
 
+            if (tune_idx == t) {
+
+              auto algorithm_helper = gpu_algorithm::block_device_helper{};
+              setBlockSize(block_size);
+              runCudaVariantRAJANewReduce<decltype(block_size){},
+                                          decltype(algorithm_helper),
+                                          decltype(mapping_helper)>(vid);
+              RAJA_UNUSED_VAR(algorithm_helper); // to quiet compiler warning
+
+            }
+
+            t += 1;
+
           }
 
         });
@@ -241,6 +301,7 @@ void REDUCE3_INT::setCudaTuningDefinitions(VariantID vid)
             addVariantTuningName(vid, decltype(algorithm_helper)::get_name()+"_"+
                                       decltype(mapping_helper)::get_name()+"_"+
                                       std::to_string(block_size));
+            RAJA_UNUSED_VAR(algorithm_helper); // to quiet compiler warning
 
           } else if ( vid == RAJA_CUDA ) {
 
@@ -251,6 +312,13 @@ void REDUCE3_INT::setCudaTuningDefinitions(VariantID vid)
                                         std::to_string(block_size));
 
             });
+
+            auto algorithm_helper = gpu_algorithm::block_device_helper{};
+
+            addVariantTuningName(vid, decltype(algorithm_helper)::get_name()+"_"+
+                                      decltype(mapping_helper)::get_name()+"_"+
+                                      "new_"+std::to_string(block_size));
+            RAJA_UNUSED_VAR(algorithm_helper); // to quiet compiler warning
 
           }
 

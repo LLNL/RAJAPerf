@@ -20,6 +20,9 @@ namespace basic
 
 void PI_REDUCE::runSeqVariant(VariantID vid, size_t tune_idx)
 {
+#if !defined(RUN_RAJA_SEQ)
+  RAJA_UNUSED_VAR(tune_idx);
+#endif
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
