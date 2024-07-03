@@ -173,8 +173,7 @@ void TRAP_INT::runCudaVariantRAJANewReduce(VariantID vid)
 
       Real_type tsumx = m_sumx_init;
 
-      RAJA::forall<exec_policy>(
-        res,
+      RAJA::forall<exec_policy>( res,
         RAJA::RangeSegment(ibegin, iend),
         RAJA::expt::Reduce<RAJA::operators::plus>(&tsumx),
         [=] __device__ (Index_type i, Real_type& sumx) {
