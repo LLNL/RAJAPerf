@@ -20,7 +20,7 @@ namespace basic
 {
 
 
-void TRAP_INT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+void TRAP_INT::runSeqVariant(VariantID vid, size_t tune_idx)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -76,20 +76,46 @@ void TRAP_INT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)
 
     case RAJA_Seq : {
 
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+      if (tune_idx == 0) {
 
-        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> sumx(m_sumx_init);
+        startTimer();
+        for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::seq_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          TRAP_INT_BODY;
-        });
+          RAJA::ReduceSum<RAJA::seq_reduce, Real_type> sumx(m_sumx_init);
 
-        m_sumx += static_cast<Real_type>(sumx.get()) * h;
+          RAJA::forall<RAJA::seq_exec>(
+            RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
+            TRAP_INT_BODY;
+          });
+
+          m_sumx += static_cast<Real_type>(sumx.get()) * h;
+
+        }
+        stopTimer();
 
       }
-      stopTimer();
+
+      if (tune_idx == 1) {
+
+        startTimer();
+        for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+          Real_type tsumx = m_sumx_init;
+
+          RAJA::forall<RAJA::seq_exec>( 
+            RAJA::RangeSegment(ibegin, iend),
+            RAJA::expt::Reduce<RAJA::operators::plus>(&tsumx),
+            [=] (Index_type i, Real_type& sumx) {
+              TRAP_INT_BODY;
+            }
+          );
+
+          m_sumx += static_cast<Real_type>(tsumx) * h;
+
+        }
+        stopTimer();
+
+      }
 
       break;
     }
@@ -101,6 +127,14 @@ void TRAP_INT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)
 
   }
 
+}
+
+void TRAP_INT::setSeqTuningDefinitions(VariantID vid)
+{
+  addVariantTuningName(vid, "default");
+  if (vid == RAJA_Seq) {
+    addVariantTuningName(vid, "new");
+  }
 }
 
 } // end namespace basic

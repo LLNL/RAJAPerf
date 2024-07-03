@@ -74,28 +74,29 @@ void PI_REDUCE::runOpenMPTargetVariant(VariantID vid, size_t tune_idx)
       }
       stopTimer();
 
-      }
+    }
 
-      if (tune_idx == 1) {
+    if (tune_idx == 1) {
 
-        startTimer();
-        for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-          Real_type tpi = m_pi_init;
-          RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
-            RAJA::RangeSegment(ibegin, iend),
-            RAJA::expt::Reduce<RAJA::operators::plus>(&tpi),
-            [=] (Index_type i, Real_type& pi) {
-              PI_REDUCE_BODY;
-            }
-          );
+        Real_type tpi = m_pi_init;
 
-          m_pi = static_cast<Real_type>(tpi) * 4.0;
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
+          RAJA::RangeSegment(ibegin, iend),
+          RAJA::expt::Reduce<RAJA::operators::plus>(&tpi),
+          [=] (Index_type i, Real_type& pi) {
+            PI_REDUCE_BODY;
+          }
+        );
 
-        }
-        stopTimer();
+        m_pi = static_cast<Real_type>(tpi) * 4.0;
 
       }
+      stopTimer();
+
+    }
 
   } else {
     getCout() << "\n  PI_REDUCE : Unknown OMP Target variant id = " << vid << std::endl;
