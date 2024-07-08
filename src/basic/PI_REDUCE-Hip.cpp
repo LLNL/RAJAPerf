@@ -143,7 +143,7 @@ void PI_REDUCE::runHipVariantRAJA(VariantID vid)
   }
 }
 
-template < size_t block_size, typename AlgorithmHelper, typename MappingHelper >
+template < size_t block_size, typename MappingHelper >
 void PI_REDUCE::runHipVariantRAJANewReduce(VariantID vid)
 {
   using exec_policy = std::conditional_t<MappingHelper::direct,
@@ -228,12 +228,9 @@ void PI_REDUCE::runHipVariant(VariantID vid, size_t tune_idx)
 
             if (tune_idx == t) {
 
-              auto algorithm_helper = gpu_algorithm::block_device_helper{};
               setBlockSize(block_size);
               runHipVariantRAJANewReduce<decltype(block_size){},
-                                         decltype(algorithm_helper),
                                          decltype(mapping_helper)>(vid);
-              RAJA_UNUSED_VAR(algorithm_helper); // to quiet compiler warning
 
             }
 

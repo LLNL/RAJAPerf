@@ -165,7 +165,7 @@ void REDUCE3_INT::runCudaVariantRAJA(VariantID vid)
   }
 }
 
-template < size_t block_size, typename AlgorithmHelper, typename MappingHelper >
+template < size_t block_size, typename MappingHelper >
 void REDUCE3_INT::runCudaVariantRAJANewReduce(VariantID vid)
 {
   using exec_policy = std::conditional_t<MappingHelper::direct,
@@ -256,12 +256,9 @@ void REDUCE3_INT::runCudaVariant(VariantID vid, size_t tune_idx)
 
             if (tune_idx == t) {
 
-              auto algorithm_helper = gpu_algorithm::block_device_helper{};
               setBlockSize(block_size);
               runCudaVariantRAJANewReduce<decltype(block_size){},
-                                          decltype(algorithm_helper),
                                           decltype(mapping_helper)>(vid);
-              RAJA_UNUSED_VAR(algorithm_helper); // to quiet compiler warning
 
             }
 

@@ -82,14 +82,14 @@ public:
   void runCudaVariantBase(VariantID vid);
   template < size_t block_size, typename AlgorithmHelper, typename MappingHelper >
   void runCudaVariantRAJA(VariantID vid);
-  template < size_t block_size, typename AlgorithmHelper, typename MappingHelper >
+  template < size_t block_size, typename MappingHelper >
   void runCudaVariantRAJANewReduce(VariantID vid);
 
   template < size_t block_size, typename MappingHelper >
   void runHipVariantBase(VariantID vid);
   template < size_t block_size, typename AlgorithmHelper, typename MappingHelper >
   void runHipVariantRAJA(VariantID vid);
-  template < size_t block_size, typename AlgorithmHelper, typename MappingHelper >
+  template < size_t block_size, typename MappingHelper >
   void runHipVariantRAJANewReduce(VariantID vid);
 
   template < size_t work_group_size >
