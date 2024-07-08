@@ -59,18 +59,27 @@ public:
   void runHipVariant(VariantID vid, size_t tune_idx);
   void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
 
+  void setSeqTuningDefinitions(VariantID vid);
+  void setOpenMPTuningDefinitions(VariantID vid);
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
+  void setOpenMPTargetTuningDefinitions(VariantID vid); 
+
   void runCudaVariantCub(VariantID vid);
-  void runHipVariantRocprim(VariantID vid);
   template < size_t block_size, typename MappingHelper >
   void runCudaVariantBase(VariantID vid);
+  template < size_t block_size, typename AlgorithmHelper, typename MappingHelper >
+  void runCudaVariantRAJA(VariantID vid);
+  template < size_t block_size, typename MappingHelper >
+  void runCudaVariantRAJANewReduce(VariantID vid);
+
+  void runHipVariantRocprim(VariantID vid);
   template < size_t block_size, typename MappingHelper >
   void runHipVariantBase(VariantID vid);
   template < size_t block_size, typename AlgorithmHelper, typename MappingHelper >
-  void runCudaVariantRAJA(VariantID vid);
-  template < size_t block_size, typename AlgorithmHelper, typename MappingHelper >
   void runHipVariantRAJA(VariantID vid);
+  template < size_t block_size, typename MappingHelper >
+  void runHipVariantRAJANewReduce(VariantID vid);
 
 private:
   static const size_t default_gpu_block_size = 256;
