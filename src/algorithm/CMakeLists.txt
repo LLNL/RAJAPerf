@@ -30,6 +30,7 @@ blt_add_library(
           REDUCE_SUM-Cuda.cpp
           REDUCE_SUM-OMP.cpp
           REDUCE_SUM-OMPTarget.cpp
+          REDUCE_SUM-Sycl.cpp
           MEMSET.cpp
           MEMSET-Seq.cpp
           MEMSET-Hip.cpp
