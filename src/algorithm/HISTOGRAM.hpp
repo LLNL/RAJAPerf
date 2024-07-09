@@ -107,13 +107,13 @@ public:
   void setHipTuningDefinitions(VariantID vid);
   void runCudaVariantLibrary(VariantID vid);
   void runHipVariantLibrary(VariantID vid);
-  template < size_t block_size, size_t global_replication >
+  template < size_t block_size, size_t global_replication, bool warp_atomics, bool bunched_atomics >
   void runCudaVariantAtomicGlobal(VariantID vid);
-  template < size_t block_size, size_t global_replication >
+  template < size_t block_size, size_t global_replication, bool warp_atomics, bool bunched_atomics >
   void runHipVariantAtomicGlobal(VariantID vid);
-  template < size_t block_size, size_t shared_replication, size_t global_replication >
+  template < size_t block_size, size_t shared_replication, size_t global_replication, bool warp_atomics, bool bunched_atomics >
   void runCudaVariantAtomicShared(VariantID vid);
-  template < size_t block_size, size_t shared_replication, size_t global_replication >
+  template < size_t block_size, size_t shared_replication, size_t global_replication, bool warp_atomics, bool bunched_atomics >
   void runHipVariantAtomicShared(VariantID vid);
   template < typename MultiReduceInfo >
   void runCudaVariantAtomicRuntime(MultiReduceInfo info, VariantID vid);
@@ -125,8 +125,8 @@ private:
   using gpu_block_sizes_type = integer::make_gpu_block_size_list_type<default_gpu_block_size>;
   static const size_t default_gpu_atomic_global_replication = 2048; // 512, 512
   // using gpu_atomic_global_replications_type = integer::make_atomic_replication_list_type<default_gpu_atomic_global_replication>;
-  using gpu_atomic_global_replications_type = integer::list_type<32, 64, 128, 256, 512, 1024, 2048, 4096>;
-  using gpu_atomic_shared_replications_type = integer::list_type<1, 2, 4, 8, 16, 32, 64>;
+  using gpu_atomic_global_replications_type = integer::list_type<1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2*1024, 4*1024, 8*1024, 16*1024>;
+  using gpu_atomic_shared_replications_type = integer::list_type<1, 2, 4, 8, 16, 32>;
 
   Index_type m_num_bins;
   Index_ptr m_bins;
@@ -135,7 +135,7 @@ private:
 };
 
 
-#if defined(RAJA_ENABLE_CUDA) || defined(RAJA_ENABLE_HP)
+#if defined(RAJA_ENABLE_CUDA) || defined(RAJA_ENABLE_HIP)
 
 // Compute lhs % rhs between non-negative lhs and positive power of 2 rhs
 template < typename L, typename R >
@@ -254,7 +254,7 @@ struct MultiReduceAtomicCalculator
   template < typename IterFinal, typename IterGlobal, typename Op >
   void combine_globals(IterFinal counts_final, IterGlobal counts_global, Op combiner)
   {
-    for (IndexType bin = 0; bin < num_bins; ++bin) {
+    for (IndexType bin = 0; bin < num_bins(); ++bin) {
       counts_final[bin] = combine_global(bin, counts_global, combiner);
     }
   }

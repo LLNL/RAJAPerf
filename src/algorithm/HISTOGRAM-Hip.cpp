@@ -29,13 +29,30 @@ namespace rajaperf
 namespace algorithm
 {
 
-// for these models the input is block_size and the output is cache lines
-using histogram_global_atomic_model = CutoffModel<512, 32, 16>; // gfx942
-// using histogram_global_atomic_model = ConstantModel<1>; // gfx90a
-
 // for these models the input is block_size and the output is values
-using histogram_shared_atomic_model = ConstantModel<4>; // gfx942
-// using histogram_shared_atomic_model = ConstantModel<4>; // gfx90a
+using histogram_shared_atomic_model = ConstantModel<4>;
+
+// for these models the input is block_size and the output is cache lines
+using histogram_global_atomic_model = CutoffModel<512, 32, 16>;
+
+// gfx90a
+// 10 bins - 1 bin per iterate - random sized runs
+// shared  ConstantModel<4>         global  ConstantModel<1>
+
+// gfx942
+// 10 bins - 1 bin per iterate - single bin
+// shared  ConstantModel<4>         global  CutoffModel<512, 32, 16>
+// 10 bins - 1 bin per iterate - random sized runs
+// shared  ConstantModel<4>         global  CutoffModel<512, 32, 16>
+// 10 bins - 1 bin per iterate - random bin
+// shared  ConstantModel<1>         global  ConstantModel<32>
+//
+// 100 bins - 1 bin per iterate - single bin
+// shared  ConstantModel<2>         global  ConstantModel<32>
+// 100 bins - 1 bin per iterate - random sized runs
+// shared  ConstantModel<>         global  ConstantModel<>
+// 100 bins - 1 bin per iterate - random bin
+// shared  ConstantModel<>         global  ConstantModel<>
 
 
 template < size_t t_block_size, typename T, typename FunctionSignature >
@@ -57,20 +74,22 @@ struct histogram_info
 
   FunctionSignature const& func;
   const size_t grid_size;
-  const MultiReduceAtomicCalculator<T> atomic_calc;
+  const MultiReduceAtomicCalculator<T, Index_type> atomic_calc;
 
-  histogram_info(FunctionSignature const& a_func, size_t problem_size, size_t num_bins)
+  template < typename GlobalModel, typename SharedModel >
+  histogram_info(FunctionSignature const& a_func, size_t problem_size, size_t num_bins,
+                 GlobalModel const& global_atomic_model, SharedModel const& shared_atomic_model)
     : func(a_func)
     , grid_size(get_grid_size(problem_size))
     , atomic_calc(num_bins, block_size, grid_size, get_max_shmem(a_func),
-                  histogram_global_atomic_model{}, histogram_shared_atomic_model{})
+                  global_atomic_model, shared_atomic_model)
   { }
 
   std::string get_name() const
   {
     return "atomic_shared("+std::to_string(atomic_calc.shared_replication())+
            ")_global("+std::to_string(atomic_calc.global_replication())+
-           ")_"+std::to_string(block_size);
+           ")block_"+std::to_string(block_size);
   }
 };
 
@@ -125,7 +144,7 @@ __launch_bounds__(block_size)
 __global__ void histogram_atomic_runtime(HISTOGRAM::Data_ptr global_counts,
                                         Index_ptr bins,
                                         Index_type iend,
-                                        MultiReduceAtomicCalculator<HISTOGRAM::Data_type> atomic_calc)
+                                        MultiReduceAtomicCalculator<HISTOGRAM::Data_type, Index_type> atomic_calc)
 {
   extern __shared__ HISTOGRAM::Data_type shared_counts[];
   for (Index_type i = threadIdx.x;
@@ -248,7 +267,8 @@ void HISTOGRAM::runHipVariantLibrary(VariantID vid)
 
 }
 
-template < size_t block_size, size_t global_replication >
+template < size_t block_size, size_t global_replication,
+           bool warp_atomics, bool bunched_atomics >
 void HISTOGRAM::runHipVariantAtomicGlobal(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
@@ -312,18 +332,28 @@ void HISTOGRAM::runHipVariantAtomicGlobal(VariantID vid)
 
   } else if ( vid == RAJA_HIP ) {
 
+    using multi_reduce_policy = RAJA::policy::hip::hip_multi_reduce_policy<
+        RAJA::hip::MultiReduceTuning<
+          RAJA::hip::multi_reduce_algorithm::init_host_combine_global_atomic,
+          void,
+          RAJA::hip::AtomicReplicationTuning<
+            RAJA::hip::GlobalAtomicReplicationMinPow2Concretizer<
+              RAJA::hip::ConstantPreferredReplicationConcretizer<global_replication>>,
+            std::conditional_t<warp_atomics, RAJA::hip::warp_global_xyz<>, RAJA::hip::block_xyz<>>,
+            std::conditional_t<bunched_atomics, RAJA::GetOffsetLeftBunched<0,int>, RAJA::GetOffsetLeft<int>>>>>;
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJAPERF_HIP_REDUCER_INITIALIZE(counts_init, counts, hcounts, num_bins, global_replication);
+      HISTOGRAM_INIT_COUNTS_RAJA(multi_reduce_policy);
 
-      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
-        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-          HISTOGRAM_GPU_RAJA_BODY(RAJA::hip_atomic, counts, HISTOGRAM_GPU_BIN_INDEX(bins[i], i, global_replication), HISTOGRAM::Data_type(1));
+      RAJA::forall<RAJA::hip_exec<block_size, true /*async*/>>( res,
+          RAJA::RangeSegment(ibegin, iend),
+          [=] __device__ (Index_type i) {
+        HISTOGRAM_BODY;
       });
 
-      RAJAPERF_HIP_REDUCER_COPY_BACK(counts, hcounts, num_bins, global_replication);
-      HISTOGRAM_GPU_FINALIZE_COUNTS(hcounts, num_bins, global_replication);
+      HISTOGRAM_FINALIZE_COUNTS_RAJA(multi_reduce_policy);
 
     }
     stopTimer();
@@ -336,19 +366,22 @@ void HISTOGRAM::runHipVariantAtomicGlobal(VariantID vid)
 
 }
 
-template < size_t block_size, size_t shared_replication, size_t global_replication >
+template < size_t block_size, size_t shared_replication, size_t global_replication,
+           bool warp_atomics, bool bunched_atomics >
 void HISTOGRAM::runHipVariantAtomicShared(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
   auto res{getHipResource()};
 
   HISTOGRAM_DATA_SETUP;
 
-  RAJAPERF_HIP_REDUCER_SETUP(Data_ptr, counts, hcounts, num_bins, global_replication);
 
   if ( vid == Base_HIP ) {
+
+    RAJAPERF_HIP_REDUCER_SETUP(Data_ptr, counts, hcounts, num_bins, global_replication);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -372,11 +405,44 @@ void HISTOGRAM::runHipVariantAtomicShared(VariantID vid)
     }
     stopTimer();
 
+    RAJAPERF_HIP_REDUCER_TEARDOWN(counts, hcounts);
+
+  } else if ( vid == RAJA_HIP ) {
+
+    using multi_reduce_policy = RAJA::policy::hip::hip_multi_reduce_policy<
+        RAJA::hip::MultiReduceTuning<
+          RAJA::hip::multi_reduce_algorithm::init_host_combine_block_then_grid_atomic,
+          RAJA::hip::AtomicReplicationTuning<
+            RAJA::hip::SharedAtomicReplicationMaxPow2Concretizer<
+              RAJA::hip::ConstantPreferredReplicationConcretizer<shared_replication>>,
+            RAJA::hip::thread_xyz<>,
+            RAJA::GetOffsetRight<int>>,
+          RAJA::hip::AtomicReplicationTuning<
+            RAJA::hip::GlobalAtomicReplicationMinPow2Concretizer<
+              RAJA::hip::ConstantPreferredReplicationConcretizer<global_replication>>,
+            std::conditional_t<warp_atomics, RAJA::hip::warp_global_xyz<>, RAJA::hip::block_xyz<>>,
+            std::conditional_t<bunched_atomics, RAJA::GetOffsetLeftBunched<0,int>, RAJA::GetOffsetLeft<int>>>>>;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      HISTOGRAM_INIT_COUNTS_RAJA(multi_reduce_policy);
+
+      RAJA::forall<RAJA::hip_exec<block_size, true /*async*/>>( res,
+          RAJA::RangeSegment(ibegin, iend),
+          [=] __device__ (Index_type i) {
+        HISTOGRAM_BODY;
+      });
+
+      HISTOGRAM_FINALIZE_COUNTS_RAJA(multi_reduce_policy);
+
+    }
+    stopTimer();
+
   } else {
      getCout() << "\n  HISTOGRAM : Unknown Hip variant id = " << vid << std::endl;
   }
 
-  RAJAPERF_HIP_REDUCER_TEARDOWN(counts, hcounts);
 
 }
 
@@ -466,22 +532,106 @@ void HISTOGRAM::runHipVariant(VariantID vid, size_t tune_idx)
             if (tune_idx == t) {
 
               setBlockSize(block_size);
-              runHipVariantAtomicGlobal<decltype(block_size)::value, global_replication>(vid);
+              runHipVariantAtomicGlobal<decltype(block_size)::value, global_replication, false, false>(vid);
 
             }
 
             t += 1;
 
+            if ( vid == RAJA_HIP ) {
+
+              if (tune_idx == t) {
+
+                setBlockSize(block_size);
+                runHipVariantAtomicGlobal<decltype(block_size)::value, global_replication, true, false>(vid);
+
+              }
+
+              t += 1;
+
+              if (tune_idx == t) {
+
+                setBlockSize(block_size);
+                runHipVariantAtomicGlobal<decltype(block_size)::value, global_replication, false, true>(vid);
+
+              }
+
+              t += 1;
+
+              if (tune_idx == t) {
+
+                setBlockSize(block_size);
+                runHipVariantAtomicGlobal<decltype(block_size)::value, global_replication, true, true>(vid);
+
+              }
+
+              t += 1;
+
+            }
+
             seq_for(gpu_atomic_shared_replications_type{}, [&](auto shared_replication) {
 
-              if ( vid == Base_HIP ) {
+              if ( vid == Base_HIP || vid == RAJA_HIP ) {
 
                 if (tune_idx == t) {
 
                   setBlockSize(block_size);
                   runHipVariantAtomicShared<decltype(block_size)::value,
                                              shared_replication,
-                                             decltype(global_replication)::value>(vid);
+                                             decltype(global_replication)::value, false, false>(vid);
+
+                }
+
+                t += 1;
+
+              }
+
+              if ( vid == RAJA_HIP ) {
+
+                if (tune_idx == t) {
+
+                  setBlockSize(block_size);
+                  runHipVariantAtomicShared<decltype(block_size)::value,
+                                             shared_replication,
+                                             decltype(global_replication)::value, true, false>(vid);
+
+                }
+
+                t += 1;
+
+                if (tune_idx == t) {
+
+                  setBlockSize(block_size);
+                  runHipVariantAtomicShared<decltype(block_size)::value,
+                                             shared_replication,
+                                             decltype(global_replication)::value, false, true>(vid);
+
+                }
+
+                t += 1;
+
+                if (tune_idx == t) {
+
+                  setBlockSize(block_size);
+                  runHipVariantAtomicShared<decltype(block_size)::value,
+                                             shared_replication,
+                                             decltype(global_replication)::value, true, true>(vid);
+
+                }
+
+                t += 1;
+
+              }
+
+              if ( vid == Base_HIP ) {
+
+                if (tune_idx == t) {
+
+                  histogram_info<decltype(block_size)::value, Data_type, decltype(histogram_atomic_runtime<decltype(block_size)::value>)> info(
+                      histogram_atomic_runtime<decltype(block_size)::value>, getActualProblemSize(), m_num_bins,
+                      ConstantModel<decltype(global_replication)::value>{}, ConstantModel<shared_replication>{});
+                  setBlockSize(block_size);
+                  runHipVariantAtomicRuntime(info, vid);
 
                 }
 
@@ -500,7 +650,8 @@ void HISTOGRAM::runHipVariant(VariantID vid, size_t tune_idx)
           if (tune_idx == t) {
 
             histogram_info<block_size, Data_type, decltype(histogram_atomic_runtime<block_size>)> info(
-                histogram_atomic_runtime<block_size>, getActualProblemSize(), m_num_bins);
+                histogram_atomic_runtime<block_size>, getActualProblemSize(), m_num_bins,
+                histogram_global_atomic_model{}, histogram_shared_atomic_model{});
             setBlockSize(block_size);
             runHipVariantAtomicRuntime(info, vid);
 
@@ -542,15 +693,44 @@ void HISTOGRAM::setHipTuningDefinitions(VariantID vid)
           if (run_params.numValidAtomicReplication() == 0u ||
               run_params.validAtomicReplication(global_replication)) {
 
-            addVariantTuningName(vid, "replicate_"+std::to_string(global_replication)+
-                                      "_global_"+std::to_string(block_size));
+            addVariantTuningName(vid, "atomic_global<"+std::to_string(global_replication)+
+                                      ">block_unbunched_"+std::to_string(block_size));
+
+            if ( vid == RAJA_HIP ) {
+              addVariantTuningName(vid, "atomic_global<"+std::to_string(global_replication)+
+                                        ">warp_unbunched_"+std::to_string(block_size));
+              addVariantTuningName(vid, "atomic_global<"+std::to_string(global_replication)+
+                                        ">block_bunched_"+std::to_string(block_size));
+              addVariantTuningName(vid, "atomic_global<"+std::to_string(global_replication)+
+                                        ">warp_bunched_"+std::to_string(block_size));
+            }
 
             seq_for(gpu_atomic_shared_replications_type{}, [&](auto shared_replication) {
 
-              if ( vid == Base_HIP ) {
+              if ( vid == Base_HIP || vid == RAJA_HIP ) {
                 addVariantTuningName(vid, "atomic_shared<"+std::to_string(shared_replication)+
                                           ">_global<"+std::to_string(global_replication)+
-                                          ">_"+std::to_string(block_size));
+                                          ">block_unbunched_"+std::to_string(block_size));
+              }
+
+              if ( vid == RAJA_HIP ) {
+                addVariantTuningName(vid, "atomic_shared<"+std::to_string(shared_replication)+
+                                          ">_global<"+std::to_string(global_replication)+
+                                          ">warp_unbunched_"+std::to_string(block_size));
+                addVariantTuningName(vid, "atomic_shared<"+std::to_string(shared_replication)+
+                                          ">_global<"+std::to_string(global_replication)+
+                                          ">block_bunched_"+std::to_string(block_size));
+                addVariantTuningName(vid, "atomic_shared<"+std::to_string(shared_replication)+
+                                          ">_global<"+std::to_string(global_replication)+
+                                          ">warp_bunched_"+std::to_string(block_size));
+              }
+
+              if ( vid == Base_HIP ) {
+                histogram_info<decltype(block_size)::value, Data_type, decltype(histogram_atomic_runtime<decltype(block_size)::value>)> info(
+                      histogram_atomic_runtime<decltype(block_size)::value>, getActualProblemSize(), m_num_bins,
+                      ConstantModel<decltype(global_replication)::value>{}, ConstantModel<shared_replication>{});
+                auto name = info.get_name();
+                addVariantTuningName(vid, name.c_str());
               }
 
             });
@@ -561,7 +741,8 @@ void HISTOGRAM::setHipTuningDefinitions(VariantID vid)
 
         if ( vid == Base_HIP ) {
           histogram_info<block_size, Data_type, decltype(histogram_atomic_runtime<block_size>)> info(
-              histogram_atomic_runtime<block_size>, getActualProblemSize(), m_num_bins);
+              histogram_atomic_runtime<block_size>, getActualProblemSize(), m_num_bins,
+              histogram_global_atomic_model{}, histogram_shared_atomic_model{});
           auto name = info.get_name();
           addVariantTuningName(vid, name.c_str());
         }

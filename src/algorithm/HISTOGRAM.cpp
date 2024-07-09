@@ -28,7 +28,7 @@ HISTOGRAM::HISTOGRAM(const RunParams& params)
 
   setActualProblemSize( getTargetProblemSize() );
 
-  m_num_bins = 10;
+  m_num_bins = 100;
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
@@ -71,8 +71,8 @@ void HISTOGRAM::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
     auto reset_bins = scopedMoveData(m_bins, getActualProblemSize(), vid);
 
     bool init_even_sizes = false;
-    bool init_random_sizes = true;
-    bool init_all_one = false;
+    bool init_random_sizes = false;
+    bool init_all_one = true;
     bool init_random_per_iterate = false;
     if (init_even_sizes || init_random_sizes || init_all_one) {
       Real_ptr data = nullptr;
