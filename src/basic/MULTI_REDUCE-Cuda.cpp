@@ -104,15 +104,14 @@ void MULTI_REDUCE::runCudaVariantAtomicGlobal(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJAPERF_CUDA_REDUCER_INITIALIZE(values_init, values, hvalues, num_bins, replication);
+      MULTI_REDUCE_INIT_VALUES_RAJA(RAJA::cuda_multi_reduce_atomic);
 
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-          MULTI_REDUCE_GPU_RAJA_BODY(RAJA::cuda_atomic);
+          MULTI_REDUCE_BODY;
       });
 
-      RAJAPERF_CUDA_REDUCER_COPY_BACK(values, hvalues, num_bins, replication);
-      MULTI_REDUCE_GPU_FINALIZE_VALUES(hvalues, num_bins, replication);
+      MULTI_REDUCE_FINALIZE_VALUES_RAJA(RAJA::cuda_multi_reduce_atomic);
 
     }
     stopTimer();
