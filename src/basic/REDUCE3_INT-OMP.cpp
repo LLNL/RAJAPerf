@@ -136,8 +136,7 @@ void REDUCE3_INT::runOpenMPVariant(VariantID vid, size_t tune_idx)
           m_vmax = RAJA_MAX(m_vmax, static_cast<Int_type>(tvmax));
 
         }
-      }
-      stopTimer();
+        stopTimer();
 
       } else {
         getCout() << "\n  REDUCE3_INT : Unknown OpenMP tuning index = " << tune_idx << std::endl;

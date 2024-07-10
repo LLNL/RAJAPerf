@@ -64,6 +64,8 @@ void DOT::runOpenMPVariant(VariantID vid, size_t tune_idx)
         #pragma omp parallel for reduction(+:dot)
         for (Index_type i = ibegin; i < iend; ++i ) {
           dot += dot_base_lam(i);
+        }
+
         m_dot += dot;
 
       }
