@@ -94,9 +94,7 @@ void REDUCE_SUM::runOpenMPVariant(VariantID vid, size_t tune_idx)
         }
         stopTimer();
 
-      }
-
-      if (tune_idx == 1) {
+      } else if (tune_idx == 1) {
 
         startTimer();
         for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -116,6 +114,8 @@ void REDUCE_SUM::runOpenMPVariant(VariantID vid, size_t tune_idx)
         }
         stopTimer();
 
+      } else {
+        getCout() << "\n  REDUCE_SUM : Unknown OpenMP tuning index = " << tune_idx << std::endl;
       }
 
 
