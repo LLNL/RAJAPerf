@@ -83,34 +83,35 @@ void REDUCE3_INT::runOpenMPTargetVariant(VariantID vid, size_t tune_idx)
       }
       stopTimer();
 
-    }
+    } else if (tune_idx == 1) {
 
-    if (tune_idx == 1) {
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        startTimer();
-        for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        Int_type tvsum = m_vsum_init;
+        Int_type tvmin = m_vmin_init;
+        Int_type tvmax = m_vmax_init;
 
-          Int_type tvsum = m_vsum_init;
-          Int_type tvmin = m_vmin_init;
-          Int_type tvmax = m_vmax_init;
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
+          RAJA::RangeSegment(ibegin, iend),
+          RAJA::expt::Reduce<RAJA::operators::plus>(&tvsum),
+          RAJA::expt::Reduce<RAJA::operators::minimum>(&tvmin),
+          RAJA::expt::Reduce<RAJA::operators::maximum>(&tvmax),
+          [=](Index_type i, Int_type& vsum, Int_type& vmin, Int_type& vmax) {
+            REDUCE3_INT_BODY;
+          }
+        );
 
-          RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
-            RAJA::RangeSegment(ibegin, iend),
-            RAJA::expt::Reduce<RAJA::operators::plus>(&tvsum),
-            RAJA::expt::Reduce<RAJA::operators::minimum>(&tvmin),
-            RAJA::expt::Reduce<RAJA::operators::maximum>(&tvmax),
-            [=](Index_type i, Int_type& vsum, Int_type& vmin, Int_type& vmax) {
-              REDUCE3_INT_BODY;
-            }
-          );
+        m_vsum += static_cast<Int_type>(tvsum);
+        m_vmin = RAJA_MIN(m_vmin, static_cast<Int_type>(tvmin));
+        m_vmax = RAJA_MAX(m_vmax, static_cast<Int_type>(tvmax));
 
-          m_vsum += static_cast<Int_type>(tvsum);
-          m_vmin = RAJA_MIN(m_vmin, static_cast<Int_type>(tvmin));
-          m_vmax = RAJA_MAX(m_vmax, static_cast<Int_type>(tvmax));
-
-        }
       }
       stopTimer();
+
+    } else {
+      getCout() << "\n  REDUCE3_INT : Unknown OMP Target tuning index = " << tune_idx << std::endl;
+    }
 
   } else {
      getCout() << "\n  REDUCE3_INT : Unknown OMP Target variant id = " << vid << std::endl;
