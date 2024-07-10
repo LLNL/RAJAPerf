@@ -105,9 +105,7 @@ void FIRST_MIN::runOpenMPVariant(VariantID vid, size_t tune_idx)
         }
         stopTimer();
 
-      }
-
-      if (tune_idx == 1) {
+      } else if (tune_idx == 1) {
 
         using VL_TYPE = RAJA::expt::ValLoc<Real_type>;
 
@@ -129,6 +127,8 @@ void FIRST_MIN::runOpenMPVariant(VariantID vid, size_t tune_idx)
         }
         stopTimer();
 
+      } else {
+        getCout() << "\n  FIRST_MIN : Unknown OpenMP tuning index = " << tune_idx << std::endl;
       }
 
       break;
