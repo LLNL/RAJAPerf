@@ -74,29 +74,29 @@ void REDUCE_SUM::runOpenMPTargetVariant(VariantID vid, size_t tune_idx)
       }
       stopTimer();
 
-     } else if (tune_idx == 1) {
+    } else if (tune_idx == 1) {
 
-       startTimer();
-       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-         Real_type tsum = m_sum_init;
+        Real_type tsum = m_sum_init;
 
-         RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
-           RAJA::RangeSegment(ibegin, iend),
-           RAJA::expt::Reduce<RAJA::operators::plus>(&tsum),
-           [=] (Index_type i, Real_type& sum) {
-             REDUCE_SUM_BODY;
-           }
-         );
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
+          RAJA::RangeSegment(ibegin, iend),
+          RAJA::expt::Reduce<RAJA::operators::plus>(&tsum),
+          [=] (Index_type i, Real_type& sum) {
+            REDUCE_SUM_BODY;
+          }
+        );
 
-         m_sum = static_cast<Real_type>(tsum);
+        m_sum = static_cast<Real_type>(tsum);
 
-       }
-       stopTimer();
+      }
+      stopTimer();
 
-     } else {
-       getCout() << "\n  REDUCE_SUM : Unknown OpenMP Target tuning index = " << tune_idx << std::endl;
-     }
+    } else {
+      getCout() << "\n  REDUCE_SUM : Unknown OMP Target tuning index = " << tune_idx << std::endl;
+    }
 
   } else {
     getCout() << "\n  REDUCE_SUM : Unknown OMP Target variant id = " << vid << std::endl;
