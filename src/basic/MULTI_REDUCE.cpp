@@ -49,11 +49,9 @@ MULTI_REDUCE::MULTI_REDUCE(const RunParams& params)
   setVariantDefined( Base_OpenMPTarget );
 
   setVariantDefined( Base_CUDA );
-  setVariantDefined( Lambda_CUDA );
   setVariantDefined( RAJA_CUDA );
 
   setVariantDefined( Base_HIP );
-  setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
 
   setVariantDefined( Kokkos_Lambda );

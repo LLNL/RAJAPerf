@@ -67,9 +67,6 @@
 #define MULTI_REDUCE_RAJA_BODY(policy) \
   RAJA::atomicAdd<policy>(&values[bins[i]], data[i]);
 
-#define MULTI_REDUCE_GPU_RAJA_BODY(policy) \
-  RAJA::atomicAdd<policy>(&values[bins[i]*replication + (i%replication)], data[i]);
-
 
 #include "common/KernelBase.hpp"
 
@@ -103,16 +100,22 @@ public:
 
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
-  template < size_t block_size, size_t replication >
-  void runCudaVariantAtomicGlobal(VariantID vid);
-  template < size_t block_size, size_t replication >
-  void runHipVariantAtomicGlobal(VariantID vid);
+  template < Index_type block_size,
+             Index_type preferred_global_replication,
+             Index_type preferred_shared_replication >
+  void runCudaVariantAtomicRuntime(VariantID vid);
+  template < Index_type block_size,
+             Index_type preferred_global_replication,
+             Index_type preferred_shared_replication >
+  void runHipVariantAtomicRuntime(VariantID vid);
 
 private:
   static const size_t default_gpu_block_size = 256;
   using gpu_block_sizes_type = integer::make_gpu_block_size_list_type<default_gpu_block_size>;
   static const size_t default_gpu_atomic_replication = 2048; // 512, 512
-  using gpu_atomic_replications_type = integer::make_atomic_replication_list_type<default_gpu_atomic_replication>;
+  // using gpu_atomic_global_replications_type = integer::make_atomic_replication_list_type<default_gpu_atomic_global_replication>;
+  using gpu_atomic_global_replications_type = integer::list_type<1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2*1024, 4*1024, 8*1024, 16*1024>;
+  using gpu_atomic_shared_replications_type = integer::list_type<0, 1, 2, 4, 8, 16, 32>;
 
   Index_type m_num_bins;
   Index_ptr m_bins;
