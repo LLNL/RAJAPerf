@@ -218,6 +218,49 @@ void REDUCE_SUM::runCudaVariantRAJA(VariantID vid)
 
 }
 
+template < size_t block_size, typename MappingHelper >
+void REDUCE_SUM::runCudaVariantRAJANewReduce(VariantID vid)
+{
+  using exec_policy = std::conditional_t<MappingHelper::direct,
+      RAJA::cuda_exec<block_size, true /*async*/>,
+      RAJA::cuda_exec_occ_calc<block_size, true /*async*/>>;
+
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  auto res{getCudaResource()};
+
+  REDUCE_SUM_DATA_SETUP;
+
+  if ( vid == RAJA_CUDA ) {
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      Real_type tsum = m_sum_init;
+
+      RAJA::forall<exec_policy>( res,
+        RAJA::RangeSegment(ibegin, iend),
+        RAJA::expt::Reduce<RAJA::operators::plus>(&tsum),
+        [=] __device__ (Index_type i, Real_type& sum) {
+          REDUCE_SUM_BODY;
+        }
+      );
+
+      m_sum = static_cast<Real_type>(tsum);
+
+    }
+    stopTimer();
+
+  } else {
+
+    getCout() << "\n  REDUCE_SUM : Unknown Cuda variant id = " << vid << std::endl;
+
+  }
+
+}
+
 void REDUCE_SUM::runCudaVariant(VariantID vid, size_t tune_idx)
 {
   size_t t = 0;
@@ -272,6 +315,16 @@ void REDUCE_SUM::runCudaVariant(VariantID vid, size_t tune_idx)
 
             });
 
+            if (tune_idx == t) {
+
+              setBlockSize(block_size);
+              runCudaVariantRAJANewReduce<decltype(block_size){},
+                                          decltype(mapping_helper)>(vid);
+
+            }
+
+            t += 1;
+
           }
 
         });
@@ -312,6 +365,7 @@ void REDUCE_SUM::setCudaTuningDefinitions(VariantID vid)
             addVariantTuningName(vid, decltype(algorithm_helper)::get_name()+"_"+
                                       decltype(mapping_helper)::get_name()+"_"+
                                       std::to_string(block_size));
+            RAJA_UNUSED_VAR(algorithm_helper); // to quiet compiler warning 
 
           } else if ( vid == RAJA_CUDA ) {
 
@@ -322,6 +376,13 @@ void REDUCE_SUM::setCudaTuningDefinitions(VariantID vid)
                                         std::to_string(block_size));
 
             });
+
+            auto algorithm_helper = gpu_algorithm::block_device_helper{};
+
+            addVariantTuningName(vid, decltype(algorithm_helper)::get_name()+"_"+
+                                      decltype(mapping_helper)::get_name()+"_"+
+                                      "new_"+std::to_string(block_size));
+            RAJA_UNUSED_VAR(algorithm_helper); // to quiet compiler warning
 
           }
 

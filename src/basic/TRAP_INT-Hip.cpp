@@ -151,6 +151,47 @@ void TRAP_INT::runHipVariantRAJA(VariantID vid)
   }
 }
 
+template < size_t block_size, typename MappingHelper >
+void TRAP_INT::runHipVariantRAJANewReduce(VariantID vid)
+{
+  using exec_policy = std::conditional_t<MappingHelper::direct,
+      RAJA::hip_exec<block_size, true /*async*/>,
+      RAJA::hip_exec_occ_calc<block_size, true /*async*/>>;
+
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  auto res{getHipResource()};
+
+  TRAP_INT_DATA_SETUP;
+
+  if ( vid == RAJA_HIP ) {
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      Real_type tsumx = m_sumx_init;
+
+      RAJA::forall<exec_policy>(
+        res,
+        RAJA::RangeSegment(ibegin, iend),
+        RAJA::expt::Reduce<RAJA::operators::plus>(&tsumx),
+        [=] __device__ (Index_type i, Real_type& sumx) {
+          TRAP_INT_BODY;
+        }
+      );
+
+      m_sumx += static_cast<Real_type>(tsumx) * h;
+
+    }
+    stopTimer();
+
+  } else {
+     getCout() << "\n  TRAP_INT : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
 void TRAP_INT::runHipVariant(VariantID vid, size_t tune_idx)
 {
   size_t t = 0;
@@ -192,6 +233,16 @@ void TRAP_INT::runHipVariant(VariantID vid, size_t tune_idx)
               t += 1;
 
             });
+
+            if (tune_idx == t) {
+
+              setBlockSize(block_size);
+              runHipVariantRAJANewReduce<decltype(block_size){},
+                                          decltype(mapping_helper)>(vid);
+
+            }
+
+            t += 1;
 
           }
 
@@ -237,6 +288,12 @@ void TRAP_INT::setHipTuningDefinitions(VariantID vid)
                                         std::to_string(block_size));
 
             });
+
+            auto algorithm_helper = gpu_algorithm::block_device_helper{};
+
+            addVariantTuningName(vid, decltype(algorithm_helper)::get_name()+"_"+
+                                      decltype(mapping_helper)::get_name()+"_"+
+                                      "new_"+std::to_string(block_size));
 
           }
 

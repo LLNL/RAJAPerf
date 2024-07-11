@@ -27,7 +27,7 @@ namespace algorithm
   const size_t threads_per_team = 256;
 
 template < size_t replication >
-void ATOMIC::runOpenMPTargetReplicate(VariantID vid)
+void ATOMIC::runOpenMPTargetVariantReplicate(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
