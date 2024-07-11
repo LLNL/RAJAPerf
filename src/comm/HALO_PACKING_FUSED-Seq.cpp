@@ -189,14 +189,14 @@ void HALO_PACKING_FUSED::runSeqVariantDirect(VariantID vid)
 template < typename dispatch_helper >
 void HALO_PACKING_FUSED::runSeqVariantWorkGroup(VariantID vid)
 {
-  const Index_type run_reps = getRunReps();
-
-  HALO_PACKING_FUSED_DATA_SETUP;
-
   switch ( vid ) {
 
-#if defined(RUN_RAJA_SEQ)
     case RAJA_Seq : {
+
+#if defined(RUN_RAJA_SEQ)
+      const Index_type run_reps = getRunReps();
+
+      HALO_PACKING_FUSED_DATA_SETUP;
 
       using AllocatorHolder = RAJAPoolAllocatorHolder<
         RAJA::basic_mempool::MemPool<RAJA::basic_mempool::generic_allocator>>;
@@ -281,10 +281,10 @@ void HALO_PACKING_FUSED::runSeqVariantWorkGroup(VariantID vid)
 
       }
       stopTimer();
+#endif // RUN_RAJA_SEQ
 
       break;
     }
-#endif // RUN_RAJA_SEQ
 
     default : {
       getCout() << "\n HALO_PACKING_FUSED : Unknown variant id = " << vid << std::endl;

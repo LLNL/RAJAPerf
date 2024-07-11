@@ -29,7 +29,7 @@ namespace basic
   const size_t threads_per_team = 256;
 
 
-void TRAP_INT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+void TRAP_INT::runOpenMPTargetVariant(VariantID vid, size_t tune_idx)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -46,7 +46,8 @@ void TRAP_INT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
 
       Real_type sumx = m_sumx_init;
 
-      #pragma omp target teams distribute parallel for map(tofrom: sumx) reduction(+:sumx) \
+      #pragma omp target teams distribute parallel for \
+                         map(tofrom: sumx) reduction(+:sumx) \
                          thread_limit(threads_per_team) schedule(static, 1)
 
       for (Index_type i = ibegin; i < iend; ++i ) {
@@ -62,23 +63,57 @@ void TRAP_INT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
 
   } else if ( vid == RAJA_OpenMPTarget ) {
 
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+    if (tune_idx == 0) {
 
-      RAJA::ReduceSum<RAJA::omp_target_reduce, Real_type> sumx(m_sumx_init);
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
-        RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-        TRAP_INT_BODY;
-      });
+        RAJA::ReduceSum<RAJA::omp_target_reduce, Real_type> sumx(m_sumx_init);
 
-      m_sumx += static_cast<Real_type>(sumx.get()) * h;
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
+          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
+          TRAP_INT_BODY;
+        });
 
+        m_sumx += static_cast<Real_type>(sumx.get()) * h;
+
+      }
+      stopTimer();
+
+    } else if (tune_idx == 1) {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        Real_type tsumx = m_sumx_init;
+
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
+          RAJA::RangeSegment(ibegin, iend),
+          RAJA::expt::Reduce<RAJA::operators::plus>(&tsumx),
+          [=] (Index_type i, Real_type& sumx) {
+            TRAP_INT_BODY;
+          }
+        );
+
+        m_sumx += static_cast<Real_type>(tsumx) * h;
+
+      }
+      stopTimer();
+
+    } else {
+      getCout() << "\n  TRAP_INT : Unknown OMP Target tuning index = " << tune_idx << std::endl;
     }
-    stopTimer();
 
   } else {
-     getCout() << "\n  TRAP_INT : Unknown OMP Targetvariant id = " << vid << std::endl;
+     getCout() << "\n  TRAP_INT : Unknown OMP Target variant id = " << vid << std::endl;
+  }
+}
+
+void TRAP_INT::setOpenMPTargetTuningDefinitions(VariantID vid)
+{
+  addVariantTuningName(vid, "default");
+  if (vid == RAJA_OpenMPTarget) {
+    addVariantTuningName(vid, "new");
   }
 }
 

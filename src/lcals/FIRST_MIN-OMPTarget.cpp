@@ -27,7 +27,7 @@ namespace lcals
   const size_t threads_per_team = 256;
 
 
-void FIRST_MIN::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+void FIRST_MIN::runOpenMPTargetVariant(VariantID vid, size_t tune_idx)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -60,26 +60,62 @@ void FIRST_MIN::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
 
   } else if ( vid == RAJA_OpenMPTarget ) {
 
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+    if (tune_idx == 0) {
 
-      RAJA::ReduceMinLoc<RAJA::omp_target_reduce, Real_type, Index_type> loc(
-                                                  m_xmin_init, m_initloc);
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
-        RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-        FIRST_MIN_BODY_RAJA;
-      });
+        RAJA::ReduceMinLoc<RAJA::omp_target_reduce, Real_type, Index_type> loc(
+                                                    m_xmin_init, m_initloc);
 
-      m_minloc = loc.getLoc();
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
+          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
+          FIRST_MIN_BODY_RAJA;
+        });
 
+        m_minloc = loc.getLoc();
+
+      }
+      stopTimer();
+
+    } else if (tune_idx == 1) {
+
+      using VL_TYPE = RAJA::expt::ValLoc<Real_type>;
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        VL_TYPE tloc(m_xmin_init, m_initloc);
+
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
+          RAJA::RangeSegment(ibegin, iend),
+          RAJA::expt::Reduce<RAJA::operators::minimum>(&tloc),
+          [=](Index_type i, VL_TYPE& loc) {
+            loc.min(x[i], i);
+          }
+        );
+
+        m_minloc = static_cast<Index_type>(tloc.getLoc());
+
+      }
+      stopTimer();
+
+    } else {
+      getCout() << "\n  FIRST_MIN : Unknown OMP Target tuning index = " << tune_idx << std::endl;
     }
-    stopTimer();
 
   } else {
      getCout() << "\n  FIRST_MIN : Unknown OMP Target variant id = " << vid << std::endl;
   }
 
+}
+
+void FIRST_MIN::setOpenMPTargetTuningDefinitions(VariantID vid)
+{
+  addVariantTuningName(vid, "default");
+  if (vid == RAJA_OpenMPTarget) {
+    addVariantTuningName(vid, "new");
+  }
 }
 
 } // end namespace lcals

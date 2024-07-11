@@ -20,7 +20,7 @@ namespace basic
 {
 
 
-void TRAP_INT::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+void TRAP_INT::runOpenMPVariant(VariantID vid, size_t tune_idx)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 
@@ -79,20 +79,46 @@ void TRAP_INT::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
 
     case RAJA_OpenMP : {
 
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+      if (tune_idx == 0) {
 
-        RAJA::ReduceSum<RAJA::omp_reduce, Real_type> sumx(m_sumx_init);
+        startTimer();
+        for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          TRAP_INT_BODY;
-        });
+          RAJA::ReduceSum<RAJA::omp_reduce, Real_type> sumx(m_sumx_init);
 
-        m_sumx += static_cast<Real_type>(sumx.get()) * h;
+          RAJA::forall<RAJA::omp_parallel_for_exec>(
+            RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
+            TRAP_INT_BODY;
+          });
 
+          m_sumx += static_cast<Real_type>(sumx.get()) * h;
+
+        }
+        stopTimer();
+  
+      } else if (tune_idx == 1) {
+
+        startTimer();
+        for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+          Real_type tsumx = m_sumx_init;
+
+          RAJA::forall<RAJA::omp_parallel_for_exec>(
+            RAJA::RangeSegment(ibegin, iend),
+            RAJA::expt::Reduce<RAJA::operators::plus>(&tsumx),
+            [=] (Index_type i, Real_type& sumx) {
+              TRAP_INT_BODY;
+            }
+          );
+
+          m_sumx += static_cast<Real_type>(tsumx) * h;
+
+        }
+        stopTimer();
+
+      } else {
+        getCout() << "\n  TRAP_INT : Unknown OpenMP tuning index = " << tune_idx << std::endl;
       }
-      stopTimer();
 
       break;
     }
@@ -105,7 +131,16 @@ void TRAP_INT::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
 
 #else
   RAJA_UNUSED_VAR(vid);
+  RAJA_UNUSED_VAR(tune_idx);
 #endif
+}
+
+void TRAP_INT::setOpenMPTuningDefinitions(VariantID vid)
+{
+  addVariantTuningName(vid, "default");
+  if (vid == RAJA_OpenMP) {
+    addVariantTuningName(vid, "new");
+  }
 }
 
 } // end namespace basic
