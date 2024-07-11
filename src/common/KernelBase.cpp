@@ -632,12 +632,22 @@ void KernelBase::setCaliperMgrVariantTuning(VariantID vid,
   }
   )json";
 
-  if(!ran_spot_config_check && ((!addToSpotConfig.empty()) || (!addToCaliConfig.empty()))) {
+  // Skip check if both empty
+  if ((!addToSpotConfig.empty() || !addToCaliConfig.empty()) && !ran_spot_config_check) {
     cali::ConfigManager cm;
-    std::string check_profile = "spot(" + addToSpotConfig + ")";
-    if (!addToCaliConfig.empty()) {
-        check_profile += "," + addToCaliConfig;
+    std::string check_profile;
+    // If both not empty
+    if (!addToSpotConfig.empty() && !addToCaliConfig.empty()) {
+      check_profile = "spot(" + addToSpotConfig + ")," + addToCaliConfig;
     }
+    else if (!addToSpotConfig.empty()) {
+      check_profile = "spot(" + addToSpotConfig + ")";
+    }
+    // if !addToCaliConfig.empty()
+    else {
+      check_profile = addToCaliConfig;
+    }
+
     std::string msg = cm.check(check_profile.c_str());
     if(!msg.empty()) {
       std::cerr << "Problem with Cali Config: " << check_profile << "\n";
