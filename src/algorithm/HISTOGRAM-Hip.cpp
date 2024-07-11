@@ -245,7 +245,7 @@ void HISTOGRAM::runHipVariantAtomicRuntime(VariantID vid)
 
     using multi_reduce_policy = RAJA::policy::hip::hip_multi_reduce_policy<
         RAJA::hip::MultiReduceTuning<
-          RAJA::hip::multi_reduce_algorithm::init_host_combine_block_then_grid_atomic,
+          RAJA::hip::multi_reduce_algorithm::init_host_combine_block_atomic_then_grid_atomic,
           RAJA::hip::AtomicReplicationTuning<
             RAJA::hip::SharedAtomicReplicationMaxPow2Concretizer<
               RAJA::hip::ConstantPreferredReplicationConcretizer<preferred_shared_replication>>,

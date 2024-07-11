@@ -216,7 +216,7 @@ void HISTOGRAM::runCudaVariantAtomicRuntime(VariantID vid)
 
     using multi_reduce_policy = RAJA::policy::cuda::cuda_multi_reduce_policy<
         RAJA::cuda::MultiReduceTuning<
-          RAJA::cuda::multi_reduce_algorithm::init_host_combine_block_then_grid_atomic,
+          RAJA::cuda::multi_reduce_algorithm::init_host_combine_block_atomic_then_grid_atomic,
           RAJA::cuda::AtomicReplicationTuning<
             RAJA::cuda::SharedAtomicReplicationMaxPow2Concretizer<
               RAJA::cuda::ConstantPreferredReplicationConcretizer<preferred_shared_replication>>,
