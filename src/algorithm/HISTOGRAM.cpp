@@ -13,6 +13,7 @@
 #include "common/DataUtils.hpp"
 
 #include <algorithm>
+#include <stdlib.h>
 
 namespace rajaperf
 {
@@ -28,7 +29,8 @@ HISTOGRAM::HISTOGRAM(const RunParams& params)
 
   setActualProblemSize( getTargetProblemSize() );
 
-  m_num_bins = 100;
+  const char* e_num_bins = getenv("RAJAPERF_MULTI_REDUCE_NUM_BINS");
+  m_num_bins = e_num_bins ? atoi(e_num_bins) : 10;
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
@@ -68,10 +70,13 @@ void HISTOGRAM::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
   {
     auto reset_bins = scopedMoveData(m_bins, getActualProblemSize(), vid);
 
-    bool init_even_sizes = false;
-    bool init_random_sizes = false;
-    bool init_all_one = true;
-    bool init_random_per_iterate = false;
+    const char* e_algorithm = getenv("RAJAPERF_MULTI_REDUCE_BIN_ASSIGNMENT");
+    const int algorithm = e_algorithm ? atoi(e_algorithm) : 0;
+    const bool init_random_per_iterate = algorithm == 0;
+    const bool init_random_sizes = algorithm == 1;
+    const bool init_even_sizes = algorithm == 2;
+    const bool init_all_one = algorithm == 3;
+
     if (init_even_sizes || init_random_sizes || init_all_one) {
       Real_ptr data = nullptr;
       if (init_even_sizes) {

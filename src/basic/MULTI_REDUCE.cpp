@@ -12,6 +12,9 @@
 
 #include "common/DataUtils.hpp"
 
+#include <algorithm>
+#include <stdlib.h>
+
 namespace rajaperf
 {
 namespace basic
@@ -26,7 +29,8 @@ MULTI_REDUCE::MULTI_REDUCE(const RunParams& params)
 
   setActualProblemSize( getTargetProblemSize() );
 
-  m_num_bins = 10;
+  const char* e_num_bins = getenv("RAJAPERF_MULTI_REDUCE_NUM_BINS");
+  m_num_bins = e_num_bins ? atoi(e_num_bins) : 10;
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
@@ -67,16 +71,60 @@ void MULTI_REDUCE::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
   allocAndInitDataRandValue(m_data, getActualProblemSize(), vid);
   {
     auto reset_bins = scopedMoveData(m_bins, getActualProblemSize(), vid);
-    auto reset_data = scopedMoveData(m_data, getActualProblemSize(), vid);
 
-    for (Index_type i = 0; i < getActualProblemSize(); ++i) {
-      m_bins[i] = static_cast<Index_type>(m_data[i] * m_num_bins);
-      if (m_bins[i] >= m_num_bins) {
-        m_bins[i] = m_num_bins - 1;
+    const char* e_algorithm = getenv("RAJAPERF_MULTI_REDUCE_BIN_ASSIGNMENT");
+    const int algorithm = e_algorithm ? atoi(e_algorithm) : 0;
+    const bool init_random_per_iterate = algorithm == 0;
+    const bool init_random_sizes = algorithm == 1;
+    const bool init_even_sizes = algorithm == 2;
+    const bool init_all_one = algorithm == 3;
+
+    if (init_even_sizes || init_random_sizes || init_all_one) {
+      Real_ptr data = nullptr;
+      if (init_even_sizes) {
+        allocData(data, m_num_bins, Base_Seq);
+        for (Index_type b = 0; b < m_num_bins; ++b) {
+          data[b] = static_cast<Real_type>(b+1) / m_num_bins;
+        }
+      } else if (init_random_sizes) {
+        allocAndInitDataRandValue(data, m_num_bins, Base_Seq);
+        std::sort(data, data+m_num_bins);
+      } else if (init_all_one) {
+        allocData(data, m_num_bins, Base_Seq);
+        for (Index_type b = 0; b < m_num_bins; ++b) {
+          data[b] = static_cast<Real_type>(0);
+        }
       }
-      if (m_bins[i] < 0) {
-        m_bins[i] = 0;
+
+      Index_type actual_prob_size = getActualProblemSize();
+      Index_type bin = 0;
+      for (Index_type i = 0; i < actual_prob_size; ++i) {
+        Real_type pos = static_cast<Real_type>(i) / actual_prob_size;
+        while (bin+1 < m_num_bins && pos >= data[bin]) {
+          bin += 1;
+        }
+        m_bins[i] = bin;
       }
+
+      deallocData(data, Base_Seq);
+
+    } else if (init_random_per_iterate) {
+      Real_ptr data;
+      allocAndInitDataRandValue(data, getActualProblemSize(), Base_Seq);
+
+      for (Index_type i = 0; i < getActualProblemSize(); ++i) {
+        m_bins[i] = static_cast<Index_type>(data[i] * m_num_bins);
+        if (m_bins[i] >= m_num_bins) {
+          m_bins[i] = m_num_bins - 1;
+        }
+        if (m_bins[i] < 0) {
+          m_bins[i] = 0;
+        }
+      }
+
+      deallocData(data, Base_Seq);
+    } else {
+      throw 1;
     }
   }
 
