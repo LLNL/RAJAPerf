@@ -151,6 +151,48 @@ void FIRST_MIN::runHipVariantRAJA(VariantID vid)
   }
 }
 
+template < size_t block_size, typename MappingHelper >
+void FIRST_MIN::runHipVariantRAJANewReduce(VariantID vid)
+{
+  using exec_policy = std::conditional_t<MappingHelper::direct,
+      RAJA::hip_exec<block_size, true /*async*/>,
+      RAJA::hip_exec_occ_calc<block_size, true /*async*/>>;
+
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  auto res{getHipResource()};
+
+  FIRST_MIN_DATA_SETUP;
+
+  if ( vid == RAJA_HIP ) {
+
+    using VL_TYPE = RAJA::expt::ValLoc<Real_type>;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+       VL_TYPE tloc(m_xmin_init, m_initloc);
+
+       RAJA::forall<exec_policy>( res,
+         RAJA::RangeSegment(ibegin, iend),
+         RAJA::expt::Reduce<RAJA::operators::minimum>(&tloc),
+         [=] __device__ (Index_type i, VL_TYPE& loc) {
+           loc.min(x[i], i);
+         }
+       );
+
+       m_minloc = static_cast<Index_type>(tloc.getLoc());
+
+    }
+    stopTimer();
+
+  } else {
+     getCout() << "\n  FIRST_MIN : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
 void FIRST_MIN::runHipVariant(VariantID vid, size_t tune_idx)
 {
   size_t t = 0;
@@ -183,6 +225,16 @@ void FIRST_MIN::runHipVariant(VariantID vid, size_t tune_idx)
               setBlockSize(block_size);
               runHipVariantRAJA<decltype(block_size){},
                                 decltype(mapping_helper)>(vid);
+
+            }
+
+            t += 1;
+
+            if (tune_idx == t) {
+
+              setBlockSize(block_size);
+              runHipVariantRAJANewReduce<decltype(block_size){},
+                                         decltype(mapping_helper)>(vid);
 
             }
 
@@ -230,6 +282,10 @@ void FIRST_MIN::setHipTuningDefinitions(VariantID vid)
             addVariantTuningName(vid, decltype(algorithm_helper)::get_name()+"_"+
                                       decltype(mapping_helper)::get_name()+"_"+
                                       std::to_string(block_size));
+
+            addVariantTuningName(vid, decltype(algorithm_helper)::get_name()+"_"+
+                                      decltype(mapping_helper)::get_name()+"_"+
+                                      "new_"+std::to_string(block_size)); 
 
           }
 

@@ -42,8 +42,14 @@ void MATVEC_3D_STENCIL::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UN
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      #pragma omp target is_device_ptr(x0,x1,x2,x3,x4,x5,x6,x7, \
-                                       vol, real_zones) device( did )
+      #pragma omp target is_device_ptr(b, \
+                                       dbl, dbc, dbr, dcl, dcc, dcr, dfl, dfc, dfr, \
+                                       xdbl, xdbc, xdbr, xdcl, xdcc, xdcr, xdfl, xdfc, xdfr, \
+                                       cbl, cbc, cbr, ccl, ccc, ccr, cfl, cfc, cfr, \
+                                       xcbl, xcbc, xcbr, xccl, xccc, xccr, xcfl, xcfc, xcfr, \
+                                       ubl, ubc, ubr, ucl, ucc, ucr, ufl, ufc, ufr, \
+                                       xubl, xubc, xubr, xucl, xucc, xucr, xufl, xufc, xufr, \
+                                       real_zones) device( did )
       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type ii = ibegin ; ii < iend ; ++ii ) {
         MATVEC_3D_STENCIL_BODY_INDEX;
