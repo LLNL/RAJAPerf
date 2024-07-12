@@ -50,7 +50,7 @@ __global__ void multi_reduce_atomic_runtime(MULTI_REDUCE::Data_ptr global_values
     {
       Index_type i = blockIdx.x * block_size + threadIdx.x;
       if (i < iend) {
-        Index_type offset = bins[i] * shared_replication + RAJA::power_of_2_mod(threadIdx.x, shared_replication);
+        Index_type offset = bins[i] * shared_replication + RAJA::power_of_2_mod(Index_type{threadIdx.x}, shared_replication);
         RAJA::atomicAdd<RAJA::hip_atomic>(&shared_values[offset], data[i]);
       }
     }
@@ -62,7 +62,7 @@ __global__ void multi_reduce_atomic_runtime(MULTI_REDUCE::Data_ptr global_values
         block_sum += shared_values[bin * shared_replication + RAJA::power_of_2_mod(s, shared_replication)];
       }
       if (block_sum != MULTI_REDUCE::Data_type(0)) {
-        Index_type offset = bin + RAJA::power_of_2_mod(blockIdx.x, global_replication) * num_bins;
+        Index_type offset = bin + RAJA::power_of_2_mod(Index_type{blockIdx.x}, global_replication) * num_bins;
         RAJA::atomicAdd<RAJA::hip_atomic>(&global_values[offset], block_sum);
       }
     }

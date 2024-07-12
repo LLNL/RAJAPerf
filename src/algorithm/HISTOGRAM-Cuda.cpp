@@ -52,7 +52,7 @@ __global__ void histogram_atomic_runtime(HISTOGRAM::Data_ptr global_counts,
     {
       Index_type i = blockIdx.x * block_size + threadIdx.x;
       if (i < iend) {
-        Index_type offset = bins[i] * shared_replication + RAJA::power_of_2_mod(threadIdx.x, shared_replication);
+        Index_type offset = bins[i] * shared_replication + RAJA::power_of_2_mod(Index_type{threadIdx.x}, shared_replication);
         RAJA::atomicAdd<RAJA::cuda_atomic>(&shared_counts[offset], HISTOGRAM::Data_type(1));
       }
     }
@@ -64,7 +64,7 @@ __global__ void histogram_atomic_runtime(HISTOGRAM::Data_ptr global_counts,
         block_sum += shared_counts[bin * shared_replication + RAJA::power_of_2_mod(s, shared_replication)];
       }
       if (block_sum != HISTOGRAM::Data_type(0)) {
-        Index_type offset = bin + RAJA::power_of_2_mod(blockIdx.x, global_replication) * num_bins;
+        Index_type offset = bin + RAJA::power_of_2_mod(Index_type{blockIdx.x}, global_replication) * num_bins;
         RAJA::atomicAdd<RAJA::cuda_atomic>(&global_counts[offset], block_sum);
       }
     }
