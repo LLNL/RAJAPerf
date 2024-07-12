@@ -71,19 +71,26 @@ public:
 
   void runKokkosVariant(VariantID vid, size_t tune_idx);
 
+  void setSeqTuningDefinitions(VariantID vid);
+  void setOpenMPTuningDefinitions(VariantID vid);
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
+  void setOpenMPTargetTuningDefinitions(VariantID vid);
   void setSyclTuningDefinitions(VariantID vid);
 
   template < size_t block_size, typename MappingHelper >
   void runCudaVariantBase(VariantID vid);
-  template < size_t block_size, typename MappingHelper >
-  void runHipVariantBase(VariantID vid);
-
   template < size_t block_size, typename AlgorithmHelper, typename MappingHelper >
   void runCudaVariantRAJA(VariantID vid);
+  template < size_t block_size, typename MappingHelper >
+  void runCudaVariantRAJANewReduce(VariantID vid);
+
+  template < size_t block_size, typename MappingHelper >
+  void runHipVariantBase(VariantID vid);
   template < size_t block_size, typename AlgorithmHelper, typename MappingHelper >
   void runHipVariantRAJA(VariantID vid);
+  template < size_t block_size, typename MappingHelper >
+  void runHipVariantRAJANewReduce(VariantID vid);
 
   template < size_t work_group_size >
   void runSyclVariantImpl(VariantID vid);

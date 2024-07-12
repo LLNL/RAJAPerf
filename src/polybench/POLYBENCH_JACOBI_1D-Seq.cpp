@@ -25,12 +25,14 @@ void POLYBENCH_JACOBI_1D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_AR
 
   POLYBENCH_JACOBI_1D_DATA_SETUP;
 
+#if defined(RUN_RAJA_SEQ)
   auto poly_jacobi1d_lam1 = [=] (Index_type i) {
                               POLYBENCH_JACOBI_1D_BODY1;
                             };
   auto poly_jacobi1d_lam2 = [=] (Index_type i) {
                               POLYBENCH_JACOBI_1D_BODY2;
                             };
+#endif
 
   switch ( vid ) {
 
