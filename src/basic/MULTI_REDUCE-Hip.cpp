@@ -189,12 +189,12 @@ void MULTI_REDUCE::runHipVariant(VariantID vid, size_t tune_idx)
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
 
-        seq_for(gpu_atomic_global_replications_type{}, [&](auto global_replication) {
+        seq_for(hip_atomic_global_replications_type{}, [&](auto global_replication) {
 
           if (run_params.numValidAtomicReplication() == 0u ||
               run_params.validAtomicReplication(global_replication)) {
 
-            seq_for(gpu_atomic_shared_replications_type{}, [&](auto shared_replication) {
+            seq_for(hip_atomic_shared_replications_type{}, [&](auto shared_replication) {
 
               if (tune_idx == t) {
 
@@ -232,12 +232,12 @@ void MULTI_REDUCE::setHipTuningDefinitions(VariantID vid)
     if (run_params.numValidGPUBlockSize() == 0u ||
         run_params.validGPUBlockSize(block_size)) {
 
-      seq_for(gpu_atomic_global_replications_type{}, [&](auto global_replication) {
+      seq_for(hip_atomic_global_replications_type{}, [&](auto global_replication) {
 
         if (run_params.numValidAtomicReplication() == 0u ||
             run_params.validAtomicReplication(global_replication)) {
 
-          seq_for(gpu_atomic_shared_replications_type{}, [&](auto shared_replication) {
+          seq_for(hip_atomic_shared_replications_type{}, [&](auto shared_replication) {
 
             addVariantTuningName(vid, "atomic_shared("+std::to_string(shared_replication)+
                                       ")_global("+std::to_string(global_replication)+

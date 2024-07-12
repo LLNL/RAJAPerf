@@ -112,10 +112,16 @@ public:
 private:
   static const size_t default_gpu_block_size = 256;
   using gpu_block_sizes_type = integer::make_gpu_block_size_list_type<default_gpu_block_size>;
-  static const size_t default_gpu_atomic_replication = 2048; // 512, 512
-  // using gpu_atomic_global_replications_type = integer::make_atomic_replication_list_type<default_gpu_atomic_global_replication>;
-  using gpu_atomic_global_replications_type = integer::list_type<1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2*1024, 4*1024, 8*1024, 16*1024>;
-  using gpu_atomic_shared_replications_type = integer::list_type<0, 1, 2, 4, 8, 16, 32>;
+
+  static const size_t default_cuda_atomic_global_replication = 2;
+  static const size_t default_cuda_atomic_shared_replication = 16;
+  using cuda_atomic_global_replications_type = integer::make_atomic_replication_list_type<default_cuda_atomic_global_replication>;
+  using cuda_atomic_shared_replications_type = integer::make_atomic_replication_list_type<default_cuda_atomic_shared_replication>;
+
+  static const size_t default_hip_atomic_global_replication = 32;
+  static const size_t default_hip_atomic_shared_replication = 4;
+  using hip_atomic_global_replications_type = integer::make_atomic_replication_list_type<default_hip_atomic_global_replication>;
+  using hip_atomic_shared_replications_type = integer::make_atomic_replication_list_type<default_hip_atomic_shared_replication>;
 
   Index_type m_num_bins;
   Index_ptr m_bins;
