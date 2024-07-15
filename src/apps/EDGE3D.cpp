@@ -33,7 +33,7 @@ EDGE3D::EDGE3D(const RunParams& params)
   m_array_length = m_domain->nnalls;
   size_t number_of_elements = m_domain->lpz+1 - m_domain->fpz;
 
-  setActualProblemSize( number_of_elements );
+  setActualProblemSize( m_domain->n_real_zones );
 
   setItsPerRep( number_of_elements );
   setKernelsPerRep(1);
