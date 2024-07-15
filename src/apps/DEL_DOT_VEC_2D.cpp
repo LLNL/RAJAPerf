@@ -37,9 +37,10 @@ DEL_DOT_VEC_2D::DEL_DOT_VEC_2D(const RunParams& params)
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (0*sizeof(Index_type) + 1*sizeof(Index_type)) * getItsPerRep() +
-                  (1*sizeof(Real_type)  + 0*sizeof(Real_type) ) * getItsPerRep() +
-                  (0*sizeof(Real_type)  + 4*sizeof(Real_type) ) * m_domain->n_real_nodes ) ; // touched data size, not actual number of stores and loads
+  setBytesReadPerRep( 1*sizeof(Index_type) * getItsPerRep() +
+                      4*sizeof(Real_type) * m_domain->n_real_nodes ); // 4 variables with 2d nodal stencil pattern: 4 touches per iterate
+  setBytesWrittenPerRep( 1*sizeof(Index_type) * getItsPerRep() );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(54 * m_domain->n_real_zones);
 
   setUsesFeature(Forall);

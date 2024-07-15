@@ -40,11 +40,13 @@ HYDRO_2D::HYDRO_2D(const RunParams& params)
 
   setItsPerRep( 3 * getActualProblemSize() );
   setKernelsPerRep(3);
-  setBytesPerRep( (2*sizeof(Real_type ) + 0*sizeof(Real_type )) * (m_kn-2) * (m_jn-2) +
-                  (0*sizeof(Real_type ) + 4*sizeof(Real_type )) * m_array_length +
-                  (2*sizeof(Real_type ) + 0*sizeof(Real_type )) * (m_kn-2) * (m_jn-2) +
-                  (0*sizeof(Real_type ) + 4*sizeof(Real_type )) * m_array_length +
-                  (2*sizeof(Real_type ) + 4*sizeof(Real_type )) * (m_kn-2) * (m_jn-2) );
+  setBytesReadPerRep( 4*sizeof(Real_type ) * m_array_length +
+                      4*sizeof(Real_type ) * m_array_length +
+                      4*sizeof(Real_type ) * (m_kn-2) * (m_jn-2) );
+  setBytesWrittenPerRep( 2*sizeof(Real_type ) * (m_kn-2) * (m_jn-2) +
+                         2*sizeof(Real_type ) * (m_kn-2) * (m_jn-2) +
+                         2*sizeof(Real_type ) * (m_kn-2) * (m_jn-2) );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep((14 +
                   26 +
                   4  ) * (m_jn-2)*(m_kn-2));

@@ -38,7 +38,9 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params)
 
   its_per_rep = -1;
   kernels_per_rep = -1;
-  bytes_per_rep = -1;
+  bytes_read_per_rep = -1;
+  bytes_written_per_rep = -1;
+  bytes_atomic_modify_written_per_rep = -1;
   FLOPs_per_rep = -1;
 
   running_variant = NumVariants;
@@ -69,6 +71,18 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params)
                                          CALI_ATTR_ASVALUE |
                                          CALI_ATTR_AGGREGATABLE |
                                          CALI_ATTR_SKIP_EVENTS);
+  Bytes_Read_Rep_attr = cali_create_attribute("BytesRead/Rep", CALI_TYPE_DOUBLE,
+                                              CALI_ATTR_ASVALUE |
+                                              CALI_ATTR_AGGREGATABLE |
+                                              CALI_ATTR_SKIP_EVENTS);
+  Bytes_Rep_Written_attr = cali_create_attribute("BytesWritten/Rep", CALI_TYPE_DOUBLE,
+                                                 CALI_ATTR_ASVALUE |
+                                                 CALI_ATTR_AGGREGATABLE |
+                                                 CALI_ATTR_SKIP_EVENTS);
+  Bytes_AtomicModifyWritten_Rep_attr = cali_create_attribute("BytesAtomicModifyWritten/Rep", CALI_TYPE_DOUBLE,
+                                                             CALI_ATTR_ASVALUE |
+                                                             CALI_ATTR_AGGREGATABLE |
+                                                             CALI_ATTR_SKIP_EVENTS);
   Flops_Rep_attr = cali_create_attribute("Flops/Rep", CALI_TYPE_DOUBLE,
                                          CALI_ATTR_ASVALUE |
                                          CALI_ATTR_AGGREGATABLE |
@@ -493,7 +507,9 @@ void KernelBase::print(std::ostream& os) const
   }
   os << "\t\t\t its_per_rep = " << its_per_rep << std::endl;
   os << "\t\t\t kernels_per_rep = " << kernels_per_rep << std::endl;
-  os << "\t\t\t bytes_per_rep = " << bytes_per_rep << std::endl;
+  os << "\t\t\t bytes_read_per_rep = " << bytes_read_per_rep << std::endl;
+  os << "\t\t\t bytes_written_per_rep = " << bytes_written_per_rep << std::endl;
+  os << "\t\t\t bytes_atomic_modify_written_per_rep = " << bytes_atomic_modify_written_per_rep << std::endl;
   os << "\t\t\t FLOPs_per_rep = " << FLOPs_per_rep << std::endl;
   os << "\t\t\t num_exec: " << std::endl;
   for (unsigned j = 0; j < NumVariants; ++j) {
@@ -548,6 +564,9 @@ void KernelBase::doOnceCaliMetaBegin(VariantID vid, size_t tune_idx)
     cali_set_double(Iters_Rep_attr,(double)getItsPerRep());
     cali_set_double(Kernels_Rep_attr,(double)getKernelsPerRep());
     cali_set_double(Bytes_Rep_attr,(double)getBytesPerRep());
+    cali_set_double(BytesRead_Rep_attr,(double)getBytesReadPerRep());
+    cali_set_double(BytesWritten_Rep_attr,(double)getBytesWrittenPerRep());
+    cali_set_double(BytesAtomicModifyWritten_Rep_attr,(double)getBytesAtomicModifyWrittenPerRep());
     cali_set_double(Flops_Rep_attr,(double)getFLOPsPerRep());
     cali_set_double(BlockSize_attr, getBlockSize());
     for (unsigned i = 0; i < FeatureID::NumFeatures; ++i) {
@@ -590,6 +609,9 @@ void KernelBase::setCaliperMgrVariantTuning(VariantID vid,
           { "expr": "any(max#Iterations/Rep)", "as": "Iterations/Rep" },
           { "expr": "any(max#Kernels/Rep)", "as": "Kernels/Rep" },
           { "expr": "any(max#Bytes/Rep)", "as": "Bytes/Rep" },
+          { "expr": "any(max#BytesRead/Rep)", "as": "BytesRead/Rep" },
+          { "expr": "any(max#BytesWritten/Rep)", "as": "BytesWritten/Rep" },
+          { "expr": "any(max#BytesAtomicModifyWritten/Rep)", "as": "BytesAtomicModifyWritten/Rep" },
           { "expr": "any(max#Flops/Rep)", "as": "Flops/Rep" },
           { "expr": "any(max#BlockSize)", "as": "BlockSize" },
           { "expr": "any(max#Forall)", "as": "FeatureForall" },
@@ -613,6 +635,9 @@ void KernelBase::setCaliperMgrVariantTuning(VariantID vid,
           { "expr": "any(any#max#Iterations/Rep)", "as": "Iterations/Rep" },
           { "expr": "any(any#max#Kernels/Rep)", "as": "Kernels/Rep" },
           { "expr": "any(any#max#Bytes/Rep)", "as": "Bytes/Rep" },
+          { "expr": "any(any#max#BytesRead/Rep)", "as": "BytesRead/Rep" },
+          { "expr": "any(any#max#BytesWritten/Rep)", "as": "BytesWritten/Rep" },
+          { "expr": "any(any#max#BytesAtomicModifyWritten/Rep)", "as": "BytesAtomicModifyWritten/Rep" },
           { "expr": "any(any#max#Flops/Rep)", "as": "Flops/Rep" },
           { "expr": "any(any#max#BlockSize)", "as": "BlockSize" },
           { "expr": "any(any#max#Forall)", "as": "FeatureForall" },

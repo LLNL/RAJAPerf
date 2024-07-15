@@ -44,13 +44,15 @@ POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
 
   setItsPerRep( m_ni*m_nj + m_ni*m_nl );
   setKernelsPerRep(2);
-  setBytesPerRep( (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * m_ni * m_nj +
-                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_ni * m_nk +
-                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nj * m_nk +
+  setBytesReadPerRep( 1*sizeof(Real_type ) * m_ni * m_nk +
+                      1*sizeof(Real_type ) * m_nj * m_nk +
 
-                  (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * m_ni * m_nl +
-                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_ni * m_nj +
-                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nj * m_nl );
+                      1*sizeof(Real_type ) * m_ni * m_nj +
+                      1*sizeof(Real_type ) * m_nj * m_nl );
+  setBytesWrittenPerRep( 1*sizeof(Real_type ) * m_ni * m_nj +
+
+                         1*sizeof(Real_type ) * m_ni * m_nl );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(3 * m_ni*m_nj*m_nk +
                  2 * m_ni*m_nj*m_nl );
 

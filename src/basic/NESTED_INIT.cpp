@@ -39,7 +39,9 @@ NESTED_INIT::NESTED_INIT(const RunParams& params)
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getActualProblemSize() );
+  setBytesReadPerRep( 0 );
+  setBytesWrittenPerRep( 1*sizeof(Real_type) * getActualProblemSize()  );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(3 * getActualProblemSize());
 
   setUsesFeature(Kernel);

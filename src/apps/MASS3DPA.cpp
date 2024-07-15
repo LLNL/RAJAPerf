@@ -35,11 +35,11 @@ MASS3DPA::MASS3DPA(const RunParams& params)
   setItsPerRep(getActualProblemSize());
   setKernelsPerRep(1);
 
-  setBytesPerRep( MPA_Q1D*MPA_D1D*sizeof(Real_type)  +
-                  MPA_Q1D*MPA_D1D*sizeof(Real_type)  +
-                  MPA_Q1D*MPA_Q1D*MPA_Q1D*m_NE*sizeof(Real_type) +
-                  MPA_D1D*MPA_D1D*MPA_D1D*m_NE*sizeof(Real_type) +
-                  MPA_D1D*MPA_D1D*MPA_D1D*m_NE*sizeof(Real_type) );
+  setBytesReadPerRep( 2*sizeof(Real_type) * MPA_Q1D*MPA_D1D + // B, Bt
+                      2*sizeof(Real_type) * MPA_D1D*MPA_D1D*MPA_D1D*m_NE + // X, Y
+                      1*sizeof(Real_type) * MPA_Q1D*MPA_Q1D*MPA_Q1D*m_NE ); // D
+  setBytesWrittenPerRep( 1*sizeof(Real_type) * MPA_D1D*MPA_D1D*MPA_D1D*m_NE ); // Y
+  setBytesAtomicModifyWrittenPerRep( 0 );
 
   setFLOPsPerRep(m_NE * (2 * MPA_D1D * MPA_D1D * MPA_D1D * MPA_Q1D +
                          2 * MPA_D1D * MPA_D1D * MPA_Q1D * MPA_Q1D +

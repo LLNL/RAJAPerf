@@ -30,7 +30,9 @@ ARRAY_OF_PTRS::ARRAY_OF_PTRS(const RunParams& params)
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type) + m_array_size*sizeof(Real_type)) * getActualProblemSize() );
+  setBytesReadPerRep( m_array_size*sizeof(Real_type) * getActualProblemSize() );
+  setBytesWrittenPerRep( 1*sizeof(Real_type) * getActualProblemSize() );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(m_array_size * getActualProblemSize());
 
   setUsesFeature(Forall);

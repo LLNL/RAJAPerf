@@ -34,8 +34,11 @@ POLYBENCH_ADI::POLYBENCH_ADI(const RunParams& params)
   setActualProblemSize( (m_n-2) * (m_n-2) );
 
   setKernelsPerRep( m_tsteps * 2 );
-  setBytesPerRep( m_tsteps * ( (3*sizeof(Real_type ) + 3*sizeof(Real_type )) * m_n * (m_n-2) +
-                               (3*sizeof(Real_type ) + 3*sizeof(Real_type )) * m_n * (m_n-2) ) );
+  setBytesReadPerRep((3*sizeof(Real_type ) * m_n * (m_n-2) +
+                      3*sizeof(Real_type ) * m_n * (m_n-2)) * m_tsteps  );
+  setBytesWrittenPerRep((3*sizeof(Real_type ) * m_n * (m_n-2) +
+                         3*sizeof(Real_type ) * m_n * (m_n-2)) * m_tsteps  );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep( m_tsteps * ( (15 + 2) * (m_n-2)*(m_n-2) +
                                (15 + 2) * (m_n-2)*(m_n-2) ) );
 

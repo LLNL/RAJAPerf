@@ -47,9 +47,11 @@ LTIMES::LTIMES(const RunParams& params)
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
   // using total data size instead of writes and reads
-  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * m_philen +
-                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * m_elllen +
-                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * m_psilen );
+  setBytesReadPerRep( 1*sizeof(Real_type) * m_philen +
+                      1*sizeof(Real_type) * m_elllen +
+                      1*sizeof(Real_type) * m_psilen );
+  setBytesWrittenPerRep( 1*sizeof(Real_type) * m_philen );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(2 * m_num_z * m_num_g * m_num_m * m_num_d);
 
   checksum_scale_factor = 0.001 *

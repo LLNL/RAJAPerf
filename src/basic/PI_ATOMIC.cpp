@@ -28,8 +28,9 @@ PI_ATOMIC::PI_ATOMIC(const RunParams& params)
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) +
-                  (0*sizeof(Real_type) + 0*sizeof(Real_type)) * getActualProblemSize() );
+  setBytesReadPerRep( 0 );
+  setBytesWrittenPerRep( 0  );
+  setBytesAtomicModifyWrittenPerRep( 1*sizeof(Real_type) );
   setFLOPsPerRep(6 * getActualProblemSize() + 1);
 
   setUsesFeature(Forall);

@@ -33,10 +33,15 @@ POLYBENCH_MVT::POLYBENCH_MVT(const RunParams& params)
 
   setItsPerRep( 2 * m_N );
   setKernelsPerRep(2);
-  setBytesPerRep( (1*sizeof(Real_type ) + 2*sizeof(Real_type )) * m_N +
-                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N * m_N +
-                  (1*sizeof(Real_type ) + 2*sizeof(Real_type )) * m_N +
-                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N * m_N );
+  setBytesReadPerRep( 2*sizeof(Real_type ) * m_N +
+                      1*sizeof(Real_type ) * m_N * m_N +
+
+                      2*sizeof(Real_type ) * m_N +
+                      1*sizeof(Real_type ) * m_N * m_N );
+  setBytesWrittenPerRep( 1*sizeof(Real_type ) * m_N +
+
+                         1*sizeof(Real_type ) * m_N );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(2 * m_N*m_N +
                  2 * m_N*m_N );
 

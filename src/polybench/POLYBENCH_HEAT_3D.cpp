@@ -35,14 +35,13 @@ POLYBENCH_HEAT_3D::POLYBENCH_HEAT_3D(const RunParams& params)
 
   setItsPerRep( m_tsteps * ( 2 * getActualProblemSize() ) );
   setKernelsPerRep( m_tsteps * 2 );
-  setBytesPerRep( m_tsteps * ( (1*sizeof(Real_type ) + 0*sizeof(Real_type )) *
-                               (m_N-2) * (m_N-2) * (m_N-2) +
-                               (0*sizeof(Real_type ) + 1*sizeof(Real_type )) *
-                               (m_N * m_N * m_N - 12*(m_N-2) - 8) +
-                               (1*sizeof(Real_type ) + 0*sizeof(Real_type )) *
-                               (m_N-2) * (m_N-2) * (m_N-2) +
-                               (0*sizeof(Real_type ) + 1*sizeof(Real_type )) *
-                               (m_N * m_N * m_N - 12*(m_N-2) - 8) ) );
+  setBytesReadPerRep((1*sizeof(Real_type ) * (m_N * m_N * m_N - 12*(m_N-2) - 8) +
+
+                      1*sizeof(Real_type ) * (m_N * m_N * m_N - 12*(m_N-2) - 8)) * m_tsteps);
+  setBytesWrittenPerRep((1*sizeof(Real_type ) * (m_N-2) * (m_N-2) * (m_N-2) +
+
+                         1*sizeof(Real_type ) * (m_N-2) * (m_N-2) * (m_N-2)) * m_tsteps);
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep( m_tsteps * ( 15 * (m_N-2) * (m_N-2) * (m_N-2) +
                                15 * (m_N-2) * (m_N-2) * (m_N-2) ) );
 

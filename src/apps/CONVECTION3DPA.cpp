@@ -35,10 +35,11 @@ CONVECTION3DPA::CONVECTION3DPA(const RunParams& params)
   setItsPerRep(getActualProblemSize());
   setKernelsPerRep(1);
 
-  setBytesPerRep( 3*CPA_Q1D*CPA_D1D*sizeof(Real_type)  +
-                  CPA_VDIM*CPA_Q1D*CPA_Q1D*CPA_Q1D*m_NE*sizeof(Real_type) +
-                  CPA_D1D*CPA_D1D*CPA_D1D*m_NE*sizeof(Real_type) +
-                  CPA_D1D*CPA_D1D*CPA_D1D*m_NE*sizeof(Real_type) );
+  setBytesReadPerRep( 3*sizeof(Real_type) * CPA_Q1D*CPA_D1D + // b, bt, g
+                      2*sizeof(Real_type) * CPA_D1D*CPA_D1D*CPA_D1D*m_NE + // x, y
+               CPA_VDIM*sizeof(Real_type) * CPA_Q1D*CPA_Q1D*CPA_Q1D*m_NE ); // d
+  setBytesWrittenPerRep( 1*sizeof(Real_type) + CPA_D1D*CPA_D1D*CPA_D1D*m_NE ); // y
+  setBytesAtomicModifyWrittenPerRep( 0 );
 
   setFLOPsPerRep(m_NE * (
                          4 * CPA_D1D * CPA_Q1D * CPA_D1D * CPA_D1D + //2

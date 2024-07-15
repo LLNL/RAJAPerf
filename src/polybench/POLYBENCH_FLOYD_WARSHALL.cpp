@@ -33,7 +33,9 @@ POLYBENCH_FLOYD_WARSHALL::POLYBENCH_FLOYD_WARSHALL(const RunParams& params)
 
   setItsPerRep( m_N*m_N );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N * m_N );
+  setBytesReadPerRep( 1*sizeof(Real_type ) * m_N * m_N );
+  setBytesWrittenPerRep( 1*sizeof(Real_type ) * m_N * m_N );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(1 * m_N*m_N*m_N );
 
   checksum_scale_factor = 1.0 *

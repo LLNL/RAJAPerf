@@ -34,14 +34,13 @@ POLYBENCH_JACOBI_1D::POLYBENCH_JACOBI_1D(const RunParams& params)
 
   setItsPerRep( m_tsteps * ( 2 * getActualProblemSize() ) );
   setKernelsPerRep(m_tsteps * 2);
-  setBytesPerRep( m_tsteps * ( (1*sizeof(Real_type ) + 0*sizeof(Real_type )) *
-                               (m_N-2) +
-                               (0*sizeof(Real_type ) + 1*sizeof(Real_type )) *
-                               m_N +
-                               (1*sizeof(Real_type ) + 0*sizeof(Real_type )) *
-                               (m_N-2) +
-                               (0*sizeof(Real_type ) + 1*sizeof(Real_type )) *
-                               m_N ) );
+  setBytesReadPerRep((1*sizeof(Real_type ) * m_N +
+
+                      1*sizeof(Real_type ) * m_N) * m_tsteps);
+  setBytesWrittenPerRep((1*sizeof(Real_type ) * (m_N-2) +
+
+                         1*sizeof(Real_type ) * (m_N-2)) * m_tsteps);
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep( m_tsteps * ( 3 * (m_N-2) +
                                3 * (m_N-2) ) );
 
