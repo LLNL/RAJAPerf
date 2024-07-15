@@ -233,13 +233,13 @@ using reducer_helpers = camp::list<
 // This will use the occupancy calculator if MappingHelper::direct is false
 #define RAJAPERF_CUDA_GET_MAX_BLOCKS(MappingHelper, func, block_size, shmem)   \
   MappingHelper::direct                                                        \
-      ? std::numeric_limits<size_t>::max()                                     \
+      ? std::numeric_limits<int>::max()                       \
       : detail::getCudaOccupancyMaxBlocks(                                     \
             (func), (block_size), (shmem));
 ///
 #define RAJAPERF_HIP_GET_MAX_BLOCKS(MappingHelper, func, block_size, shmem)    \
   MappingHelper::direct                                                        \
-      ? std::numeric_limits<size_t>::max()                                     \
+      ? std::numeric_limits<int>::max()                       \
       : detail::getHipOccupancyMaxBlocks(                                      \
             (func), (block_size), (shmem));
 
