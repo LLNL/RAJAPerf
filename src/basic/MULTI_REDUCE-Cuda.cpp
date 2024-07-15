@@ -23,10 +23,6 @@ namespace basic
 
 constexpr Index_type warp_size = 32;
 
-constexpr Index_type default_shared_replication = 16;
-constexpr Index_type default_global_replication = 2;
-
-
 template < Index_type block_size >
 __launch_bounds__(block_size)
 __global__ void multi_reduce_atomic_runtime(MULTI_REDUCE::Data_ptr global_values,
