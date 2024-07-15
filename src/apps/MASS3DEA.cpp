@@ -30,7 +30,7 @@ MASS3DEA::MASS3DEA(const RunParams& params)
 
   const int ea_mat_entries = MEA_D1D*MEA_D1D*MEA_D1D*MEA_D1D*MEA_D1D*MEA_D1D;
 
-  m_NE = std::max(getTargetProblemSize()/(ea_mat_entries), Index_type(1));
+  m_NE = std::max((getTargetProblemSize() + (ea_mat_entries)/2) / (ea_mat_entries), Index_type(1));
 
   setActualProblemSize( m_NE*ea_mat_entries);
 
