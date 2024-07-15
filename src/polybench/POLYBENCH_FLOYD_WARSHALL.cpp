@@ -26,7 +26,7 @@ POLYBENCH_FLOYD_WARSHALL::POLYBENCH_FLOYD_WARSHALL(const RunParams& params)
   setDefaultProblemSize( N_default * N_default );
   setDefaultReps(8);
 
-  m_N = std::sqrt( getTargetProblemSize() ) + 1;
+  m_N = std::sqrt( getTargetProblemSize() );
 
 
   setActualProblemSize( m_N * m_N );

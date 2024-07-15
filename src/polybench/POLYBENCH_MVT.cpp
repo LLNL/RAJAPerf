@@ -26,7 +26,7 @@ POLYBENCH_MVT::POLYBENCH_MVT(const RunParams& params)
   setDefaultProblemSize( N_default * N_default );
   setDefaultReps(100);
 
-  m_N = std::sqrt( getTargetProblemSize() ) + 1;
+  m_N = std::sqrt( getTargetProblemSize() );
 
 
   setActualProblemSize( m_N * m_N );

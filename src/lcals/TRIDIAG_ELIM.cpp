@@ -26,7 +26,7 @@ TRIDIAG_ELIM::TRIDIAG_ELIM(const RunParams& params)
 
   setActualProblemSize( getTargetProblemSize() );
 
-  m_N = getActualProblemSize();
+  m_N = getActualProblemSize() + 1;
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
