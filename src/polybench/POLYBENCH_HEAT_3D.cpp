@@ -22,12 +22,12 @@ namespace polybench
 POLYBENCH_HEAT_3D::POLYBENCH_HEAT_3D(const RunParams& params)
   : KernelBase(rajaperf::Polybench_HEAT_3D, params)
 {
-  Index_type N_default = 100;
+  Index_type N_default = 102;
 
   setDefaultProblemSize( (N_default-2)*(N_default-2)*(N_default-2) );
   setDefaultReps(20);
 
-  m_N = std::cbrt( getTargetProblemSize() ) + 1;
+  m_N = std::cbrt( getTargetProblemSize() ) + 2;
   m_tsteps = 20;
 
 

@@ -20,12 +20,12 @@ namespace polybench
 POLYBENCH_ADI::POLYBENCH_ADI(const RunParams& params)
   : KernelBase(rajaperf::Polybench_ADI, params)
 {
-  Index_type n_default = 1000;
+  Index_type n_default = 1002;
 
   setDefaultProblemSize( (n_default-2) * (n_default-2) );
   setDefaultReps(4);
 
-  m_n = std::sqrt( getTargetProblemSize() ) + 1;
+  m_n = std::sqrt( getTargetProblemSize() ) + 2;
   m_tsteps = 4;
 
   setItsPerRep( m_tsteps * ( (m_n-2) + (m_n-2) ) );

@@ -21,12 +21,12 @@ namespace polybench
 POLYBENCH_JACOBI_1D::POLYBENCH_JACOBI_1D(const RunParams& params)
   : KernelBase(rajaperf::Polybench_JACOBI_1D, params)
 {
-  Index_type N_default = 1000000;
+  Index_type N_default = 1000002;
 
   setDefaultProblemSize( N_default-2 );
   setDefaultReps(100);
 
-  m_N = getTargetProblemSize();
+  m_N = getTargetProblemSize() + 2;
   m_tsteps = 16;
 
 
