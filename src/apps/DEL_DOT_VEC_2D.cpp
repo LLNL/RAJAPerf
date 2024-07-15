@@ -28,7 +28,7 @@ DEL_DOT_VEC_2D::DEL_DOT_VEC_2D(const RunParams& params)
   setDefaultProblemSize(1000*1000);  // See rzmax in ADomain struct
   setDefaultReps(100);
 
-  Index_type rzmax = std::sqrt(getTargetProblemSize())+1;
+  Index_type rzmax = std::sqrt(getTargetProblemSize()) + 1 + std::sqrt(2)-1;
   m_domain = new ADomain(rzmax, /* ndims = */ 2);
 
   m_array_length = m_domain->nnalls;

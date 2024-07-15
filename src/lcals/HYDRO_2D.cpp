@@ -33,7 +33,7 @@ HYDRO_2D::HYDRO_2D(const RunParams& params)
   setDefaultProblemSize(m_kn * m_jn);
   setDefaultReps(100);
 
-  m_jn = m_kn = std::sqrt(getTargetProblemSize());
+  m_jn = m_kn = std::sqrt(getTargetProblemSize()) + std::sqrt(2)-1;
   m_array_length = m_kn * m_jn;
 
   setActualProblemSize( getTargetProblemSize() );

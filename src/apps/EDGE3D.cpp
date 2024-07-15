@@ -27,7 +27,7 @@ EDGE3D::EDGE3D(const RunParams& params)
 {
   setDefaultProblemSize(100*100*100);  // See rzmax in ADomain struct
   setDefaultReps(10);
-  Index_type rzmax = std::cbrt(getTargetProblemSize())+1;
+  Index_type rzmax = std::cbrt(getTargetProblemSize()) + 1 + std::cbrt(3)-1;
   m_domain = new ADomain(rzmax, /* ndims = */ 3);
 
   m_array_length = m_domain->nnalls;

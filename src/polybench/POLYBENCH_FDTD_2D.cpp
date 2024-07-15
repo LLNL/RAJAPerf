@@ -31,7 +31,7 @@ POLYBENCH_FDTD_2D::POLYBENCH_FDTD_2D(const RunParams& params)
                                     nx_default * (ny_default-1) ) );
   setDefaultReps(8);
 
-  m_nx = std::sqrt( getTargetProblemSize() ) + 1;
+  m_nx = std::sqrt( getTargetProblemSize() ) + 1 + std::sqrt(2)-1;
   m_ny = m_nx;
   m_tsteps = 40;
 

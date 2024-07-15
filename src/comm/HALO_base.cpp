@@ -30,7 +30,7 @@ HALO_base::HALO_base(KernelID kid, const RunParams& params)
                          s_grid_dims_default[1] *
                          s_grid_dims_default[2] );
 
-  double cbrt_run_size = std::cbrt(getTargetProblemSize());
+  double cbrt_run_size = std::cbrt(getTargetProblemSize()) + std::cbrt(3)-1;
 
   m_grid_dims[0] = cbrt_run_size;
   m_grid_dims[1] = cbrt_run_size;

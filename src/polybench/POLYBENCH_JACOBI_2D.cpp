@@ -26,7 +26,7 @@ POLYBENCH_JACOBI_2D::POLYBENCH_JACOBI_2D(const RunParams& params)
   setDefaultProblemSize( (N_default-2)*(N_default-2) );
   setDefaultReps(50);
 
-  m_N = std::sqrt( getTargetProblemSize() ) + 2;
+  m_N = std::sqrt( getTargetProblemSize() ) + 2 + std::sqrt(2)-1;
   m_tsteps = 40;
 
 

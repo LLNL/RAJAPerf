@@ -24,7 +24,7 @@ MAT_MAT_SHARED::MAT_MAT_SHARED(const RunParams &params)
   setDefaultProblemSize(m_N_default*m_N_default);
   setDefaultReps(5);
 
-  m_N = std::max(Index_type(std::sqrt(getTargetProblemSize())), Index_type(1));
+  m_N = std::sqrt(getTargetProblemSize()) + std::sqrt(2)-1;
 
   setActualProblemSize(m_N * m_N);
 

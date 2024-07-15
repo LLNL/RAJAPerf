@@ -35,7 +35,7 @@ POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
   setDefaultProblemSize( ni_default * nj_default );
   setDefaultReps(2);
 
-  m_ni = std::sqrt( getTargetProblemSize() );
+  m_ni = std::sqrt( getTargetProblemSize() ) + std::sqrt(2)-1;
   m_nj = m_ni;
   m_nk = Index_type(double(nk_default)/ni_default*m_ni);
   m_nl = m_ni;

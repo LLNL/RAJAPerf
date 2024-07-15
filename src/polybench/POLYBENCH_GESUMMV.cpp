@@ -26,7 +26,7 @@ POLYBENCH_GESUMMV::POLYBENCH_GESUMMV(const RunParams& params)
   setDefaultProblemSize( N_default * N_default );
   setDefaultReps(120);
 
-  m_N = std::sqrt( getTargetProblemSize() );
+  m_N = std::sqrt( getTargetProblemSize() ) + std::sqrt(2)-1;
 
   m_alpha = 0.62;
   m_beta = 1.002;

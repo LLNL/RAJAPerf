@@ -26,7 +26,7 @@ POLYBENCH_GEMVER::POLYBENCH_GEMVER(const RunParams& params)
   setDefaultProblemSize( n_default * n_default );
   setDefaultReps(20);
 
-  m_n =  std::sqrt( getTargetProblemSize() );
+  m_n =  std::sqrt( getTargetProblemSize() ) + std::sqrt(2)-1;
 
   m_alpha = 1.5;
   m_beta = 1.2;

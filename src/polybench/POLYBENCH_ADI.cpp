@@ -25,7 +25,7 @@ POLYBENCH_ADI::POLYBENCH_ADI(const RunParams& params)
   setDefaultProblemSize( (n_default-2) * (n_default-2) );
   setDefaultReps(4);
 
-  m_n = std::sqrt( getTargetProblemSize() ) + 2;
+  m_n = std::sqrt( getTargetProblemSize() ) + 2 + std::sqrt(2)-1;
   m_tsteps = 4;
 
   setItsPerRep( m_tsteps * ( (m_n-2) + (m_n-2) ) );
