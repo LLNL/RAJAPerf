@@ -28,7 +28,7 @@ MEMSET::MEMSET(const RunParams& params)
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesReadPerRep( 1*sizeof(Real_type) );
+  setBytesReadPerRep( 0 );
   setBytesWrittenPerRep( 1*sizeof(Real_type) * getActualProblemSize() );
   setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(0);
