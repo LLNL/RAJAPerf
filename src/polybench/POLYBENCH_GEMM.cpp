@@ -28,9 +28,9 @@ POLYBENCH_GEMM::POLYBENCH_GEMM(const RunParams& params)
   setDefaultProblemSize( ni_default * nj_default );
   setDefaultReps(4);
 
-  m_ni = std::sqrt( getTargetProblemSize() ) + 1;
+  m_ni = std::sqrt( getTargetProblemSize() );
   m_nj = m_ni;
-  m_nk = nk_default;
+  m_nk = Index_type(double(nk_default)/ni_default*m_ni);
 
   m_alpha = 0.62;
   m_beta = 1.002;
