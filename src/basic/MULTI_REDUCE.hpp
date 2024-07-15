@@ -102,11 +102,13 @@ public:
   void setHipTuningDefinitions(VariantID vid);
   template < Index_type block_size,
              Index_type preferred_global_replication,
-             Index_type preferred_shared_replication >
+             Index_type preferred_shared_replication,
+             typename MappingHelper >
   void runCudaVariantAtomicRuntime(VariantID vid);
   template < Index_type block_size,
              Index_type preferred_global_replication,
-             Index_type preferred_shared_replication >
+             Index_type preferred_shared_replication,
+             typename MappingHelper >
   void runHipVariantAtomicRuntime(VariantID vid);
 
 private:
