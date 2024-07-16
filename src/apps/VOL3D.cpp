@@ -28,18 +28,19 @@ VOL3D::VOL3D(const RunParams& params)
   setDefaultProblemSize(100*100*100);  // See rzmax in ADomain struct
   setDefaultReps(100);
 
-  Index_type rzmax = std::cbrt(getTargetProblemSize())+1;
+  Index_type rzmax = std::cbrt(getTargetProblemSize()) + 1 + std::cbrt(3)-1;
   m_domain = new ADomain(rzmax, /* ndims = */ 3);
 
   m_array_length = m_domain->nnalls;
 
-  setActualProblemSize( m_domain->lpz+1 - m_domain->fpz );
+  setActualProblemSize( m_domain->n_real_zones );
 
   setItsPerRep( m_domain->lpz+1 - m_domain->fpz );
   setKernelsPerRep(1);
   // touched data size, not actual number of stores and loads
-  setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getItsPerRep() +
-                  (0*sizeof(Real_type) + 3*sizeof(Real_type)) * (getItsPerRep() + 1+m_domain->jp+m_domain->kp) );
+  setBytesReadPerRep( 3*sizeof(Real_type) * (getItsPerRep() + 1+m_domain->jp+m_domain->kp) );
+  setBytesWrittenPerRep( 1*sizeof(Real_type) * getItsPerRep() );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(72 * (m_domain->lpz+1 - m_domain->fpz));
 
   checksum_scale_factor = 0.001 *

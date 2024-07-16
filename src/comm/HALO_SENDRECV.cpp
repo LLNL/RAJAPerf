@@ -31,8 +31,9 @@ HALO_SENDRECV::HALO_SENDRECV(const RunParams& params)
 
   setItsPerRep( m_num_vars * (m_var_size - getActualProblemSize()) );
   setKernelsPerRep( 0 );
-  setBytesPerRep( (0*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() +  // send
-                  (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getItsPerRep() ); // recv
+  setBytesReadPerRep( 1*sizeof(Real_type) * getItsPerRep() ); // send
+  setBytesWrittenPerRep( 1*sizeof(Real_type) * getItsPerRep() ); // recv
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(0);
 
   setUsesFeature(Forall);

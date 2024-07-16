@@ -28,8 +28,11 @@ PRESSURE::PRESSURE(const RunParams& params)
 
   setItsPerRep( 2 * getActualProblemSize() );
   setKernelsPerRep(2);
-  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getActualProblemSize() +
-                  (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getActualProblemSize() );
+  setBytesReadPerRep( 1*sizeof(Real_type) * getActualProblemSize() +
+                      3*sizeof(Real_type) * getActualProblemSize() );
+  setBytesWrittenPerRep( 1*sizeof(Real_type) * getActualProblemSize() +
+                         1*sizeof(Real_type) * getActualProblemSize() );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep((2 +
                   1
                   ) * getActualProblemSize());

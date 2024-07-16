@@ -30,8 +30,9 @@ FIRST_SUM::FIRST_SUM(const RunParams& params)
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * (m_N-1) +
-                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N );
+  setBytesReadPerRep( 1*sizeof(Real_type ) * (m_N-1) );
+  setBytesWrittenPerRep( 1*sizeof(Real_type ) * m_N );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(1 * (getActualProblemSize()-1));
 
   setUsesFeature(Forall);

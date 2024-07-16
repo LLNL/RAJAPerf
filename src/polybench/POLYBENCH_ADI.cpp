@@ -20,12 +20,12 @@ namespace polybench
 POLYBENCH_ADI::POLYBENCH_ADI(const RunParams& params)
   : KernelBase(rajaperf::Polybench_ADI, params)
 {
-  Index_type n_default = 1000;
+  Index_type n_default = 1002;
 
   setDefaultProblemSize( (n_default-2) * (n_default-2) );
   setDefaultReps(4);
 
-  m_n = std::sqrt( getTargetProblemSize() ) + 1;
+  m_n = std::sqrt( getTargetProblemSize() ) + 2 + std::sqrt(2)-1;
   m_tsteps = 4;
 
   setItsPerRep( m_tsteps * ( (m_n-2) + (m_n-2) ) );
@@ -34,8 +34,11 @@ POLYBENCH_ADI::POLYBENCH_ADI(const RunParams& params)
   setActualProblemSize( (m_n-2) * (m_n-2) );
 
   setKernelsPerRep( m_tsteps * 2 );
-  setBytesPerRep( m_tsteps * ( (3*sizeof(Real_type ) + 3*sizeof(Real_type )) * m_n * (m_n-2) +
-                               (3*sizeof(Real_type ) + 3*sizeof(Real_type )) * m_n * (m_n-2) ) );
+  setBytesReadPerRep((3*sizeof(Real_type ) * m_n * (m_n-2) +
+                      3*sizeof(Real_type ) * m_n * (m_n-2)) * m_tsteps  );
+  setBytesWrittenPerRep((3*sizeof(Real_type ) * m_n * (m_n-2) +
+                         3*sizeof(Real_type ) * m_n * (m_n-2)) * m_tsteps  );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep( m_tsteps * ( (15 + 2) * (m_n-2)*(m_n-2) +
                                (15 + 2) * (m_n-2)*(m_n-2) ) );
 
