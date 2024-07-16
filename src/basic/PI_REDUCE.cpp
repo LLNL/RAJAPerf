@@ -51,6 +51,9 @@ PI_REDUCE::PI_REDUCE(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Base_SYCL );
+  setVariantDefined( RAJA_SYCL );
 }
 
 PI_REDUCE::~PI_REDUCE()

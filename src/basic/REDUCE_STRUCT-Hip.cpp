@@ -141,7 +141,7 @@ void REDUCE_STRUCT::runHipVariantBase(VariantID vid)
       points.SetXMax(rmem[2]);
       points.SetYMin(rmem[4]);
       points.SetYMax(rmem[5]);
-      m_points=points;
+      m_points = points;
 
     }
     stopTimer();
@@ -196,13 +196,72 @@ void REDUCE_STRUCT::runHipVariantRAJA(VariantID vid)
       points.SetXMax((xmax.get()));
       points.SetYMin((ymin.get()));
       points.SetYMax((ymax.get()));
-      m_points=points;
+      m_points = points;
 
     }
     stopTimer();
 
   } else {
      getCout() << "\n  REDUCE_STRUCT : Unknown Hip variant id = " << vid << std::endl;
+  }
+
+}
+
+template < size_t block_size, typename MappingHelper >
+void REDUCE_STRUCT::runHipVariantRAJANewReduce(VariantID vid)
+{
+  using exec_policy = std::conditional_t<MappingHelper::direct,
+      RAJA::hip_exec<block_size, true /*async*/>,
+      RAJA::hip_exec_occ_calc<block_size, true /*async*/>>;
+
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  auto res{getHipResource()};
+
+  REDUCE_STRUCT_DATA_SETUP;
+
+  if ( vid == RAJA_HIP ) {
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      Real_type txsum = m_init_sum;
+      Real_type tysum = m_init_sum;
+      Real_type txmin = m_init_min;
+      Real_type tymin = m_init_min;
+      Real_type txmax = m_init_max;
+      Real_type tymax = m_init_max;
+
+      RAJA::forall<exec_policy>( res,
+        RAJA::RangeSegment(ibegin, iend),
+        RAJA::expt::Reduce<RAJA::operators::plus>(&txsum),
+        RAJA::expt::Reduce<RAJA::operators::plus>(&tysum),
+        RAJA::expt::Reduce<RAJA::operators::minimum>(&txmin),
+        RAJA::expt::Reduce<RAJA::operators::minimum>(&tymin),
+        RAJA::expt::Reduce<RAJA::operators::maximum>(&txmax),
+        RAJA::expt::Reduce<RAJA::operators::maximum>(&tymax),
+        [=] __device__ (Index_type i, Real_type& xsum, Real_type& ysum,
+                                      Real_type& xmin, Real_type& ymin,
+                                      Real_type& xmax, Real_type& ymax) {
+          REDUCE_STRUCT_BODY;
+        }
+      );
+
+      points.SetCenter(static_cast<Real_type>(txsum)/(points.N),
+                       static_cast<Real_type>(tysum)/(points.N));
+      points.SetXMin(static_cast<Real_type>(txmin));
+      points.SetXMax(static_cast<Real_type>(txmax));
+      points.SetYMin(static_cast<Real_type>(tymin));
+      points.SetYMax(static_cast<Real_type>(tymax));
+      m_points = points;
+
+    }
+    stopTimer();
+
+  } else {
+     getCout() << "\n  REDUCE_STRUCT : Unknown HIP variant id = " << vid << std::endl;
   }
 
 }
@@ -249,6 +308,16 @@ void REDUCE_STRUCT::runHipVariant(VariantID vid, size_t tune_idx)
 
             });
 
+            if (tune_idx == t) {
+
+              setBlockSize(block_size);
+              runHipVariantRAJANewReduce<decltype(block_size){},
+                                         decltype(mapping_helper)>(vid);
+
+            }
+
+            t += 1;
+
           }
 
         });
@@ -293,6 +362,12 @@ void REDUCE_STRUCT::setHipTuningDefinitions(VariantID vid)
                                         std::to_string(block_size));
 
             });
+
+            auto algorithm_helper = gpu_algorithm::block_device_helper{};
+
+            addVariantTuningName(vid, decltype(algorithm_helper)::get_name()+"_"+
+                                      decltype(mapping_helper)::get_name()+"_"+
+                                      "new_"+std::to_string(block_size));
 
           }
 

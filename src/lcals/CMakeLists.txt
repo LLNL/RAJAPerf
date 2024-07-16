@@ -35,6 +35,7 @@ blt_add_library(
           FIRST_MIN-Cuda.cpp
           FIRST_MIN-OMP.cpp
           FIRST_MIN-OMPTarget.cpp
+          FIRST_MIN-Sycl.cpp
           FIRST_SUM.cpp
           FIRST_SUM-Seq.cpp
           FIRST_SUM-Hip.cpp
