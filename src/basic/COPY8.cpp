@@ -28,7 +28,9 @@ COPY8::COPY8(const RunParams& params)
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (8*sizeof(Real_type) + 8*sizeof(Real_type)) * getActualProblemSize() );
+  setBytesReadPerRep( 8*sizeof(Real_type) * getActualProblemSize() );
+  setBytesWrittenPerRep( 8*sizeof(Real_type) * getActualProblemSize() );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(0);
 
   setUsesFeature(Forall);

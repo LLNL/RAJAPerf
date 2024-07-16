@@ -28,9 +28,9 @@ POLYBENCH_GEMM::POLYBENCH_GEMM(const RunParams& params)
   setDefaultProblemSize( ni_default * nj_default );
   setDefaultReps(4);
 
-  m_ni = std::sqrt( getTargetProblemSize() ) + 1;
+  m_ni = std::sqrt( getTargetProblemSize() ) + std::sqrt(2)-1;
   m_nj = m_ni;
-  m_nk = nk_default;
+  m_nk = Index_type(double(nk_default)/ni_default*m_ni);
 
   m_alpha = 0.62;
   m_beta = 1.002;
@@ -40,9 +40,10 @@ POLYBENCH_GEMM::POLYBENCH_GEMM(const RunParams& params)
 
   setItsPerRep( m_ni * m_nj );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * m_ni * m_nj +
-                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_ni * m_nk +
-                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nj * m_nk );
+  setBytesReadPerRep( 1*sizeof(Real_type ) * m_ni * m_nk +
+                      1*sizeof(Real_type ) * m_nj * m_nk );
+  setBytesWrittenPerRep( 1*sizeof(Real_type ) * m_ni * m_nj);
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep((1 +
                   3 * m_nk) * m_ni*m_nj);
 

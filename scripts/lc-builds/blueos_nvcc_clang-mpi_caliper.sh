@@ -17,7 +17,7 @@ if [[ $# -lt 5 ]]; then
   echo "   5) path to adiak cmake directory"
   echo
   echo "For example: "
-  echo "    blueos_nvcc_clang_caliper.sh 10.2.89 70 10.0.1 /usr/workspace/wsb/asde/caliper-lassen/share/cmake/caliper /usr/workspace/wsb/asde/caliper-lassen/lib/cmake/adiak"
+  echo "    blueos_nvcc_clang-mpi_caliper.sh 10.2.89 70 10.0.1 /usr/workspace/wsb/asde/caliper-lassen/share/cmake/caliper /usr/workspace/wsb/asde/caliper-lassen/lib/cmake/adiak"
   exit
 fi
 
@@ -28,7 +28,7 @@ CALI_DIR=$4
 ADIAK_DIR=$5
 shift 5
 
-BUILD_SUFFIX=lc_blueos-nvcc-${COMP_NVCC_VER}-${COMP_ARCH}-clang-${COMP_CLANG_VER}
+BUILD_SUFFIX=lc_blueos-nvcc-${COMP_NVCC_VER}-${COMP_ARCH}-clang-mpi-${COMP_CLANG_VER}-caliper
 RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/blueos/nvcc_clang_X.cmake
 
 echo
@@ -47,6 +47,7 @@ cmake \
   -DCMAKE_CXX_COMPILER=/usr/tce/packages/clang/clang-${COMP_CLANG_VER}/bin/clang++ \
   -DBLT_CXX_STD=c++14 \
   -C ${RAJA_HOSTCONFIG} \
+  -DENABLE_MPI=ON \
   -DENABLE_OPENMP=On \
   -DENABLE_CUDA=On \
   -DCUDA_SEPARABLE_COMPILATION=On \

@@ -28,18 +28,18 @@ MASS3DPA::MASS3DPA(const RunParams& params)
   setDefaultProblemSize(m_NE_default*MPA_Q1D*MPA_Q1D*MPA_Q1D);
   setDefaultReps(50);
 
-  m_NE = std::max(getTargetProblemSize()/(MPA_Q1D*MPA_Q1D*MPA_Q1D), Index_type(1));
+  m_NE = std::max((getTargetProblemSize() + (MPA_Q1D*MPA_Q1D*MPA_Q1D)/2) / (MPA_Q1D*MPA_Q1D*MPA_Q1D), Index_type(1));
 
   setActualProblemSize( m_NE*MPA_Q1D*MPA_Q1D*MPA_Q1D );
 
   setItsPerRep(getActualProblemSize());
   setKernelsPerRep(1);
 
-  setBytesPerRep( MPA_Q1D*MPA_D1D*sizeof(Real_type)  +
-                  MPA_Q1D*MPA_D1D*sizeof(Real_type)  +
-                  MPA_Q1D*MPA_Q1D*MPA_Q1D*m_NE*sizeof(Real_type) +
-                  MPA_D1D*MPA_D1D*MPA_D1D*m_NE*sizeof(Real_type) +
-                  MPA_D1D*MPA_D1D*MPA_D1D*m_NE*sizeof(Real_type) );
+  setBytesReadPerRep( 2*sizeof(Real_type) * MPA_Q1D*MPA_D1D + // B, Bt
+                      2*sizeof(Real_type) * MPA_D1D*MPA_D1D*MPA_D1D*m_NE + // X, Y
+                      1*sizeof(Real_type) * MPA_Q1D*MPA_Q1D*MPA_Q1D*m_NE ); // D
+  setBytesWrittenPerRep( 1*sizeof(Real_type) * MPA_D1D*MPA_D1D*MPA_D1D*m_NE ); // Y
+  setBytesAtomicModifyWrittenPerRep( 0 );
 
   setFLOPsPerRep(m_NE * (2 * MPA_D1D * MPA_D1D * MPA_D1D * MPA_Q1D +
                          2 * MPA_D1D * MPA_D1D * MPA_Q1D * MPA_Q1D +

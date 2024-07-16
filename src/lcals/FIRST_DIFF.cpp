@@ -29,10 +29,10 @@ FIRST_DIFF::FIRST_DIFF(const RunParams& params)
   m_N = getActualProblemSize()+1;
 
   setItsPerRep( getActualProblemSize() );
-  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getActualProblemSize() +
-                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * m_N );
+  setBytesReadPerRep( 1*sizeof(Real_type) * m_N );
+  setBytesWrittenPerRep( 1*sizeof(Real_type) * getActualProblemSize() );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(1 * getActualProblemSize());
 
   setUsesFeature(Forall);

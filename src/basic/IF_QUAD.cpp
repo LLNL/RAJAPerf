@@ -28,7 +28,9 @@ IF_QUAD::IF_QUAD(const RunParams& params)
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (2*sizeof(Real_type) + 3*sizeof(Real_type)) * getActualProblemSize() );
+  setBytesReadPerRep( 3*sizeof(Real_type) * getActualProblemSize() );
+  setBytesWrittenPerRep( 2*sizeof(Real_type) * getActualProblemSize() );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(11 * getActualProblemSize()); // 1 sqrt
 
   checksum_scale_factor = 0.0001 *

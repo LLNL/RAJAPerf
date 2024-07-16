@@ -33,8 +33,10 @@ REDUCE3_INT::REDUCE3_INT(const RunParams& params)
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (3*sizeof(Int_type) + 3*sizeof(Int_type)) +
-                  (0*sizeof(Int_type) + 1*sizeof(Int_type)) * getActualProblemSize() );
+  setBytesReadPerRep( 3*sizeof(Int_type) +
+                      1*sizeof(Int_type) * getActualProblemSize() );
+  setBytesWrittenPerRep( 3*sizeof(Int_type) );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(1 * getActualProblemSize() + 1);
 
   setUsesFeature(Forall);

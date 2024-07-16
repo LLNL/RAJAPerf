@@ -28,8 +28,9 @@ PI_REDUCE::PI_REDUCE(const RunParams& params)
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) +
-                  (0*sizeof(Real_type) + 0*sizeof(Real_type)) * getActualProblemSize() );
+  setBytesReadPerRep( 1*sizeof(Real_type) );
+  setBytesWrittenPerRep( 1*sizeof(Real_type) );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(6 * getActualProblemSize() + 1);
 
   setUsesFeature(Forall);

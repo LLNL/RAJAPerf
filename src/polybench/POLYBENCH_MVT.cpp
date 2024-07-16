@@ -26,17 +26,22 @@ POLYBENCH_MVT::POLYBENCH_MVT(const RunParams& params)
   setDefaultProblemSize( N_default * N_default );
   setDefaultReps(100);
 
-  m_N = std::sqrt( getTargetProblemSize() ) + 1;
+  m_N = std::sqrt( getTargetProblemSize() ) + std::sqrt(2)-1;
 
 
   setActualProblemSize( m_N * m_N );
 
   setItsPerRep( 2 * m_N );
   setKernelsPerRep(2);
-  setBytesPerRep( (1*sizeof(Real_type ) + 2*sizeof(Real_type )) * m_N +
-                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N * m_N +
-                  (1*sizeof(Real_type ) + 2*sizeof(Real_type )) * m_N +
-                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N * m_N );
+  setBytesReadPerRep( 2*sizeof(Real_type ) * m_N +
+                      1*sizeof(Real_type ) * m_N * m_N +
+
+                      2*sizeof(Real_type ) * m_N +
+                      1*sizeof(Real_type ) * m_N * m_N );
+  setBytesWrittenPerRep( 1*sizeof(Real_type ) * m_N +
+
+                         1*sizeof(Real_type ) * m_N );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(2 * m_N*m_N +
                  2 * m_N*m_N );
 

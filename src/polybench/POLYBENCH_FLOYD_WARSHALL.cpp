@@ -26,14 +26,16 @@ POLYBENCH_FLOYD_WARSHALL::POLYBENCH_FLOYD_WARSHALL(const RunParams& params)
   setDefaultProblemSize( N_default * N_default );
   setDefaultReps(8);
 
-  m_N = std::sqrt( getTargetProblemSize() ) + 1;
+  m_N = std::sqrt( getTargetProblemSize() ) + std::sqrt(2)-1;
 
 
   setActualProblemSize( m_N * m_N );
 
   setItsPerRep( m_N*m_N );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N * m_N );
+  setBytesReadPerRep( 1*sizeof(Real_type ) * m_N * m_N );
+  setBytesWrittenPerRep( 1*sizeof(Real_type ) * m_N * m_N );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(1 * m_N*m_N*m_N );
 
   checksum_scale_factor = 1.0 *
