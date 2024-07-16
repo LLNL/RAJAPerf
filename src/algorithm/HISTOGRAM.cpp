@@ -34,8 +34,10 @@ HISTOGRAM::HISTOGRAM(const RunParams& params)
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Data_type) + 1*sizeof(Data_type))*m_num_bins +
-                  (1*sizeof(Index_type) + 0*sizeof(Index_type)) * getActualProblemSize() );
+  setBytesReadPerRep( 1*sizeof(Data_type) * m_num_bins +
+                      1*sizeof(Index_type) * getActualProblemSize() );
+  setBytesWrittenPerRep( 1*sizeof(Data_type) * m_num_bins );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(1 * getActualProblemSize());
 
   setUsesFeature(Forall);
