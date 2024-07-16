@@ -915,6 +915,17 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
           add_to_spot_config = std::string( argv[i] );
         }
       }
+    } else if ( std::string(argv[i]) == std::string("--add-to-cali-config") ||
+               std::string(argv[i]) == std::string("-atcc") ) {
+      i++;
+      if ( i < argc ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+        } else {
+          add_to_cali_config = std::string( argv[i] );
+        }
+      }
 #endif
 
     } else {
@@ -1337,9 +1348,13 @@ void RunParams::printHelpMessage(std::ostream& str) const
 
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
   str << "\t --add-to-spot-config, -atsc <string> [Default is none]\n"
-      << "\t\t appends additional parameters to the built-in Caliper spot config\n";
+      << "\t\t appends additional parameters to the built-in Caliper spot config (CALI_CONFIG=spot(...))\n";
   str << "\t\t Example to include some PAPI counters (Intel arch)\n"
       << "\t\t -atsc topdown.all\n\n";
+  str << "\t --add-to-cali-config, -atcc <string> [Default is none]\n"
+      << "\t\t include parameters in the Caliper config (same as CALI_CONFIG=...)\n";
+  str << "\t\t Example to include time spent in MPI functions\n"
+      << "\t\t -atcc mpi-report\n\n";
 #endif
 
   str << std::endl;
