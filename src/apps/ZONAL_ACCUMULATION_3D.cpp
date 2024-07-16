@@ -40,7 +40,7 @@ ZONAL_ACCUMULATION_3D::ZONAL_ACCUMULATION_3D(const RunParams& params)
   setKernelsPerRep(1);
   // touched data size, not actual number of stores and loads
   setBytesReadPerRep( 1*sizeof(Index_type) * getItsPerRep() +
-                      1*sizeof(Real_type) * (getItsPerRep() + 1+m_domain->jp+m_domain->kp) );
+                      1*sizeof(Real_type) * m_domain->n_real_nodes );
   setBytesWrittenPerRep( 1*sizeof(Real_type) * getItsPerRep() );
   setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(8 * getItsPerRep());
