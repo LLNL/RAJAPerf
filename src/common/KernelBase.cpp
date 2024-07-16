@@ -568,7 +568,8 @@ void KernelBase::doOnceCaliMetaEnd(VariantID vid, size_t tune_idx)
 void KernelBase::setCaliperMgrVariantTuning(VariantID vid,
                                   std::string tstr,
                                   const std::string& outdir,
-                                  const std::string& addToConfig)
+                                  const std::string& addToSpotConfig,
+                                  const std::string& addToCaliConfig)
 {
   static bool ran_spot_config_check = false;
   bool config_ok = true;
@@ -631,13 +632,26 @@ void KernelBase::setCaliperMgrVariantTuning(VariantID vid,
   }
   )json";
 
-  if(!ran_spot_config_check && (!addToConfig.empty())) {
+  // Skip check if both empty
+  if ((!addToSpotConfig.empty() || !addToCaliConfig.empty()) && !ran_spot_config_check) {
     cali::ConfigManager cm;
-    std::string check_profile = "spot()," + addToConfig;
+    std::string check_profile;
+    // If both not empty
+    if (!addToSpotConfig.empty() && !addToCaliConfig.empty()) {
+      check_profile = "spot(" + addToSpotConfig + ")," + addToCaliConfig;
+    }
+    else if (!addToSpotConfig.empty()) {
+      check_profile = "spot(" + addToSpotConfig + ")";
+    }
+    // if !addToCaliConfig.empty()
+    else {
+      check_profile = addToCaliConfig;
+    }
+
     std::string msg = cm.check(check_profile.c_str());
     if(!msg.empty()) {
       std::cerr << "Problem with Cali Config: " << check_profile << "\n";
-      std::cerr << "Check your command line argument: " << addToConfig << "\n";
+      std::cerr << msg << "\n";
       config_ok = false;
       exit(-1);
     }
@@ -653,9 +667,13 @@ void KernelBase::setCaliperMgrVariantTuning(VariantID vid,
       od = outdir + "/";
     }
     std::string vstr = getVariantName(vid);
-    std::string profile = "spot(output=" + od + vstr + "-" + tstr + ".cali)";
-    if(!addToConfig.empty()) {
-      profile += "," + addToConfig;
+    std::string profile = "spot(output=" + od + vstr + "-" + tstr + ".cali";
+    if(!addToSpotConfig.empty()) {
+      profile += "," + addToSpotConfig;
+    }
+    profile += ")";
+    if (!addToCaliConfig.empty()) {
+      profile += "," + addToCaliConfig;
     }
     std::cout << "Profile: " << profile << std::endl;
     mgr[vid][tstr].add_option_spec(kernel_info_spec);

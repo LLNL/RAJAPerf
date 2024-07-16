@@ -124,12 +124,13 @@ Executor::Executor(int argc, char** argv)
 {
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
   configuration cc;
-  adiak::init(NULL);
-  adiak::user();
-  adiak::launchdate();
-  adiak::libraries();
-  adiak::cmdline();
-  adiak::clustername();
+  #if defined(RAJA_PERFSUITE_ENABLE_MPI)
+    MPI_Comm adiak_comm = MPI_COMM_WORLD;
+    adiak::init(&adiak_comm);
+  #else
+    adiak::init(nullptr);
+  #endif
+  adiak::collect_all();
   adiak::value("perfsuite_version", cc.adiak_perfsuite_version);
   adiak::value("raja_version", cc.adiak_raja_version);
   adiak::value("cmake_build_type", cc.adiak_cmake_build_type);
@@ -331,7 +332,8 @@ void Executor::setupSuite()
       KernelBase::setCaliperMgrVariantTuning(vid,
                                              tstr,
                                              run_params.getOutputDirName(),
-                                             run_params.getAddToSpotConfig());
+                                             run_params.getAddToSpotConfig(),
+                                             run_params.getAddToCaliperConfig());
 #endif
     }
 

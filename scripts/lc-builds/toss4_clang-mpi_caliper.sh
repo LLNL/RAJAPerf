@@ -15,7 +15,7 @@ if [[ $# -lt 3 ]]; then
   echo "   3) path to adiak cmake directory"
   echo
   echo "For example: "
-  echo "    toss4_clang_caliper.sh 14.0.6 /usr/workspace/wsb/asde/caliper-quartz/share/cmake/caliper /usr/workspace/wsb/asde/caliper-quartz/lib/cmake/adiak"
+  echo "    toss4_clang-mpi_caliper.sh 14.0.6 /usr/workspace/wsb/asde/caliper-quartz/share/cmake/caliper /usr/workspace/wsb/asde/caliper-quartz/lib/cmake/adiak"
   exit
 fi
 
@@ -24,7 +24,7 @@ CALI_DIR=$2
 ADIAK_DIR=$3
 shift 3
 
-BUILD_SUFFIX=lc_toss4-clang-${COMP_VER}
+BUILD_SUFFIX=lc_toss4-clang-mpi-${COMP_VER}
 RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/toss4/clang_X.cmake
 
 echo
@@ -43,6 +43,7 @@ cmake \
   -DCMAKE_CXX_COMPILER=/usr/tce/packages/clang/clang-${COMP_VER}/bin/clang++ \
   -DBLT_CXX_STD=c++14 \
   -C ${RAJA_HOSTCONFIG} \
+  -DENABLE_MPI=ON \
   -DENABLE_OPENMP=On \
   -DCMAKE_INSTALL_PREFIX=../install_${BUILD_SUFFIX} \
   -DRAJA_PERFSUITE_USE_CALIPER=ON \
