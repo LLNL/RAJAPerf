@@ -10,9 +10,10 @@
 /// SCAN kernel reference implementation:
 ///
 /// // exclusive scan
-/// y[ibegin] = 0;
-/// for (Index_type i = ibegin+1; i < iend; ++i) {
-///   y[i] = y[i-1] + x[i-1];
+/// Real_type scan_var = 0;
+/// for (Index_type i = ibegin; i < iend; ++i) {
+///   y[i] = scan_var;
+///   scan_var += x[i];
 /// }
 ///
 

@@ -200,6 +200,7 @@ public:
 
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
   const std::string& getAddToSpotConfig() const { return add_to_spot_config; }
+  const std::string& getAddToCaliperConfig() const { return add_to_cali_config; }
 #endif
 
   bool getDisableWarmup() const { return disable_warmup; }
@@ -324,6 +325,7 @@ private:
 
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
   std::string add_to_spot_config;
+  std::string add_to_cali_config;
 #endif
 
   bool disable_warmup;

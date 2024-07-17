@@ -31,8 +31,10 @@ EOS::EOS(const RunParams& params)
   setItsPerRep( getActualProblemSize() );
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getActualProblemSize() +
-                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * m_array_length );
+  setBytesReadPerRep( 2*sizeof(Real_type) * getActualProblemSize() +
+                      1*sizeof(Real_type) * m_array_length );
+  setBytesWrittenPerRep( 1*sizeof(Real_type) * getActualProblemSize() );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(16 * getActualProblemSize());
 
   checksum_scale_factor = 0.0001 *

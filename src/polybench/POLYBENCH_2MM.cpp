@@ -31,9 +31,9 @@ POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
                                    ni_default*nl_default ) );
   setDefaultReps(2);
 
-  m_ni = std::sqrt( getTargetProblemSize() ) + 1;
+  m_ni = std::sqrt( getTargetProblemSize() ) + std::sqrt(2)-1;
   m_nj = m_ni;
-  m_nk = nk_default;
+  m_nk = Index_type(double(nk_default)/ni_default*m_ni);
   m_nl = m_ni;
 
   m_alpha = 1.5;
@@ -44,13 +44,15 @@ POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
 
   setItsPerRep( m_ni*m_nj + m_ni*m_nl );
   setKernelsPerRep(2);
-  setBytesPerRep( (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * m_ni * m_nj +
-                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_ni * m_nk +
-                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nj * m_nk +
+  setBytesReadPerRep( 1*sizeof(Real_type ) * m_ni * m_nk +
+                      1*sizeof(Real_type ) * m_nj * m_nk +
 
-                  (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * m_ni * m_nl +
-                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_ni * m_nj +
-                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nj * m_nl );
+                      1*sizeof(Real_type ) * m_ni * m_nj +
+                      1*sizeof(Real_type ) * m_nj * m_nl );
+  setBytesWrittenPerRep( 1*sizeof(Real_type ) * m_ni * m_nj +
+
+                         1*sizeof(Real_type ) * m_ni * m_nl );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(3 * m_ni*m_nj*m_nk +
                  2 * m_ni*m_nj*m_nl );
 

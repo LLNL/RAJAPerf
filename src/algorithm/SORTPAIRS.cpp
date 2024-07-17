@@ -28,7 +28,9 @@ SORTPAIRS::SORTPAIRS(const RunParams& params)
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (2*sizeof(Real_type) + 2*sizeof(Real_type)) * getActualProblemSize() ); // touched data size, not actual number of stores and loads
+  setBytesReadPerRep( 2*sizeof(Real_type) * getActualProblemSize() ); // not useful in this case due to O(n*log(n)) algorithm
+  setBytesWrittenPerRep( 2*sizeof(Real_type) * getActualProblemSize() ); // not useful in this case due to O(n*log(n)) algorithm
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(0);
 
   setUsesFeature(Sort);

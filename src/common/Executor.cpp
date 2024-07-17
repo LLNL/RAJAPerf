@@ -124,12 +124,13 @@ Executor::Executor(int argc, char** argv)
 {
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
   configuration cc;
-  adiak::init(NULL);
-  adiak::user();
-  adiak::launchdate();
-  adiak::libraries();
-  adiak::cmdline();
-  adiak::clustername();
+  #if defined(RAJA_PERFSUITE_ENABLE_MPI)
+    MPI_Comm adiak_comm = MPI_COMM_WORLD;
+    adiak::init(&adiak_comm);
+  #else
+    adiak::init(nullptr);
+  #endif
+  adiak::collect_all();
   adiak::value("perfsuite_version", cc.adiak_perfsuite_version);
   adiak::value("raja_version", cc.adiak_raja_version);
   adiak::value("cmake_build_type", cc.adiak_cmake_build_type);
@@ -331,7 +332,8 @@ void Executor::setupSuite()
       KernelBase::setCaliperMgrVariantTuning(vid,
                                              tstr,
                                              run_params.getOutputDirName(),
-                                             run_params.getAddToSpotConfig());
+                                             run_params.getAddToSpotConfig(),
+                                             run_params.getAddToCaliperConfig());
 #endif
     }
 
@@ -522,15 +524,21 @@ void Executor::writeKernelInfoSummary(ostream& str, bool to_file) const
   Index_type itsrep_width = 0;
   Index_type bytesrep_width = 0;
   Index_type flopsrep_width = 0;
+  Index_type bytesReadrep_width = 0;
+  Index_type bytesWrittenrep_width = 0;
+  Index_type bytesAtomicModifyWrittenrep_width = 0;
   Index_type dash_width = 0;
 
   for (size_t ik = 0; ik < kernels.size(); ++ik) {
     kercol_width = max(kercol_width, kernels[ik]->getName().size());
     psize_width = max(psize_width, kernels[ik]->getActualProblemSize());
     reps_width = max(reps_width, kernels[ik]->getRunReps());
-    itsrep_width = max(reps_width, kernels[ik]->getItsPerRep());
+    itsrep_width = max(itsrep_width, kernels[ik]->getItsPerRep());
     bytesrep_width = max(bytesrep_width, kernels[ik]->getBytesPerRep());
-    flopsrep_width = max(bytesrep_width, kernels[ik]->getFLOPsPerRep());
+    flopsrep_width = max(flopsrep_width, kernels[ik]->getFLOPsPerRep());
+    bytesReadrep_width = max(bytesReadrep_width, kernels[ik]->getBytesReadPerRep());
+    bytesWrittenrep_width = max(bytesWrittenrep_width, kernels[ik]->getBytesWrittenPerRep());
+    bytesAtomicModifyWrittenrep_width = max(bytesAtomicModifyWrittenrep_width, kernels[ik]->getBytesAtomicModifyWrittenPerRep());
   }
 
   const string sepchr(" , ");
@@ -574,6 +582,24 @@ void Executor::writeKernelInfoSummary(ostream& str, bool to_file) const
                          static_cast<Index_type>(frsize) ) + 3;
   dash_width += flopsrep_width + static_cast<Index_type>(sepchr.size());
 
+  double brrsize = log10( static_cast<double>(bytesReadrep_width) );
+  string bytesReadrep_head("BytesRead/rep");
+  bytesReadrep_width = max( static_cast<Index_type>(bytesReadrep_head.size()),
+                        static_cast<Index_type>(brrsize) ) + 3;
+  dash_width += bytesReadrep_width + static_cast<Index_type>(sepchr.size());
+
+  double bwrsize = log10( static_cast<double>(bytesWrittenrep_width) );
+  string bytesWrittenrep_head("BytesWritten/rep");
+  bytesWrittenrep_width = max( static_cast<Index_type>(bytesWrittenrep_head.size()),
+                        static_cast<Index_type>(bwrsize) ) + 3;
+  dash_width += bytesWrittenrep_width + static_cast<Index_type>(sepchr.size());
+
+  double bamrrsize = log10( static_cast<double>(bytesAtomicModifyWrittenrep_width) );
+  string bytesAtomicModifyWrittenrep_head("BytesAtomicModifyWritten/rep");
+  bytesAtomicModifyWrittenrep_width = max( static_cast<Index_type>(bytesAtomicModifyWrittenrep_head.size()),
+                        static_cast<Index_type>(bamrrsize) ) + 3;
+  dash_width += bytesAtomicModifyWrittenrep_width + static_cast<Index_type>(sepchr.size());
+
   str <<left<< setw(kercol_width) << kern_head
       << sepchr <<right<< setw(psize_width) << psize_head
       << sepchr <<right<< setw(reps_width) << rsize_head
@@ -581,6 +607,9 @@ void Executor::writeKernelInfoSummary(ostream& str, bool to_file) const
       << sepchr <<right<< setw(kernsrep_width) << kernsrep_head
       << sepchr <<right<< setw(bytesrep_width) << bytesrep_head
       << sepchr <<right<< setw(flopsrep_width) << flopsrep_head
+      << sepchr <<right<< setw(bytesReadrep_width) << bytesReadrep_head
+      << sepchr <<right<< setw(bytesWrittenrep_width) << bytesWrittenrep_head
+      << sepchr <<right<< setw(bytesAtomicModifyWrittenrep_width) << bytesAtomicModifyWrittenrep_head
       << endl;
 
   if ( !to_file ) {
@@ -599,6 +628,9 @@ void Executor::writeKernelInfoSummary(ostream& str, bool to_file) const
         << sepchr <<right<< setw(kernsrep_width) << kern->getKernelsPerRep()
         << sepchr <<right<< setw(bytesrep_width) << kern->getBytesPerRep()
         << sepchr <<right<< setw(flopsrep_width) << kern->getFLOPsPerRep()
+        << sepchr <<right<< setw(bytesReadrep_width) << kern->getBytesReadPerRep()
+        << sepchr <<right<< setw(bytesWrittenrep_width) << kern->getBytesWrittenPerRep()
+        << sepchr <<right<< setw(bytesAtomicModifyWrittenrep_width) << kern->getBytesAtomicModifyWrittenPerRep()
         << endl;
   }
 

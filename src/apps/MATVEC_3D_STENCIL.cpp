@@ -28,7 +28,7 @@ MATVEC_3D_STENCIL::MATVEC_3D_STENCIL(const RunParams& params)
   setDefaultProblemSize(100*100*100);  // See rzmax in ADomain struct
   setDefaultReps(100);
 
-  Index_type rzmax = std::cbrt(getTargetProblemSize())+1;
+  Index_type rzmax = std::cbrt(getTargetProblemSize()) + 1 + std::cbrt(3)-1;
   m_domain = new ADomain(rzmax, /* ndims = */ 3);
 
   m_zonal_array_length = m_domain->lpz+1;
@@ -69,10 +69,11 @@ MATVEC_3D_STENCIL::MATVEC_3D_STENCIL(const RunParams& params)
                             get_size_matrix(1, 1, 1) +
                             get_size_matrix(0, 1, 1) +
                             get_size_matrix(1, 1, 1) ;
-  setBytesPerRep( getItsPerRep()*sizeof(Index_type) +
-                  b_accessed*sizeof(Real_type) +
-                  x_accessed*sizeof(Real_type) +
-                  m_accessed*sizeof(Real_type) );
+  setBytesReadPerRep( 1*sizeof(Index_type) * getItsPerRep() +
+                      1*sizeof(Real_type) * x_accessed +
+                      1*sizeof(Real_type) * m_accessed );
+  setBytesWrittenPerRep( 1*sizeof(Real_type) * b_accessed );
+  setBytesAtomicModifyWrittenPerRep( 0 );
 
   const size_t multiplies = 27;
   const size_t adds = 26;
