@@ -43,6 +43,7 @@ RunParams::RunParams(int argc, char** argv)
    ltimes_num_d(64),
    ltimes_num_g(32),
    ltimes_num_m(25),
+   array_of_ptrs_array_size(ARRAY_OF_PTRS_MAX_ARRAY_SIZE),
    gpu_stream(1),
    gpu_block_sizes(),
    atomic_replications(),
@@ -132,6 +133,8 @@ void RunParams::print(std::ostream& str) const
   str << "\n ltimes_num_d = " << ltimes_num_d;
   str << "\n ltimes_num_g = " << ltimes_num_g;
   str << "\n ltimes_num_m = " << ltimes_num_m;
+
+  str << "\n array_of_ptrs_array_size = " << array_of_ptrs_array_size;
 
   str << "\n gpu stream = " << ((gpu_stream == 0) ? "0" : "RAJA default");
   str << "\n gpu_block_sizes = ";
@@ -563,6 +566,33 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
           input_state = BadInput;
         } else {
           ltimes_num_m = num;
+        }
+      } else {
+        getCout() << "\nBad input:"
+                  << " must give " << opt << " a value (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--array_of_ptrs_array_size") ) {
+
+      i++;
+      if ( i < argc ) {
+        long long num = ::atoll( argv[i] );
+        long long min_num = 1;
+        long long max_num = ARRAY_OF_PTRS_MAX_ARRAY_SIZE;
+        if ( num < min_num ) {
+          getCout() << "\nBad input:"
+                << " must give " << opt << " a value of at least " << min_num
+                << std::endl;
+          input_state = BadInput;
+        } else if ( num > max_num ) {
+          getCout() << "\nBad input:"
+                << " must give " << opt << " a value of at most " << max_num
+                << std::endl;
+          input_state = BadInput;
+        } else {
+          array_of_ptrs_array_size = num;
         }
       } else {
         getCout() << "\nBad input:"
@@ -1380,6 +1410,13 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t      Must be greater than 0.\n";
   str << "\t\t Example...\n"
       << "\t\t --ltimes_num_m 100\n\n";
+
+  str << "\t --array_of_ptrs_array_size <int> [default is " << ARRAY_OF_PTRS_MAX_ARRAY_SIZE << "]\n"
+      << "\t      (array size used in ARRAY_OF_PTRS kernel)\n"
+      << "\t      Must be greater than 0.\n"
+      << "\t      Must be less than or equal to " << ARRAY_OF_PTRS_MAX_ARRAY_SIZE << ".\n";
+  str << "\t\t Example...\n"
+      << "\t\t --array_of_ptrs_array_size 4\n\n";
 
   str << "\t --seq-data-space, -sds <string> [Default is Host]\n"
       << "\t      (name of data space to use for sequential variants)\n"
