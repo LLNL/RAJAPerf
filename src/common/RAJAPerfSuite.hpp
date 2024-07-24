@@ -95,6 +95,7 @@ enum KernelID {
   Basic_REDUCE3_INT,
   Basic_REDUCE_STRUCT,
   Basic_TRAP_INT,
+  Basic_MULTI_REDUCE,
 
 //
 // Lcals kernels...
@@ -166,6 +167,7 @@ enum KernelID {
   Algorithm_MEMSET,
   Algorithm_MEMCPY,
   Algorithm_ATOMIC,
+  Algorithm_HISTOGRAM,
 
 //
 // Comm kernels...

@@ -35,6 +35,7 @@
 #include "basic/REDUCE3_INT.hpp"
 #include "basic/REDUCE_STRUCT.hpp"
 #include "basic/TRAP_INT.hpp"
+#include "basic/MULTI_REDUCE.hpp"
 
 //
 // Lcals kernels...
@@ -106,6 +107,7 @@
 #include "algorithm/MEMSET.hpp"
 #include "algorithm/MEMCPY.hpp"
 #include "algorithm/ATOMIC.hpp"
+#include "algorithm/HISTOGRAM.hpp"
 
 //
 // Comm kernels...
@@ -187,6 +189,7 @@ static const std::string KernelNames [] =
   std::string("Basic_REDUCE3_INT"),
   std::string("Basic_REDUCE_STRUCT"),
   std::string("Basic_TRAP_INT"),
+  std::string("Basic_MULTI_REDUCE"),
 
 //
 // Lcals kernels...
@@ -258,6 +261,7 @@ static const std::string KernelNames [] =
   std::string("Algorithm_MEMSET"),
   std::string("Algorithm_MEMCPY"),
   std::string("Algorithm_ATOMIC"),
+  std::string("Algorithm_HISTOGRAM"),
 
 //
 // Comm kernels...
@@ -823,6 +827,10 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new basic::TRAP_INT(run_params);
        break;
     }
+    case Basic_MULTI_REDUCE : {
+       kernel = new basic::MULTI_REDUCE(run_params);
+       break;
+    }
 
 //
 // Lcals kernels...
@@ -1046,6 +1054,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Algorithm_ATOMIC: {
        kernel = new algorithm::ATOMIC(run_params);
+       break;
+    }
+    case Algorithm_HISTOGRAM: {
+       kernel = new algorithm::HISTOGRAM(run_params);
        break;
     }
 

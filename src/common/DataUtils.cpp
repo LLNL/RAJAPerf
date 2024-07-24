@@ -592,13 +592,14 @@ void initData(Real_type& d)
 /*
  * Calculate and return checksum for data arrays.
  */
-long double calcChecksum(Int_ptr ptr, Size_type len,
-                         Real_type scale_factor)
+template < typename Data_getter >
+long double calcChecksumImpl(Data_getter data, Size_type len,
+                             Real_type scale_factor)
 {
   long double tchk = 0.0;
   long double ckahan = 0.0;
   for (Size_type j = 0; j < len; ++j) {
-    long double x = (std::abs(std::sin(j+1.0))+0.5) * ptr[j];
+    long double x = (std::abs(std::sin(j+1.0))+0.5) * data(j);
     long double y = x - ckahan;
     volatile long double t = tchk + y;
     volatile long double z = t - tchk;
@@ -612,50 +613,38 @@ long double calcChecksum(Int_ptr ptr, Size_type len,
   }
   tchk *= scale_factor;
   return tchk;
+}
+
+long double calcChecksum(Int_ptr ptr, Size_type len,
+                         Real_type scale_factor)
+{
+  return calcChecksumImpl([=](Size_type j) {
+    return static_cast<long double>(ptr[j]);
+  }, len, scale_factor);
+}
+
+long double calcChecksum(unsigned long long* ptr, Size_type len,
+                         Real_type scale_factor)
+{
+  return calcChecksumImpl([=](Size_type j) {
+    return static_cast<long double>(ptr[j]);
+  }, len, scale_factor);
 }
 
 long double calcChecksum(Real_ptr ptr, Size_type len,
                          Real_type scale_factor)
 {
-  long double tchk = 0.0;
-  long double ckahan = 0.0;
-  for (Size_type j = 0; j < len; ++j) {
-    long double x = (std::abs(std::sin(j+1.0))+0.5) * ptr[j];
-    long double y = x - ckahan;
-    volatile long double t = tchk + y;
-    volatile long double z = t - tchk;
-    ckahan = z - y;
-    tchk = t;
-#if 0 // RDH DEBUG
-    if ( (j % 100) == 0 ) {
-      getCout() << "j : tchk = " << j << " : " << tchk << std::endl;
-    }
-#endif
-  }
-  tchk *= scale_factor;
-  return tchk;
+  return calcChecksumImpl([=](Size_type j) {
+    return static_cast<long double>(ptr[j]);
+  }, len, scale_factor);
 }
 
 long double calcChecksum(Complex_ptr ptr, Size_type len,
                          Real_type scale_factor)
 {
-  long double tchk = 0.0;
-  long double ckahan = 0.0;
-  for (Size_type j = 0; j < len; ++j) {
-    long double x = (std::abs(std::sin(j+1.0))+0.5) * (real(ptr[j])+imag(ptr[j]));
-    long double y = x - ckahan;
-    volatile long double t = tchk + y;
-    volatile long double z = t - tchk;
-    ckahan = z - y;
-    tchk = t;
-#if 0 // RDH DEBUG
-    if ( (j % 100) == 0 ) {
-      getCout() << "j : tchk = " << j << " : " << tchk << std::endl;
-    }
-#endif
-  }
-  tchk *= scale_factor;
-  return tchk;
+  return calcChecksumImpl([=](Size_type j) {
+    return static_cast<long double>(real(ptr[j])+imag(ptr[j]));
+  }, len, scale_factor);
 }
 
 }  // closing brace for detail namespace
