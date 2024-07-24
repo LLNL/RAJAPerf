@@ -29,8 +29,7 @@ HISTOGRAM::HISTOGRAM(const RunParams& params)
 
   setActualProblemSize( getTargetProblemSize() );
 
-  const char* e_num_bins = getenv("RAJAPERF_MULTI_REDUCE_NUM_BINS");
-  m_num_bins = e_num_bins ? atoi(e_num_bins) : 10;
+  m_num_bins = params.getMultiReduceNumBins();
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);

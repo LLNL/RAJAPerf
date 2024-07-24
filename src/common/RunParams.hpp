@@ -123,6 +123,8 @@ public:
 
   Size_type getDataAlignment() const { return data_alignment; }
 
+  Index_type getMultiReduceNumBins() const { return multi_reduce_num_bins; }
+
   int getGPUStream() const { return gpu_stream; }
   size_t numValidGPUBlockSize() const { return gpu_block_sizes.size(); }
   bool validGPUBlockSize(size_t block_size) const
@@ -255,10 +257,13 @@ private:
   double size_factor;    /*!< default kernel size multipier (input option) */
   Size_type data_alignment;
 
+  Index_type multi_reduce_num_bins; /*!< number of bins used in multi reduction kernels (input option) */
+
   int gpu_stream; /*!< 0 -> use stream 0; anything else -> use raja default stream */
   std::vector<size_t> gpu_block_sizes; /*!< Block sizes for gpu tunings to run (input option) */
   std::vector<size_t> atomic_replications; /*!< Atomic replications for gpu tunings to run (input option) */
   std::vector<size_t> items_per_threads; /*!< Items per thread for gpu tunings to run (input option) */
+
   int mpi_size;           /*!< Number of MPI ranks */
   int mpi_rank;           /*!< Rank of this MPI process */
   std::array<int, 3> mpi_3d_division; /*!< Number of MPI ranks in each dimension of a 3D grid */

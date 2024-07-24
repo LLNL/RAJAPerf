@@ -38,6 +38,7 @@ RunParams::RunParams(int argc, char** argv)
    size(0.0),
    size_factor(0.0),
    data_alignment(RAJA::DATA_ALIGN),
+   multi_reduce_num_bins(10),
    gpu_stream(1),
    gpu_block_sizes(),
    atomic_replications(),
@@ -120,6 +121,7 @@ void RunParams::print(std::ostream& str) const
   str << "\n size = " << size;
   str << "\n size_factor = " << size_factor;
   str << "\n data_alignment = " << data_alignment;
+  str << "\n multi_reduce_num_bins = " << multi_reduce_num_bins;
   str << "\n gpu stream = " << ((gpu_stream == 0) ? "0" : "RAJA default");
   str << "\n gpu_block_sizes = ";
   for (size_t j = 0; j < gpu_block_sizes.size(); ++j) {
@@ -433,6 +435,27 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
           input_state = BadInput;
         } else {
           data_alignment = align;
+        }
+      } else {
+        getCout() << "\nBad input:"
+                  << " must give " << opt << " a value (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--multi_reduce_num_bins") ) {
+
+      i++;
+      if ( i < argc ) {
+        long long num_bins = ::atoll( argv[i] );
+        long long min_num_bins = 1;
+        if ( num_bins < min_num_bins ) {
+          getCout() << "\nBad input:"
+                << " must give " << opt << " a value of at least " << min_num_bins
+                << std::endl;
+          input_state = BadInput;
+        } else {
+          multi_reduce_num_bins = num_bins;
         }
       } else {
         getCout() << "\nBad input:"
@@ -1213,13 +1236,19 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t -et default library (exclude default and library tunings)\n\n";
 
   str << "\t Options for selecting kernel data used in kernels....\n"
-      << "\t ======================================================\n\n";;
+      << "\t ======================================================\n\n";
 
   str << "\t --data_alignment, -align <int> [default is RAJA::DATA_ALIGN]\n"
       << "\t      (minimum memory alignment for host allocations)\n"
       << "\t      Must be a power of 2 at least as large as default alignment.\n";
   str << "\t\t Example...\n"
       << "\t\t -align 4096 (allocates memory aligned to 4KiB boundaries)\n\n";
+
+  str << "\t --multi_reduce_num_bins <int> [default is 10]\n"
+      << "\t      (number of bins used in multi-reduce kernels)\n"
+      << "\t      Must be greater than 0.\n";
+  str << "\t\t Example...\n"
+      << "\t\t --multi_reduce_num_bins 100\n\n";
 
   str << "\t --seq-data-space, -sds <string> [Default is Host]\n"
       << "\t      (name of data space to use for sequential variants)\n"
