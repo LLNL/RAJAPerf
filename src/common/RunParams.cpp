@@ -40,6 +40,9 @@ RunParams::RunParams(int argc, char** argv)
    data_alignment(RAJA::DATA_ALIGN),
    multi_reduce_num_bins(10),
    multi_reduce_bin_assignment_algorithm(BinAssignmentAlgorithm::RunsRandomSizes),
+   ltimes_num_d(64),
+   ltimes_num_g(32),
+   ltimes_num_m(25),
    gpu_stream(1),
    gpu_block_sizes(),
    atomic_replications(),
@@ -125,6 +128,10 @@ void RunParams::print(std::ostream& str) const
 
   str << "\n multi_reduce_num_bins = " << multi_reduce_num_bins;
   str << "\n multi_reduce_bin_assignment_algorithm = " << BinAssignmentAlgorithmToStr(multi_reduce_bin_assignment_algorithm);
+
+  str << "\n ltimes_num_d = " << ltimes_num_d;
+  str << "\n ltimes_num_g = " << ltimes_num_g;
+  str << "\n ltimes_num_m = " << ltimes_num_m;
 
   str << "\n gpu stream = " << ((gpu_stream == 0) ? "0" : "RAJA default");
   str << "\n gpu_block_sizes = ";
@@ -497,6 +504,69 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
       } else {
         getCout() << "\nBad input:"
                   << " must give " << opt << " a value (string)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--ltimes_num_d") ) {
+
+      i++;
+      if ( i < argc ) {
+        long long num = ::atoll( argv[i] );
+        long long min_num = 1;
+        if ( num < min_num ) {
+          getCout() << "\nBad input:"
+                << " must give " << opt << " a value of at least " << min_num
+                << std::endl;
+          input_state = BadInput;
+        } else {
+          ltimes_num_d = num;
+        }
+      } else {
+        getCout() << "\nBad input:"
+                  << " must give " << opt << " a value (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--ltimes_num_g") ) {
+
+      i++;
+      if ( i < argc ) {
+        long long num = ::atoll( argv[i] );
+        long long min_num = 1;
+        if ( num < min_num ) {
+          getCout() << "\nBad input:"
+                << " must give " << opt << " a value of at least " << min_num
+                << std::endl;
+          input_state = BadInput;
+        } else {
+          ltimes_num_g = num;
+        }
+      } else {
+        getCout() << "\nBad input:"
+                  << " must give " << opt << " a value (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--ltimes_num_m") ) {
+
+      i++;
+      if ( i < argc ) {
+        long long num = ::atoll( argv[i] );
+        long long min_num = 1;
+        if ( num < min_num ) {
+          getCout() << "\nBad input:"
+                << " must give " << opt << " a value of at least " << min_num
+                << std::endl;
+          input_state = BadInput;
+        } else {
+          ltimes_num_m = num;
+        }
+      } else {
+        getCout() << "\nBad input:"
+                  << " must give " << opt << " a value (int)"
                   << std::endl;
         input_state = BadInput;
       }
@@ -1292,6 +1362,24 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t      Valid assignment algorithm names are 'Random', 'RunsRandomSizes', 'RunsEvenSizes', or 'Single'\n";
   str << "\t\t Example...\n"
       << "\t\t --multi_reduce_bin_assignment_algorithm Random\n\n";
+
+  str << "\t --ltimes_num_d <int> [default is 64]\n"
+      << "\t      (num_d used in ltimes kernels)\n"
+      << "\t      Must be greater than 0.\n";
+  str << "\t\t Example...\n"
+      << "\t\t --ltimes_num_d 32\n\n";
+
+  str << "\t --ltimes_num_g <int> [default is 32]\n"
+      << "\t      (num_g used in ltimes kernels)\n"
+      << "\t      Must be greater than 0.\n";
+  str << "\t\t Example...\n"
+      << "\t\t --ltimes_num_g 64\n\n";
+
+  str << "\t --ltimes_num_m <int> [default is 25]\n"
+      << "\t      (num_m used in ltimes kernels)\n"
+      << "\t      Must be greater than 0.\n";
+  str << "\t\t Example...\n"
+      << "\t\t --ltimes_num_m 100\n\n";
 
   str << "\t --seq-data-space, -sds <string> [Default is Host]\n"
       << "\t      (name of data space to use for sequential variants)\n"

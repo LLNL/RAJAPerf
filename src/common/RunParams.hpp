@@ -157,6 +157,10 @@ public:
   Index_type getMultiReduceNumBins() const { return multi_reduce_num_bins; }
   BinAssignmentAlgorithm getMultiReduceBinAssignmentAlgorithm() const { return multi_reduce_bin_assignment_algorithm; }
 
+  Index_type getLtimesNumD() const { return ltimes_num_d; }
+  Index_type getLtimesNumG() const { return ltimes_num_g; }
+  Index_type getLtimesNumM() const { return ltimes_num_m; }
+
   int getGPUStream() const { return gpu_stream; }
   size_t numValidGPUBlockSize() const { return gpu_block_sizes.size(); }
   bool validGPUBlockSize(size_t block_size) const
@@ -291,6 +295,10 @@ private:
 
   Index_type multi_reduce_num_bins; /*!< number of bins used in multi reduction kernels (input option) */
   BinAssignmentAlgorithm multi_reduce_bin_assignment_algorithm; /*!< algorithm used to assign bins to iterates used in multi reduction kernels (input option) */
+
+  Index_type ltimes_num_d; /*!< num_d used in ltimes kernels (input option) */
+  Index_type ltimes_num_g; /*!< num_g used in ltimes kernels (input option) */
+  Index_type ltimes_num_m; /*!< num_m used in ltimes kernels (input option) */
 
   int gpu_stream; /*!< 0 -> use stream 0; anything else -> use raja default stream */
   std::vector<size_t> gpu_block_sizes; /*!< Block sizes for gpu tunings to run (input option) */
