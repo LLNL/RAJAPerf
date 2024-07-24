@@ -39,6 +39,7 @@ RunParams::RunParams(int argc, char** argv)
    size_factor(0.0),
    data_alignment(RAJA::DATA_ALIGN),
    multi_reduce_num_bins(10),
+   multi_reduce_bin_assignment_algorithm(BinAssignmentAlgorithm::RunsRandomSizes),
    gpu_stream(1),
    gpu_block_sizes(),
    atomic_replications(),
@@ -121,7 +122,10 @@ void RunParams::print(std::ostream& str) const
   str << "\n size = " << size;
   str << "\n size_factor = " << size_factor;
   str << "\n data_alignment = " << data_alignment;
+
   str << "\n multi_reduce_num_bins = " << multi_reduce_num_bins;
+  str << "\n multi_reduce_bin_assignment_algorithm = " << BinAssignmentAlgorithmToStr(multi_reduce_bin_assignment_algorithm);
+
   str << "\n gpu stream = " << ((gpu_stream == 0) ? "0" : "RAJA default");
   str << "\n gpu_block_sizes = ";
   for (size_t j = 0; j < gpu_block_sizes.size(); ++j) {
@@ -460,6 +464,39 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
       } else {
         getCout() << "\nBad input:"
                   << " must give " << opt << " a value (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--multi_reduce_bin_assignment_algorithm") ) {
+
+      i++;
+      if ( i < argc ) {
+
+        std::string bin_assignment_algorithm_name(argv[i]);
+
+        if (bin_assignment_algorithm_name == BinAssignmentAlgorithmToStr(BinAssignmentAlgorithm::Random)) {
+          multi_reduce_bin_assignment_algorithm = BinAssignmentAlgorithm::Random;
+        } else if (bin_assignment_algorithm_name == BinAssignmentAlgorithmToStr(BinAssignmentAlgorithm::RunsRandomSizes)) {
+          multi_reduce_bin_assignment_algorithm = BinAssignmentAlgorithm::RunsRandomSizes;
+        } else if (bin_assignment_algorithm_name == BinAssignmentAlgorithmToStr(BinAssignmentAlgorithm::RunsEvenSizes)) {
+          multi_reduce_bin_assignment_algorithm = BinAssignmentAlgorithm::RunsEvenSizes;
+        } else if (bin_assignment_algorithm_name == BinAssignmentAlgorithmToStr(BinAssignmentAlgorithm::Single)) {
+          multi_reduce_bin_assignment_algorithm = BinAssignmentAlgorithm::Single;
+        } else {
+          getCout() << "\nBad input:"
+                    << " must give " << opt << " one of the following values\n"
+                    << BinAssignmentAlgorithmToStr(BinAssignmentAlgorithm::Random) << ", "
+                    << BinAssignmentAlgorithmToStr(BinAssignmentAlgorithm::RunsRandomSizes) << ", "
+                    << BinAssignmentAlgorithmToStr(BinAssignmentAlgorithm::RunsEvenSizes) << ", "
+                    << BinAssignmentAlgorithmToStr(BinAssignmentAlgorithm::Single)
+                    << std::endl;
+          input_state = BadInput;
+          invalid_npasses_combiner_input.emplace_back(bin_assignment_algorithm_name);
+        }
+      } else {
+        getCout() << "\nBad input:"
+                  << " must give " << opt << " a value (string)"
                   << std::endl;
         input_state = BadInput;
       }
@@ -1249,6 +1286,12 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t      Must be greater than 0.\n";
   str << "\t\t Example...\n"
       << "\t\t --multi_reduce_num_bins 100\n\n";
+
+  str << "\t --multi_reduce_bin_assignment_algorithm <string> [default is RunsRandomSizes]\n"
+      << "\t      (algorithm used to assign bins to iterates in multi-reduce kernels)\n"
+      << "\t      Valid assignment algorithm names are 'Random', 'RunsRandomSizes', 'RunsEvenSizes', or 'Single'\n";
+  str << "\t\t Example...\n"
+      << "\t\t --multi_reduce_bin_assignment_algorithm Random\n\n";
 
   str << "\t --seq-data-space, -sds <string> [Default is Host]\n"
       << "\t      (name of data space to use for sequential variants)\n"
