@@ -167,6 +167,9 @@ public:
 
   Index_type getArrayOfPtrsArraySize() const { return array_of_ptrs_array_size; }
 
+  Index_type getHaloWidth() const { return halo_width; }
+  Index_type getHaloNumVars() const { return halo_num_vars; }
+
   int getGPUStream() const { return gpu_stream; }
   size_t numValidGPUBlockSize() const { return gpu_block_sizes.size(); }
   bool validGPUBlockSize(size_t block_size) const
@@ -307,6 +310,9 @@ private:
   Index_type ltimes_num_m; /*!< num_m used in ltimes kernels (input option) */
 
   Index_type array_of_ptrs_array_size; /*!< number of pointers used in ARRAY_OF_PTRS kernel (input option) */
+
+  Index_type halo_width; /*!< halo width used in halo kernels (input option) */
+  Index_type halo_num_vars; /*!< num vars used in halo kernels (input option) */
 
   int gpu_stream; /*!< 0 -> use stream 0; anything else -> use raja default stream */
   std::vector<size_t> gpu_block_sizes; /*!< Block sizes for gpu tunings to run (input option) */

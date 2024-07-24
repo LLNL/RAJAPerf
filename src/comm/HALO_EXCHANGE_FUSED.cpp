@@ -26,7 +26,7 @@ HALO_EXCHANGE_FUSED::HALO_EXCHANGE_FUSED(const RunParams& params)
 
   setDefaultReps(200);
 
-  m_num_vars = s_num_vars_default;
+  m_num_vars = params.getHaloNumVars();
   m_var_size = m_grid_plus_halo_size ;
 
   setItsPerRep( m_num_vars * (m_var_size - getActualProblemSize()) );

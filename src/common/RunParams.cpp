@@ -44,6 +44,8 @@ RunParams::RunParams(int argc, char** argv)
    ltimes_num_g(32),
    ltimes_num_m(25),
    array_of_ptrs_array_size(ARRAY_OF_PTRS_MAX_ARRAY_SIZE),
+   halo_width(1),
+   halo_num_vars(3),
    gpu_stream(1),
    gpu_block_sizes(),
    atomic_replications(),
@@ -135,6 +137,9 @@ void RunParams::print(std::ostream& str) const
   str << "\n ltimes_num_m = " << ltimes_num_m;
 
   str << "\n array_of_ptrs_array_size = " << array_of_ptrs_array_size;
+
+  str << "\n halo_width = " << halo_width;
+  str << "\n halo_num_vars = " << halo_num_vars;
 
   str << "\n gpu stream = " << ((gpu_stream == 0) ? "0" : "RAJA default");
   str << "\n gpu_block_sizes = ";
@@ -593,6 +598,48 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
           input_state = BadInput;
         } else {
           array_of_ptrs_array_size = num;
+        }
+      } else {
+        getCout() << "\nBad input:"
+                  << " must give " << opt << " a value (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--halo_width") ) {
+
+      i++;
+      if ( i < argc ) {
+        long long num = ::atoll( argv[i] );
+        long long min_num = 1;
+        if ( num < min_num ) {
+          getCout() << "\nBad input:"
+                << " must give " << opt << " a value of at least " << min_num
+                << std::endl;
+          input_state = BadInput;
+        } else {
+          halo_width = num;
+        }
+      } else {
+        getCout() << "\nBad input:"
+                  << " must give " << opt << " a value (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--halo_num_vars") ) {
+
+      i++;
+      if ( i < argc ) {
+        long long num = ::atoll( argv[i] );
+        long long min_num = 1;
+        if ( num < min_num ) {
+          getCout() << "\nBad input:"
+                << " must give " << opt << " a value of at least " << min_num
+                << std::endl;
+          input_state = BadInput;
+        } else {
+          halo_num_vars = num;
         }
       } else {
         getCout() << "\nBad input:"
@@ -1417,6 +1464,18 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t      Must be less than or equal to " << ARRAY_OF_PTRS_MAX_ARRAY_SIZE << ".\n";
   str << "\t\t Example...\n"
       << "\t\t --array_of_ptrs_array_size 4\n\n";
+
+  str << "\t --halo_width <int> [default is 1]\n"
+      << "\t      (halo width used in halo kernels)\n"
+      << "\t      Must be greater than 0.\n";
+  str << "\t\t Example...\n"
+      << "\t\t --halo_width 2\n\n";
+
+  str << "\t --halo_num_vars <int> [default is 3]\n"
+      << "\t      (num vars used in halo kernels)\n"
+      << "\t      Must be greater than 0.\n";
+  str << "\t\t Example...\n"
+      << "\t\t --halo_num_vars 10\n\n";
 
   str << "\t --seq-data-space, -sds <string> [Default is Host]\n"
       << "\t      (name of data space to use for sequential variants)\n"
