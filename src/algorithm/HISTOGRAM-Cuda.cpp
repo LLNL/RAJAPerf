@@ -280,6 +280,23 @@ void HISTOGRAM::runCudaVariant(VariantID vid, size_t tune_idx)
 
         seq_for(gpu_mapping::reducer_helpers{}, [&](auto mapping_helper) {
 
+          if (camp::size<cuda_atomic_global_replications_type>::value == 0 &&
+              camp::size<cuda_atomic_shared_replications_type>::value == 0 ) {
+
+            if (tune_idx == t) {
+
+              setBlockSize(block_size);
+              runCudaVariantAtomicRuntime<decltype(block_size)::value,
+                                          default_cuda_atomic_global_replication,
+                                          default_cuda_atomic_shared_replication,
+                                          decltype(mapping_helper)>(vid);
+
+            }
+
+            t += 1;
+
+          }
+
           seq_for(cuda_atomic_global_replications_type{}, [&](auto global_replication) {
 
             if (run_params.numValidAtomicReplication() == 0u ||
@@ -335,6 +352,15 @@ void HISTOGRAM::setCudaTuningDefinitions(VariantID vid)
           run_params.validGPUBlockSize(block_size)) {
 
         seq_for(gpu_mapping::reducer_helpers{}, [&](auto mapping_helper) {
+
+          if (camp::size<cuda_atomic_global_replications_type>::value == 0 &&
+              camp::size<cuda_atomic_shared_replications_type>::value == 0 ) {
+
+            addVariantTuningName(vid, "atomic_"+
+                                      decltype(mapping_helper)::get_name()+"_"+
+                                      std::to_string(block_size));
+
+          }
 
           seq_for(cuda_atomic_global_replications_type{}, [&](auto global_replication) {
 
