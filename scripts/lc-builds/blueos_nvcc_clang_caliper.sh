@@ -17,7 +17,7 @@ if [[ $# -lt 5 ]]; then
   echo "   5) path to adiak cmake directory"
   echo
   echo "For example: "
-  echo "    blueos_nvcc_clang_caliper.sh 10.2.89 70 10.0.1 /usr/workspace/wsb/asde/caliper-lassen/share/cmake/caliper /usr/workspace/wsb/asde/adiak-lassen/lib/cmake/adiak"
+  echo "    blueos_nvcc_clang_caliper.sh 10.2.89 70 10.0.1 /usr/workspace/wsb/asde/caliper-lassen/share/cmake/caliper /usr/workspace/wsb/asde/caliper-lassen/lib/cmake/adiak"
   exit
 fi
 

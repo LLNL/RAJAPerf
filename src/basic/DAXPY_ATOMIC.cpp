@@ -28,7 +28,9 @@ DAXPY_ATOMIC::DAXPY_ATOMIC(const RunParams& params)
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getActualProblemSize() );
+  setBytesReadPerRep( 1*sizeof(Real_type) * getActualProblemSize() );
+  setBytesWrittenPerRep( 0 );
+  setBytesAtomicModifyWrittenPerRep( 1*sizeof(Real_type) * getActualProblemSize() );
   setFLOPsPerRep(2 * getActualProblemSize());
 
   setUsesFeature(Forall);

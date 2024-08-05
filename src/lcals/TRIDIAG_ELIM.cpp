@@ -26,11 +26,13 @@ TRIDIAG_ELIM::TRIDIAG_ELIM(const RunParams& params)
 
   setActualProblemSize( getTargetProblemSize() );
 
-  m_N = getActualProblemSize();
+  m_N = getActualProblemSize() + 1;
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type ) + 3*sizeof(Real_type )) * (m_N-1) );
+  setBytesReadPerRep( 3*sizeof(Real_type ) * (m_N-1) );
+  setBytesWrittenPerRep( 1*sizeof(Real_type ) * (m_N-1) );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(2 * (getActualProblemSize()-1));
 
   setUsesFeature(Forall);

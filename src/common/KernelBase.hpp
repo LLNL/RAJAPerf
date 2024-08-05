@@ -102,7 +102,9 @@ public:
   void setDefaultReps(Index_type reps) { default_reps = reps; }
   void setItsPerRep(Index_type its) { its_per_rep = its; };
   void setKernelsPerRep(Index_type nkerns) { kernels_per_rep = nkerns; };
-  void setBytesPerRep(Index_type bytes) { bytes_per_rep = bytes;}
+  void setBytesReadPerRep(Index_type bytes) { bytes_read_per_rep = bytes;}
+  void setBytesWrittenPerRep(Index_type bytes) { bytes_written_per_rep = bytes;}
+  void setBytesAtomicModifyWrittenPerRep(Index_type bytes) { bytes_atomic_modify_written_per_rep = bytes;}
   void setFLOPsPerRep(Index_type FLOPs) { FLOPs_per_rep = FLOPs; }
   void setBlockSize(Index_type size) { kernel_block_size = size; }
 
@@ -155,7 +157,10 @@ public:
   Index_type getDefaultReps() const { return default_reps; }
   Index_type getItsPerRep() const { return its_per_rep; };
   Index_type getKernelsPerRep() const { return kernels_per_rep; };
-  Index_type getBytesPerRep() const { return bytes_per_rep; }
+  Index_type getBytesPerRep() const { return bytes_read_per_rep + bytes_written_per_rep + 2*bytes_atomic_modify_written_per_rep; } // count atomic_modify_write operations as a read and a write to match previous counting
+  Index_type getBytesReadPerRep() const { return bytes_read_per_rep; }
+  Index_type getBytesWrittenPerRep() const { return bytes_written_per_rep; }
+  Index_type getBytesAtomicModifyWrittenPerRep() const { return bytes_atomic_modify_written_per_rep; }
   Index_type getFLOPsPerRep() const { return FLOPs_per_rep; }
   double getBlockSize() const { return kernel_block_size; }
 
@@ -488,7 +493,8 @@ public:
   static void setCaliperMgrVariantTuning(VariantID vid,
                                     std::string tstr,
                                     const std::string& outdir,
-                                    const std::string& addToConfig);
+                                    const std::string& addToSpotConfig,
+                                    const std::string& addToCaliConfig);
 
   static void setCaliperMgrStart(VariantID vid, std::string tstr) { mgr[vid][tstr].start(); }
   static void setCaliperMgrStop(VariantID vid, std::string tstr) { mgr[vid][tstr].stop(); }
@@ -549,7 +555,9 @@ private:
   //
   Index_type its_per_rep;
   Index_type kernels_per_rep;
-  Index_type bytes_per_rep;
+  Index_type bytes_read_per_rep;
+  Index_type bytes_written_per_rep;
+  Index_type bytes_atomic_modify_written_per_rep;
   Index_type FLOPs_per_rep;
   double kernel_block_size = nan(""); // Set default value for non GPU kernels
 
@@ -568,6 +576,9 @@ private:
   cali_id_t Iters_Rep_attr;
   cali_id_t Kernels_Rep_attr;
   cali_id_t Bytes_Rep_attr;
+  cali_id_t Bytes_Read_Rep_attr;
+  cali_id_t Bytes_Written_Rep_attr;
+  cali_id_t Bytes_AtomicModifyWritten_Rep_attr;
   cali_id_t Flops_Rep_attr;
   cali_id_t BlockSize_attr;
   std::map<std::string, cali_id_t> Feature_attrs;
