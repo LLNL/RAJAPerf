@@ -195,6 +195,23 @@ void MULTI_REDUCE::runHipVariant(VariantID vid, size_t tune_idx)
 
         seq_for(gpu_mapping::reducer_helpers{}, [&](auto mapping_helper) {
 
+          if (camp::size<hip_atomic_global_replications_type>::value == 0 &&
+              camp::size<hip_atomic_shared_replications_type>::value == 0 ) {
+
+            if (tune_idx == t) {
+
+              setBlockSize(block_size);
+              runHipVariantAtomicRuntime<decltype(block_size)::value,
+                                          default_hip_atomic_global_replication,
+                                          default_hip_atomic_shared_replication,
+                                          decltype(mapping_helper)>(vid);
+
+            }
+
+            t += 1;
+
+          }
+
           seq_for(hip_atomic_global_replications_type{}, [&](auto global_replication) {
 
             if (run_params.numValidAtomicReplication() == 0u ||
@@ -242,6 +259,15 @@ void MULTI_REDUCE::setHipTuningDefinitions(VariantID vid)
         run_params.validGPUBlockSize(block_size)) {
 
       seq_for(gpu_mapping::reducer_helpers{}, [&](auto mapping_helper) {
+
+        if (camp::size<hip_atomic_global_replications_type>::value == 0 &&
+            camp::size<hip_atomic_shared_replications_type>::value == 0 ) {
+
+          addVariantTuningName(vid, "atomic_"+
+                                    decltype(mapping_helper)::get_name()+"_"+
+                                    std::to_string(block_size));
+
+        }
 
         seq_for(hip_atomic_global_replications_type{}, [&](auto global_replication) {
 
