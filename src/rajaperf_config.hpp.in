@@ -156,7 +156,7 @@ template <typename Func, typename... Ts>
 inline void seq_for(camp::list<Ts...> const&, Func&& func)
 {
   // braced init lists are evaluated in order
-  int seq_unused_array[] = {(func(Ts{}), 0)...};
+  int seq_unused_array[] = {0, (func(Ts{}), 0)...};
   RAJAPERF_UNUSED_VAR(seq_unused_array);
 }
 

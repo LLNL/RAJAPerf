@@ -32,7 +32,7 @@ namespace algorithm
 
 template < size_t block_size >
 using hip_items_per_thread_type = integer::make_gpu_items_per_thread_list_type<
-    detail::hip::grid_scan_default_items_per_thread<Real_type, block_size, RAJA_PERFSUITE_TUNING_HIP_ARCH>::value,
+    detail::hip::grid_scan_max_items_per_thread<Real_type, block_size>::value+1,
     integer::LessEqual<detail::hip::grid_scan_max_items_per_thread<Real_type, block_size>::value>>;
 
 
@@ -237,7 +237,24 @@ void SCAN::runHipVariant(VariantID vid, size_t tune_idx)
         if (run_params.numValidGPUBlockSize() == 0u ||
             run_params.validGPUBlockSize(block_size)) {
 
-          seq_for(hip_items_per_thread_type<block_size>{}, [&](auto items_per_thread) {
+          using hip_items_per_thread = hip_items_per_thread_type<block_size>;
+
+          if (camp::size<hip_items_per_thread>::value == 0) {
+
+            if (tune_idx == t) {
+
+              runHipVariantImpl<decltype(block_size)::value,
+                                 detail::hip::grid_scan_default_items_per_thread<
+                                    Real_type, block_size, RAJA_PERFSUITE_TUNING_HIP_ARCH>::value
+                                 >(vid);
+
+            }
+
+            t += 1;
+
+          }
+
+          seq_for(hip_items_per_thread{}, [&](auto items_per_thread) {
 
             if (run_params.numValidItemsPerThread() == 0u ||
                 run_params.validItemsPerThread(block_size)) {
@@ -279,13 +296,21 @@ void SCAN::setHipTuningDefinitions(VariantID vid)
         if (run_params.numValidGPUBlockSize() == 0u ||
             run_params.validGPUBlockSize(block_size)) {
 
-          seq_for(hip_items_per_thread_type<block_size>{}, [&](auto items_per_thread) {
+          using hip_items_per_thread = hip_items_per_thread_type<block_size>;
+
+          if (camp::size<hip_items_per_thread>::value == 0) {
+
+            addVariantTuningName(vid, "block_"+std::to_string(block_size));
+
+          }
+
+          seq_for(hip_items_per_thread{}, [&](auto items_per_thread) {
 
             if (run_params.numValidItemsPerThread() == 0u ||
                 run_params.validItemsPerThread(block_size)) {
 
-              addVariantTuningName(vid, "block_"+std::to_string(block_size)+
-                                        "_itemsPerThread_"+std::to_string(items_per_thread));
+              addVariantTuningName(vid, "itemsPerThread<"+std::to_string(items_per_thread)+">_"
+                                        "block_"+std::to_string(block_size));
 
             }
 
