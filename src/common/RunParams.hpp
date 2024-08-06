@@ -18,6 +18,10 @@
 #include "RAJAPerfSuite.hpp"
 #include "RPTypes.hpp"
 
+
+#define ARRAY_OF_PTRS_MAX_ARRAY_SIZE 26
+
+
 namespace rajaperf
 {
 
@@ -98,6 +102,37 @@ public:
   }
 
   /*!
+   * \brief Enumeration for the bin assignment algorithm used in multi-reduce kernels
+   */
+  enum struct BinAssignmentAlgorithm : int {
+    Random,          /*!< random bin for each iterate */
+    RunsRandomSizes, /*!< each bin in turn is repeated a random number of times,
+                          Ex. 6 bins and 10 iterates [ 0 0 1 2 2 2 2 3 3 5] */
+    RunsEvenSizes,   /*!< each bin in turn is repeated the same number of times,
+                          Ex. 6 bins and 10 iterates [ 0 0 1 1 2 2 3 3 4 5] */
+    Single           /*!< use bin 0 for each iterate */
+  };
+
+  /*!
+   * \brief Translate BinAssignmentAlgorithm enum value to string
+   */
+  static std::string BinAssignmentAlgorithmToStr(BinAssignmentAlgorithm baa)
+  {
+    switch (baa) {
+      case BinAssignmentAlgorithm::Random:
+        return "Random";
+      case BinAssignmentAlgorithm::RunsRandomSizes:
+        return "RunsRandomSizes";
+      case BinAssignmentAlgorithm::RunsEvenSizes:
+        return "RunsEvenSizes";
+      case BinAssignmentAlgorithm::Single:
+        return "Single";
+      default:
+        return "Unknown";
+    }
+  }
+
+  /*!
    * \brief Return state of input parsed to this point.
    */
   InputOpt getInputState() const { return input_state; }
@@ -122,6 +157,18 @@ public:
   double getSizeFactor() const { return size_factor; }
 
   Size_type getDataAlignment() const { return data_alignment; }
+
+  Index_type getMultiReduceNumBins() const { return multi_reduce_num_bins; }
+  BinAssignmentAlgorithm getMultiReduceBinAssignmentAlgorithm() const { return multi_reduce_bin_assignment_algorithm; }
+
+  Index_type getLtimesNumD() const { return ltimes_num_d; }
+  Index_type getLtimesNumG() const { return ltimes_num_g; }
+  Index_type getLtimesNumM() const { return ltimes_num_m; }
+
+  Index_type getArrayOfPtrsArraySize() const { return array_of_ptrs_array_size; }
+
+  Index_type getHaloWidth() const { return halo_width; }
+  Index_type getHaloNumVars() const { return halo_num_vars; }
 
   int getGPUStream() const { return gpu_stream; }
   size_t numValidGPUBlockSize() const { return gpu_block_sizes.size(); }
@@ -255,10 +302,23 @@ private:
   double size_factor;    /*!< default kernel size multipier (input option) */
   Size_type data_alignment;
 
+  Index_type multi_reduce_num_bins; /*!< number of bins used in multi reduction kernels (input option) */
+  BinAssignmentAlgorithm multi_reduce_bin_assignment_algorithm; /*!< algorithm used to assign bins to iterates used in multi reduction kernels (input option) */
+
+  Index_type ltimes_num_d; /*!< num_d used in ltimes kernels (input option) */
+  Index_type ltimes_num_g; /*!< num_g used in ltimes kernels (input option) */
+  Index_type ltimes_num_m; /*!< num_m used in ltimes kernels (input option) */
+
+  Index_type array_of_ptrs_array_size; /*!< number of pointers used in ARRAY_OF_PTRS kernel (input option) */
+
+  Index_type halo_width; /*!< halo width used in halo kernels (input option) */
+  Index_type halo_num_vars; /*!< num vars used in halo kernels (input option) */
+
   int gpu_stream; /*!< 0 -> use stream 0; anything else -> use raja default stream */
   std::vector<size_t> gpu_block_sizes; /*!< Block sizes for gpu tunings to run (input option) */
   std::vector<size_t> atomic_replications; /*!< Atomic replications for gpu tunings to run (input option) */
   std::vector<size_t> items_per_threads; /*!< Items per thread for gpu tunings to run (input option) */
+
   int mpi_size;           /*!< Number of MPI ranks */
   int mpi_rank;           /*!< Rank of this MPI process */
   std::array<int, 3> mpi_3d_division; /*!< Number of MPI ranks in each dimension of a 3D grid */

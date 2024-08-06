@@ -26,7 +26,7 @@ ARRAY_OF_PTRS::ARRAY_OF_PTRS(const RunParams& params)
 
   setActualProblemSize( getTargetProblemSize() );
 
-  m_array_size = ARRAY_OF_PTRS_MAX_ARRAY_SIZE;
+  m_array_size = params.getArrayOfPtrsArraySize();
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);

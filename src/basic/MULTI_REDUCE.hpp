@@ -126,6 +126,7 @@ private:
   using hip_atomic_shared_replications_type = integer::make_atomic_replication_list_type<0>; // default list is empty
 
   Index_type m_num_bins;
+  RunParams::BinAssignmentAlgorithm m_bin_assignment_algorithm;
   Index_ptr m_bins;
   Data_ptr m_data;
   std::vector<Data_type> m_values_init;
