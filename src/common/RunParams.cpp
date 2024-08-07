@@ -2042,7 +2042,7 @@ void RunParams::processKernelInput()
 
       // Assemble invalid input for output message.
       if ( !found_it ) {
-        invalid_kernel_input.push_back(*it);
+        invalid_warmup_kernel_input.push_back(*it);
       }
 
     } // iterate over kernel name input
