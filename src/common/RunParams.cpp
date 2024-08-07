@@ -57,6 +57,8 @@ RunParams::RunParams(int argc, char** argv)
    checkrun_reps(1),
    reference_variant(),
    reference_vid(NumVariants),
+   warmup_kernel_input(),
+   invalid_warmup_kernel_input(),
    kernel_input(),
    invalid_kernel_input(),
    exclude_kernel_input(),
@@ -194,6 +196,15 @@ void RunParams::print(std::ostream& str) const
   str << "\n cuda MPI data space = " << getDataSpaceName(cudaMPIDataSpace);
   str << "\n hip MPI data space = " << getDataSpaceName(hipMPIDataSpace);
   str << "\n kokkos MPI data space = " << getDataSpaceName(kokkosMPIDataSpace);
+
+  str << "\n warmup_kernel_input = ";
+  for (size_t j = 0; j < warmup_kernel_input.size(); ++j) {
+    str << "\n\t" << warmup_kernel_input[j];
+  }
+  str << "\n invalid_warmup_kernel_input = ";
+  for (size_t j = 0; j < invalid_warmup_kernel_input.size(); ++j) {
+    str << "\n\t" << invalid_warmup_kernel_input[j];
+  }
 
   str << "\n kernel_input = ";
   for (size_t j = 0; j < kernel_input.size(); ++j) {
@@ -787,6 +798,22 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
                   << " must give --pass-fail-tol (or -pftol) a value (double)"
                   << std::endl;
         input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--warmup-kernels") ||
+                opt == std::string("-wk") ) {
+
+      bool done = false;
+      i++;
+      while ( i < argc && !done ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+          done = true;
+        } else {
+          warmup_kernel_input.push_back(opt);
+          ++i;
+        }
       }
 
     } else if ( opt == std::string("--kernels") ||
@@ -1942,6 +1969,38 @@ void RunParams::processKernelInput()
   //
   // ================================================================
 
+  run_warmup_kernels.clear();
+
+  if ( !warmup_kernel_input.empty() ) {
+
+    //
+    // Need to parse input to determine which warmup kernels to run
+    //
+
+    //
+    // Look for matching names of individual kernels in warmup_kernel_input.
+    //
+    for (auto it = warmup_kernel_input.begin(); it != warmup_kernel_input.end(); ++it)
+    {
+      bool found_it = false;
+
+      for (size_t kid = 0; kid < NumKernels && !found_it; ++kid) {
+        KernelID tkid = static_cast<KernelID>(kid);
+        if ( getKernelName(tkid) == *it || getFullKernelName(tkid) == *it ) {
+          run_warmup_kernels.insert(tkid);
+          found_it = true;
+        }
+      }
+
+      // Assemble invalid input for output message.
+      if ( !found_it ) {
+        invalid_warmup_kernel_input.push_back(*it);
+      }
+
+    } // iterate over kernel name input
+
+  }
+
   run_kernels.clear();
 
   if ( kernel_input.empty() && feature_input.empty() ) {
@@ -2091,7 +2150,8 @@ void RunParams::processKernelInput()
   // Set BadInput state based on invalid kernel input
   //
 
-  if ( !(invalid_kernel_input.empty()) ||
+  if ( !(invalid_warmup_kernel_input.empty()) ||
+       !(invalid_kernel_input.empty()) ||
        !(invalid_exclude_kernel_input.empty()) ) {
     input_state = BadInput;
   }
