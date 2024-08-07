@@ -1977,24 +1977,63 @@ void RunParams::processKernelInput()
     // Need to parse input to determine which warmup kernels to run
     //
 
+    // Make list copy of warmup kernel name input to manipulate for
+    // processing potential group names and/or kernel names, next
+    Slist warmup_kern_names(warmup_kernel_input.begin(), warmup_kernel_input.end());
+
     //
-    // Look for matching names of individual kernels in warmup_kernel_input.
+    // Search warmup_kern_names for matching group names.
+    // warmup_groups2run will contain names of groups to run.
     //
-    for (auto it = warmup_kernel_input.begin(); it != warmup_kernel_input.end(); ++it)
+    Svector warmup_groups2run;
+    for (Slist::iterator it = warmup_kern_names.begin(); it != warmup_kern_names.end(); ++it)
+    {
+      for (size_t ig = 0; ig < NumGroups; ++ig) {
+        const std::string& group_name = getGroupName(static_cast<GroupID>(ig));
+        if ( group_name == *it ) {
+          warmup_groups2run.push_back(group_name);
+        }
+      }
+    }
+
+    //
+    // If group name(s) found in warmup_kern_names, assemble kernels in group(s)
+    // to run and remove those group name(s) from warmup_kern_names list.
+    //
+    for (size_t ig = 0; ig < warmup_groups2run.size(); ++ig) {
+      const std::string& gname(warmup_groups2run[ig]);
+
+      for (size_t kid = 0; kid < NumKernels; ++kid) {
+        KernelID tkid = static_cast<KernelID>(kid);
+        if ( getFullKernelName(tkid).find(gname) != std::string::npos &&
+             exclude_kernels.find(tkid) == exclude_kernels.end()) {
+          run_warmup_kernels.insert(tkid);
+        }
+      }
+
+      warmup_kern_names.remove(gname);
+    }
+
+    //
+    // Look for matching names of individual kernels in remaining warmup_kern_names.
+    //
+    for (Slist::iterator it = warmup_kern_names.begin(); it != warmup_kern_names.end(); ++it)
     {
       bool found_it = false;
 
       for (size_t kid = 0; kid < NumKernels && !found_it; ++kid) {
         KernelID tkid = static_cast<KernelID>(kid);
         if ( getKernelName(tkid) == *it || getFullKernelName(tkid) == *it ) {
-          run_warmup_kernels.insert(tkid);
+          if (exclude_kernels.find(tkid) == exclude_kernels.end()) {
+            run_warmup_kernels.insert(tkid);
+          }
           found_it = true;
         }
       }
 
       // Assemble invalid input for output message.
       if ( !found_it ) {
-        invalid_warmup_kernel_input.push_back(*it);
+        invalid_kernel_input.push_back(*it);
       }
 
     } // iterate over kernel name input
