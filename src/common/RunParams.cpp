@@ -1315,6 +1315,15 @@ void RunParams::printHelpMessage(std::ostream& str) const
 
   str << "\t --disable-warmup (disable warmup kernels) [Default is run warmup kernels that are relevant to kernels selected to run]\n\n";
 
+  str << "\t --warmup-kernels, -wk <space-separated strings> [Default is run warmup kernels that are relevant to kernels selected to run]\n"
+      << "\t      (names of individual kernels and/or groups of kernels to warmup)\n"
+      << "\t      See '--print-kernels'/'-pk' option for list of valid kernel and group names.\n"
+      << "\t      Kernel names are listed as <group name>_<kernel name>.\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --warmup-kernels Polybench (warmup all kernels in Polybench group)\n"
+      << "\t\t -wk INIT3 MULADDSUB (warmup INIT3 and MULADDSUB kernels)\n"
+      << "\t\t -wk INIT3 Apps (warmup INIT3 kernel and all kernels in Apps group)\n\n";
+
   str << "\t --kernels, -k <space-separated strings> [Default is run all]\n"
       << "\t      (names of individual kernels and/or groups of kernels to run)\n"
       << "\t      See '--print-kernels'/'-pk' option for list of valid kernel and group names.\n"
