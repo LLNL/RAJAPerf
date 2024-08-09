@@ -730,63 +730,76 @@ void Executor::runWarmupKernels()
   getCout() << "\n\nRun warmup kernels...\n";
 
   //
-  // For kernels to be run, assemble a set of feature IDs
+  // Get warmup kernels to run from input
   //
-  std::set<FeatureID> feature_ids;
-  for (size_t ik = 0; ik < kernels.size(); ++ik) {
-    KernelBase* kernel = kernels[ik];
+  std::set<KernelID> kernel_ids = run_params.getWarmupKernelIDsToRun();
 
-    for (size_t fid = 0; fid < NumFeatures; ++fid) {
-      FeatureID tfid = static_cast<FeatureID>(fid);
-      if (kernel->usesFeature(tfid) ) {
-         feature_ids.insert( tfid );
+  if ( kernel_ids.empty() ) {
+
+    //
+    // If no warmup kernels were given, choose a warmup kernel for each feature
+    //
+
+    //
+    // For kernels to be run, assemble a set of feature IDs
+    //
+    std::set<FeatureID> feature_ids;
+    for (size_t ik = 0; ik < kernels.size(); ++ik) {
+      KernelBase* kernel = kernels[ik];
+
+      for (size_t fid = 0; fid < NumFeatures; ++fid) {
+        FeatureID tfid = static_cast<FeatureID>(fid);
+        if (kernel->usesFeature(tfid) ) {
+           feature_ids.insert( tfid );
+        }
       }
-    }
-  
-  } // iterate over kernels
 
-  //
-  // Map feature IDs to set of warmup kernel IDs
-  //
-  std::set<KernelID> kernel_ids;
-  for ( auto fid = feature_ids.begin(); fid != feature_ids.end(); ++ fid ) {
+    } // iterate over kernels
 
-    switch (*fid) {
+    //
+    // Map feature IDs to set of warmup kernel IDs
+    //
+    for ( auto fid = feature_ids.begin(); fid != feature_ids.end(); ++ fid ) {
 
-      case Forall:
-      case Kernel:
-      case Launch:
-        kernel_ids.insert(Basic_DAXPY); break;
+      switch (*fid) {
 
-      case Sort:
-        kernel_ids.insert(Algorithm_SORT); break;
-   
-      case Scan:
-        kernel_ids.insert(Basic_INDEXLIST_3LOOP); break;
+        case Forall:
+        case Kernel:
+        case Launch:
+          kernel_ids.insert(Basic_DAXPY); break;
 
-      case Workgroup:
-        kernel_ids.insert(Comm_HALO_PACKING_FUSED); break;
+        case Sort:
+          kernel_ids.insert(Algorithm_SORT); break;
 
-      case Reduction:
-        kernel_ids.insert(Basic_REDUCE3_INT); break;
+        case Scan:
+          kernel_ids.insert(Basic_INDEXLIST_3LOOP); break;
 
-      case Atomic:
-        kernel_ids.insert(Basic_PI_ATOMIC); break; 
+        case Workgroup:
+          kernel_ids.insert(Comm_HALO_PACKING_FUSED); break;
 
-      case View:
-        break;
+        case Reduction:
+          kernel_ids.insert(Basic_REDUCE3_INT); break;
 
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
-      case MPI:
-        kernel_ids.insert(Comm_HALO_EXCHANGE_FUSED); break;
-#endif
+        case Atomic:
+          kernel_ids.insert(Basic_PI_ATOMIC); break;
 
-      default:
-        break;
+        case View:
+          break;
+
+  #ifdef RAJA_PERFSUITE_ENABLE_MPI
+        case MPI:
+          kernel_ids.insert(Comm_HALO_EXCHANGE_FUSED); break;
+  #endif
+
+        default:
+          break;
+
+      }
 
     }
 
   }
+
 
   //
   // Run warmup kernels
