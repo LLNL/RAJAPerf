@@ -20,8 +20,6 @@ namespace comm
 {
 
 Index_type HALO_base::s_grid_dims_default[3] {100, 100, 100};
-Index_type HALO_base::s_halo_width_default = 1;
-Index_type HALO_base::s_num_vars_default = 3;
 
 HALO_base::HALO_base(KernelID kid, const RunParams& params)
   : KernelBase(kid, params)
@@ -35,7 +33,7 @@ HALO_base::HALO_base(KernelID kid, const RunParams& params)
   m_grid_dims[0] = cbrt_run_size;
   m_grid_dims[1] = cbrt_run_size;
   m_grid_dims[2] = cbrt_run_size;
-  m_halo_width = s_halo_width_default;
+  m_halo_width = params.getHaloWidth();
 
   m_grid_plus_halo_dims[0] = m_grid_dims[0] + 2*m_halo_width;
   m_grid_plus_halo_dims[1] = m_grid_dims[1] + 2*m_halo_width;

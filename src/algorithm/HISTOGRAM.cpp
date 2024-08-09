@@ -29,8 +29,8 @@ HISTOGRAM::HISTOGRAM(const RunParams& params)
 
   setActualProblemSize( getTargetProblemSize() );
 
-  const char* e_num_bins = getenv("RAJAPERF_MULTI_REDUCE_NUM_BINS");
-  m_num_bins = e_num_bins ? atoi(e_num_bins) : 10;
+  m_num_bins = params.getMultiReduceNumBins();
+  m_bin_assignment_algorithm = params.getMultiReduceBinAssignmentAlgorithm();
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
@@ -72,12 +72,14 @@ void HISTOGRAM::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
   {
     auto reset_bins = scopedMoveData(m_bins, getActualProblemSize(), vid);
 
-    const char* e_algorithm = getenv("RAJAPERF_MULTI_REDUCE_BIN_ASSIGNMENT");
-    const int algorithm = e_algorithm ? atoi(e_algorithm) : 0;
-    const bool init_random_per_iterate = algorithm == 0;
-    const bool init_random_sizes = algorithm == 1;
-    const bool init_even_sizes = algorithm == 2;
-    const bool init_all_one = algorithm == 3;
+    const bool init_random_per_iterate =
+        (m_bin_assignment_algorithm == RunParams::BinAssignmentAlgorithm::Random);
+    const bool init_random_sizes =
+        (m_bin_assignment_algorithm == RunParams::BinAssignmentAlgorithm::RunsRandomSizes);
+    const bool init_even_sizes =
+        (m_bin_assignment_algorithm == RunParams::BinAssignmentAlgorithm::RunsEvenSizes);
+    const bool init_all_one =
+        (m_bin_assignment_algorithm == RunParams::BinAssignmentAlgorithm::Single);
 
     if (init_even_sizes || init_random_sizes || init_all_one) {
       Real_ptr data = nullptr;

@@ -138,11 +138,6 @@ private:
   Real_ptr m_elldat;
   Real_ptr m_psidat;
 
-  Index_type m_num_d_default;
-  Index_type m_num_z_default;
-  Index_type m_num_g_default;
-  Index_type m_num_m_default;
-
   Index_type m_num_d;
   Index_type m_num_z;
   Index_type m_num_g;

@@ -117,15 +117,16 @@ private:
 
   static const size_t default_cuda_atomic_global_replication = 2;
   static const size_t default_cuda_atomic_shared_replication = 16;
-  using cuda_atomic_global_replications_type = integer::make_atomic_replication_list_type<default_cuda_atomic_global_replication>;
-  using cuda_atomic_shared_replications_type = integer::make_atomic_replication_list_type<default_cuda_atomic_shared_replication>;
+  using cuda_atomic_global_replications_type = integer::make_atomic_replication_list_type<0>; // default list is empty
+  using cuda_atomic_shared_replications_type = integer::make_atomic_replication_list_type<0>; // default list is empty
 
   static const size_t default_hip_atomic_global_replication = 32;
   static const size_t default_hip_atomic_shared_replication = 4;
-  using hip_atomic_global_replications_type = integer::make_atomic_replication_list_type<default_hip_atomic_global_replication>;
-  using hip_atomic_shared_replications_type = integer::make_atomic_replication_list_type<default_hip_atomic_shared_replication>;
+  using hip_atomic_global_replications_type = integer::make_atomic_replication_list_type<0>; // default list is empty
+  using hip_atomic_shared_replications_type = integer::make_atomic_replication_list_type<0>; // default list is empty
 
   Index_type m_num_bins;
+  RunParams::BinAssignmentAlgorithm m_bin_assignment_algorithm;
   Index_ptr m_bins;
   Data_ptr m_data;
   std::vector<Data_type> m_values_init;

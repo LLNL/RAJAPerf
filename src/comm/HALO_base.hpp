@@ -127,8 +127,6 @@ protected:
   static const int s_boundary_offsets[s_num_neighbors][3];
 
   static Index_type s_grid_dims_default[3];
-  static Index_type s_halo_width_default;
-  static Index_type s_num_vars_default;
 
   Index_type m_grid_dims[3];
   Index_type m_halo_width;

@@ -156,7 +156,7 @@ using make_gpu_block_size_list_type =
 // If atomic_replications from the configuration is not empty it is those atomic_replications,
 // otherwise it is a list containing just default_atomic_replication.
 // Invalid entries are removed according to validity_checker in either case.
-template < size_t default_atomic_replication, typename validity_checker = AllowAny >
+template < size_t default_atomic_replication, typename validity_checker = PositiveOnly >
 using make_atomic_replication_list_type =
       typename detail::remove_invalid<validity_checker,
         typename std::conditional< (camp::size<rajaperf::configuration::atomic_replications>::value > 0),
@@ -169,7 +169,7 @@ using make_atomic_replication_list_type =
 // If gpu_items_per_thread from the configuration is not empty it is those gpu_items_per_thread,
 // otherwise it is a list containing just default_gpu_items_per_thread.
 // Invalid entries are removed according to validity_checker in either case.
-template < size_t default_gpu_items_per_thread, typename validity_checker = AllowAny >
+template < size_t default_gpu_items_per_thread, typename validity_checker = PositiveOnly >
 using make_gpu_items_per_thread_list_type =
       typename detail::remove_invalid<validity_checker,
         typename std::conditional< (camp::size<rajaperf::configuration::gpu_items_per_thread>::value > 0),
