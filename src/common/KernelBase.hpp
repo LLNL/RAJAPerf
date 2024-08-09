@@ -107,6 +107,7 @@ public:
   void setBytesAtomicModifyWrittenPerRep(Index_type bytes) { bytes_atomic_modify_written_per_rep = bytes;}
   void setFLOPsPerRep(Index_type FLOPs) { FLOPs_per_rep = FLOPs; }
   void setBlockSize(Index_type size) { kernel_block_size = size; }
+  void setComplexity(Complexity ac) { complexity = ac; }
 
   void setUsesFeature(FeatureID fid) { uses_feature[fid] = true; }
 
@@ -163,6 +164,7 @@ public:
   Index_type getBytesAtomicModifyWrittenPerRep() const { return bytes_atomic_modify_written_per_rep; }
   Index_type getFLOPsPerRep() const { return FLOPs_per_rep; }
   double getBlockSize() const { return kernel_block_size; }
+  Complexity getComplexity() const { return complexity; };
 
   Index_type getTargetProblemSize() const;
   Index_type getRunReps() const;
@@ -547,6 +549,8 @@ private:
   Index_type actual_prob_size;
 
   bool uses_feature[NumFeatures];
+
+  Complexity complexity;
 
   std::vector<std::string> variant_tuning_names[NumVariants];
 

@@ -36,6 +36,8 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params)
     uses_feature[fid] = false;
   }
 
+  complexity = Complexity::NumComplexities;
+
   its_per_rep = -1;
   kernels_per_rep = -1;
   bytes_read_per_rep = -1;
@@ -496,6 +498,7 @@ void KernelBase::print(std::ostream& os) const
     os << "\t\t\t\t" << getFeatureName(static_cast<FeatureID>(j))
                      << " : " << uses_feature[j] << std::endl;
   }
+  os << "\t\t\t algorithmic_complexity = " << getComplexityName(complexity) << std::endl;
   os << "\t\t\t variant_tuning_names: " << std::endl;
   for (unsigned j = 0; j < NumVariants; ++j) {
     os << "\t\t\t\t" << getVariantName(static_cast<VariantID>(j))

@@ -7,7 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 ///
-/// Types and methods for managing Suite kernels, variants, features, etc..
+/// Types and methods for managing Suite kernels, variants, features, complexities, etc..
 ///
 
 #ifndef RAJAPerfSuite_HPP
@@ -267,6 +267,33 @@ enum FeatureID {
 /*!
  *******************************************************************************
  *
+ * \brief Enumeration defining unique id for each algorithmic COMPLEXITY used in suite.
+ *
+ * IMPORTANT: This is only modified when a new complexity is used in suite.
+ *
+ *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
+ *            ITEMS IN THE ComplexityNames ARRAY IN IMPLEMENTATION FILE!!!
+ *
+ *******************************************************************************
+ */
+enum struct Complexity {
+
+  N = 0,
+
+  N_logN,
+
+  N_to_the_three_halves,
+
+  N_to_the_two_thirds,
+
+  NumComplexities // Keep this one last and NEVER comment out (!!)
+
+};
+
+
+/*!
+ *******************************************************************************
+ *
  * \brief Enumeration defining unique id for each Data memory space
  * used in suite.
  *
@@ -385,6 +412,15 @@ bool isVariantGPU(VariantID vid);
  *******************************************************************************
  */
 const std::string& getFeatureName(FeatureID vid);
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Return algorithmic complexity name associated with Complexity enum value.
+ *
+ *******************************************************************************
+ */
+const std::string& getComplexityName(Complexity ac);
 
 /*!
  *******************************************************************************

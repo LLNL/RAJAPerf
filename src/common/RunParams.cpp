@@ -353,6 +353,24 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
       printKernelFeatures(getCout());
       input_state = InfoRequest;
 
+    } else if ( opt == std::string("--print-complexities") ||
+                opt == std::string("-pc") ) {
+
+      printComplexityNames(getCout());
+      input_state = InfoRequest;
+
+    } else if ( opt == std::string("--print-complexity-kernels") ||
+                opt == std::string("-pck") ) {
+
+      printComplexityKernels(getCout());
+      input_state = InfoRequest;
+
+    } else if ( opt == std::string("--print-kernel-complexities") ||
+                opt == std::string("-pkc") ) {
+
+      printKernelComplexities(getCout());
+      input_state = InfoRequest;
+
     } else if ( opt == std::string("--npasses") ) {
 
       i++;
@@ -1273,6 +1291,14 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t --print-kernel-features, -pkf \n"
       << "\t      (print names of features used by each kernel)\n\n";
 
+  str << "\t --print-complexities, -pc (print names of algorithmic complexities exercised in Suite)\n\n";
+
+  str << "\t --print-complexity-kernels, -pck \n"
+      << "\t      (print names of kernels that have each complexity)\n\n";
+
+  str << "\t --print-kernel-complexities, -pkc \n"
+      << "\t      (print the name of the complexity of each kernel)\n\n";
+
   str << "\t --print-data-spaces, -pds (print names of data spaces)\n\n";
 
   str << "\t Options for selecting output details....\n"
@@ -1769,6 +1795,51 @@ void RunParams::printKernelFeatures(std::ostream& str) const
          str << "\t" << getFeatureName(tfid) << std::endl;
       }
     }  // loop over features
+    delete kern;
+  }  // loop over kernels
+  str.flush();
+}
+
+void RunParams::printComplexityNames(std::ostream& str) const
+{
+  str << "\nAvailable complexities:";
+  str << "\n-------------------\n";
+  for (int ac = 0; ac < int(Complexity::NumComplexities); ++ac) {
+    str << getComplexityName(static_cast<Complexity>(ac)) << std::endl;
+  }
+  str.flush();
+}
+
+void RunParams::printComplexityKernels(std::ostream& str) const
+{
+  str << "\nAvailable complexities and kernels that use each:";
+  str << "\n---------------------------------------------\n";
+  for (int ac = 0; ac < int(Complexity::NumComplexities); ++ac) {
+    Complexity tac = static_cast<Complexity>(ac);
+    str << getComplexityName(tac) << std::endl;
+    for (int kid = 0; kid < NumKernels; ++kid) {
+      KernelID tkid = static_cast<KernelID>(kid);
+      KernelBase* kern = getKernelObject(tkid, *this);
+      if ( kern->getComplexity() == tac ) {
+        str << "\t" << getFullKernelName(tkid) << std::endl;
+      }
+      delete kern;
+    }  // loop over kernels
+    str << std::endl;
+  }  // loop over complexities
+  str.flush();
+}
+
+void RunParams::printKernelComplexities(std::ostream& str) const
+{
+  str << "\nAvailable kernels and complexities each uses:";
+  str << "\n-----------------------------------------\n";
+  for (int kid = 0; kid < NumKernels; ++kid) {
+    KernelID tkid = static_cast<KernelID>(kid);
+    str << getFullKernelName(tkid) << std::endl;
+    KernelBase* kern = getKernelObject(tkid, *this);
+    Complexity tac = kern->getComplexity();
+    str << "\t" << getComplexityName(tac) << std::endl;
     delete kern;
   }  // loop over kernels
   str.flush();
