@@ -57,6 +57,8 @@ RunParams::RunParams(int argc, char** argv)
    checkrun_reps(1),
    reference_variant(),
    reference_vid(NumVariants),
+   warmup_kernel_input(),
+   invalid_warmup_kernel_input(),
    kernel_input(),
    invalid_kernel_input(),
    exclude_kernel_input(),
@@ -194,6 +196,15 @@ void RunParams::print(std::ostream& str) const
   str << "\n cuda MPI data space = " << getDataSpaceName(cudaMPIDataSpace);
   str << "\n hip MPI data space = " << getDataSpaceName(hipMPIDataSpace);
   str << "\n kokkos MPI data space = " << getDataSpaceName(kokkosMPIDataSpace);
+
+  str << "\n warmup_kernel_input = ";
+  for (size_t j = 0; j < warmup_kernel_input.size(); ++j) {
+    str << "\n\t" << warmup_kernel_input[j];
+  }
+  str << "\n invalid_warmup_kernel_input = ";
+  for (size_t j = 0; j < invalid_warmup_kernel_input.size(); ++j) {
+    str << "\n\t" << invalid_warmup_kernel_input[j];
+  }
 
   str << "\n kernel_input = ";
   for (size_t j = 0; j < kernel_input.size(); ++j) {
@@ -789,6 +800,22 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         input_state = BadInput;
       }
 
+    } else if ( opt == std::string("--warmup-kernels") ||
+                opt == std::string("-wk") ) {
+
+      bool done = false;
+      i++;
+      while ( i < argc && !done ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+          done = true;
+        } else {
+          warmup_kernel_input.push_back(opt);
+          ++i;
+        }
+      }
+
     } else if ( opt == std::string("--kernels") ||
                 opt == std::string("-k") ) {
 
@@ -1287,6 +1314,15 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t ========================================\n\n";;
 
   str << "\t --disable-warmup (disable warmup kernels) [Default is run warmup kernels that are relevant to kernels selected to run]\n\n";
+
+  str << "\t --warmup-kernels, -wk <space-separated strings> [Default is run warmup kernels that are relevant to kernels selected to run]\n"
+      << "\t      (names of individual kernels and/or groups of kernels to warmup)\n"
+      << "\t      See '--print-kernels'/'-pk' option for list of valid kernel and group names.\n"
+      << "\t      Kernel names are listed as <group name>_<kernel name>.\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --warmup-kernels Polybench (warmup all kernels in Polybench group)\n"
+      << "\t\t -wk INIT3 MULADDSUB (warmup INIT3 and MULADDSUB kernels)\n"
+      << "\t\t -wk INIT3 Apps (warmup INIT3 kernel and all kernels in Apps group)\n\n";
 
   str << "\t --kernels, -k <space-separated strings> [Default is run all]\n"
       << "\t      (names of individual kernels and/or groups of kernels to run)\n"
@@ -1942,6 +1978,77 @@ void RunParams::processKernelInput()
   //
   // ================================================================
 
+  run_warmup_kernels.clear();
+
+  if ( !warmup_kernel_input.empty() ) {
+
+    //
+    // Need to parse input to determine which warmup kernels to run
+    //
+
+    // Make list copy of warmup kernel name input to manipulate for
+    // processing potential group names and/or kernel names, next
+    Slist warmup_kern_names(warmup_kernel_input.begin(), warmup_kernel_input.end());
+
+    //
+    // Search warmup_kern_names for matching group names.
+    // warmup_groups2run will contain names of groups to run.
+    //
+    Svector warmup_groups2run;
+    for (Slist::iterator it = warmup_kern_names.begin(); it != warmup_kern_names.end(); ++it)
+    {
+      for (size_t ig = 0; ig < NumGroups; ++ig) {
+        const std::string& group_name = getGroupName(static_cast<GroupID>(ig));
+        if ( group_name == *it ) {
+          warmup_groups2run.push_back(group_name);
+        }
+      }
+    }
+
+    //
+    // If group name(s) found in warmup_kern_names, assemble kernels in group(s)
+    // to run and remove those group name(s) from warmup_kern_names list.
+    //
+    for (size_t ig = 0; ig < warmup_groups2run.size(); ++ig) {
+      const std::string& gname(warmup_groups2run[ig]);
+
+      for (size_t kid = 0; kid < NumKernels; ++kid) {
+        KernelID tkid = static_cast<KernelID>(kid);
+        if ( getFullKernelName(tkid).find(gname) != std::string::npos &&
+             exclude_kernels.find(tkid) == exclude_kernels.end()) {
+          run_warmup_kernels.insert(tkid);
+        }
+      }
+
+      warmup_kern_names.remove(gname);
+    }
+
+    //
+    // Look for matching names of individual kernels in remaining warmup_kern_names.
+    //
+    for (Slist::iterator it = warmup_kern_names.begin(); it != warmup_kern_names.end(); ++it)
+    {
+      bool found_it = false;
+
+      for (size_t kid = 0; kid < NumKernels && !found_it; ++kid) {
+        KernelID tkid = static_cast<KernelID>(kid);
+        if ( getKernelName(tkid) == *it || getFullKernelName(tkid) == *it ) {
+          if (exclude_kernels.find(tkid) == exclude_kernels.end()) {
+            run_warmup_kernels.insert(tkid);
+          }
+          found_it = true;
+        }
+      }
+
+      // Assemble invalid input for output message.
+      if ( !found_it ) {
+        invalid_warmup_kernel_input.push_back(*it);
+      }
+
+    } // iterate over kernel name input
+
+  }
+
   run_kernels.clear();
 
   if ( kernel_input.empty() && feature_input.empty() ) {
@@ -2091,7 +2198,8 @@ void RunParams::processKernelInput()
   // Set BadInput state based on invalid kernel input
   //
 
-  if ( !(invalid_kernel_input.empty()) ||
+  if ( !(invalid_warmup_kernel_input.empty()) ||
+       !(invalid_kernel_input.empty()) ||
        !(invalid_exclude_kernel_input.empty()) ) {
     input_state = BadInput;
   }

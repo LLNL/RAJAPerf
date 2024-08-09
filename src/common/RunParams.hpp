@@ -252,6 +252,7 @@ public:
 
   bool getDisableWarmup() const { return disable_warmup; }
 
+  const std::set<KernelID>& getWarmupKernelIDsToRun() const { return run_warmup_kernels; }
   const std::set<KernelID>& getKernelIDsToRun() const { return run_kernels; }
   const std::set<VariantID>& getVariantIDsToRun() const { return run_variants; }
   VariantID getReferenceVariantID() const { return reference_vid; }
@@ -360,6 +361,8 @@ private:
   // Arrays to hold input strings for valid/invalid input. Helpful for
   // debugging command line args.
   //
+  std::vector<std::string> warmup_kernel_input;
+  std::vector<std::string> invalid_warmup_kernel_input;
   std::vector<std::string> kernel_input;
   std::vector<std::string> invalid_kernel_input;
   std::vector<std::string> exclude_kernel_input;
@@ -390,6 +393,7 @@ private:
 
   bool disable_warmup;
 
+  std::set<KernelID>  run_warmup_kernels;
   std::set<KernelID>  run_kernels;
   std::set<VariantID> run_variants;
 
