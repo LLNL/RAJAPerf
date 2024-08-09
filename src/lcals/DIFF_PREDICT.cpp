@@ -33,6 +33,8 @@ DIFF_PREDICT::DIFF_PREDICT(const RunParams& params)
   setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(9 * getActualProblemSize());
 
+  setComplexity(Complexity::N);
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );

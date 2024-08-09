@@ -53,6 +53,8 @@ LTIMES_NOVIEW::LTIMES_NOVIEW(const RunParams& params)
               ( static_cast<Checksum_type>(getDefaultProblemSize()) /
                                            getActualProblemSize() );
 
+  setComplexity(Complexity::N);
+
   setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );

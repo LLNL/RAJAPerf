@@ -33,6 +33,8 @@ INIT_VIEW1D_OFFSET::INIT_VIEW1D_OFFSET(const RunParams& params)
   setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(1 * getActualProblemSize());
 
+  setComplexity(Complexity::N);
+
   setUsesFeature(Forall);
   setUsesFeature(View);
 

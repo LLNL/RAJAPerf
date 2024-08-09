@@ -33,6 +33,8 @@ TRAP_INT::TRAP_INT(const RunParams& params)
   setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(10 * getActualProblemSize()); // 1 sqrt
 
+  setComplexity(Complexity::N);
+
   setUsesFeature(Forall);
   setUsesFeature(Reduction);
 

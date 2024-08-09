@@ -38,6 +38,8 @@ SCAN::SCAN(const RunParams& params)
                                               getActualProblemSize() ) /
                  getActualProblemSize();
 
+  setComplexity(Complexity::N);
+
   setUsesFeature(Scan);
 
   setVariantDefined( Base_Seq );

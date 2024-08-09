@@ -35,6 +35,8 @@ ARRAY_OF_PTRS::ARRAY_OF_PTRS(const RunParams& params)
   setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(m_array_size * getActualProblemSize());
 
+  setComplexity(Complexity::N);
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );

@@ -35,7 +35,7 @@ MAT_MAT_SHARED::MAT_MAT_SHARED(const RunParams &params)
   setBytesWrittenPerRep( 1*sizeof(Real_type) * m_N*m_N  );
   setBytesAtomicModifyWrittenPerRep( 0 );
 
-  const Index_type no_tiles = (TL_SZ + m_N - 1) / TL_SZ;
+  const Index_type no_tiles = RAJA_DIVIDE_CEILING_INT(m_N, TL_SZ);
   const Index_type no_blocks = RAJA_DIVIDE_CEILING_INT(m_N, TL_SZ);
   setFLOPsPerRep(2 * TL_SZ * TL_SZ * TL_SZ * no_tiles * no_blocks * no_blocks);
 
@@ -43,6 +43,7 @@ MAT_MAT_SHARED::MAT_MAT_SHARED(const RunParams &params)
               ( static_cast<Checksum_type>(getDefaultProblemSize()) /
                                            getActualProblemSize() );
 
+  setComplexity(Complexity::N_to_the_three_halves);
 
   setUsesFeature(Launch);
 

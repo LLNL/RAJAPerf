@@ -53,6 +53,8 @@ LTIMES::LTIMES(const RunParams& params)
               ( static_cast<Checksum_type>(getDefaultProblemSize()) /
                                            getActualProblemSize() );
 
+  setComplexity(Complexity::N);
+
   setUsesFeature(Kernel);
   setUsesFeature(View);
 

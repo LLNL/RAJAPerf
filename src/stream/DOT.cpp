@@ -34,6 +34,8 @@ DOT::DOT(const RunParams& params)
   setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(2 * getActualProblemSize());
 
+  setComplexity(Complexity::N);
+
   setUsesFeature( Forall );
   setUsesFeature( Reduction );
 

@@ -33,6 +33,8 @@ REDUCE_SUM::REDUCE_SUM(const RunParams& params)
   setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(getActualProblemSize());
 
+  setComplexity(Complexity::N);
+
   setUsesFeature(Forall);
   setUsesFeature(Reduction);
 

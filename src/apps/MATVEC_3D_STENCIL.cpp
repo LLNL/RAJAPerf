@@ -83,6 +83,8 @@ MATVEC_3D_STENCIL::MATVEC_3D_STENCIL(const RunParams& params)
               ( static_cast<Checksum_type>(getDefaultProblemSize()) /
                                            getActualProblemSize() );
 
+  setComplexity(Complexity::N);
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );

@@ -44,6 +44,8 @@ MASS3DEA::MASS3DEA(const RunParams& params)
 
   setFLOPsPerRep(m_NE * 7 * ea_mat_entries);
 
+  setComplexity(Complexity::N);
+
   setUsesFeature(Launch);
 
   setVariantDefined( Base_Seq );
