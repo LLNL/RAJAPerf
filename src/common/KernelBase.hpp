@@ -586,6 +586,7 @@ private:
   cali_id_t Flops_Rep_attr;
   cali_id_t BlockSize_attr;
   std::map<std::string, cali_id_t> Feature_attrs;
+  cali_id_t Complexity_attr;
 
 
   // we need a Caliper Manager object per variant
