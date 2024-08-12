@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -26,11 +26,13 @@ TRIDIAG_ELIM::TRIDIAG_ELIM(const RunParams& params)
 
   setActualProblemSize( getTargetProblemSize() );
 
-  m_N = getActualProblemSize();
+  m_N = getActualProblemSize() + 1;
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type ) + 3*sizeof(Real_type )) * (m_N-1) );
+  setBytesReadPerRep( 3*sizeof(Real_type ) * (m_N-1) );
+  setBytesWrittenPerRep( 1*sizeof(Real_type ) * (m_N-1) );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(2 * (getActualProblemSize()-1));
 
   setUsesFeature(Forall);
@@ -51,6 +53,9 @@ TRIDIAG_ELIM::TRIDIAG_ELIM(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Base_SYCL );
+  setVariantDefined( RAJA_SYCL );
 
   setVariantDefined( Kokkos_Lambda );
 }

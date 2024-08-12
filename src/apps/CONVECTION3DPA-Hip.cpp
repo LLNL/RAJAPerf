@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -138,18 +138,16 @@ void CONVECTION3DPA::runHipVariantImpl(VariantID vid) {
 
   case Base_HIP: {
 
-    dim3 nblocks(NE);
-    dim3 nthreads_per_block(CPA_Q1D, CPA_Q1D, CPA_Q1D);
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+      dim3 nthreads_per_block(CPA_Q1D, CPA_Q1D, CPA_Q1D);
       constexpr size_t shmem = 0;
-      hipLaunchKernelGGL((Convection3DPA<block_size>),
-                         dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
-                         Basis, tBasis, dBasis, D, X, Y);
-
-      hipErrchk(hipGetLastError());
+      
+      RPlaunchHipKernel( (Convection3DPA<block_size>),
+                         NE, nthreads_per_block,
+                         shmem, res.get_stream(),
+                         Basis, tBasis, dBasis, D, X, Y );      
     }
     stopTimer();
 

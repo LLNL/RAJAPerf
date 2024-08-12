@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -53,8 +53,13 @@ void IF_QUAD::runCudaVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      ifquad<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( x1, x2, a, b, c, iend );
-      cudaErrchk( cudaGetLastError() );
+
+      RPlaunchCudaKernel( (ifquad<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          x1, x2,
+                          a, b, c,
+                          iend );
 
     }
     stopTimer();
@@ -63,13 +68,18 @@ void IF_QUAD::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+      auto ifquad_lambda = [=] __device__ (Index_type i) {
+        IF_QUAD_BODY;
+      };
+
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      lambda_cuda_forall<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(
-        ibegin, iend, [=] __device__ (Index_type i) {
-        IF_QUAD_BODY;
-      });
-      cudaErrchk( cudaGetLastError() );
+
+      RPlaunchCudaKernel( (lambda_cuda_forall<block_size,
+                                              decltype(ifquad_lambda)>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          ibegin, iend, ifquad_lambda );
 
     }
     stopTimer();

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ###############################################################################
-# Copyright (c) 2016-23, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 # and RAJA project contributors. See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
@@ -52,6 +52,25 @@ echo "Creating build directory ${BUILD_SUFFIX} and generating configuration in i
 echo "Configuration extra arguments:"
 echo "   $@"
 echo
+echo "To get cmake to work you may have to configure with"
+echo "   -DHIP_PLATFORM=amd"
+echo
+echo "To use fp64 HW atomics you must configure with these options when using gfx90a and hip >= 5.2"
+echo "   -DCMAKE_CXX_FLAGS=\"-munsafe-fp-atomics\""
+echo
+echo "To work around some issues where *_FUSED kernels crash add these options"
+echo "   -DCMAKE_CXX_FLAGS=\"-fgpu-rdc\""
+echo "   -DCMAKE_EXE_LINKER_FLAGS=\"-fgpu-rdc\""
+echo
+echo "To work around some issues where *_FUSED kernels perform poorly use this environment variable"
+echo "   env HSA_SCRATCH_SINGLE_LIMIT=4000000000"
+echo
+echo "To work around some issues where the build fails with a weird error about max or fmax add these options"
+echo "   -DCMAKE_CXX_FLAGS=\"--hip-version={hip_version:ex=6.1.2}\""
+echo "   -DCMAKE_EXE_LINKER_FLAGS=\"--hip-version={hip_version:ex=6.1.2}\""
+echo
+
+
 
 rm -rf build_${BUILD_SUFFIX} >/dev/null
 mkdir build_${BUILD_SUFFIX} && cd build_${BUILD_SUFFIX}
@@ -61,18 +80,27 @@ module load cmake/3.23.1
 
 # unload rocm to avoid configuration problems where the loaded rocm and COMP_VER
 # are inconsistent causing the rocprim from the module to be used unexpectedly
-module unload rocm
+module unload rocm rocmcc
 
+if [[ "${COMP_VER}" == *-magic ]]; then
+  ROCM_PATH="/usr/tce/packages/rocmcc/rocmcc-${COMP_VER}"
+  MPI_ROCM_PATH="/usr/tce/packages/cray-mpich/cray-mpich-${MPI_VER}-rocmcc-${COMP_VER}"
+else
+  ROCM_PATH="/opt/rocm-${COMP_VER}"
+  MPI_ROCM_PATH=/usr/tce/packages/cray-mpich-tce/cray-mpich-${MPI_VER}-rocmcc-${COMP_VER}
+fi
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -DMPI_C_COMPILER="/usr/tce/packages/cray-mpich-tce/cray-mpich-${MPI_VER}-rocmcc-${COMP_VER}/bin/mpiamdclang" \
-  -DMPI_CXX_COMPILER="/usr/tce/packages/cray-mpich-tce/cray-mpich-${MPI_VER}-rocmcc-${COMP_VER}/bin/mpiamdclang++" \
-  -DROCM_ROOT_DIR="/opt/rocm-${COMP_VER}" \
-  -DHIP_ROOT_DIR="/opt/rocm-${COMP_VER}/hip" \
-  -DHIP_PATH=/opt/rocm-${COMP_VER}/llvm/bin \
-  -DCMAKE_C_COMPILER=/opt/rocm-${COMP_VER}/llvm/bin/amdclang \
-  -DCMAKE_CXX_COMPILER=/opt/rocm-${COMP_VER}/llvm/bin/amdclang++ \
+  -DMPI_C_COMPILER="${MPI_ROCM_PATH}/bin/mpiamdclang" \
+  -DMPI_CXX_COMPILER="${MPI_ROCM_PATH}/bin/mpiamdclang++" \
+  -DCMAKE_PREFIX_PATH="${ROCM_PATH}/lib/cmake" \
+  -DHIP_PLATFORM=amd \
+  -DROCM_ROOT_DIR="${ROCM_PATH}" \
+  -DHIP_ROOT_DIR="${ROCM_PATH}/hip" \
+  -DHIP_PATH="${ROCM_PATH}/llvm/bin" \
+  -DCMAKE_C_COMPILER="${ROCM_PATH}/llvm/bin/amdclang" \
+  -DCMAKE_CXX_COMPILER="${ROCM_PATH}/llvm/bin/amdclang++" \
   -DCMAKE_HIP_ARCHITECTURES="${COMP_ARCH}" \
   -DGPU_TARGETS="${COMP_ARCH}" \
   -DAMDGPU_TARGETS="${COMP_ARCH}" \
@@ -98,10 +126,10 @@ echo
 echo "    module unload rocm"
 echo "    srun -n1 make"
 echo
-echo "  Please note that cray-mpich requires libmodules.so.1 from cce to run."
+echo "  Please note that rocm requires libpgmath.so from rocm/llvm to run."
 echo "  Until this is handled transparently in the build system you may add "
-echo "  cce to your LD_LIBRARY_PATH."
+echo "  rocm/llvm to your LD_LIBRARY_PATH."
 echo
-echo "    export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/usr/tce/packages/cce-tce/cce-13.0.2/cce/x86_64/lib/"
+echo "    export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/opt/rocm-${COMP_VER}/llvm/lib"
 echo
 echo "***********************************************************************"

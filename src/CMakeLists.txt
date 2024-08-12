@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors.
 # See the RAJAPerf/LICENSE file for details.
 #
@@ -18,8 +18,9 @@ add_subdirectory(polybench)
 add_subdirectory(stream)
 add_subdirectory(stream-kokkos)
 add_subdirectory(algorithm)
+add_subdirectory(comm)
 
-set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
+set(RAJA_PERFSUITE_LIBS
     common
     apps
     basic
@@ -29,7 +30,9 @@ set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     polybench
     stream
     stream-kokkos
-    algorithm)
+    algorithm
+    comm)
+set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_LIBS})
 list(APPEND RAJA_PERFSUITE_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_DEPENDS})
 
 if(RAJA_ENABLE_TARGET_OPENMP)
@@ -57,12 +60,6 @@ blt_add_executable(
   apps/PRESSURE.cpp
   apps/PRESSURE-Seq.cpp
   apps/PRESSURE-OMPTarget.cpp
-  apps/HALOEXCHANGE.cpp
-  apps/HALOEXCHANGE-Seq.cpp
-  apps/HALOEXCHANGE-OMPTarget.cpp
-  apps/HALOEXCHANGE_FUSED.cpp
-  apps/HALOEXCHANGE_FUSED-Seq.cpp
-  apps/HALOEXCHANGE_FUSED-OMPTarget.cpp
   apps/LTIMES.cpp
   apps/LTIMES-Seq.cpp
   apps/LTIMES-OMPTarget.cpp
@@ -75,6 +72,9 @@ blt_add_executable(
   apps/MASS3DPA.cpp
   apps/MASS3DPA-Seq.cpp
   apps/MASS3DPA-OMPTarget.cpp
+  apps/MATVEC_3D_STENCIL.cpp
+  apps/MATVEC_3D_STENCIL-Seq.cpp
+  apps/MATVEC_3D_STENCIL-OMPTarget.cpp
   apps/NODAL_ACCUMULATION_3D.cpp
   apps/NODAL_ACCUMULATION_3D-Seq.cpp
   apps/NODAL_ACCUMULATION_3D-OMPTarget.cpp
@@ -138,6 +138,9 @@ blt_add_executable(
   basic/TRAP_INT.cpp
   basic/TRAP_INT-Seq.cpp
   basic/TRAP_INT-OMPTarget.cpp
+  basic/MULTI_REDUCE.cpp
+  basic/MULTI_REDUCE-Seq.cpp
+  basic/MULTI_REDUCE-OMPTarget.cpp
   lcals/DIFF_PREDICT.cpp
   lcals/DIFF_PREDICT-Seq.cpp
   lcals/DIFF_PREDICT-OMPTarget.cpp
@@ -248,6 +251,28 @@ blt_add_executable(
   algorithm/MEMCPY.cpp
   algorithm/MEMCPY-Seq.cpp
   algorithm/MEMCPY-OMPTarget.cpp
+  algorithm/ATOMIC.cpp
+  algorithm/ATOMIC-Seq.cpp
+  algorithm/ATOMIC-OMPTarget.cpp
+  algorithm/HISTOGRAM.cpp
+  algorithm/HISTOGRAM-Seq.cpp
+  algorithm/HISTOGRAM-OMPTarget.cpp
+  comm/HALO_base.cpp
+  comm/HALO_PACKING.cpp
+  comm/HALO_PACKING-Seq.cpp
+  comm/HALO_PACKING-OMPTarget.cpp
+  comm/HALO_PACKING_FUSED.cpp
+  comm/HALO_PACKING_FUSED-Seq.cpp
+  comm/HALO_PACKING_FUSED-OMPTarget.cpp
+  comm/HALO_SENDRECV.cpp
+  comm/HALO_SENDRECV-Seq.cpp
+  comm/HALO_SENDRECV-OMPTarget.cpp
+  comm/HALO_EXCHANGE.cpp
+  comm/HALO_EXCHANGE-Seq.cpp
+  comm/HALO_EXCHANGE-OMPTarget.cpp
+  comm/HALO_EXCHANGE_FUSED.cpp
+  comm/HALO_EXCHANGE_FUSED-Seq.cpp
+  comm/HALO_EXCHANGE_FUSED-OMPTarget.cpp
   DEPENDS_ON ${RAJA_PERFSUITE_EXECUTABLE_DEPENDS}
 )
 install( TARGETS raja-perf-omptarget.exe
@@ -263,5 +288,8 @@ blt_add_executable(
   )
 install( TARGETS raja-perf.exe
          RUNTIME DESTINATION bin
+       )
+install( TARGETS ${RAJA_PERFSUITE_LIBS}
+         LIBRARY DESTINATION lib
        )
 endif()

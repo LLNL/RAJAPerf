@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -26,18 +26,21 @@ POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
   setDefaultProblemSize( N_default * N_default );
   setDefaultReps(100);
 
-  m_N = std::sqrt( getTargetProblemSize() )+1;
+  m_N = std::sqrt( getTargetProblemSize() ) + std::sqrt(2)-1;
 
 
   setActualProblemSize( m_N * m_N );
 
   setItsPerRep( m_N + m_N );
   setKernelsPerRep(2);
-  setBytesPerRep( (2*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N +
-                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N * m_N +
+  setBytesReadPerRep( 1*sizeof(Real_type ) * m_N +
+                      1*sizeof(Real_type ) * m_N * m_N +
 
-                  (1*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N +
-                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N * m_N );
+                      1*sizeof(Real_type ) * m_N +
+                      1*sizeof(Real_type ) * m_N * m_N );
+  setBytesWrittenPerRep( 2*sizeof(Real_type ) * m_N +
+                         1*sizeof(Real_type ) * m_N);
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(2 * m_N*m_N +
                  2 * m_N*m_N );
 
@@ -65,6 +68,9 @@ POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
   setVariantDefined( Base_HIP );
   setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Base_SYCL );
+  setVariantDefined( RAJA_SYCL );
 }
 
 POLYBENCH_ATAX::~POLYBENCH_ATAX()

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -26,11 +26,13 @@ ARRAY_OF_PTRS::ARRAY_OF_PTRS(const RunParams& params)
 
   setActualProblemSize( getTargetProblemSize() );
 
-  m_array_size = ARRAY_OF_PTRS_MAX_ARRAY_SIZE;
+  m_array_size = params.getArrayOfPtrsArraySize();
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type) + m_array_size*sizeof(Real_type)) * getActualProblemSize() );
+  setBytesReadPerRep( m_array_size*sizeof(Real_type) * getActualProblemSize() );
+  setBytesWrittenPerRep( 1*sizeof(Real_type) * getActualProblemSize() );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(m_array_size * getActualProblemSize());
 
   setUsesFeature(Forall);
@@ -53,6 +55,9 @@ ARRAY_OF_PTRS::ARRAY_OF_PTRS(const RunParams& params)
   setVariantDefined( Base_HIP );
   setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Base_SYCL );
+  setVariantDefined( RAJA_SYCL );
 
   setVariantDefined( Kokkos_Lambda );
 }

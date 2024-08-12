@@ -74,7 +74,7 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
     INDEXLIST_3LOOP_DATA_SETUP_HIP;
 
     Index_type* len;
-    allocData(DataSpace::HipPinned, len, 1);
+    allocData(DataSpace::HipPinnedCoarse, len, 1);
 
     hipStream_t stream = res.get_stream();
 
@@ -112,9 +112,11 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-      hipLaunchKernelGGL((indexlist_conditional<block_size>), grid_size, block_size, shmem, stream,
-          x, counts, iend );
-      hipErrchk( hipGetLastError() );
+
+      RPlaunchHipKernel( (indexlist_conditional<block_size>),
+                         grid_size, block_size,
+                         shmem, stream,
+                         x, counts, iend );
 
 #if defined(__HIPCC__)
       hipErrchk(::rocprim::exclusive_scan(d_temp_storage,
@@ -136,9 +138,10 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
                                                  stream));
 #endif
 
-      hipLaunchKernelGGL((indexlist_make_list<block_size>), grid_size, block_size, shmem, stream,
-          list, counts, len, iend );
-      hipErrchk( hipGetLastError() );
+      RPlaunchHipKernel( (indexlist_make_list<block_size>),
+                         grid_size, block_size,
+                         shmem, stream,
+                         list, counts, len, iend );
 
       hipErrchk( hipStreamSynchronize(stream) );
       m_len = *len;
@@ -147,7 +150,7 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
     stopTimer();
 
     deallocData(DataSpace::HipDevice, temp_storage);
-    deallocData(DataSpace::HipPinned, len);
+    deallocData(DataSpace::HipPinnedCoarse, len);
 
     INDEXLIST_3LOOP_DATA_TEARDOWN_HIP;
 
@@ -155,10 +158,11 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
 
     INDEXLIST_3LOOP_DATA_SETUP_HIP;
 
+    Index_type* len;
+    allocData(DataSpace::HipPinnedCoarse, len, 1);
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      RAJA::ReduceSum<RAJA::hip_reduce, Index_type> len(0);
 
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend),
@@ -166,22 +170,29 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
         counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
       });
 
-      RAJA::exclusive_scan_inplace< RAJA::hip_exec<block_size, true /*async*/> >( res,
-          RAJA::make_span(counts+ibegin, iend+1-ibegin));
+      RAJA::exclusive_scan_inplace<
+        RAJA::hip_exec<block_size, true /*async*/> >(
+          res,
+          RAJA::make_span(counts+ibegin, iend+1-ibegin) );
 
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend),
         [=] __device__ (Index_type i) {
         if (counts[i] != counts[i+1]) {
           list[counts[i]] = i;
-          len += 1;
+        }
+        if (i == iend-1) {
+          *len = counts[i+1];
         }
       });
 
-      m_len = len.get();
+      res.wait();
+      m_len = *len;
 
     }
     stopTimer();
+
+    deallocData(DataSpace::HipPinnedCoarse, len);
 
     INDEXLIST_3LOOP_DATA_TEARDOWN_HIP;
 

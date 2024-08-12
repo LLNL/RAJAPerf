@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -123,51 +123,63 @@ void ENERGY::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       constexpr size_t shmem = 0;
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = 0;
 
-       energycalc1<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( e_new, e_old, delvc,
-                                               p_old, q_old, work,
-                                               iend );
-       cudaErrchk( cudaGetLastError() );
+      RPlaunchCudaKernel( (energycalc1<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          e_new, e_old, delvc,
+                          p_old, q_old, work,
+                          iend );
 
-       energycalc2<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( delvc, q_new,
-                                               compHalfStep, pHalfStep,
-                                               e_new, bvc, pbvc,
-                                               ql_old, qq_old,
-                                               rho0,
-                                               iend );
-       cudaErrchk( cudaGetLastError() );
+      RPlaunchCudaKernel( (energycalc2<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          delvc, q_new,
+                          compHalfStep, pHalfStep,
+                          e_new, bvc, pbvc,
+                          ql_old, qq_old,
+                          rho0,
+                          iend );
 
-       energycalc3<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( e_new, delvc,
-                                               p_old, q_old,
-                                               pHalfStep, q_new,
-                                               iend );
-       cudaErrchk( cudaGetLastError() );
+      RPlaunchCudaKernel( (energycalc3<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          e_new, delvc,
+                          p_old, q_old,
+                          pHalfStep, q_new,
+                          iend );
 
-       energycalc4<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( e_new, work,
-                                               e_cut, emin,
-                                               iend );
-       cudaErrchk( cudaGetLastError() );
+      RPlaunchCudaKernel( (energycalc4<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          e_new, work,
+                          e_cut, emin,
+                          iend );
 
-       energycalc5<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( delvc,
-                                               pbvc, e_new, vnewc,
-                                               bvc, p_new,
-                                               ql_old, qq_old,
-                                               p_old, q_old,
-                                               pHalfStep, q_new,
-                                               rho0, e_cut, emin,
-                                               iend );
-       cudaErrchk( cudaGetLastError() );
+      RPlaunchCudaKernel( (energycalc5<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          delvc,
+                          pbvc, e_new, vnewc,
+                          bvc, p_new,
+                          ql_old, qq_old,
+                          p_old, q_old,
+                          pHalfStep, q_new,
+                          rho0, e_cut, emin,
+                          iend );
 
-       energycalc6<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( delvc,
-                                               pbvc, e_new, vnewc,
-                                               bvc, p_new,
-                                               q_new,
-                                               ql_old, qq_old,
-                                               rho0, q_cut,
-                                               iend );
-       cudaErrchk( cudaGetLastError() );
+      RPlaunchCudaKernel( (energycalc6<block_size>),
+                          grid_size, block_size,
+                          shmem, res.get_stream(),
+                          delvc,
+                          pbvc, e_new, vnewc,
+                          bvc, p_new,
+                          q_new,
+                          ql_old, qq_old,
+                          rho0, q_cut,
+                          iend );
 
     }
     stopTimer();

@@ -9,7 +9,7 @@
  */
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -22,13 +22,20 @@
 
 #include "RAJA/config.hpp"
 #include "camp/number.hpp"
+#include "camp/list.hpp"
 
+#include <type_traits>
 #include <string>
 
 #cmakedefine RAJA_PERFSUITE_ENABLE_MPI
 #cmakedefine RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN
 
+#if defined(RAJA_ENABLE_CUDA)
+#define RAJA_PERFSUITE_TUNING_CUDA_ARCH @RAJA_PERFSUITE_TUNING_CUDA_ARCH@
+#endif
+
 #if defined(RAJA_ENABLE_HIP)
+#define RAJA_PERFSUITE_TUNING_HIP_ARCH @RAJA_PERFSUITE_TUNING_HIP_ARCH@
 #include <hip/hip_version.h>
 #if (HIP_VERSION_MAJOR > 5) || \
     (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR >= 2)
@@ -42,7 +49,22 @@
 #include <algorithm>
 #endif
 
+// Squash compiler warnings about unused variables
+template < typename ... Ts >
+inline void RAJAPERF_UNUSED_VAR(Ts&&...) { }
+
+// Squash compiler warnings about unused arguments
+#define RAJAPERF_UNUSED_ARG(...)
+
 namespace rajaperf {
+
+namespace integer {
+
+// helper alias to convert comma separated integer literals into list
+template < size_t... Is >
+using list_type = camp::list< camp::integral_constant<size_t, Is>... >;
+
+} // closing brace for integer namespace
 
 struct configuration {
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
@@ -85,18 +107,25 @@ const adiak::version adiak_compiler_version = std::string("@CMAKE_CXX_COMPILER_V
 const adiak::version adiak_cuda_compiler_version = std::string("@CMAKE_CUDA_COMPILER_VERSION@");
 constexpr static const char* adiak_gpu_targets = "@GPU_TARGETS@";
 constexpr static const char* adiak_cmake_hip_architectures = "@CMAKE_HIP_ARCHIECTURES@";
-const std::vector<int> adiak_gpu_targets_block_sizes = {@RAJA_PERFSUITE_GPU_BLOCKSIZES@};
+constexpr static const char* adiak_tuning_cuda_arch = "@RAJA_PERFSUITE_TUNING_CUDA_ARCH@";
+constexpr static const char* adiak_tuning_hip_arch = "@RAJA_PERFSUITE_TUNING_HIP_ARCH@";
+const std::vector<int> adiak_gpu_block_sizes = {@RAJA_PERFSUITE_GPU_BLOCKSIZES@};
+const std::vector<int> adiak_atomic_replications = {@RAJA_PERFSUITE_ATOMIC_REPLICATIONS@};
+const std::vector<int> adiak_gpu_items_per_thread = {@RAJA_PERFSUITE_GPU_ITEMS_PER_THREAD@};
 const std::vector<adiak::catstring> adiak_raja_hipcc_flags = str_to_list<adiak::catstring>(std::string("@RAJA_HIPCC_FLAGS@"));
 const adiak::catstring adiak_mpi_cxx_compiler = std::string("@MPI_CXX_COMPILER@");
 const adiak::catstring adiak_systype_build = std::string("@RAJAPERF_BUILD_SYSTYPE@");
 const adiak::catstring adiak_machine_build = std::string("@RAJAPERF_BUILD_HOST@");
 #endif
 
-// helper alias to void trailing comma in no-arg case
-template < size_t... Is >
-using i_seq = camp::int_seq<size_t, Is...>;
 // List of GPU block sizes
-using gpu_block_sizes = i_seq<@RAJA_PERFSUITE_GPU_BLOCKSIZES@>;
+using gpu_block_sizes = integer::list_type<@RAJA_PERFSUITE_GPU_BLOCKSIZES@>;
+
+// List of GPU atomic replications
+using atomic_replications = integer::list_type<@RAJA_PERFSUITE_ATOMIC_REPLICATIONS@>;
+
+// List of GPU items per thread
+using gpu_items_per_thread = integer::list_type<@RAJA_PERFSUITE_GPU_ITEMS_PER_THREAD@>;
 
 // Name of user who ran code
 std::string user_run;
@@ -110,13 +139,27 @@ std::string machine_run;
 
 };
 
+#if __cplusplus < 201703L
+// Implement std::conjunction from https://en.cppreference.com/w/cpp/types/conjunction
+template<class...> struct conjunction : std::true_type {};
+template<class B1> struct conjunction<B1> : B1 {};
+template<class B1, class... Bn>
+struct conjunction<B1, Bn...>
+  : std::conditional_t<bool(B1::value), conjunction<Bn...>, B1> {};
+#else
+using std::conjunction;
+#endif
+
+//compile time loop over an integer sequence
+//this allows for creating a loop over a compile time constant variable
+template <typename Func, typename... Ts>
+inline void seq_for(camp::list<Ts...> const&, Func&& func)
+{
+  // braced init lists are evaluated in order
+  int seq_unused_array[] = {0, (func(Ts{}), 0)...};
+  RAJAPERF_UNUSED_VAR(seq_unused_array);
+}
+
 } // closing brace for rajaperf namespace
-
-// Squash compiler warnings about unused variables
-template < typename ... Ts >
-inline void RAJAPERF_UNUSED_VAR(Ts&&...) { }
-
-// Squash compiler warnings about unused arguments
-#define RAJAPERF_UNUSED_ARG(...)
 
 #endif  // closing endif for header file include guard

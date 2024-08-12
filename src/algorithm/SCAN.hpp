@@ -10,9 +10,10 @@
 /// SCAN kernel reference implementation:
 ///
 /// // exclusive scan
-/// y[ibegin] = 0;
-/// for (Index_type i = ibegin+1; i < iend; ++i) {
-///   y[i] = y[i-1] + x[i-1];
+/// Real_type scan_var = 0;
+/// for (Index_type i = ibegin; i < iend; ++i) {
+///   y[i] = scan_var;
+///   scan_var += x[i];
 /// }
 ///
 
@@ -62,8 +63,18 @@ public:
   void runHipVariant(VariantID vid, size_t tune_idx);
   void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
 
+  void setCudaTuningDefinitions(VariantID vid);
+  void setHipTuningDefinitions(VariantID vid);
+  void runCudaVariantLibrary(VariantID vid);
+  void runHipVariantLibrary(VariantID vid);
+  template < size_t block_size, size_t items_per_thread >
+  void runCudaVariantImpl(VariantID vid);
+  template < size_t block_size, size_t items_per_thread >
+  void runHipVariantImpl(VariantID vid);
+
 private:
-  static const size_t default_gpu_block_size = 0;
+  static const size_t default_gpu_block_size = 256;
+  using gpu_block_sizes_type = integer::make_gpu_block_size_list_type<default_gpu_block_size>;
 
   Real_ptr m_x;
   Real_ptr m_y;

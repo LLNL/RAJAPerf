@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -35,11 +35,11 @@ POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
   setDefaultProblemSize( ni_default * nj_default );
   setDefaultReps(2);
 
-  m_ni = std::sqrt( getTargetProblemSize() ) + 1;
+  m_ni = std::sqrt( getTargetProblemSize() ) + std::sqrt(2)-1;
   m_nj = m_ni;
-  m_nk = nk_default;
+  m_nk = Index_type(double(nk_default)/ni_default*m_ni);
   m_nl = m_ni;
-  m_nm = nm_default;
+  m_nm = Index_type(double(nm_default)/ni_default*m_ni);
 
 
   setActualProblemSize( std::max( std::max( m_ni*m_nj, m_nj*m_nl ),
@@ -47,17 +47,20 @@ POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
 
   setItsPerRep( m_ni*m_nj + m_nj*m_nl + m_ni*m_nl );
   setKernelsPerRep(3);
-  setBytesPerRep( (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * m_ni * m_nj +
-                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_ni * m_nk +
-                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nj * m_nk +
+  setBytesReadPerRep( 1*sizeof(Real_type ) * m_ni * m_nk +
+                      1*sizeof(Real_type ) * m_nj * m_nk +
 
-                  (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * m_nj * m_nl +
-                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nj * m_nm +
-                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nl * m_nm +
+                      1*sizeof(Real_type ) * m_nj * m_nm +
+                      1*sizeof(Real_type ) * m_nl * m_nm +
 
-                  (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * m_ni * m_nl +
-                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_ni * m_nj +
-                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nj * m_nl );
+                      1*sizeof(Real_type ) * m_ni * m_nj +
+                      1*sizeof(Real_type ) * m_nj * m_nl );
+  setBytesWrittenPerRep( 1*sizeof(Real_type ) * m_ni * m_nj +
+
+                         1*sizeof(Real_type ) * m_nj * m_nl +
+
+                         1*sizeof(Real_type ) * m_ni * m_nl );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(2 * m_ni*m_nj*m_nk +
                  2 * m_nj*m_nl*m_nm +
                  2 * m_ni*m_nj*m_nl );
@@ -86,6 +89,9 @@ POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
   setVariantDefined( Base_HIP );
   setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
+ 
+  setVariantDefined( Base_SYCL );
+  setVariantDefined( RAJA_SYCL );
 }
 
 POLYBENCH_3MM::~POLYBENCH_3MM()

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -27,6 +27,9 @@
 #if defined(RAJA_ENABLE_HIP)
 #include "RAJA/policy/hip/MemUtils_HIP.hpp"
 #endif
+#if defined(RAJA_ENABLE_HIP)
+#include "RAJA/policy/sycl/MemUtils_SYCL.hpp"
+#endif
 
 namespace rajaperf
 {
@@ -44,12 +47,12 @@ void resetDataInitCount();
  */
 void incDataInitCount();
 
-void copyHostData(void* dst_ptr, const void* src_ptr, size_t len);
+void copyHostData(void* dst_ptr, const void* src_ptr, Size_type len);
 
 /*!
  * \brief Allocate data arrays.
  */
-void* allocHostData(size_t len, size_t align);
+void* allocHostData(Size_type len, Size_type align);
 
 /*!
  * \brief Free data arrays.
@@ -60,14 +63,14 @@ void deallocHostData(void* ptr);
 /*!
  * \brief Allocate data array in dataSpace.
  */
-void* allocData(DataSpace dataSpace, int nbytes, int align);
+void* allocData(DataSpace dataSpace, Size_type nbytes, Size_type align);
 
 /*!
  * \brief Copy data from one dataSpace to another.
  */
 void copyData(DataSpace dst_dataSpace, void* dst_ptr,
               DataSpace src_dataSpace, const void* src_ptr,
-              size_t nbytes);
+              Size_type nbytes);
 
 /*!
  * \brief Free data arrays in dataSpace.
@@ -82,7 +85,7 @@ void deallocData(DataSpace dataSpace, void* ptr);
  * Then, two randomly-chosen entries are reset, one to
  * a value > 1, one to a value < -1.
  */
-void initData(Int_ptr& ptr, int len);
+void initData(Int_ptr& ptr, Size_type len);
 
 /*!
  * \brief Initialize Real_type data array.
@@ -91,21 +94,21 @@ void initData(Int_ptr& ptr, int len);
  * in the interval (0.0, 1.0) based on their array position (index)
  * and the order in which this method is called.
  */
-void initData(Real_ptr& ptr, int len);
+void initData(Real_ptr& ptr, Size_type len);
 
 /*!
  * \brief Initialize Real_type data array.
  *
  * Array entries are set to given constant value.
  */
-void initDataConst(Real_ptr& ptr, int len, Real_type val);
+void initDataConst(Real_ptr& ptr, Size_type len, Real_type val);
 
 /*!
  * \brief Initialize Index_type data array.
  *
  * Array entries are set to given constant value.
  */
-void initDataConst(Index_type*& ptr, int len, Index_type val);
+void initDataConst(Index_type*& ptr, Size_type len, Index_type val);
 
 /*!
  * \brief Initialize Real_type data array with random sign.
@@ -113,14 +116,14 @@ void initDataConst(Index_type*& ptr, int len, Index_type val);
  * Array entries are initialized in the same way as the method
  * initData(Real_ptr& ptr...) above, but with random sign.
  */
-void initDataRandSign(Real_ptr& ptr, int len);
+void initDataRandSign(Real_ptr& ptr, Size_type len);
 
 /*!
  * \brief Initialize Real_type data array with random values.
  *
  * Array entries are initialized with random values in the interval [0.0, 1.0].
  */
-void initDataRandValue(Real_ptr& ptr, int len);
+void initDataRandValue(Real_ptr& ptr, Size_type len);
 
 /*!
  * \brief Initialize Complex_type data array.
@@ -128,7 +131,7 @@ void initDataRandValue(Real_ptr& ptr, int len);
  * Real and imaginary array entries are initialized in the same way as the
  * method allocAndInitData(Real_ptr& ptr...) above.
  */
-void initData(Complex_ptr& ptr, int len);
+void initData(Complex_ptr& ptr, Size_type len);
 
 /*!
  * \brief Initialize Real_type scalar data.
@@ -147,23 +150,43 @@ void initData(Real_type& d);
  *
  * Checksumn is multiplied by given scale factor.
  */
-long double calcChecksum(Int_ptr d, int len,
+long double calcChecksum(Int_ptr d, Size_type len,
                          Real_type scale_factor);
 ///
-long double calcChecksum(Real_ptr d, int len,
+long double calcChecksum(unsigned long long* d, Size_type len,
                          Real_type scale_factor);
 ///
-long double calcChecksum(Complex_ptr d, int len,
+long double calcChecksum(Real_ptr d, Size_type len,
+                         Real_type scale_factor);
+///
+long double calcChecksum(Complex_ptr d, Size_type len,
                          Real_type scale_factor);
 
 }  // closing brace for detail namespace
 
 
 /*!
- * \brief Get an host accessible data space for this dataSpace.
+ * \brief Get a host data space to use when making a host copy of data in the given
+ *        dataSpace.
  *
- * Intended to be a space that is quick to copy to from the given space if
- * the given space is not accessible on the Host.
+ * The returned host data space should reside in memory attached to the host.
+ *
+ * The intention is to get a data space with high performance on the host.
+ * Return the given data space if its already performant and fall back on a
+ * host data space that performs well in explicit copy operations with the
+ * given space.
+ */
+DataSpace hostCopyDataSpace(DataSpace dataSpace);
+
+/*!
+ * \brief Get a data space accessible to the host for the given dataSpace.
+ *
+ * The returned host data space may reside in memory attached to another device.
+ *
+ * The intention is to get a data space accessible on the host even if it is not
+ * performant. Return the given data space if its already accessible and fall
+ * back on a space that is host accessible and performs well in explicit copy
+ * operations with the given space.
  */
 DataSpace hostAccessibleDataSpace(DataSpace dataSpace);
 
@@ -171,16 +194,16 @@ DataSpace hostAccessibleDataSpace(DataSpace dataSpace);
  * \brief Allocate data array (ptr).
  */
 template <typename T>
-inline void allocData(DataSpace dataSpace, T*& ptr_ref, int len, int align)
+inline void allocData(DataSpace dataSpace, T*& ptr_ref, Size_type len, Size_type align)
 {
-  size_t nbytes = len*sizeof(T);
+  Size_type nbytes = len*sizeof(T);
   T* ptr = static_cast<T*>(detail::allocData(dataSpace, nbytes, align));
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
   if (dataSpace == DataSpace::Omp) {
     // perform first touch on Omp Data
     #pragma omp parallel for
-    for (int i = 0; i < len; ++i) {
+    for (Size_type i = 0; i < len; ++i) {
       ptr[i] = T{};
     };
   }
@@ -205,9 +228,9 @@ inline void deallocData(DataSpace dataSpace, T*& ptr)
 template <typename T>
 inline void copyData(DataSpace dst_dataSpace, T* dst_ptr,
                      DataSpace src_dataSpace, const T* src_ptr,
-                     int len)
+                     Size_type len)
 {
-  size_t nbytes = len*sizeof(T);
+  Size_type nbytes = len*sizeof(T);
   detail::copyData(dst_dataSpace, dst_ptr, src_dataSpace, src_ptr, nbytes);
 }
 
@@ -216,7 +239,7 @@ inline void copyData(DataSpace dst_dataSpace, T* dst_ptr,
  */
 template <typename T>
 inline void moveData(DataSpace new_dataSpace, DataSpace old_dataSpace,
-                     T*& ptr, int len, int align)
+                     T*& ptr, Size_type len, Size_type align)
 {
   if (new_dataSpace != old_dataSpace) {
 
@@ -237,7 +260,7 @@ template <typename T>
 struct AutoDataMover
 {
   AutoDataMover(DataSpace new_dataSpace, DataSpace old_dataSpace,
-                T*& ptr, int len, int align)
+                T*& ptr, Size_type len, Size_type align)
     : m_ptr(&ptr)
     , m_new_dataSpace(new_dataSpace)
     , m_old_dataSpace(old_dataSpace)
@@ -284,17 +307,17 @@ private:
   T** m_ptr;
   DataSpace m_new_dataSpace;
   DataSpace m_old_dataSpace;
-  int m_len;
-  int m_align;
+  Size_type m_len;
+  Size_type m_align;
 };
 
 /*!
  * \brief Allocate and initialize data array.
  */
 template <typename T>
-inline void allocAndInitData(DataSpace dataSpace, T*& ptr, int len, int align)
+inline void allocAndInitData(DataSpace dataSpace, T*& ptr, Size_type len, Size_type align)
 {
-  DataSpace init_dataSpace = hostAccessibleDataSpace(dataSpace);
+  DataSpace init_dataSpace = hostCopyDataSpace(dataSpace);
 
   allocData(init_dataSpace, ptr, len, align);
 
@@ -310,10 +333,10 @@ inline void allocAndInitData(DataSpace dataSpace, T*& ptr, int len, int align)
  * Array entries are initialized using the method initDataConst.
  */
 template <typename T>
-inline void allocAndInitDataConst(DataSpace dataSpace, T*& ptr, int len, int align,
+inline void allocAndInitDataConst(DataSpace dataSpace, T*& ptr, Size_type len, Size_type align,
                                   T val)
 {
-  DataSpace init_dataSpace = hostAccessibleDataSpace(dataSpace);
+  DataSpace init_dataSpace = hostCopyDataSpace(dataSpace);
 
   allocData(init_dataSpace, ptr, len, align);
 
@@ -328,9 +351,9 @@ inline void allocAndInitDataConst(DataSpace dataSpace, T*& ptr, int len, int ali
  * Array is initialized using method initDataRandSign.
  */
 template <typename T>
-inline void allocAndInitDataRandSign(DataSpace dataSpace, T*& ptr, int len, int align)
+inline void allocAndInitDataRandSign(DataSpace dataSpace, T*& ptr, Size_type len, Size_type align)
 {
-  DataSpace init_dataSpace = hostAccessibleDataSpace(dataSpace);
+  DataSpace init_dataSpace = hostCopyDataSpace(dataSpace);
 
   allocData(init_dataSpace, ptr, len, align);
 
@@ -346,9 +369,9 @@ inline void allocAndInitDataRandSign(DataSpace dataSpace, T*& ptr, int len, int 
  * Array is initialized using method initDataRandValue.
  */
 template <typename T>
-inline void allocAndInitDataRandValue(DataSpace dataSpace, T*& ptr, int len, int align)
+inline void allocAndInitDataRandValue(DataSpace dataSpace, T*& ptr, Size_type len, Size_type align)
 {
-  DataSpace init_dataSpace = hostAccessibleDataSpace(dataSpace);
+  DataSpace init_dataSpace = hostCopyDataSpace(dataSpace);
 
   allocData(init_dataSpace, ptr, len, align);
 
@@ -361,13 +384,13 @@ inline void allocAndInitDataRandValue(DataSpace dataSpace, T*& ptr, int len, int
  * Calculate and return checksum for arrays.
  */
 template <typename T>
-inline long double calcChecksum(DataSpace dataSpace, T* ptr, int len, int align,
+inline long double calcChecksum(DataSpace dataSpace, T* ptr, Size_type len, Size_type align,
                                 Real_type scale_factor)
 {
   T* check_ptr = ptr;
   T* copied_ptr = nullptr;
 
-  DataSpace check_dataSpace = hostAccessibleDataSpace(dataSpace);
+  DataSpace check_dataSpace = hostCopyDataSpace(dataSpace);
   if (check_dataSpace != dataSpace) {
     allocData(check_dataSpace, copied_ptr, len, align);
 
@@ -428,9 +451,9 @@ struct RAJAPoolAllocatorHolder
     }
 
     /*[[nodiscard]]*/
-    value_type* allocate(size_t num)
+    value_type* allocate(Size_type num)
     {
-      if (num > std::numeric_limits<size_t>::max() / sizeof(value_type)) {
+      if (num > std::numeric_limits<Size_type>::max() / sizeof(value_type)) {
         throw std::bad_alloc();
       }
 

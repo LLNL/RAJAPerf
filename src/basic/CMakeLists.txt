@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors.
 # See the RAJAPerf/LICENSE file for details.
 #
@@ -14,18 +14,21 @@ blt_add_library(
           ARRAY_OF_PTRS-Cuda.cpp
           ARRAY_OF_PTRS-OMP.cpp
           ARRAY_OF_PTRS-OMPTarget.cpp
+          ARRAY_OF_PTRS-Sycl.cpp
           COPY8.cpp
           COPY8-Seq.cpp
           COPY8-Hip.cpp
           COPY8-Cuda.cpp
           COPY8-OMP.cpp
           COPY8-OMPTarget.cpp
+          COPY8-Sycl.cpp
           DAXPY.cpp
           DAXPY-Seq.cpp
           DAXPY-Hip.cpp
           DAXPY-Cuda.cpp
           DAXPY-OMP.cpp
           DAXPY-OMPTarget.cpp
+          DAXPY-Sycl.cpp
           DAXPY_ATOMIC.cpp
           DAXPY_ATOMIC-Seq.cpp
           DAXPY_ATOMIC-Hip.cpp
@@ -38,6 +41,7 @@ blt_add_library(
           IF_QUAD-Cuda.cpp
           IF_QUAD-OMP.cpp
           IF_QUAD-OMPTarget.cpp
+          IF_QUAD-Sycl.cpp
           INDEXLIST.cpp
           INDEXLIST-Seq.cpp
           INDEXLIST-Hip.cpp
@@ -56,36 +60,42 @@ blt_add_library(
           INIT3-Cuda.cpp
           INIT3-OMP.cpp
           INIT3-OMPTarget.cpp
+          INIT3-Sycl.cpp
           INIT_VIEW1D.cpp
           INIT_VIEW1D-Seq.cpp
           INIT_VIEW1D-Hip.cpp
           INIT_VIEW1D-Cuda.cpp
           INIT_VIEW1D-OMP.cpp
           INIT_VIEW1D-OMPTarget.cpp
+          INIT_VIEW1D-Sycl.cpp
           INIT_VIEW1D_OFFSET.cpp
           INIT_VIEW1D_OFFSET-Seq.cpp
           INIT_VIEW1D_OFFSET-Hip.cpp
           INIT_VIEW1D_OFFSET-Cuda.cpp
           INIT_VIEW1D_OFFSET-OMP.cpp
           INIT_VIEW1D_OFFSET-OMPTarget.cpp
+          INIT_VIEW1D_OFFSET-Sycl.cpp
           MAT_MAT_SHARED.cpp
           MAT_MAT_SHARED-Seq.cpp
           MAT_MAT_SHARED-Hip.cpp
           MAT_MAT_SHARED-Cuda.cpp
           MAT_MAT_SHARED-OMP.cpp
           MAT_MAT_SHARED-OMPTarget.cpp
+          MAT_MAT_SHARED-Sycl.cpp
           MULADDSUB.cpp
           MULADDSUB-Seq.cpp
           MULADDSUB-Hip.cpp
           MULADDSUB-Cuda.cpp
           MULADDSUB-OMP.cpp
           MULADDSUB-OMPTarget.cpp
+          MULADDSUB-Sycl.cpp
           NESTED_INIT.cpp
           NESTED_INIT-Seq.cpp
           NESTED_INIT-Hip.cpp
           NESTED_INIT-Cuda.cpp
           NESTED_INIT-OMP.cpp
           NESTED_INIT-OMPTarget.cpp
+          NESTED_INIT-Sycl.cpp
           PI_ATOMIC.cpp
           PI_ATOMIC-Seq.cpp
           PI_ATOMIC-Hip.cpp
@@ -98,12 +108,14 @@ blt_add_library(
           PI_REDUCE-Cuda.cpp
           PI_REDUCE-OMP.cpp
           PI_REDUCE-OMPTarget.cpp
+          PI_REDUCE-Sycl.cpp
           REDUCE3_INT.cpp
           REDUCE3_INT-Seq.cpp
           REDUCE3_INT-Hip.cpp
           REDUCE3_INT-Cuda.cpp
           REDUCE3_INT-OMP.cpp
           REDUCE3_INT-OMPTarget.cpp
+          REDUCE3_INT-Sycl.cpp
           REDUCE_STRUCT.cpp
           REDUCE_STRUCT-Seq.cpp
           REDUCE_STRUCT-Hip.cpp
@@ -116,5 +128,12 @@ blt_add_library(
           TRAP_INT-Cuda.cpp
           TRAP_INT-OMPTarget.cpp
           TRAP_INT-OMP.cpp
+          TRAP_INT-Sycl.cpp
+          MULTI_REDUCE.cpp
+          MULTI_REDUCE-Seq.cpp
+          MULTI_REDUCE-Hip.cpp
+          MULTI_REDUCE-Cuda.cpp
+          MULTI_REDUCE-OMP.cpp
+          MULTI_REDUCE-OMPTarget.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -33,18 +33,20 @@ HYDRO_2D::HYDRO_2D(const RunParams& params)
   setDefaultProblemSize(m_kn * m_jn);
   setDefaultReps(100);
 
-  m_jn = m_kn = std::sqrt(getTargetProblemSize());
+  m_jn = m_kn = std::sqrt(getTargetProblemSize()) + std::sqrt(2)-1;
   m_array_length = m_kn * m_jn;
 
   setActualProblemSize( getTargetProblemSize() );
 
   setItsPerRep( 3 * getActualProblemSize() );
   setKernelsPerRep(3);
-  setBytesPerRep( (2*sizeof(Real_type ) + 0*sizeof(Real_type )) * (m_kn-2) * (m_jn-2) +
-                  (0*sizeof(Real_type ) + 4*sizeof(Real_type )) * m_array_length +
-                  (2*sizeof(Real_type ) + 0*sizeof(Real_type )) * (m_kn-2) * (m_jn-2) +
-                  (0*sizeof(Real_type ) + 4*sizeof(Real_type )) * m_array_length +
-                  (2*sizeof(Real_type ) + 4*sizeof(Real_type )) * (m_kn-2) * (m_jn-2) );
+  setBytesReadPerRep( 4*sizeof(Real_type ) * m_array_length +
+                      4*sizeof(Real_type ) * m_array_length +
+                      4*sizeof(Real_type ) * (m_kn-2) * (m_jn-2) );
+  setBytesWrittenPerRep( 2*sizeof(Real_type ) * (m_kn-2) * (m_jn-2) +
+                         2*sizeof(Real_type ) * (m_kn-2) * (m_jn-2) +
+                         2*sizeof(Real_type ) * (m_kn-2) * (m_jn-2) );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep((14 +
                   26 +
                   4  ) * (m_jn-2)*(m_kn-2));
@@ -71,6 +73,9 @@ HYDRO_2D::HYDRO_2D(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Base_SYCL );
+  setVariantDefined( RAJA_SYCL );
 
   setVariantDefined( Kokkos_Lambda );
 }

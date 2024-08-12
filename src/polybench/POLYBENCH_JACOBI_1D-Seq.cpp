@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -25,12 +25,14 @@ void POLYBENCH_JACOBI_1D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_AR
 
   POLYBENCH_JACOBI_1D_DATA_SETUP;
 
+#if defined(RUN_RAJA_SEQ)
   auto poly_jacobi1d_lam1 = [=] (Index_type i) {
                               POLYBENCH_JACOBI_1D_BODY1;
                             };
   auto poly_jacobi1d_lam2 = [=] (Index_type i) {
                               POLYBENCH_JACOBI_1D_BODY2;
                             };
+#endif
 
   switch ( vid ) {
 

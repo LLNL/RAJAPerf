@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors.
 # See the RAJAPerf/LICENSE file for details.
 #
@@ -16,7 +16,7 @@ else()
 endif()
 
 option(ENABLE_RAJA_SEQUENTIAL "Run sequential variants of RAJA kernels. Disable
-this, and all other variants, to run _only_ raw C loops." On)
+this, and all other variants, to run _only_ base variants." On)
 option(ENABLE_KOKKOS "Include Kokkos implementations of the kernels in the RAJA Perfsuite" Off)
 
 #
@@ -27,7 +27,7 @@ if (PERFSUITE_ENABLE_WARNINGS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
 endif()
 
-if (ENABLE_KOKKOS)
+if (ENABLE_KOKKOS OR ENABLE_SYCL)
   set(CMAKE_CXX_STANDARD 17)
   set(BLT_CXX_STD c++17)
 else()
@@ -51,6 +51,12 @@ if (ENABLE_TESTS)
 endif()
 
 cmake_dependent_option(RAJA_PERFSUITE_ENABLE_MPI "Build with MPI" On "ENABLE_MPI" Off)
+if (RAJA_PERFSUITE_ENABLE_MPI)
+set(RAJA_PERFSUITE_NUM_MPI_TASKS 4 CACHE STRING "Number of MPI tasks in tests")
+else()
+set(RAJA_PERFSUITE_NUM_MPI_TASKS 0 CACHE INTERNAL "Number of MPI tasks in tests")
+endif()
+message(STATUS "Using RAJA_PERFSUITE_NUM_MPI_TASKS: ${RAJA_PERFSUITE_NUM_MPI_TASKS}")
 
 cmake_dependent_option(RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN "Build OpenMP scan variants" Off "ENABLE_OPENMP" Off)
 
@@ -67,17 +73,52 @@ set(ENABLE_TBB Off CACHE BOOL "")
 
 set(RAJA_USE_CHRONO On CACHE BOOL "")
 
+set(RAJA_PERFSUITE_TUNING_CUDA_ARCH "0" CACHE STRING "CUDA arch to tune the execution for, ex '700' for sm_70")
+set(RAJA_PERFSUITE_TUNING_HIP_ARCH "0" CACHE STRING "HIP arch to tune the execution for, ex '910' for gfx90a, '942' for gfx942")
+
 set(RAJA_PERFSUITE_GPU_BLOCKSIZES "" CACHE STRING "Comma separated list of GPU block sizes, ex '256,1024'")
+
+set(RAJA_PERFSUITE_ATOMIC_REPLICATIONS "" CACHE STRING "Comma separated list of atomic replications, ex '1,256,4096'")
+
+set(RAJA_PERFSUITE_GPU_ITEMS_PER_THREAD "" CACHE STRING "Comma separated list of atomic replications, ex '1,256,4096'")
 
 set(RAJA_RANGE_ALIGN 4)
 set(RAJA_RANGE_MIN_LENGTH 32)
 set(RAJA_DATA_ALIGN 64)
+
+string(LENGTH "${RAJA_PERFSUITE_TUNING_CUDA_ARCH}" CUDA_ARCH_LENGTH)
+if (CUDA_ARCH_LENGTH GREATER 1)
+  message(STATUS "Using cuda tunings for arch: ${RAJA_PERFSUITE_TUNING_CUDA_ARCH}")
+else()
+  message(STATUS "Using default cuda arch tunings")
+endif()
+
+string(LENGTH "${RAJA_PERFSUITE_TUNING_HIP_ARCH}" HIP_ARCH_LENGTH)
+if (HIP_ARCH_LENGTH GREATER 1)
+  message(STATUS "Using hip tunings for arch: ${RAJA_PERFSUITE_TUNING_HIP_ARCH}")
+else()
+  message(STATUS "Using default hip arch tunings")
+endif()
 
 string(LENGTH "${RAJA_PERFSUITE_GPU_BLOCKSIZES}" BLOCKSIZES_LENGTH)
 if (BLOCKSIZES_LENGTH GREATER 0)
   message(STATUS "Using gpu block size(s): ${RAJA_PERFSUITE_GPU_BLOCKSIZES}")
 else()
   message(STATUS "Using default gpu block size(s)")
+endif()
+
+string(LENGTH "${RAJA_PERFSUITE_ATOMIC_REPLICATIONS}" ATOMIC_REPLICATIONS_LENGTH)
+if (ATOMIC_REPLICATIONS_LENGTH GREATER 0)
+  message(STATUS "Using atomic replication(s): ${RAJA_PERFSUITE_ATOMIC_REPLICATIONS}")
+else()
+  message(STATUS "Using default atomic replication(s)")
+endif()
+
+string(LENGTH "${RAJA_PERFSUITE_GPU_ITEMS_PER_THREAD}" GPU_ITEMS_PER_THREAD_LENGTH)
+if (GPU_ITEMS_PER_THREAD_LENGTH GREATER 0)
+  message(STATUS "Using gpu items per thread(s): ${RAJA_PERFSUITE_GPU_ITEMS_PER_THREAD}")
+else()
+  message(STATUS "Using default gpu items per thread(s)")
 endif()
 
 # exclude RAJA make targets from top-level build...
@@ -95,8 +136,8 @@ if (ENABLE_OPENMP)
   add_definitions(-DRUN_OPENMP)
 endif ()
 
-set(RAJA_PERFSUITE_VERSION_MAJOR 2023)
-set(RAJA_PERFSUITE_VERSION_MINOR 06)
+set(RAJA_PERFSUITE_VERSION_MAJOR 2024)
+set(RAJA_PERFSUITE_VERSION_MINOR 07)
 set(RAJA_PERFSUITE_VERSION_PATCHLEVEL 0)
 
 set(RAJA_PERFSUITE_DEPENDS RAJA)
@@ -109,6 +150,9 @@ if (ENABLE_OPENMP)
 endif()
 if (ENABLE_CUDA)
   list(APPEND RAJA_PERFSUITE_DEPENDS cuda)
+endif()
+if (ENABLE_SYCL)
+  list(APPEND RAJA_PERFSUITE_DEPENDS sycl)
 endif()
 
 # Kokkos requires hipcc as the CMAKE_CXX_COMPILER for HIP AMD/VEGA GPU

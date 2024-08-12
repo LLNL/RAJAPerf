@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -160,23 +160,32 @@ void POLYBENCH_FDTD_2D::runCudaVariantImpl(VariantID vid)
         constexpr size_t shmem = 0;
 
         const size_t grid_size1 = RAJA_DIVIDE_CEILING_INT(ny, block_size);
-        poly_fdtd2d_1<block_size><<<grid_size1, block_size, shmem, res.get_stream()>>>(ey, fict, ny, t);
-        cudaErrchk( cudaGetLastError() );
+
+        RPlaunchCudaKernel( (poly_fdtd2d_1<block_size>),
+                            grid_size1, block_size,
+                            shmem, res.get_stream(),
+                            ey, fict, ny, t );
 
         FDTD_2D_THREADS_PER_BLOCK_CUDA;
         FDTD_2D_NBLOCKS_CUDA;
 
-        poly_fdtd2d_2<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                     <<<nblocks234, nthreads_per_block234, shmem, res.get_stream()>>>(ey, hz, nx, ny);
-        cudaErrchk( cudaGetLastError() );
+        RPlaunchCudaKernel(
+          (poly_fdtd2d_2<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>),
+          nblocks234, nthreads_per_block234,
+          shmem, res.get_stream(),
+          ey, hz, nx, ny );
 
-        poly_fdtd2d_3<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                     <<<nblocks234, nthreads_per_block234, shmem, res.get_stream()>>>(ex, hz, nx, ny);
-        cudaErrchk( cudaGetLastError() );
+        RPlaunchCudaKernel( 
+          (poly_fdtd2d_3<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>),
+          nblocks234, nthreads_per_block234,
+          shmem, res.get_stream(),
+          ex, hz, nx, ny );
 
-        poly_fdtd2d_4<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                     <<<nblocks234, nthreads_per_block234, shmem, res.get_stream()>>>(hz, ex, ey, nx, ny);
-        cudaErrchk( cudaGetLastError() );
+        RPlaunchCudaKernel(
+          (poly_fdtd2d_4<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>),
+          nblocks234, nthreads_per_block234,
+          shmem, res.get_stream(),
+          hz, ex, ey, nx, ny );
 
       } // tstep loop
 
@@ -193,38 +202,55 @@ void POLYBENCH_FDTD_2D::runCudaVariantImpl(VariantID vid)
         constexpr size_t shmem = 0;
 
         const size_t grid_size1 = RAJA_DIVIDE_CEILING_INT(ny, block_size);
-        poly_fdtd2d_1_lam<block_size><<<grid_size1, block_size, shmem, res.get_stream()>>>(ny,
-          [=] __device__ (Index_type j) {
-            POLYBENCH_FDTD_2D_BODY1;
-          }
-        );
+
+        auto poly_fdtd2d_1_lambda = [=] __device__ (Index_type j) {
+          POLYBENCH_FDTD_2D_BODY1;
+        };
+
+        RPlaunchCudaKernel( (poly_fdtd2d_1_lam<block_size,
+                                               decltype(poly_fdtd2d_1_lambda)>),
+                            grid_size1, block_size,
+                            shmem, res.get_stream(),
+                            ny, poly_fdtd2d_1_lambda );
 
         FDTD_2D_THREADS_PER_BLOCK_CUDA;
         FDTD_2D_NBLOCKS_CUDA;
 
-        poly_fdtd2d_2_lam<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                         <<<nblocks234, nthreads_per_block234, shmem, res.get_stream()>>>(nx, ny,
-          [=] __device__ (Index_type i, Index_type j) {
-            POLYBENCH_FDTD_2D_BODY2;
-          }
-        );
-        cudaErrchk( cudaGetLastError() );
+        auto poly_fdtd2d_2_lambda = [=] __device__ (Index_type i, 
+                                                    Index_type j) {
+          POLYBENCH_FDTD_2D_BODY2;
+        };
+        
+        RPlaunchCudaKernel( 
+          (poly_fdtd2d_2_lam<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA,
+                             decltype(poly_fdtd2d_2_lambda)>),
+          nblocks234, nthreads_per_block234,
+          shmem, res.get_stream(),
+          nx, ny, poly_fdtd2d_2_lambda );
 
-        poly_fdtd2d_3_lam<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                         <<<nblocks234, nthreads_per_block234, shmem, res.get_stream()>>>(nx, ny,
-          [=] __device__ (Index_type i, Index_type j) {
-            POLYBENCH_FDTD_2D_BODY3;
-          }
-        );
-        cudaErrchk( cudaGetLastError() );
+        auto poly_fdtd2d_3_lambda = [=] __device__ (Index_type i, 
+                                                    Index_type j) {
+          POLYBENCH_FDTD_2D_BODY3;
+        };
 
-        poly_fdtd2d_4_lam<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                         <<<nblocks234, nthreads_per_block234, shmem, res.get_stream()>>>(nx, ny,
-          [=] __device__ (Index_type i, Index_type j) {
-            POLYBENCH_FDTD_2D_BODY4;
-          }
-        );
-        cudaErrchk( cudaGetLastError() );
+        RPlaunchCudaKernel( 
+          (poly_fdtd2d_3_lam<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA,
+                             decltype(poly_fdtd2d_3_lambda)>),
+          nblocks234, nthreads_per_block234,
+          shmem, res.get_stream(),
+          nx, ny, poly_fdtd2d_3_lambda );
+
+        auto poly_fdtd2d_4_lambda = [=] __device__ (Index_type i,
+                                                    Index_type j) {
+          POLYBENCH_FDTD_2D_BODY4;
+        };
+
+        RPlaunchCudaKernel(
+          (poly_fdtd2d_4_lam<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA,
+                             decltype(poly_fdtd2d_4_lambda)>),
+          nblocks234, nthreads_per_block234,
+          shmem, res.get_stream(),
+          nx, ny, poly_fdtd2d_4_lambda );
 
       } // tstep loop
 

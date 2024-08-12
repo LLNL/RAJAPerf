@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -81,7 +81,7 @@ void FIR::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getActualProblemSize() - m_coefflen;
+  const Index_type iend = getActualProblemSize();
 
   auto res{getHipResource()};
 
@@ -96,20 +96,24 @@ void FIR::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       constexpr size_t shmem = 0;
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = 0;
 
 #if defined(USE_HIP_CONSTANT_MEMORY)
-       hipLaunchKernelGGL((fir<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  out, in,
-                                       coefflen,
-                                       iend );
-       hipErrchk( hipGetLastError() );
+      RPlaunchHipKernel( (fir<block_size>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         out, in,
+                         coefflen,
+                         iend ); 
 #else
-       hipLaunchKernelGGL((fir<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  out, in,
-                                       coeff,
-                                       coefflen,
-                                       iend );
-       hipErrchk( hipGetLastError() );
+      RPlaunchHipKernel( (fir<block_size>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         out, in,
+                         coeff,
+                         coefflen,
+                         iend ); 
 #endif
 
     }

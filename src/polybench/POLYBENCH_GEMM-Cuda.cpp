@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -90,11 +90,13 @@ void POLYBENCH_GEMM::runCudaVariantImpl(VariantID vid)
       POLY_GEMM_NBLOCKS_CUDA;
       constexpr size_t shmem = 0;
 
-      poly_gemm<POLY_GEMM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-               <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(C, A, B,
-                                                 alpha, beta,
-                                                 ni, nj, nk);
-      cudaErrchk( cudaGetLastError() );
+      RPlaunchCudaKernel(
+          (poly_gemm<POLY_GEMM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>),
+          nblocks, nthreads_per_block,
+          shmem, res.get_stream(),
+          C, A, B,
+          alpha, beta,
+          ni, nj, nk );
 
     }
     stopTimer();
@@ -108,18 +110,21 @@ void POLYBENCH_GEMM::runCudaVariantImpl(VariantID vid)
       POLY_GEMM_NBLOCKS_CUDA;
       constexpr size_t shmem = 0;
 
-      poly_gemm_lam<POLY_GEMM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                   <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(ni, nj,
-        [=] __device__ (Index_type i, Index_type j) {
-          POLYBENCH_GEMM_BODY1;
-          POLYBENCH_GEMM_BODY2;
-          for (Index_type k = 0; k < nk; ++k ) {
-            POLYBENCH_GEMM_BODY3;
-          }
-          POLYBENCH_GEMM_BODY4;
+      auto poly_gemm_lambda = [=] __device__ (Index_type i, Index_type j) {
+        POLYBENCH_GEMM_BODY1;
+        POLYBENCH_GEMM_BODY2;
+        for (Index_type k = 0; k < nk; ++k ) {
+          POLYBENCH_GEMM_BODY3;
         }
-      );
-      cudaErrchk( cudaGetLastError() );
+        POLYBENCH_GEMM_BODY4;
+      };
+
+      RPlaunchCudaKernel(
+       (poly_gemm_lam<POLY_GEMM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA,
+                      decltype(poly_gemm_lambda)>),
+       nblocks, nthreads_per_block,
+       shmem, res.get_stream(),
+       ni, nj, poly_gemm_lambda );
 
     }
     stopTimer();

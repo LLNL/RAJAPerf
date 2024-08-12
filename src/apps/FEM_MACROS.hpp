@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -22,6 +22,11 @@
 #if defined(RAJA_ENABLE_CUDA) || defined(RAJA_ENABLE_HIP)
 #define GPU_FOREACH_THREAD(i, k, N)                    \
   for (int i = threadIdx.k; i < N; i += blockDim.k)
+#endif
+
+#if defined(RAJA_ENABLE_SYCL)
+#define SYCL_FOREACH_THREAD(i, k, N) \
+  for (int i = itm.get_local_id(k); i < N; i += itm.get_local_range(k))
 #endif
 
 #define CPU_FOREACH(i, k, N) for (int i = 0; i < N; i++)

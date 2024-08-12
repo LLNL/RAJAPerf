@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -65,13 +65,15 @@ void EDGE3D::runHipVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
-
-      hipLaunchKernelGGL((edge3d<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(), sum,
-                                       x0, x1, x2, x3, x4, x5, x6, x7,
-                                       y0, y1, y2, y3, y4, y5, y6, y7,
-                                       z0, z1, z2, z3, z4, z5, z6, z7,
-                                       ibegin, iend);
-      hipErrchk( hipGetLastError() );
+     
+      RPlaunchHipKernel( (edge3d<block_size>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         sum,
+                         x0, x1, x2, x3, x4, x5, x6, x7,
+                         y0, y1, y2, y3, y4, y5, y6, y7,
+                         z0, z1, z2, z3, z4, z5, z6, z7,
+                         ibegin, iend );
 
     }
     stopTimer();
@@ -81,16 +83,17 @@ void EDGE3D::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+      auto edge3d_lambda = [=] __device__ (Index_type i) { EDGE3D_BODY; };
+
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
 
-      auto edge3d_lam = [=] __device__ (Index_type i) { EDGE3D_BODY; };
-
-      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(edge3d_lam)>),
-        grid_size, block_size, shmem, res.get_stream(),
-        ibegin, iend,  edge3d_lam);
-
-      hipErrchk( hipGetLastError() );
+      RPlaunchHipKernel( (lambda_hip_forall<block_size,
+                                            decltype(edge3d_lambda)>),
+                         grid_size, block_size,
+                         shmem, res.get_stream(),
+                         ibegin, iend,
+                         edge3d_lambda );
 
     }
     stopTimer();

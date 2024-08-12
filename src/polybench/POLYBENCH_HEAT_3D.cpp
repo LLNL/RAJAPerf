@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -22,12 +22,12 @@ namespace polybench
 POLYBENCH_HEAT_3D::POLYBENCH_HEAT_3D(const RunParams& params)
   : KernelBase(rajaperf::Polybench_HEAT_3D, params)
 {
-  Index_type N_default = 100;
+  Index_type N_default = 102;
 
   setDefaultProblemSize( (N_default-2)*(N_default-2)*(N_default-2) );
   setDefaultReps(20);
 
-  m_N = std::cbrt( getTargetProblemSize() ) + 1;
+  m_N = std::cbrt( getTargetProblemSize() ) + 2 + std::cbrt(3)-1;
   m_tsteps = 20;
 
 
@@ -35,14 +35,13 @@ POLYBENCH_HEAT_3D::POLYBENCH_HEAT_3D(const RunParams& params)
 
   setItsPerRep( m_tsteps * ( 2 * getActualProblemSize() ) );
   setKernelsPerRep( m_tsteps * 2 );
-  setBytesPerRep( m_tsteps * ( (1*sizeof(Real_type ) + 0*sizeof(Real_type )) *
-                               (m_N-2) * (m_N-2) * (m_N-2) +
-                               (0*sizeof(Real_type ) + 1*sizeof(Real_type )) *
-                               (m_N * m_N * m_N - 12*(m_N-2) - 8) +
-                               (1*sizeof(Real_type ) + 0*sizeof(Real_type )) *
-                               (m_N-2) * (m_N-2) * (m_N-2) +
-                               (0*sizeof(Real_type ) + 1*sizeof(Real_type )) *
-                               (m_N * m_N * m_N - 12*(m_N-2) - 8) ) );
+  setBytesReadPerRep((1*sizeof(Real_type ) * (m_N * m_N * m_N - 12*(m_N-2) - 8) +
+
+                      1*sizeof(Real_type ) * (m_N * m_N * m_N - 12*(m_N-2) - 8)) * m_tsteps);
+  setBytesWrittenPerRep((1*sizeof(Real_type ) * (m_N-2) * (m_N-2) * (m_N-2) +
+
+                         1*sizeof(Real_type ) * (m_N-2) * (m_N-2) * (m_N-2)) * m_tsteps);
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep( m_tsteps * ( 15 * (m_N-2) * (m_N-2) * (m_N-2) +
                                15 * (m_N-2) * (m_N-2) * (m_N-2) ) );
 
@@ -70,6 +69,9 @@ POLYBENCH_HEAT_3D::POLYBENCH_HEAT_3D(const RunParams& params)
   setVariantDefined( Base_HIP );
   setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Base_SYCL );
+  setVariantDefined( RAJA_SYCL );
 }
 
 POLYBENCH_HEAT_3D::~POLYBENCH_HEAT_3D()

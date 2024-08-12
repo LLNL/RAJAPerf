@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ###############################################################################
-# Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 # and RAJA project contributors. See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
@@ -26,7 +26,7 @@ COMP_ARCH=$3
 COMP_CLANG_VER=$4
 shift 4
 
-BUILD_SUFFIX=lc_blueos-spectrum${COMP_MPI_VER}-nvcc${COMP_NVCC_VER}-${COMP_ARCH}-clang${COMP_CLANG_VER}
+BUILD_SUFFIX=lc_blueos-spectrum-${COMP_MPI_VER}-nvcc-${COMP_NVCC_VER}-${COMP_ARCH}-clang-${COMP_CLANG_VER}
 RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/blueos/nvcc_clang_X.cmake
 
 echo
@@ -49,6 +49,7 @@ cmake \
   -DENABLE_MPI=On \
   -DENABLE_OPENMP=On \
   -DENABLE_CUDA=On \
+  -DCUDA_SEPARABLE_COMPILATION=On \
   -DCUDA_TOOLKIT_ROOT_DIR=/usr/tce/packages/cuda/cuda-${COMP_NVCC_VER} \
   -DCMAKE_CUDA_COMPILER=/usr/tce/packages/cuda/cuda-${COMP_NVCC_VER}/bin/nvcc \
   -DCMAKE_CUDA_ARCHITECTURES=${COMP_ARCH} \

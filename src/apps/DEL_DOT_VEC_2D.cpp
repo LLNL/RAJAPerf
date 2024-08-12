@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -28,7 +28,7 @@ DEL_DOT_VEC_2D::DEL_DOT_VEC_2D(const RunParams& params)
   setDefaultProblemSize(1000*1000);  // See rzmax in ADomain struct
   setDefaultReps(100);
 
-  Index_type rzmax = std::sqrt(getTargetProblemSize())+1;
+  Index_type rzmax = std::sqrt(getTargetProblemSize()) + 1 + std::sqrt(2)-1;
   m_domain = new ADomain(rzmax, /* ndims = */ 2);
 
   m_array_length = m_domain->nnalls;
@@ -37,9 +37,10 @@ DEL_DOT_VEC_2D::DEL_DOT_VEC_2D(const RunParams& params)
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (0*sizeof(Index_type) + 1*sizeof(Index_type)) * getItsPerRep() +
-                  (1*sizeof(Real_type)  + 0*sizeof(Real_type) ) * getItsPerRep() +
-                  (0*sizeof(Real_type)  + 4*sizeof(Real_type) ) * m_domain->n_real_nodes ) ; // touched data size, not actual number of stores and loads
+  setBytesReadPerRep( 1*sizeof(Index_type) * getItsPerRep() +
+                      4*sizeof(Real_type) * m_domain->n_real_nodes ); // 4 variables with 2d nodal stencil pattern: 4 touches per iterate
+  setBytesWrittenPerRep( 1*sizeof(Index_type) * getItsPerRep() );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(54 * m_domain->n_real_zones);
 
   setUsesFeature(Forall);
@@ -62,6 +63,9 @@ DEL_DOT_VEC_2D::DEL_DOT_VEC_2D(const RunParams& params)
   setVariantDefined( Base_HIP );
   setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Base_SYCL );
+  setVariantDefined( RAJA_SYCL );
 }
 
 DEL_DOT_VEC_2D::~DEL_DOT_VEC_2D()

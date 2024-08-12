@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -28,17 +28,18 @@ CONVECTION3DPA::CONVECTION3DPA(const RunParams& params)
   setDefaultProblemSize(m_NE_default*CPA_Q1D*CPA_Q1D*CPA_Q1D);
   setDefaultReps(50);
 
-  m_NE = std::max(getTargetProblemSize()/(CPA_Q1D*CPA_Q1D*CPA_Q1D), Index_type(1));
+  m_NE = std::max((getTargetProblemSize() + (CPA_Q1D*CPA_Q1D*CPA_Q1D)/2) / (CPA_Q1D*CPA_Q1D*CPA_Q1D), Index_type(1));
 
   setActualProblemSize( m_NE*CPA_Q1D*CPA_Q1D*CPA_Q1D );
 
   setItsPerRep(getActualProblemSize());
   setKernelsPerRep(1);
 
-  setBytesPerRep( 3*CPA_Q1D*CPA_D1D*sizeof(Real_type)  +
-                  CPA_VDIM*CPA_Q1D*CPA_Q1D*CPA_Q1D*m_NE*sizeof(Real_type) +
-                  CPA_D1D*CPA_D1D*CPA_D1D*m_NE*sizeof(Real_type) +
-                  CPA_D1D*CPA_D1D*CPA_D1D*m_NE*sizeof(Real_type) );
+  setBytesReadPerRep( 3*sizeof(Real_type) * CPA_Q1D*CPA_D1D + // b, bt, g
+                      2*sizeof(Real_type) * CPA_D1D*CPA_D1D*CPA_D1D*m_NE + // x, y
+               CPA_VDIM*sizeof(Real_type) * CPA_Q1D*CPA_Q1D*CPA_Q1D*m_NE ); // d
+  setBytesWrittenPerRep( 1*sizeof(Real_type) + CPA_D1D*CPA_D1D*CPA_D1D*m_NE ); // y
+  setBytesAtomicModifyWrittenPerRep( 0 );
 
   setFLOPsPerRep(m_NE * (
                          4 * CPA_D1D * CPA_Q1D * CPA_D1D * CPA_D1D + //2
@@ -63,6 +64,9 @@ CONVECTION3DPA::CONVECTION3DPA(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Base_SYCL );
+  setVariantDefined( RAJA_SYCL );
 
 }
 

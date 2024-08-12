@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -33,7 +33,10 @@ REDUCE_STRUCT::REDUCE_STRUCT(const RunParams& params)
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( 6*sizeof(Real_type) + 2*sizeof(Real_type)*getActualProblemSize());
+  setBytesReadPerRep( 6*sizeof(Real_type) +
+                      2*sizeof(Real_type) * getActualProblemSize() );
+  setBytesWrittenPerRep( 6*sizeof(Real_type) );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(2 * getActualProblemSize() + 2);
     
 

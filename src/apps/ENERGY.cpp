@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -29,13 +29,22 @@ ENERGY::ENERGY(const RunParams& params)
   setItsPerRep( 6 * getActualProblemSize() );
   setKernelsPerRep(6);
   // some branches are never taken due to the nature of the initialization of delvc
-  // the additional reads and writes that would be done if those branches were taken are noted in the comments
-  setBytesPerRep( (1*sizeof(Real_type) + 5*sizeof(Real_type)) * getActualProblemSize() +
-                  (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getActualProblemSize() + /* 1 + 8 */
-                  (1*sizeof(Real_type) + 6*sizeof(Real_type)) * getActualProblemSize() +
-                  (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getActualProblemSize() +
-                  (1*sizeof(Real_type) + 7*sizeof(Real_type)) * getActualProblemSize() + /* 1 + 12 */
-                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * getActualProblemSize() ); /* 1 + 8 */
+  // the additional reads that would be done if those branches were taken are noted in the comments
+  setBytesReadPerRep((5*sizeof(Real_type) +
+                      1*sizeof(Real_type) + // 8
+                      6*sizeof(Real_type) +
+                      2*sizeof(Real_type) +
+                      7*sizeof(Real_type) + // 12
+                      1*sizeof(Real_type)   // 8
+                      ) * getActualProblemSize() );
+  setBytesWrittenPerRep((1*sizeof(Real_type) +
+                         1*sizeof(Real_type) +
+                         1*sizeof(Real_type) +
+                         1*sizeof(Real_type) +
+                         1*sizeof(Real_type) +
+                         0*sizeof(Real_type)
+                         ) * getActualProblemSize() );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep((6  +
                   11 + // 1 sqrt
                   8  +
@@ -62,6 +71,9 @@ ENERGY::ENERGY(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Base_SYCL );
+  setVariantDefined( RAJA_SYCL );
 }
 
 ENERGY::~ENERGY()

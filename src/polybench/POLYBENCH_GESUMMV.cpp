@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -26,7 +26,7 @@ POLYBENCH_GESUMMV::POLYBENCH_GESUMMV(const RunParams& params)
   setDefaultProblemSize( N_default * N_default );
   setDefaultReps(120);
 
-  m_N = std::sqrt( getTargetProblemSize() ) + 1;
+  m_N = std::sqrt( getTargetProblemSize() ) + std::sqrt(2)-1;
 
   m_alpha = 0.62;
   m_beta = 1.002;
@@ -36,8 +36,10 @@ POLYBENCH_GESUMMV::POLYBENCH_GESUMMV(const RunParams& params)
 
   setItsPerRep( m_N );
   setKernelsPerRep(1);
-  setBytesPerRep( (2*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N +
-                  (0*sizeof(Real_type ) + 2*sizeof(Real_type )) * m_N * m_N );
+  setBytesReadPerRep( 1*sizeof(Real_type ) * m_N +
+                      2*sizeof(Real_type ) * m_N * m_N );
+  setBytesWrittenPerRep( 1*sizeof(Real_type ) * m_N );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep((4 * m_N +
                   3 ) * m_N  );
 
@@ -59,6 +61,9 @@ POLYBENCH_GESUMMV::POLYBENCH_GESUMMV(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Base_SYCL );
+  setVariantDefined( RAJA_SYCL );
 }
 
 POLYBENCH_GESUMMV::~POLYBENCH_GESUMMV()

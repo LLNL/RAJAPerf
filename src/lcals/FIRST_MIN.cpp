@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -33,9 +33,12 @@ FIRST_MIN::FIRST_MIN(const RunParams& params)
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type ) + 1*sizeof(Real_type )) +
-                  (1*sizeof(Index_type) + 1*sizeof(Index_type)) +
-                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N );
+  setBytesReadPerRep( 1*sizeof(Index_type) +
+                      1*sizeof(Real_type ) +
+                      1*sizeof(Real_type ) * m_N );
+  setBytesWrittenPerRep( 1*sizeof(Index_type) +
+                         1*sizeof(Real_type ) );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(0);
 
   setUsesFeature(Forall);
@@ -57,6 +60,9 @@ FIRST_MIN::FIRST_MIN(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Base_SYCL );
+  setVariantDefined( RAJA_SYCL );
 
   setVariantDefined( Kokkos_Lambda );
 }

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -26,9 +26,11 @@ void ARRAY_OF_PTRS::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
 
   ARRAY_OF_PTRS_DATA_SETUP;
 
+#if defined(RUN_RAJA_SEQ)
   auto array_of_ptrs_lam = [=](Index_type i) {
                      ARRAY_OF_PTRS_BODY(x);
                    };
+#endif
 
   switch ( vid ) {
 

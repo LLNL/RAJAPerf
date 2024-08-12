@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -31,7 +31,7 @@ POLYBENCH_FDTD_2D::POLYBENCH_FDTD_2D(const RunParams& params)
                                     nx_default * (ny_default-1) ) );
   setDefaultReps(8);
 
-  m_nx = std::sqrt( getTargetProblemSize() ) + 1;
+  m_nx = std::sqrt( getTargetProblemSize() ) + 1 + std::sqrt(2)-1;
   m_ny = m_nx;
   m_tsteps = 40;
 
@@ -43,18 +43,25 @@ POLYBENCH_FDTD_2D::POLYBENCH_FDTD_2D(const RunParams& params)
                              m_nx*(m_ny-1) +
                              (m_nx-1)*(m_ny-1) ) );
   setKernelsPerRep(m_tsteps * 4);
-  setBytesPerRep( m_tsteps * ( (0*sizeof(Real_type ) + 1*sizeof(Real_type )) +
-                               (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * m_ny +
+  setBytesReadPerRep((1*sizeof(Real_type ) +
 
-                               (1*sizeof(Real_type ) + 1*sizeof(Real_type )) * (m_nx-1) * m_ny +
-                               (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nx * m_ny +
+                      1*sizeof(Real_type ) * (m_nx-1) * m_ny +
+                      1*sizeof(Real_type ) * m_nx * m_ny +
 
-                               (1*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nx * (m_ny-1) +
-                               (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nx * m_ny +
+                      1*sizeof(Real_type ) * m_nx * (m_ny-1) +
+                      1*sizeof(Real_type ) * m_nx * m_ny +
 
-                               (1*sizeof(Real_type ) + 1*sizeof(Real_type )) * (m_nx-1) * (m_ny-1) +
-                               (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * (m_nx-1) * m_ny +
-                               (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nx * (m_ny-1) ) );
+                      1*sizeof(Real_type ) * (m_nx-1) * (m_ny-1) +
+                      1*sizeof(Real_type ) * (m_nx-1) * m_ny +
+                      1*sizeof(Real_type ) * m_nx * (m_ny-1)) * m_tsteps );
+  setBytesWrittenPerRep((1*sizeof(Real_type ) * m_ny +
+
+                         1*sizeof(Real_type ) * (m_nx-1) * m_ny +
+
+                         1*sizeof(Real_type ) * m_nx * (m_ny-1) +
+
+                         1*sizeof(Real_type ) * (m_nx-1) * (m_ny-1)) * m_tsteps );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep( m_tsteps * ( 0 * m_ny +
                                3 * (m_nx-1)*m_ny +
                                3 * m_nx*(m_ny-1) +
@@ -84,6 +91,9 @@ POLYBENCH_FDTD_2D::POLYBENCH_FDTD_2D(const RunParams& params)
   setVariantDefined( Base_HIP );
   setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Base_SYCL );
+  setVariantDefined( RAJA_SYCL );
 }
 
 POLYBENCH_FDTD_2D::~POLYBENCH_FDTD_2D()

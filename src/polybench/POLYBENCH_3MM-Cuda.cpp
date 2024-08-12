@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -159,22 +159,31 @@ void POLYBENCH_3MM::runCudaVariantImpl(VariantID vid)
       constexpr size_t shmem = 0;
 
       POLY_3MM_1_NBLOCKS_CUDA;
-      poly_3mm_1<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                <<<nblocks1, nthreads_per_block, shmem, res.get_stream()>>>(E, A, B,
-                                                   ni, nj, nk);
-      cudaErrchk( cudaGetLastError() );
+
+      RPlaunchCudaKernel(
+        (poly_3mm_1<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>),
+        nblocks1, nthreads_per_block,
+        shmem, res.get_stream(),
+        E, A, B,
+        ni, nj, nk );
 
       POLY_3MM_2_NBLOCKS_CUDA;
-      poly_3mm_2<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                <<<nblocks2, nthreads_per_block, shmem, res.get_stream()>>>(F, C, D,
-                                                   nj, nl, nm);
-      cudaErrchk( cudaGetLastError() );
+
+      RPlaunchCudaKernel(
+        (poly_3mm_2<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>),
+        nblocks2, nthreads_per_block,
+        shmem, res.get_stream(),
+        F, C, D,
+        nj, nl, nm );
 
       POLY_3MM_3_NBLOCKS_CUDA;
-      poly_3mm_3<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                <<<nblocks3, nthreads_per_block, shmem, res.get_stream()>>>(G, E, F,
-                                                   ni, nl, nj);
-      cudaErrchk( cudaGetLastError() );
+
+      RPlaunchCudaKernel(
+        (poly_3mm_3<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>),
+        nblocks3, nthreads_per_block,
+        shmem, res.get_stream(),
+        G, E, F,
+        ni, nl, nj );
 
     }
     stopTimer();
@@ -188,43 +197,55 @@ void POLYBENCH_3MM::runCudaVariantImpl(VariantID vid)
       constexpr size_t shmem = 0;
 
       POLY_3MM_1_NBLOCKS_CUDA;
-      poly_3mm_1_lam<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                    <<<nblocks1, nthreads_per_block, shmem, res.get_stream()>>>(ni, nj,
-        [=] __device__ (Index_type i, Index_type j) {
-          POLYBENCH_3MM_BODY1;
-          for (Index_type k=0; k < nk; ++k) {
-            POLYBENCH_3MM_BODY2;
-          }
-          POLYBENCH_3MM_BODY3;
+
+      auto poly_3mm_1_lambda = [=] __device__ (Index_type i, Index_type j) {
+        POLYBENCH_3MM_BODY1;
+        for (Index_type k=0; k < nk; ++k) {
+          POLYBENCH_3MM_BODY2;
         }
-      );
-      cudaErrchk( cudaGetLastError() );
+        POLYBENCH_3MM_BODY3;
+      };
+
+      RPlaunchCudaKernel(
+        (poly_3mm_1_lam<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA,
+                        decltype(poly_3mm_1_lambda)>),
+        nblocks1, nthreads_per_block,
+        shmem, res.get_stream(),
+        ni, nj, poly_3mm_1_lambda );
 
       POLY_3MM_2_NBLOCKS_CUDA;
-      poly_3mm_2_lam<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                    <<<nblocks2, nthreads_per_block, shmem, res.get_stream()>>>(nj, nl,
-        [=] __device__ (Index_type j, Index_type l) {
-          POLYBENCH_3MM_BODY4;
-          for (Index_type m=0; m < nm; ++m) {
-            POLYBENCH_3MM_BODY5;
-          }
-          POLYBENCH_3MM_BODY6;
-        }
-      );
-      cudaErrchk( cudaGetLastError() );
+
+      auto poly_3mm_2_lambda = [=] __device__ (Index_type j, Index_type l) {
+        POLYBENCH_3MM_BODY4;
+        for (Index_type m=0; m < nm; ++m) { 
+          POLYBENCH_3MM_BODY5;
+        } 
+        POLYBENCH_3MM_BODY6;
+      };
+
+      RPlaunchCudaKernel(
+        (poly_3mm_2_lam<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA,
+                        decltype(poly_3mm_2_lambda)>),
+        nblocks2, nthreads_per_block,
+        shmem, res.get_stream(),
+        nj, nl, poly_3mm_2_lambda );
 
       POLY_3MM_3_NBLOCKS_CUDA;
-      poly_3mm_3_lam<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                    <<<nblocks3, nthreads_per_block, shmem, res.get_stream()>>>(ni, nl,
-        [=] __device__ (Index_type i, Index_type l) {
-          POLYBENCH_3MM_BODY7;
-          for (Index_type j=0; j < nj; ++j) {
-            POLYBENCH_3MM_BODY8;
-          }
-          POLYBENCH_3MM_BODY9;
+
+      auto poly_3mm_3_lambda = [=] __device__ (Index_type i, Index_type l) {
+        POLYBENCH_3MM_BODY7;
+        for (Index_type j=0; j < nj; ++j) {
+          POLYBENCH_3MM_BODY8;
         }
-      );
-      cudaErrchk( cudaGetLastError() );
+        POLYBENCH_3MM_BODY9;
+      };
+
+      RPlaunchCudaKernel(
+        (poly_3mm_3_lam<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA,
+                        decltype(poly_3mm_3_lambda)>),
+        nblocks3, nthreads_per_block,
+        shmem, res.get_stream(),
+        ni, nl, poly_3mm_3_lambda );
 
     }
     stopTimer();

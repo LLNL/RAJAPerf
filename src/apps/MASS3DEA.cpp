@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -29,20 +29,21 @@ MASS3DEA::MASS3DEA(const RunParams& params)
   setDefaultReps(1);
 
   const int ea_mat_entries = MEA_D1D*MEA_D1D*MEA_D1D*MEA_D1D*MEA_D1D*MEA_D1D;
-  
-  m_NE = std::max(getTargetProblemSize()/(ea_mat_entries), Index_type(1));
+
+  m_NE = std::max((getTargetProblemSize() + (ea_mat_entries)/2) / (ea_mat_entries), Index_type(1));
 
   setActualProblemSize( m_NE*ea_mat_entries);
 
   setItsPerRep(getActualProblemSize());
   setKernelsPerRep(1);
 
-  setBytesPerRep( MEA_Q1D*MEA_D1D*sizeof(Real_type)  + // B
-                  MEA_Q1D*MEA_Q1D*MEA_Q1D*m_NE*sizeof(Real_type) + // D
-                  ea_mat_entries*m_NE*sizeof(Real_type) ); // M_e
+  setBytesReadPerRep( 1*sizeof(Real_type) * MEA_Q1D*MEA_D1D + // B
+                      1*sizeof(Real_type) * MEA_Q1D*MEA_Q1D*MEA_Q1D*m_NE ); // D
+  setBytesWrittenPerRep( 1*sizeof(Real_type) * ea_mat_entries*m_NE ); // M_e
+  setBytesAtomicModifyWrittenPerRep( 0 );
 
   setFLOPsPerRep(m_NE * 7 * ea_mat_entries);
-                 
+
   setUsesFeature(Launch);
 
   setVariantDefined( Base_Seq );
@@ -56,6 +57,9 @@ MASS3DEA::MASS3DEA(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Base_SYCL );
+  setVariantDefined( RAJA_SYCL );
 
 }
 

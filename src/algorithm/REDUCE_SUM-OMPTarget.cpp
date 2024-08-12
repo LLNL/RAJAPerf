@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -27,7 +27,7 @@ namespace algorithm
   const size_t threads_per_team = 256;
 
 
-void REDUCE_SUM::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+void REDUCE_SUM::runOpenMPTargetVariant(VariantID vid, size_t tune_idx)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -56,26 +56,60 @@ void REDUCE_SUM::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_AR
 
   } else if ( vid == RAJA_OpenMPTarget ) {
 
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+    if (tune_idx == 0) {
 
-      RAJA::ReduceSum<RAJA::omp_target_reduce, Real_type> sum(m_sum_init);
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
-        RAJA::RangeSegment(ibegin, iend),
-        [=](Index_type i) {
-          REDUCE_SUM_BODY;
-      });
+        RAJA::ReduceSum<RAJA::omp_target_reduce, Real_type> sum(m_sum_init);
 
-      m_sum = sum.get();
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
+          RAJA::RangeSegment(ibegin, iend),
+          [=](Index_type i) {
+            REDUCE_SUM_BODY;
+        });
 
+        m_sum = sum.get();
+
+      }
+      stopTimer();
+
+    } else if (tune_idx == 1) {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        Real_type tsum = m_sum_init;
+
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
+          RAJA::RangeSegment(ibegin, iend),
+          RAJA::expt::Reduce<RAJA::operators::plus>(&tsum),
+          [=] (Index_type i, Real_type& sum) {
+            REDUCE_SUM_BODY;
+          }
+        );
+
+        m_sum = static_cast<Real_type>(tsum);
+
+      }
+      stopTimer();
+
+    } else {
+      getCout() << "\n  REDUCE_SUM : Unknown OMP Target tuning index = " << tune_idx << std::endl;
     }
-    stopTimer();
 
   } else {
     getCout() << "\n  REDUCE_SUM : Unknown OMP Target variant id = " << vid << std::endl;
   }
 
+}
+
+void REDUCE_SUM::setOpenMPTargetTuningDefinitions(VariantID vid)
+{
+  addVariantTuningName(vid, "default");
+  if (vid == RAJA_OpenMPTarget) {
+    addVariantTuningName(vid, "new");
+  }
 }
 
 } // end namespace algorithm

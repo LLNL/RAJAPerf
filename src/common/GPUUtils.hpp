@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -16,10 +16,12 @@
 
 #include "rajaperf_config.hpp"
 
+#include <climits>
+
 namespace rajaperf
 {
 
-namespace gpu_block_size
+namespace integer
 {
 
 namespace detail
@@ -44,50 +46,40 @@ constexpr size_t lesser_of_squarest_factor_pair_helper(size_t n, size_t guess)
            : lesser_of_squarest_factor_pair_helper(n, guess - 1); // continue searching
 }
 
-// class to get the size of a camp::int_seq
-template < typename IntSeq >
-struct SizeOfIntSeq;
-///
-template < size_t... Is >
-struct SizeOfIntSeq<camp::int_seq<size_t, Is...>>
-{
-   static const size_t size = sizeof...(Is);
-};
-
 // class to help prepend integers to a list
-// this is used for the false case where I is not prepended to IntSeq
-template < bool B, size_t I, typename IntSeq >
+// this is used for the false case where I is not prepended to List
+template < bool B, typename T, typename List >
 struct conditional_prepend
 {
-  using type = IntSeq;
+  using type = List;
 };
-/// this is used for the true case where I is prepended to IntSeq
-template < size_t I, size_t... Is >
-struct conditional_prepend<true, I, camp::int_seq<size_t, Is...>>
+/// this is used for the true case where I is prepended to List
+template < typename T, typename... Ts >
+struct conditional_prepend<true, T, camp::list<Ts...>>
 {
-  using type = camp::int_seq<size_t, I, Is...>;
+  using type = camp::list<T, Ts...>;
 };
 
-// class to help create a sequence that is only the valid values in IntSeq
-template < typename validity_checker, typename IntSeq >
+// class to help create a sequence that is only the valid values in List
+template < typename validity_checker, typename List >
 struct remove_invalid;
 
 // base case where the list is empty, use the empty list
 template < typename validity_checker >
-struct remove_invalid<validity_checker, camp::int_seq<size_t>>
+struct remove_invalid<validity_checker, camp::list<>>
 {
-  using type = camp::int_seq<size_t>;
+  using type = camp::list<>;
 };
 
-// check validity of I and conditionally prepend I to a recursively generated
+// check validity of T and conditionally prepend T to a recursively generated
 // list of valid values
-template < typename validity_checker, size_t I, size_t... Is >
-struct remove_invalid<validity_checker, camp::int_seq<size_t, I, Is...>>
+template < typename validity_checker, typename T, typename... Ts >
+struct remove_invalid<validity_checker, camp::list<T, Ts...>>
 {
   using type = typename conditional_prepend<
-      validity_checker::template valid<I>(),
-      I,
-      typename remove_invalid<validity_checker, camp::int_seq<size_t, Is...>>::type
+      validity_checker::valid(T{}),
+      T,
+      typename remove_invalid<validity_checker, camp::list<Ts...>>::type
     >::type;
 };
 
@@ -119,54 +111,235 @@ constexpr size_t greater_of_squarest_factor_pair(size_t n)
 // always true
 struct AllowAny
 {
-  template < size_t I >
-  static constexpr bool valid() { return true; }
+  static constexpr bool valid(size_t RAJAPERF_UNUSED_ARG(i)) { return true; }
 };
 
-// true if of I is a multiple of N, false otherwise
+// true only if i > 0
+struct PositiveOnly 
+{
+  static constexpr bool valid(size_t i) { return i > 0; }
+};
+
+// true if of i is a multiple of N, false otherwise
 template < size_t N >
 struct MultipleOf
 {
-  template < size_t I >
-  static constexpr bool valid() { return (I/N)*N == I; }
+  static constexpr bool valid(size_t i) { return (i/N)*N == i; }
 };
 
-// true if the sqrt of I is representable as a size_t, false otherwise
+// true if the sqrt of i is representable as a size_t, false otherwise
 struct ExactSqrt
 {
-  template < size_t I >
-  static constexpr bool valid() { return sqrt(I)*sqrt(I) == I; }
+  static constexpr bool valid(size_t i) { return sqrt(i)*sqrt(i) == i; }
 };
 
-template < size_t... block_sizes >
-using list_type = camp::int_seq<size_t, block_sizes...>;
+template < size_t N >
+struct LessEqual
+{
+  static constexpr bool valid(size_t i) { return i <= N; }
+};
 
-// A camp::int_seq of size_t's that is rajaperf::configuration::gpu_block_sizes
-// if rajaperf::configuration::gpu_block_sizes is not empty
-// and a camp::int_seq of default_block_size otherwise
-// with invalid entries removed according to validity_checker
-template < size_t default_block_size, typename validity_checker = AllowAny >
-using make_list_type =
+// A camp::list of camp::integral_constant<size_t, I> types.
+// If gpu_block_sizes from the configuration is not empty it is those gpu_block_sizes,
+// otherwise it is a list containing just default_block_size.
+// Invalid entries are removed according to validity_checker in either case.
+template < size_t default_block_size, typename validity_checker = PositiveOnly >
+using make_gpu_block_size_list_type =
       typename detail::remove_invalid<validity_checker,
-        typename std::conditional< (detail::SizeOfIntSeq<rajaperf::configuration::gpu_block_sizes>::size > 0),
+        typename std::conditional< (camp::size<rajaperf::configuration::gpu_block_sizes>::value > 0),
           rajaperf::configuration::gpu_block_sizes,
           list_type<default_block_size>
         >::type
       >::type;
 
-} // closing brace for gpu_block_size namespace
+// A camp::list of camp::integral_constant<size_t, I> types.
+// If atomic_replications from the configuration is not empty it is those atomic_replications,
+// otherwise it is a list containing just default_atomic_replication.
+// Invalid entries are removed according to validity_checker in either case.
+template < size_t default_atomic_replication, typename validity_checker = PositiveOnly >
+using make_atomic_replication_list_type =
+      typename detail::remove_invalid<validity_checker,
+        typename std::conditional< (camp::size<rajaperf::configuration::atomic_replications>::value > 0),
+          rajaperf::configuration::atomic_replications,
+          list_type<default_atomic_replication>
+        >::type
+      >::type;
 
-//compile time loop over an integer sequence
-//this allows for creating a loop over a compile time constant variable
-template <typename Func, typename T, T... ts>
-inline void seq_for(camp::int_seq<T, ts...> const&, Func&& func)
+// A camp::list of camp::integral_constant<size_t, I> types.
+// If gpu_items_per_thread from the configuration is not empty it is those gpu_items_per_thread,
+// otherwise it is a list containing just default_gpu_items_per_thread.
+// Invalid entries are removed according to validity_checker in either case.
+template < size_t default_gpu_items_per_thread, typename validity_checker = PositiveOnly >
+using make_gpu_items_per_thread_list_type =
+      typename detail::remove_invalid<validity_checker,
+        typename std::conditional< (camp::size<rajaperf::configuration::gpu_items_per_thread>::value > 0),
+          rajaperf::configuration::gpu_items_per_thread,
+          list_type<default_gpu_items_per_thread>
+        >::type
+      >::type;
+
+} // closing brace for integer namespace
+
+namespace gpu_algorithm {
+
+struct block_atomic_helper
 {
-  // braced init lists are evaluated in order
-  int seq_unused_array[] = {(func(camp::integral_constant<T,ts>{}), 0)...};
-  RAJAPERF_UNUSED_VAR(seq_unused_array);
-}
+  static constexpr bool atomic = true;
+  static std::string get_name() { return "blkatm"; }
+};
+
+struct block_device_helper
+{
+  static constexpr bool atomic = false;
+  static std::string get_name() { return "blkdev"; }
+};
+
+struct block_host_helper
+{
+  static constexpr bool atomic = false;
+  static std::string get_name() { return "blkhst"; }
+};
+
+using reducer_helpers = camp::list<
+    block_atomic_helper,
+    block_device_helper >;
+
+} // closing brace for gpu_algorithm namespace
+
+namespace gpu_mapping {
+
+struct global_direct_helper
+{
+  static constexpr bool direct = true;
+  static std::string get_name() { return "direct"; }
+};
+
+struct global_loop_occupancy_grid_stride_helper
+{
+  static constexpr bool direct = false;
+  static std::string get_name() { return "occgs"; }
+};
+
+using reducer_helpers = camp::list<
+    global_direct_helper,
+    global_loop_occupancy_grid_stride_helper >;
+
+} // closing brace for gpu_mapping namespace
 
 } // closing brace for rajaperf namespace
+
+// Get the max number of blocks to launch with the given MappingHelper
+// for kernel func with the given block_size and shmem.
+// This will use the occupancy calculator if MappingHelper::direct is false
+#define RAJAPERF_CUDA_GET_MAX_BLOCKS(MappingHelper, func, block_size, shmem)   \
+  MappingHelper::direct                                                        \
+      ? std::numeric_limits<int>::max()                       \
+      : detail::getCudaOccupancyMaxBlocks(                                     \
+            (func), (block_size), (shmem));
+///
+#define RAJAPERF_HIP_GET_MAX_BLOCKS(MappingHelper, func, block_size, shmem)    \
+  MappingHelper::direct                                                        \
+      ? std::numeric_limits<int>::max()                       \
+      : detail::getHipOccupancyMaxBlocks(                                      \
+            (func), (block_size), (shmem));
+
+// allocate pointer of pointer_type with length
+// device_ptr_name gets memory in the reduction data space for the current variant
+// host_ptr_name is set to either device_ptr_name if the reduction data space is
+// host accessible or a new allocation in a host accessible data space otherwise
+#define RAJAPERF_GPU_REDUCER_SETUP_IMPL(pointer_type, device_ptr_name, host_ptr_name, length, replication) \
+  DataSpace reduction_data_space = getReductionDataSpace(vid);                 \
+  DataSpace host_data_space = hostAccessibleDataSpace(reduction_data_space);   \
+                                                                               \
+  pointer_type device_ptr_name;                                                \
+  allocData(reduction_data_space, device_ptr_name, (length)*(replication));    \
+  pointer_type host_ptr_name = device_ptr_name;                                \
+  if (reduction_data_space != host_data_space) {                               \
+    allocData(host_data_space, host_ptr_name, (length)*(replication));         \
+  }
+
+// deallocate device_ptr_name and host_ptr_name
+// must be in the same scope as RAJAPERF_GPU_REDUCER_SETUP_IMPL
+#define RAJAPERF_GPU_REDUCER_TEARDOWN_IMPL(device_ptr_name, host_ptr_name)     \
+  deallocData(reduction_data_space, device_ptr_name);                          \
+  if (reduction_data_space != host_data_space) {                               \
+    deallocData(host_data_space, host_ptr_name);                               \
+  }
+
+// Initialize device_ptr_name with length copies of init_value
+// host_ptr_name will be used as an intermediary with an explicit copy
+// if the reduction data space is not host accessible
+#define RAJAPERF_GPU_REDUCER_INITIALIZE_VALUE_IMPL(gpu_type, init_value, device_ptr_name, host_ptr_name, length, replication) \
+  if (device_ptr_name != host_ptr_name) {                                      \
+    for (size_t i = 0; i < static_cast<size_t>(length); ++i) {                 \
+      for (size_t r = 0; r < static_cast<size_t>(replication); ++r) {          \
+        host_ptr_name[i*(replication) + r] = (init_value);                     \
+      }                                                                        \
+    }                                                                          \
+    gpu_type##Errchk( gpu_type##MemcpyAsync( device_ptr_name, host_ptr_name,   \
+        (length)*(replication)*sizeof(device_ptr_name[0]),                     \
+        gpu_type##MemcpyHostToDevice, res.get_stream() ) );                    \
+  } else {                                                                     \
+    for (size_t i = 0; i < static_cast<size_t>(length); ++i) {                 \
+      for (size_t r = 0; r < static_cast<size_t>(replication); ++r) {          \
+        device_ptr_name[i*(replication) + r] = (init_value);                   \
+      }                                                                        \
+    }                                                                          \
+  }
+
+// Initialize device_ptr_name with values in init_ptr
+// host_ptr_name will be used as an intermediary with an explicit copy
+// if the reduction data space is not host accessible
+#define RAJAPERF_GPU_REDUCER_INITIALIZE_IMPL(gpu_type, init_ptr, device_ptr_name, host_ptr_name, length, replication) \
+  if (device_ptr_name != host_ptr_name) {                                      \
+    for (size_t i = 0; i < static_cast<size_t>(length); ++i) {                 \
+      for (size_t r = 0; r < static_cast<size_t>(replication); ++r) {          \
+        host_ptr_name[i*(replication) + r] = (init_ptr)[i];                    \
+      }                                                                        \
+    }                                                                          \
+    gpu_type##Errchk( gpu_type##MemcpyAsync( device_ptr_name, host_ptr_name,   \
+        (length)*(replication)*sizeof(device_ptr_name[0]),                     \
+        gpu_type##MemcpyHostToDevice, res.get_stream() ) );                    \
+  } else {                                                                     \
+    for (size_t i = 0; i < static_cast<size_t>(length); ++i) {                 \
+      for (size_t r = 0; r < static_cast<size_t>(replication); ++r) {          \
+        device_ptr_name[i*(replication) + r] = (init_ptr)[i];                  \
+      }                                                                        \
+    }                                                                          \
+  }
+
+// Copy back data from device_ptr_name into host_ptr_name
+// if the reduction data space is not host accessible
+#define RAJAPERF_GPU_REDUCER_COPY_BACK_IMPL(gpu_type, device_ptr_name, host_ptr_name, length, replication) \
+  if (device_ptr_name != host_ptr_name) {                                      \
+    gpu_type##Errchk( gpu_type##MemcpyAsync( host_ptr_name, device_ptr_name,   \
+        (length)*(replication)*sizeof(device_ptr_name[0]),                     \
+        gpu_type##MemcpyDeviceToHost, res.get_stream() ) );                    \
+  }                                                                            \
+  gpu_type##Errchk( gpu_type##StreamSynchronize( res.get_stream() ) );
+
+#define RAJAPERF_CUDA_REDUCER_SETUP(pointer_type, device_ptr_name, host_ptr_name, length, replication) \
+  RAJAPERF_GPU_REDUCER_SETUP_IMPL(pointer_type, device_ptr_name, host_ptr_name, length, replication)
+#define RAJAPERF_CUDA_REDUCER_TEARDOWN(device_ptr_name, host_ptr_name) \
+  RAJAPERF_GPU_REDUCER_TEARDOWN_IMPL(device_ptr_name, host_ptr_name)
+#define RAJAPERF_CUDA_REDUCER_INITIALIZE_VALUE(init_value, device_ptr_name, host_ptr_name, length, replication) \
+  RAJAPERF_GPU_REDUCER_INITIALIZE_VALUE_IMPL(cuda, init_value, device_ptr_name, host_ptr_name, length, replication)
+#define RAJAPERF_CUDA_REDUCER_INITIALIZE(init_ptr, device_ptr_name, host_ptr_name, length, replication) \
+  RAJAPERF_GPU_REDUCER_INITIALIZE_IMPL(cuda, init_ptr, device_ptr_name, host_ptr_name, length, replication)
+#define RAJAPERF_CUDA_REDUCER_COPY_BACK(device_ptr_name, host_ptr_name, length, replication) \
+  RAJAPERF_GPU_REDUCER_COPY_BACK_IMPL(cuda, device_ptr_name, host_ptr_name, length, replication)
+
+#define RAJAPERF_HIP_REDUCER_SETUP(pointer_type, device_ptr_name, host_ptr_name, length, replication) \
+  RAJAPERF_GPU_REDUCER_SETUP_IMPL(pointer_type, device_ptr_name, host_ptr_name, length, replication)
+#define RAJAPERF_HIP_REDUCER_TEARDOWN(device_ptr_name, host_ptr_name) \
+  RAJAPERF_GPU_REDUCER_TEARDOWN_IMPL(device_ptr_name, host_ptr_name)
+#define RAJAPERF_HIP_REDUCER_INITIALIZE_VALUE(init_value, device_ptr_name, host_ptr_name, length, replication) \
+  RAJAPERF_GPU_REDUCER_INITIALIZE_VALUE_IMPL(hip, init_value, device_ptr_name, host_ptr_name, length, replication)
+#define RAJAPERF_HIP_REDUCER_INITIALIZE(init_ptr, device_ptr_name, host_ptr_name, length, replication) \
+  RAJAPERF_GPU_REDUCER_INITIALIZE_IMPL(hip, init_ptr, device_ptr_name, host_ptr_name, length, replication)
+#define RAJAPERF_HIP_REDUCER_COPY_BACK(device_ptr_name, host_ptr_name, length, replication) \
+  RAJAPERF_GPU_REDUCER_COPY_BACK_IMPL(hip, device_ptr_name, host_ptr_name, length, replication)
+
 
 //
 #define RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(kernel, variant)     \
@@ -190,7 +363,11 @@ inline void seq_for(camp::int_seq<T, ts...> const&, Func&& func)
     seq_for(gpu_block_sizes_type{}, [&](auto block_size) {                     \
       if (run_params.numValidGPUBlockSize() == 0u ||                           \
           run_params.validGPUBlockSize(block_size)) {                          \
-        addVariantTuningName(vid, "block_"+std::to_string(block_size));        \
+        if (block_size == 0u) {                                                 \
+          addVariantTuningName(vid, "block_auto");                             \
+        } else {                                                               \
+          addVariantTuningName(vid, "block_"+std::to_string(block_size));      \
+        }                                                                      \
       }                                                                        \
     });                                                                        \
   }

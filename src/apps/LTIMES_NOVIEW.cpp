@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -23,20 +23,15 @@ namespace apps
 LTIMES_NOVIEW::LTIMES_NOVIEW(const RunParams& params)
   : KernelBase(rajaperf::Apps_LTIMES_NOVIEW, params)
 {
-  m_num_d_default = 64;
-  m_num_z_default = 488;
-  m_num_g_default = 32;
-  m_num_m_default = 25;
+  m_num_d = params.getLtimesNumD();
+  m_num_g = params.getLtimesNumG();
+  m_num_m = params.getLtimesNumM();
+  Index_type num_z_default = std::max((Index_type{1000000} + (m_num_d * m_num_g)/2) / (m_num_d * m_num_g), Index_type(1));
 
-  setDefaultProblemSize(m_num_d_default * m_num_g_default * m_num_z_default);
+  setDefaultProblemSize(m_num_d * m_num_g * num_z_default);
   setDefaultReps(50);
 
-  m_num_z = std::max( getTargetProblemSize() /
-                      (m_num_d_default * m_num_g_default),
-                      Index_type(1) );
-  m_num_g = m_num_g_default;
-  m_num_m = m_num_m_default;
-  m_num_d = m_num_d_default;
+  m_num_z = std::max((getTargetProblemSize() + (m_num_d * m_num_g)/2) / (m_num_d * m_num_g), Index_type(1));
 
   m_philen = m_num_m * m_num_g * m_num_z;
   m_elllen = m_num_d * m_num_m;
@@ -47,9 +42,11 @@ LTIMES_NOVIEW::LTIMES_NOVIEW(const RunParams& params)
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
   // using total data size instead of writes and reads
-  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * m_philen +
-                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * m_elllen +
-                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * m_psilen );
+  setBytesReadPerRep( 1*sizeof(Real_type) * m_philen +
+                      1*sizeof(Real_type) * m_elllen +
+                      1*sizeof(Real_type) * m_psilen );
+  setBytesWrittenPerRep( 1*sizeof(Real_type) * m_philen );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(2 * m_num_z * m_num_g * m_num_m * m_num_d);
 
   checksum_scale_factor = 0.001 *
@@ -76,6 +73,9 @@ LTIMES_NOVIEW::LTIMES_NOVIEW(const RunParams& params)
   setVariantDefined( Base_HIP );
   setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Base_SYCL );
+  setVariantDefined( RAJA_SYCL );
 }
 
 LTIMES_NOVIEW::~LTIMES_NOVIEW()

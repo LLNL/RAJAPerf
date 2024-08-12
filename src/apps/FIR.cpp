@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -28,11 +28,13 @@ FIR::FIR(const RunParams& params)
 
   setActualProblemSize( getTargetProblemSize() );
 
-  setItsPerRep( getActualProblemSize() - m_coefflen );
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getItsPerRep() +
-                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * getActualProblemSize() );
-  setFLOPsPerRep((2 * m_coefflen) * (getActualProblemSize() - m_coefflen));
+  setBytesReadPerRep( m_coefflen*sizeof(Real_type) +
+                      1*sizeof(Real_type) * (getActualProblemSize() + m_coefflen-1) );
+  setBytesWrittenPerRep( 1*sizeof(Real_type) * getActualProblemSize() );
+  setBytesAtomicModifyWrittenPerRep( 0 );
+  setFLOPsPerRep((2 * m_coefflen) * getActualProblemSize());
 
   checksum_scale_factor = 0.0001 *
               ( static_cast<Checksum_type>(getDefaultProblemSize()) /
@@ -56,6 +58,9 @@ FIR::FIR(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Base_SYCL );
+  setVariantDefined( RAJA_SYCL );
 }
 
 FIR::~FIR()
@@ -64,7 +69,7 @@ FIR::~FIR()
 
 void FIR::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
-  allocAndInitData(m_in, getActualProblemSize(), vid);
+  allocAndInitData(m_in, getActualProblemSize() + m_coefflen-1, vid);
   allocAndInitDataConst(m_out, getActualProblemSize(), 0.0, vid);
 }
 

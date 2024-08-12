@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -30,8 +30,11 @@ GEN_LIN_RECUR::GEN_LIN_RECUR(const RunParams& params)
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(2);
-  setBytesPerRep( (2*sizeof(Real_type ) + 3*sizeof(Real_type )) * m_N +
-                  (2*sizeof(Real_type ) + 3*sizeof(Real_type )) * m_N );
+  setBytesReadPerRep( 3*sizeof(Real_type ) * m_N +
+                      3*sizeof(Real_type ) * m_N );
+  setBytesWrittenPerRep( 2*sizeof(Real_type ) * m_N +
+                         2*sizeof(Real_type ) * m_N );
+  setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep((3 +
                   3 ) * getActualProblemSize());
 
@@ -57,6 +60,9 @@ GEN_LIN_RECUR::GEN_LIN_RECUR(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Base_SYCL );
+  setVariantDefined( RAJA_SYCL );
 
   setVariantDefined( Kokkos_Lambda );
 }

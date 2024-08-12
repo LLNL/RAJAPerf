@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-24, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -18,7 +18,7 @@ namespace algorithm
 {
 
 
-void REDUCE_SUM::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+void REDUCE_SUM::runOpenMPVariant(VariantID vid, size_t tune_idx)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 
@@ -76,21 +76,48 @@ void REDUCE_SUM::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
 
     case RAJA_OpenMP : {
 
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+      if (tune_idx == 0) {
 
-        RAJA::ReduceSum<RAJA::omp_reduce, Real_type> sum(m_sum_init);
+        startTimer();
+        for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(
-          RAJA::RangeSegment(ibegin, iend),
-          [=](Index_type i) {
-            REDUCE_SUM_BODY;
-        });
+          RAJA::ReduceSum<RAJA::omp_reduce, Real_type> sum(m_sum_init);
 
-        m_sum = sum.get();
+          RAJA::forall<RAJA::omp_parallel_for_exec>(
+            RAJA::RangeSegment(ibegin, iend),
+            [=](Index_type i) {
+              REDUCE_SUM_BODY;
+          });
 
+          m_sum = sum.get();
+
+        }
+        stopTimer();
+
+      } else if (tune_idx == 1) {
+
+        startTimer();
+        for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+          Real_type tsum = m_sum_init;
+
+          RAJA::forall<RAJA::omp_parallel_for_exec>(
+            RAJA::RangeSegment(ibegin, iend),
+            RAJA::expt::Reduce<RAJA::operators::plus>(&tsum),
+            [=] (Index_type i, Real_type& sum) {
+              REDUCE_SUM_BODY;
+            }
+          );
+
+          m_sum = static_cast<Real_type>(tsum);
+
+        }
+        stopTimer();
+
+      } else {
+        getCout() << "\n  REDUCE_SUM : Unknown OpenMP tuning index = " << tune_idx << std::endl;
       }
-      stopTimer();
+
 
       break;
     }
@@ -103,7 +130,16 @@ void REDUCE_SUM::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
 
 #else
   RAJA_UNUSED_VAR(vid);
+  RAJA_UNUSED_VAR(tune_idx);
 #endif
+}
+
+void REDUCE_SUM::setOpenMPTuningDefinitions(VariantID vid)
+{
+  addVariantTuningName(vid, "default");
+  if (vid == RAJA_OpenMP) {
+    addVariantTuningName(vid, "new");
+  }
 }
 
 } // end namespace algorithm
