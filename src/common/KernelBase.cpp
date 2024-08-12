@@ -102,8 +102,6 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params)
                                               CALI_ATTR_SKIP_EVENTS);
   }
   Complexity_attr = cali_create_attribute("Complexity", CALI_TYPE_STRING,
-                                           CALI_ATTR_ASVALUE |
-                                           CALI_ATTR_AGGREGATABLE |
                                            CALI_ATTR_SKIP_EVENTS);
 #endif
 }
@@ -581,7 +579,7 @@ void KernelBase::doOnceCaliMetaBegin(VariantID vid, size_t tune_idx)
         std::string feature = getFeatureName(fid);
         cali_set_int(Feature_attrs[feature], usesFeature(fid));
     }
-    cali_set_string(Complexity_attr, getComplexityName(getComplexity()));
+    cali_set_string(Complexity_attr, getComplexityName(getComplexity()).c_str());
   }
 }
 
@@ -633,8 +631,8 @@ void KernelBase::setCaliperMgrVariantTuning(VariantID vid,
           { "expr": "any(max#Atomic)", "as": "FeatureAtomic" },
           { "expr": "any(max#View)", "as": "FeatureView" },
           { "expr": "any(max#MPI)", "as": "FeatureMPI" },
-          { "expr": "any(max#Complexity)", "as": "Complexity" }
-        ]
+        ],
+        "group by": ["Complexity"],
       },
       {
         "level"  : "cross",
@@ -660,8 +658,8 @@ void KernelBase::setCaliperMgrVariantTuning(VariantID vid,
           { "expr": "any(any#max#Atomic)", "as": "FeatureAtomic" },
           { "expr": "any(any#max#View)", "as": "FeatureView" },
           { "expr": "any(any#max#MPI)", "as": "FeatureMPI" },
-          { "expr": "any(any#max#Complexity)", "as": "Complexity" }
-        ]
+        ],
+        "group by": ["Complexity"],
       }
     ]
   }
