@@ -7,29 +7,29 @@
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
 
-if [[ $# -lt 5 ]]; then
+if [[ $# -lt 3 ]]; then
   echo
   echo "You must pass 5 arguments to the script (in this order): "
   echo "   1) compiler version number for nvcc"
   echo "   2) CUDA compute architecture (number only, not 'sm_70' for example)"
-  echo "   3) compiler version number for clang. "
+  echo "   3) compiler version number for gcc"
   echo "   4) path to caliper cmake directory"
   echo "   5) path to adiak cmake directory"
   echo
   echo "For example: "
-  echo "    blueos_nvcc_clang_caliper.sh 11.8.0 70 ibm-16.0.6-cuda-11.8.0-gcc-8.3.1 /usr/workspace/wsb/asde/caliper-lassen/share/cmake/caliper /usr/workspace/wsb/asde/caliper-lassen/lib/cmake/adiak"
+  echo "    blueos_nvcc_gcc_caliper.sh 10.2.89 70 8.3.1 /usr/workspace/wsb/asde/caliper-lassen/share/cmake/caliper /usr/workspace/wsb/asde/caliper-lassen/lib/cmake/adiak"
   exit
 fi
 
 COMP_NVCC_VER=$1
 COMP_ARCH=$2
-COMP_CLANG_VER=$3
+COMP_GCC_VER=$3
 CALI_DIR=$4
 ADIAK_DIR=$5
 shift 5
 
-BUILD_SUFFIX=lc_blueos-nvcc-${COMP_NVCC_VER}-${COMP_ARCH}-clang-${COMP_CLANG_VER}
-RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/blueos/nvcc_clang_X.cmake
+BUILD_SUFFIX=lc_blueos-nvcc-${COMP_NVCC_VER}-${COMP_ARCH}-gcc-${COMP_GCC_VER}-caliper
+RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/blueos/nvcc_gcc_X.cmake
 
 echo
 echo "Creating build directory build_${BUILD_SUFFIX} and generating configuration in it"
@@ -44,7 +44,7 @@ module load cmake/3.20.2
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_CXX_COMPILER=/usr/tce/packages/clang/clang-${COMP_CLANG_VER}/bin/clang++ \
+  -DCMAKE_CXX_COMPILER=/usr/tce/packages/gcc/gcc-${COMP_GCC_VER}/bin/g++ \
   -DBLT_CXX_STD=c++14 \
   -C ${RAJA_HOSTCONFIG} \
   -DENABLE_OPENMP=On \
@@ -58,7 +58,6 @@ cmake \
   -Dcaliper_DIR=${CALI_DIR} \
   -Dadiak_DIR=${ADIAK_DIR} \
   -DRAJA_PERFSUITE_GPU_BLOCKSIZES=128,256,512,1024 \
-  -DRAJA_PERFSUITE_ENABLE_TESTS=Off \
   "$@" \
   ..
 
