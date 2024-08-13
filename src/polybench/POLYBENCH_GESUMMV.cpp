@@ -43,6 +43,8 @@ POLYBENCH_GESUMMV::POLYBENCH_GESUMMV(const RunParams& params)
   setFLOPsPerRep((4 * m_N +
                   3 ) * m_N  );
 
+  setComplexity(Complexity::N);
+
   setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );

@@ -44,6 +44,8 @@ NESTED_INIT::NESTED_INIT(const RunParams& params)
   setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(3 * getActualProblemSize());
 
+  setComplexity(Complexity::N);
+
   setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );

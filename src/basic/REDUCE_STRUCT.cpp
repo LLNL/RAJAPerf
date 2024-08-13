@@ -38,7 +38,8 @@ REDUCE_STRUCT::REDUCE_STRUCT(const RunParams& params)
   setBytesWrittenPerRep( 6*sizeof(Real_type) );
   setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(2 * getActualProblemSize() + 2);
-    
+
+  setComplexity(Complexity::N);
 
   setUsesFeature(Forall);
   setUsesFeature(Reduction);

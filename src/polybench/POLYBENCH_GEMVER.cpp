@@ -66,6 +66,8 @@ POLYBENCH_GEMVER::POLYBENCH_GEMVER(const RunParams& params)
               ( static_cast<Checksum_type>(getDefaultProblemSize()) /
                                            getActualProblemSize() );
 
+  setComplexity(Complexity::N);
+
   setUsesFeature(Forall);
   setUsesFeature(Kernel);
 

@@ -52,6 +52,8 @@ DIFFUSION3DPA::DIFFUSION3DPA(const RunParams& params)
                          7 * DPA_D1D * DPA_Q1D * DPA_D1D * DPA_D1D +
                          3 * DPA_D1D * DPA_D1D * DPA_D1D));
 
+  setComplexity(Complexity::N);
+
   setUsesFeature(Launch);
 
   setVariantDefined( Base_Seq );

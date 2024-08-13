@@ -37,6 +37,8 @@ IF_QUAD::IF_QUAD(const RunParams& params)
               ( static_cast<Checksum_type>(getDefaultProblemSize()) /
                                            getActualProblemSize() );
 
+  setComplexity(Complexity::N);
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );

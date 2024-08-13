@@ -33,6 +33,8 @@ MUL::MUL(const RunParams& params)
   setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(1 * getActualProblemSize());
 
+  setComplexity(Complexity::N);
+
   setUsesFeature( Forall );
 
   setVariantDefined( Base_Seq );

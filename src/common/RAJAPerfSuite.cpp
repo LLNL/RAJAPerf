@@ -363,6 +363,33 @@ static const std::string FeatureNames [] =
 /*!
  *******************************************************************************
  *
+ * \brief Array of names for each COMPLEXITY used in suite.
+ *
+ * IMPORTANT: This is only modified when a new complexity is used in suite.
+ *
+ *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
+ *            ITEMS IN THE Complexity enum IN HEADER FILE!!!
+ *
+ *******************************************************************************
+ */
+static const std::string ComplexityNames [] =
+{
+  std::string("N"),
+
+  std::string("NlogN"),
+
+  std::string("N^(3/2)"),
+
+  std::string("N^(2/3)"),
+
+  std::string("Unknown Complexity")  // Keep this at the end and DO NOT remove....
+
+}; // END ComplexityNames
+
+
+/*!
+ *******************************************************************************
+ *
  * \brief Array of names for each Memory Space in suite.
  *
  * IMPORTANT: This is only modified when a new memory space is added to the suite.
@@ -612,6 +639,19 @@ bool isVariantGPU(VariantID vid)
 const std::string& getFeatureName(FeatureID fid)
 {
   return FeatureNames[fid];
+}
+
+
+/*
+ *******************************************************************************
+ *
+ * Return complexity name associated with Complexity enum value.
+ *
+ *******************************************************************************
+ */
+const std::string& getComplexityName(Complexity ac)
+{
+  return ComplexityNames[static_cast<int>(ac)];
 }
 
 

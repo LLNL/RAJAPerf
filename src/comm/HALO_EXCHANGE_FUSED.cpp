@@ -46,6 +46,8 @@ HALO_EXCHANGE_FUSED::HALO_EXCHANGE_FUSED(const RunParams& params)
   setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(0);
 
+  setComplexity(Complexity::N_to_the_two_thirds);
+
   setUsesFeature(Workgroup);
   setUsesFeature(MPI);
 

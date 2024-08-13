@@ -33,6 +33,8 @@ SORT::SORT(const RunParams& params)
   setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(0);
 
+  setComplexity(Complexity::N_logN);
+
   setUsesFeature(Sort);
 
   setVariantDefined( Base_Seq );

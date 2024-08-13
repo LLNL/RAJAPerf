@@ -36,6 +36,8 @@ HALO_PACKING::HALO_PACKING(const RunParams& params)
   setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(0);
 
+  setComplexity(Complexity::N_to_the_two_thirds);
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );

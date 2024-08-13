@@ -35,6 +35,8 @@ TRIDIAG_ELIM::TRIDIAG_ELIM(const RunParams& params)
   setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(2 * (getActualProblemSize()-1));
 
+  setComplexity(Complexity::N);
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
