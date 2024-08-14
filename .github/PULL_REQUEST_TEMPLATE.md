@@ -1,4 +1,4 @@
-# Summary (Write a short headline summary of PR)
+# Summary
 
 - This PR is a (refactoring, bugfix, feature, something else)
 - It does the following (modify list as needed):
