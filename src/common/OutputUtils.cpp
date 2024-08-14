@@ -21,7 +21,9 @@
 
 #include<sys/types.h>
 #include<sys/stat.h>
-
+#if defined(_WIN32)
+#include<io.h>
+#endif
 
 namespace rajaperf
 {
