@@ -141,7 +141,7 @@ std::string recursiveMkdir(const std::string& in_path)
    */
   if ( !outpath.empty() && pos < 0) {
 #if defined(_WIN32)
-    if (_mkdir(path_buf, mode) != 0) {
+    if (_mkdir(path_buf, mode & MS_MODE_MASK) != 0) {
 #else
     if (mkdir(path_buf, mode) != 0) {
 #endif
@@ -170,7 +170,7 @@ std::string recursiveMkdir(const std::string& in_path)
       /* make directory if not at end of path */
       if (pos < length) {
 #if defined(_WIN32)
-        if (_mkdir(path_buf, mode) != 0) {
+        if (_mkdir(path_buf, mode & MS_MODE_MASK) != 0) {
 #else
         if (mkdir(path_buf, mode) != 0) {
 #endif
