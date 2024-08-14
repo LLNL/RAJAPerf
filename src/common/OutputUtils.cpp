@@ -22,7 +22,7 @@
 #include<sys/types.h>
 #include<sys/stat.h>
 
-#if defined(_WIN32)
+#if defined(_WIN32) && 0
 #include<io.h>
 
 typedef int mode_t;
@@ -140,7 +140,7 @@ std::string recursiveMkdir(const std::string& in_path)
    * path before sliding along path_buf.
    */
   if ( !outpath.empty() && pos < 0) {
-#if defined(_WIN32)
+#if defined(_WIN32) && 0
     if (_mkdir(path_buf, mode & MS_MODE_MASK) != 0) {
 #else
     if (mkdir(path_buf, mode) != 0) {
@@ -169,7 +169,7 @@ std::string recursiveMkdir(const std::string& in_path)
 
       /* make directory if not at end of path */
       if (pos < length) {
-#if defined(_WIN32)
+#if defined(_WIN32) && 0
         if (_mkdir(path_buf, mode & MS_MODE_MASK) != 0) {
 #else
         if (mkdir(path_buf, mode) != 0) {
