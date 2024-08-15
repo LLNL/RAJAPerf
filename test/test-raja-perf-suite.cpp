@@ -70,10 +70,21 @@ TEST(ShortSuiteTest, Basic)
   sargv.emplace_back(std::string("HALO_PACKING_FUSED"));
 #endif
 
-#if (defined(RAJA_COMPILER_CLANG) && __clang_major__ == 11)
+#if !defined(_WIN32)
+
+#if ( (defined(RAJA_COMPILER_CLANG) && __clang_major__ == 11) || \
+      defined(RUN_RAJAPERF_SHORT_TEST) )
   sargv.emplace_back(std::string("--exclude-kernels"));
+#if (defined(RAJA_COMPILER_CLANG) && __clang_major__ == 11)  
   sargv.emplace_back(std::string("FIRST_MIN"));
 #endif
+#if defined(RUN_RAJAPERF_SHORT_TEST)
+  sargv.emplace_back(std::string("Polybench"));
+#endif
+#endif
+
+#endif // !defined(_WIN32)
+
 
   char *unit_test = getenv("RAJA_PERFSUITE_UNIT_TEST");
   if (unit_test != NULL) {
