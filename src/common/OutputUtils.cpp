@@ -19,11 +19,20 @@
 #include<fstream>
 #include<sstream>
 
+#if !defined(_WIN32)
 #include<sys/types.h>
 #include<sys/stat.h>
 
-#if defined(_WIN32)
+#else
+#include<sys/types.h>
+#define _CRT_INTERNAL_NONSTDC_NAMES 1
+#include<sys/stat.h>
+#if !defined(S_ISDIR) && defined(S_IFMT) && defined(S_IFDIR)
+  #define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
+#endif
+
 #include<filesystem>
+#include<direct.h>
 #include<io.h>
 
 typedef int mode_t;
