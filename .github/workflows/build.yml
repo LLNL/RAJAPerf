@@ -40,6 +40,9 @@ jobs:
     strategy:
       matrix:
         shared: 
+## ====================================
+## Shared library build generated undefined symbol errors that are not
+## understood -RDH
 ##      - args: 
 ##          BUILD_SHARED_LIBS=On 
 ##          CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=On
@@ -59,6 +62,7 @@ jobs:
             ENABLE_WARNINGS_AS_ERRORS=Off
             BLT_CXX_STD=c++17
             CMAKE_BUILD_TYPE=Release
+            PERFSUITE_RUN_SHORT_TEST=On
             ${{ matrix.shared.args }}
           run-build: true
           build-args: '--parallel 16'

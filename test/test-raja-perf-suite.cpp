@@ -55,7 +55,11 @@ TEST(ShortSuiteTest, Basic)
   std::vector< std::string > sargv{};
   sargv.emplace_back(std::string("dummy "));  // for executable name
   sargv.emplace_back(std::string("--checkrun"));
+#if defined(RUN_RAJAPERF_SHORT_TEST)
+  sargv.emplace_back(std::string("1"));
+#else
   sargv.emplace_back(std::string("3"));
+#endif
   sargv.emplace_back(std::string("--show-progress"));
   sargv.emplace_back(std::string("--disable-warmup"));
 

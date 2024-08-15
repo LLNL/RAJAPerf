@@ -15,10 +15,6 @@ else()
   cmake_minimum_required(VERSION 3.20)
 endif()
 
-option(ENABLE_RAJA_SEQUENTIAL "Run sequential variants of RAJA kernels. Disable
-this, and all other variants, to run _only_ base variants." On)
-option(ENABLE_KOKKOS "Include Kokkos implementations of the kernels in the RAJA Perfsuite" Off)
-
 #
 # Note: the BLT build system is inheritted by RAJA and is initialized by RAJA
 #
@@ -40,6 +36,13 @@ include(blt/SetupBLT.cmake)
 #
 # Define RAJA PERFSUITE settings...
 #
+
+option(PERFSUITE_RUN_SHORT_TEST "Run kernels only once for tests" Off)
+
+option(ENABLE_RAJAPERF_SEQUENTIAL "Run sequential variants of RAJA kernels. Disable
+this, and all other variants, to run _only_ base variants." On)
+
+option(ENABLE_KOKKOS "Include Kokkos implementations of the kernels in the RAJA Perfsuite" Off)
 
 cmake_dependent_option(RAJA_PERFSUITE_ENABLE_TESTS "Enable RAJA Perf Suite Tests" On "ENABLE_TESTS" Off)
 
@@ -129,9 +132,14 @@ include_directories(${RAJA_INCLUDE_DIRS})
 
 set(CAMP_ENABLE_TESTS Off CACHE BOOL "")
 
-if (ENABLE_RAJA_SEQUENTIAL)
+if (ENABLE_RAJAPERF_SEQUENTIAL)
   add_definitions(-DRUN_RAJA_SEQ)
 endif ()
+
+if (PERFSUITE_RUN_SHORT_TEST)
+  add_definitions(-DRUN_RAJAPERF_SHORT_TEST)
+endif()
+
 if (ENABLE_OPENMP)
   add_definitions(-DRUN_OPENMP)
 endif ()
