@@ -36,39 +36,39 @@ jobs:
           run-build: true
           build-args: '--parallel 16'
       - uses: threeal/ctest-action@v1.1.0
-#  build_windows:
-#    strategy:
-#      matrix:
-#        shared: 
-#        - args: 
-#            BUILD_SHARED_LIBS=On 
-#            CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=On
-#        - args: BUILD_SHARED_LIBS=Off
-#          
-#    runs-on: windows-latest
-#    steps:
-#      - uses: actions/checkout@v2
-#        with:
-#          submodules: recursive
-### ====================================
-### Config and build action
-#      - uses: threeal/cmake-action@v1.3.0
-#        with:
-#          build-dir: build
-#          options:
-#            ENABLE_WARNINGS_AS_ERRORS=Off
-#            BLT_CXX_STD=""
-#            CMAKE_CXX_STANDARD=17
-#            CMAKE_BUILD_TYPE=Release
-#            ${{ matrix.shared.args }}
-#          run-build: true
-#          build-args: '--parallel 16'
-### ====================================
-### Print the contents of the test directory in the build space (debugging)
-###    - run: | 
-###        dir -r D:\a\RAJA\RAJA\build\test
-### ====================================
-### Run tests action
-#      - uses: threeal/ctest-action@v1.1.0
-#        with:
-#          build-config: Debug
+  build_windows:
+    strategy:
+      matrix:
+        shared: 
+        - args: 
+            BUILD_SHARED_LIBS=On 
+            CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=On
+        - args: BUILD_SHARED_LIBS=Off
+          
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+## ====================================
+## Config and build action
+      - uses: threeal/cmake-action@v1.3.0
+        with:
+          build-dir: build
+          options:
+            ENABLE_WARNINGS_AS_ERRORS=Off
+            BLT_CXX_STD=""
+            CMAKE_CXX_STANDARD=17
+            CMAKE_BUILD_TYPE=Release
+            ${{ matrix.shared.args }}
+          run-build: true
+          build-args: '--parallel 16'
+## ====================================
+## Print the contents of the test directory in the build space (debugging)
+##    - run: | 
+##        dir -r D:\a\RAJA\RAJA\build\test
+## ====================================
+## Run tests action
+      - uses: threeal/ctest-action@v1.1.0
+        with:
+          build-config: Debug
