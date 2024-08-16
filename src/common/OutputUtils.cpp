@@ -110,7 +110,7 @@ std::string recursiveMkdir(const std::string& in_path)
     if (_mkdir(path_buf) != 0) {
 #else
     if (mkdir(path_buf, mode) != 0) {
-#else
+#endif
       getCout() << "   Cannot create directory  = "
                 << path_buf << std::endl;
       outpath = std::string();
