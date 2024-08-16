@@ -19,8 +19,12 @@
 #include<fstream>
 #include<sstream>
 
+#if defined(_WIN32)
+#include "WindowsTypes.hpp"
+#else
 #include<sys/types.h>
 #include<sys/stat.h>
+#endif
 
 
 namespace rajaperf
@@ -102,7 +106,11 @@ std::string recursiveMkdir(const std::string& in_path)
    * path before sliding along path_buf.
    */
   if ( !outpath.empty() && pos < 0) {
+#if defined(_WIN32)
+    if (_mkdir(path_buf) != 0) {
+#else
     if (mkdir(path_buf, mode) != 0) {
+#endif
       getCout() << "   Cannot create directory  = "
                 << path_buf << std::endl;
       outpath = std::string();
@@ -127,7 +135,11 @@ std::string recursiveMkdir(const std::string& in_path)
 
       /* make directory if not at end of path */
       if (pos < length) {
+#if defined(_WIN32)
+        if (_mkdir(path_buf) != 0) {
+#else
         if (mkdir(path_buf, mode) != 0) {
+#endif
           getCout() << "   Cannot create directory  = "
                     << path_buf << std::endl;
           outpath = std::string();
