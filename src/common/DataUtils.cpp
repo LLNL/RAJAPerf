@@ -19,7 +19,12 @@
 #include <cstdlib>
 #include <cstring>
 #include <stdexcept>
+
+#if defined(_WIN32)
+#include<direct.h>
+#else
 #include <unistd.h>
+#endif
 
 namespace rajaperf
 {

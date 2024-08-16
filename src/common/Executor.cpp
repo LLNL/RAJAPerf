@@ -42,7 +42,11 @@
 #include <cmath>
 #include <algorithm>
 
+#if defined(_WIN32)
+#include<direct.h>
+#else
 #include <unistd.h>
+#endif
 
 
 namespace rajaperf {
@@ -834,7 +838,11 @@ void Executor::outputRunData()
   string out_fprefix;
   string outdir = recursiveMkdir(run_params.getOutputDirName());
   if ( !outdir.empty() ) {
+#if defined(_WIN32)
+    _chdir(outdir.c_str());
+#else
     chdir(outdir.c_str());
+#endif
   }
   out_fprefix = "./" + run_params.getOutputFilePrefix();
 
