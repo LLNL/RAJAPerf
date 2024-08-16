@@ -20,7 +20,7 @@
 #include<sstream>
 
 #if defined(_WIN32)
-#nclude "WindowsTypes.hpp"
+#include "WindowsTypes.hpp"
 #else
 #include<sys/types.h>
 #include<sys/stat.h>
