@@ -71,8 +71,8 @@ clang_13_0_1_libcpp:
 #    LSAN_OPTIONS: "suppressions=${CI_PROJECT_DIR}/tpl/RAJA/suppressions.asan"
 #  extends: .job_on_lassen
 
-# Activated in RAJA, but we don't use desul atomics here
-#gcc_8_3_1_cuda_10_1_168_desul_atomics:
-#  variables:
-#    SPEC: "+openmp +cuda +desul %gcc@=8.3.1 cuda_arch=70 cuda_arch=70 ^cuda@10.1.243+allow-unsupported-compilers ${PROJECT_LASSEN_DEPS}"
-#  extends: .job_on_lassen
+clang_16_0_6_ibm_omptarget:
+  variables:
+    SPEC: " ~shared +openmp +omptarget %clang@=16.0.6.ibm.gcc.8.3.1 ^blt@develop"
+    ON_LASSEN: "OFF"
+  extends: .job_on_lassen
