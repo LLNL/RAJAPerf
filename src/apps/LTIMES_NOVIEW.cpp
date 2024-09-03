@@ -23,18 +23,15 @@ namespace apps
 LTIMES_NOVIEW::LTIMES_NOVIEW(const RunParams& params)
   : KernelBase(rajaperf::Apps_LTIMES_NOVIEW, params)
 {
-  m_num_d_default = 64;
-  m_num_z_default = 488;
-  m_num_g_default = 32;
-  m_num_m_default = 25;
+  m_num_d = params.getLtimesNumD();
+  m_num_g = params.getLtimesNumG();
+  m_num_m = params.getLtimesNumM();
+  Index_type num_z_default = std::max((Index_type{1000000} + (m_num_d * m_num_g)/2) / (m_num_d * m_num_g), Index_type(1));
 
-  setDefaultProblemSize(m_num_d_default * m_num_g_default * m_num_z_default);
+  setDefaultProblemSize(m_num_d * m_num_g * num_z_default);
   setDefaultReps(50);
 
-  m_num_z = std::max((getTargetProblemSize() + (m_num_d_default * m_num_g_default)/2) / (m_num_d_default * m_num_g_default), Index_type(1));
-  m_num_g = m_num_g_default;
-  m_num_m = m_num_m_default;
-  m_num_d = m_num_d_default;
+  m_num_z = std::max((getTargetProblemSize() + (m_num_d * m_num_g)/2) / (m_num_d * m_num_g), Index_type(1));
 
   m_philen = m_num_m * m_num_g * m_num_z;
   m_elllen = m_num_d * m_num_m;
@@ -55,6 +52,8 @@ LTIMES_NOVIEW::LTIMES_NOVIEW(const RunParams& params)
   checksum_scale_factor = 0.001 *
               ( static_cast<Checksum_type>(getDefaultProblemSize()) /
                                            getActualProblemSize() );
+
+  setComplexity(Complexity::N);
 
   setUsesFeature(Kernel);
 

@@ -48,6 +48,8 @@ POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
               ( static_cast<Checksum_type>(getDefaultProblemSize()) /
                                            getActualProblemSize() );
 
+  setComplexity(Complexity::N);
+
   setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );

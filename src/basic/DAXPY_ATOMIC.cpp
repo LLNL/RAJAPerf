@@ -33,6 +33,8 @@ DAXPY_ATOMIC::DAXPY_ATOMIC(const RunParams& params)
   setBytesAtomicModifyWrittenPerRep( 1*sizeof(Real_type) * getActualProblemSize() );
   setFLOPsPerRep(2 * getActualProblemSize());
 
+  setComplexity(Complexity::N);
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );

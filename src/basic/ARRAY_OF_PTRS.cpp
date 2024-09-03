@@ -26,7 +26,7 @@ ARRAY_OF_PTRS::ARRAY_OF_PTRS(const RunParams& params)
 
   setActualProblemSize( getTargetProblemSize() );
 
-  m_array_size = ARRAY_OF_PTRS_MAX_ARRAY_SIZE;
+  m_array_size = params.getArrayOfPtrsArraySize();
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
@@ -34,6 +34,8 @@ ARRAY_OF_PTRS::ARRAY_OF_PTRS(const RunParams& params)
   setBytesWrittenPerRep( 1*sizeof(Real_type) * getActualProblemSize() );
   setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(m_array_size * getActualProblemSize());
+
+  setComplexity(Complexity::N);
 
   setUsesFeature(Forall);
 

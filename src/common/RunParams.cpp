@@ -38,6 +38,14 @@ RunParams::RunParams(int argc, char** argv)
    size(0.0),
    size_factor(0.0),
    data_alignment(RAJA::DATA_ALIGN),
+   multi_reduce_num_bins(10),
+   multi_reduce_bin_assignment_algorithm(BinAssignmentAlgorithm::RunsRandomSizes),
+   ltimes_num_d(64),
+   ltimes_num_g(32),
+   ltimes_num_m(25),
+   array_of_ptrs_array_size(ARRAY_OF_PTRS_MAX_ARRAY_SIZE),
+   halo_width(1),
+   halo_num_vars(3),
    gpu_stream(1),
    gpu_block_sizes(),
    atomic_replications(),
@@ -49,6 +57,8 @@ RunParams::RunParams(int argc, char** argv)
    checkrun_reps(1),
    reference_variant(),
    reference_vid(NumVariants),
+   warmup_kernel_input(),
+   invalid_warmup_kernel_input(),
    kernel_input(),
    invalid_kernel_input(),
    exclude_kernel_input(),
@@ -120,6 +130,19 @@ void RunParams::print(std::ostream& str) const
   str << "\n size = " << size;
   str << "\n size_factor = " << size_factor;
   str << "\n data_alignment = " << data_alignment;
+
+  str << "\n multi_reduce_num_bins = " << multi_reduce_num_bins;
+  str << "\n multi_reduce_bin_assignment_algorithm = " << BinAssignmentAlgorithmToStr(multi_reduce_bin_assignment_algorithm);
+
+  str << "\n ltimes_num_d = " << ltimes_num_d;
+  str << "\n ltimes_num_g = " << ltimes_num_g;
+  str << "\n ltimes_num_m = " << ltimes_num_m;
+
+  str << "\n array_of_ptrs_array_size = " << array_of_ptrs_array_size;
+
+  str << "\n halo_width = " << halo_width;
+  str << "\n halo_num_vars = " << halo_num_vars;
+
   str << "\n gpu stream = " << ((gpu_stream == 0) ? "0" : "RAJA default");
   str << "\n gpu_block_sizes = ";
   for (size_t j = 0; j < gpu_block_sizes.size(); ++j) {
@@ -173,6 +196,15 @@ void RunParams::print(std::ostream& str) const
   str << "\n cuda MPI data space = " << getDataSpaceName(cudaMPIDataSpace);
   str << "\n hip MPI data space = " << getDataSpaceName(hipMPIDataSpace);
   str << "\n kokkos MPI data space = " << getDataSpaceName(kokkosMPIDataSpace);
+
+  str << "\n warmup_kernel_input = ";
+  for (size_t j = 0; j < warmup_kernel_input.size(); ++j) {
+    str << "\n\t" << warmup_kernel_input[j];
+  }
+  str << "\n invalid_warmup_kernel_input = ";
+  for (size_t j = 0; j < invalid_warmup_kernel_input.size(); ++j) {
+    str << "\n\t" << invalid_warmup_kernel_input[j];
+  }
 
   str << "\n kernel_input = ";
   for (size_t j = 0; j < kernel_input.size(); ++j) {
@@ -321,6 +353,24 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
       printKernelFeatures(getCout());
       input_state = InfoRequest;
 
+    } else if ( opt == std::string("--print-complexities") ||
+                opt == std::string("-pc") ) {
+
+      printComplexityNames(getCout());
+      input_state = InfoRequest;
+
+    } else if ( opt == std::string("--print-complexity-kernels") ||
+                opt == std::string("-pck") ) {
+
+      printComplexityKernels(getCout());
+      input_state = InfoRequest;
+
+    } else if ( opt == std::string("--print-kernel-complexities") ||
+                opt == std::string("-pkc") ) {
+
+      printKernelComplexities(getCout());
+      input_state = InfoRequest;
+
     } else if ( opt == std::string("--npasses") ) {
 
       i++;
@@ -433,6 +483,192 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
           input_state = BadInput;
         } else {
           data_alignment = align;
+        }
+      } else {
+        getCout() << "\nBad input:"
+                  << " must give " << opt << " a value (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--multi_reduce_num_bins") ) {
+
+      i++;
+      if ( i < argc ) {
+        long long num_bins = ::atoll( argv[i] );
+        long long min_num_bins = 1;
+        if ( num_bins < min_num_bins ) {
+          getCout() << "\nBad input:"
+                << " must give " << opt << " a value of at least " << min_num_bins
+                << std::endl;
+          input_state = BadInput;
+        } else {
+          multi_reduce_num_bins = num_bins;
+        }
+      } else {
+        getCout() << "\nBad input:"
+                  << " must give " << opt << " a value (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--multi_reduce_bin_assignment_algorithm") ) {
+
+      i++;
+      if ( i < argc ) {
+
+        std::string bin_assignment_algorithm_name(argv[i]);
+
+        if (bin_assignment_algorithm_name == BinAssignmentAlgorithmToStr(BinAssignmentAlgorithm::Random)) {
+          multi_reduce_bin_assignment_algorithm = BinAssignmentAlgorithm::Random;
+        } else if (bin_assignment_algorithm_name == BinAssignmentAlgorithmToStr(BinAssignmentAlgorithm::RunsRandomSizes)) {
+          multi_reduce_bin_assignment_algorithm = BinAssignmentAlgorithm::RunsRandomSizes;
+        } else if (bin_assignment_algorithm_name == BinAssignmentAlgorithmToStr(BinAssignmentAlgorithm::RunsEvenSizes)) {
+          multi_reduce_bin_assignment_algorithm = BinAssignmentAlgorithm::RunsEvenSizes;
+        } else if (bin_assignment_algorithm_name == BinAssignmentAlgorithmToStr(BinAssignmentAlgorithm::Single)) {
+          multi_reduce_bin_assignment_algorithm = BinAssignmentAlgorithm::Single;
+        } else {
+          getCout() << "\nBad input:"
+                    << " must give " << opt << " one of the following values\n"
+                    << BinAssignmentAlgorithmToStr(BinAssignmentAlgorithm::Random) << ", "
+                    << BinAssignmentAlgorithmToStr(BinAssignmentAlgorithm::RunsRandomSizes) << ", "
+                    << BinAssignmentAlgorithmToStr(BinAssignmentAlgorithm::RunsEvenSizes) << ", "
+                    << BinAssignmentAlgorithmToStr(BinAssignmentAlgorithm::Single)
+                    << std::endl;
+          input_state = BadInput;
+          invalid_npasses_combiner_input.emplace_back(bin_assignment_algorithm_name);
+        }
+      } else {
+        getCout() << "\nBad input:"
+                  << " must give " << opt << " a value (string)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--ltimes_num_d") ) {
+
+      i++;
+      if ( i < argc ) {
+        long long num = ::atoll( argv[i] );
+        long long min_num = 1;
+        if ( num < min_num ) {
+          getCout() << "\nBad input:"
+                << " must give " << opt << " a value of at least " << min_num
+                << std::endl;
+          input_state = BadInput;
+        } else {
+          ltimes_num_d = num;
+        }
+      } else {
+        getCout() << "\nBad input:"
+                  << " must give " << opt << " a value (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--ltimes_num_g") ) {
+
+      i++;
+      if ( i < argc ) {
+        long long num = ::atoll( argv[i] );
+        long long min_num = 1;
+        if ( num < min_num ) {
+          getCout() << "\nBad input:"
+                << " must give " << opt << " a value of at least " << min_num
+                << std::endl;
+          input_state = BadInput;
+        } else {
+          ltimes_num_g = num;
+        }
+      } else {
+        getCout() << "\nBad input:"
+                  << " must give " << opt << " a value (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--ltimes_num_m") ) {
+
+      i++;
+      if ( i < argc ) {
+        long long num = ::atoll( argv[i] );
+        long long min_num = 1;
+        if ( num < min_num ) {
+          getCout() << "\nBad input:"
+                << " must give " << opt << " a value of at least " << min_num
+                << std::endl;
+          input_state = BadInput;
+        } else {
+          ltimes_num_m = num;
+        }
+      } else {
+        getCout() << "\nBad input:"
+                  << " must give " << opt << " a value (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--array_of_ptrs_array_size") ) {
+
+      i++;
+      if ( i < argc ) {
+        long long num = ::atoll( argv[i] );
+        long long min_num = 1;
+        long long max_num = ARRAY_OF_PTRS_MAX_ARRAY_SIZE;
+        if ( num < min_num ) {
+          getCout() << "\nBad input:"
+                << " must give " << opt << " a value of at least " << min_num
+                << std::endl;
+          input_state = BadInput;
+        } else if ( num > max_num ) {
+          getCout() << "\nBad input:"
+                << " must give " << opt << " a value of at most " << max_num
+                << std::endl;
+          input_state = BadInput;
+        } else {
+          array_of_ptrs_array_size = num;
+        }
+      } else {
+        getCout() << "\nBad input:"
+                  << " must give " << opt << " a value (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--halo_width") ) {
+
+      i++;
+      if ( i < argc ) {
+        long long num = ::atoll( argv[i] );
+        long long min_num = 1;
+        if ( num < min_num ) {
+          getCout() << "\nBad input:"
+                << " must give " << opt << " a value of at least " << min_num
+                << std::endl;
+          input_state = BadInput;
+        } else {
+          halo_width = num;
+        }
+      } else {
+        getCout() << "\nBad input:"
+                  << " must give " << opt << " a value (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--halo_num_vars") ) {
+
+      i++;
+      if ( i < argc ) {
+        long long num = ::atoll( argv[i] );
+        long long min_num = 1;
+        if ( num < min_num ) {
+          getCout() << "\nBad input:"
+                << " must give " << opt << " a value of at least " << min_num
+                << std::endl;
+          input_state = BadInput;
+        } else {
+          halo_num_vars = num;
         }
       } else {
         getCout() << "\nBad input:"
@@ -580,6 +816,22 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
                   << " must give --pass-fail-tol (or -pftol) a value (double)"
                   << std::endl;
         input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--warmup-kernels") ||
+                opt == std::string("-wk") ) {
+
+      bool done = false;
+      i++;
+      while ( i < argc && !done ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+          done = true;
+        } else {
+          warmup_kernel_input.push_back(opt);
+          ++i;
+        }
       }
 
     } else if ( opt == std::string("--kernels") ||
@@ -1039,6 +1291,14 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t --print-kernel-features, -pkf \n"
       << "\t      (print names of features used by each kernel)\n\n";
 
+  str << "\t --print-complexities, -pc (print names of algorithmic complexities exercised in Suite)\n\n";
+
+  str << "\t --print-complexity-kernels, -pck \n"
+      << "\t      (print names of kernels that have each complexity)\n\n";
+
+  str << "\t --print-kernel-complexities, -pkc \n"
+      << "\t      (print the name of the complexity of each kernel)\n\n";
+
   str << "\t --print-data-spaces, -pds (print names of data spaces)\n\n";
 
   str << "\t Options for selecting output details....\n"
@@ -1080,6 +1340,15 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t ========================================\n\n";;
 
   str << "\t --disable-warmup (disable warmup kernels) [Default is run warmup kernels that are relevant to kernels selected to run]\n\n";
+
+  str << "\t --warmup-kernels, -wk <space-separated strings> [Default is run warmup kernels that are relevant to kernels selected to run]\n"
+      << "\t      (names of individual kernels and/or groups of kernels to warmup)\n"
+      << "\t      See '--print-kernels'/'-pk' option for list of valid kernel and group names.\n"
+      << "\t      Kernel names are listed as <group name>_<kernel name>.\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --warmup-kernels Polybench (warmup all kernels in Polybench group)\n"
+      << "\t\t -wk INIT3 MULADDSUB (warmup INIT3 and MULADDSUB kernels)\n"
+      << "\t\t -wk INIT3 Apps (warmup INIT3 kernel and all kernels in Apps group)\n\n";
 
   str << "\t --kernels, -k <space-separated strings> [Default is run all]\n"
       << "\t      (names of individual kernels and/or groups of kernels to run)\n"
@@ -1213,13 +1482,62 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t -et default library (exclude default and library tunings)\n\n";
 
   str << "\t Options for selecting kernel data used in kernels....\n"
-      << "\t ======================================================\n\n";;
+      << "\t ======================================================\n\n";
 
   str << "\t --data_alignment, -align <int> [default is RAJA::DATA_ALIGN]\n"
       << "\t      (minimum memory alignment for host allocations)\n"
       << "\t      Must be a power of 2 at least as large as default alignment.\n";
   str << "\t\t Example...\n"
       << "\t\t -align 4096 (allocates memory aligned to 4KiB boundaries)\n\n";
+
+  str << "\t --multi_reduce_num_bins <int> [default is 10]\n"
+      << "\t      (number of bins used in multi-reduce kernels)\n"
+      << "\t      Must be greater than 0.\n";
+  str << "\t\t Example...\n"
+      << "\t\t --multi_reduce_num_bins 100\n\n";
+
+  str << "\t --multi_reduce_bin_assignment_algorithm <string> [default is RunsRandomSizes]\n"
+      << "\t      (algorithm used to assign bins to iterates in multi-reduce kernels)\n"
+      << "\t      Valid assignment algorithm names are 'Random', 'RunsRandomSizes', 'RunsEvenSizes', or 'Single'\n";
+  str << "\t\t Example...\n"
+      << "\t\t --multi_reduce_bin_assignment_algorithm Random\n\n";
+
+  str << "\t --ltimes_num_d <int> [default is 64]\n"
+      << "\t      (num_d used in ltimes kernels)\n"
+      << "\t      Must be greater than 0.\n";
+  str << "\t\t Example...\n"
+      << "\t\t --ltimes_num_d 32\n\n";
+
+  str << "\t --ltimes_num_g <int> [default is 32]\n"
+      << "\t      (num_g used in ltimes kernels)\n"
+      << "\t      Must be greater than 0.\n";
+  str << "\t\t Example...\n"
+      << "\t\t --ltimes_num_g 64\n\n";
+
+  str << "\t --ltimes_num_m <int> [default is 25]\n"
+      << "\t      (num_m used in ltimes kernels)\n"
+      << "\t      Must be greater than 0.\n";
+  str << "\t\t Example...\n"
+      << "\t\t --ltimes_num_m 100\n\n";
+
+  str << "\t --array_of_ptrs_array_size <int> [default is " << ARRAY_OF_PTRS_MAX_ARRAY_SIZE << "]\n"
+      << "\t      (array size used in ARRAY_OF_PTRS kernel)\n"
+      << "\t      Must be greater than 0.\n"
+      << "\t      Must be less than or equal to " << ARRAY_OF_PTRS_MAX_ARRAY_SIZE << ".\n";
+  str << "\t\t Example...\n"
+      << "\t\t --array_of_ptrs_array_size 4\n\n";
+
+  str << "\t --halo_width <int> [default is 1]\n"
+      << "\t      (halo width used in halo kernels)\n"
+      << "\t      Must be greater than 0.\n";
+  str << "\t\t Example...\n"
+      << "\t\t --halo_width 2\n\n";
+
+  str << "\t --halo_num_vars <int> [default is 3]\n"
+      << "\t      (num vars used in halo kernels)\n"
+      << "\t      Must be greater than 0.\n";
+  str << "\t\t Example...\n"
+      << "\t\t --halo_num_vars 10\n\n";
 
   str << "\t --seq-data-space, -sds <string> [Default is Host]\n"
       << "\t      (name of data space to use for sequential variants)\n"
@@ -1482,6 +1800,51 @@ void RunParams::printKernelFeatures(std::ostream& str) const
   str.flush();
 }
 
+void RunParams::printComplexityNames(std::ostream& str) const
+{
+  str << "\nAvailable complexities:";
+  str << "\n-------------------\n";
+  for (int ac = 0; ac < int(Complexity::NumComplexities); ++ac) {
+    str << getComplexityName(static_cast<Complexity>(ac)) << std::endl;
+  }
+  str.flush();
+}
+
+void RunParams::printComplexityKernels(std::ostream& str) const
+{
+  str << "\nAvailable complexities and kernels that use each:";
+  str << "\n---------------------------------------------\n";
+  for (int ac = 0; ac < int(Complexity::NumComplexities); ++ac) {
+    Complexity tac = static_cast<Complexity>(ac);
+    str << getComplexityName(tac) << std::endl;
+    for (int kid = 0; kid < NumKernels; ++kid) {
+      KernelID tkid = static_cast<KernelID>(kid);
+      KernelBase* kern = getKernelObject(tkid, *this);
+      if ( kern->getComplexity() == tac ) {
+        str << "\t" << getFullKernelName(tkid) << std::endl;
+      }
+      delete kern;
+    }  // loop over kernels
+    str << std::endl;
+  }  // loop over complexities
+  str.flush();
+}
+
+void RunParams::printKernelComplexities(std::ostream& str) const
+{
+  str << "\nAvailable kernels and complexities each uses:";
+  str << "\n-----------------------------------------\n";
+  for (int kid = 0; kid < NumKernels; ++kid) {
+    KernelID tkid = static_cast<KernelID>(kid);
+    str << getFullKernelName(tkid) << std::endl;
+    KernelBase* kern = getKernelObject(tkid, *this);
+    Complexity tac = kern->getComplexity();
+    str << "\t" << getComplexityName(tac) << std::endl;
+    delete kern;
+  }  // loop over kernels
+  str.flush();
+}
+
 /*
  *******************************************************************************
  *
@@ -1686,6 +2049,77 @@ void RunParams::processKernelInput()
   //
   // ================================================================
 
+  run_warmup_kernels.clear();
+
+  if ( !warmup_kernel_input.empty() ) {
+
+    //
+    // Need to parse input to determine which warmup kernels to run
+    //
+
+    // Make list copy of warmup kernel name input to manipulate for
+    // processing potential group names and/or kernel names, next
+    Slist warmup_kern_names(warmup_kernel_input.begin(), warmup_kernel_input.end());
+
+    //
+    // Search warmup_kern_names for matching group names.
+    // warmup_groups2run will contain names of groups to run.
+    //
+    Svector warmup_groups2run;
+    for (Slist::iterator it = warmup_kern_names.begin(); it != warmup_kern_names.end(); ++it)
+    {
+      for (size_t ig = 0; ig < NumGroups; ++ig) {
+        const std::string& group_name = getGroupName(static_cast<GroupID>(ig));
+        if ( group_name == *it ) {
+          warmup_groups2run.push_back(group_name);
+        }
+      }
+    }
+
+    //
+    // If group name(s) found in warmup_kern_names, assemble kernels in group(s)
+    // to run and remove those group name(s) from warmup_kern_names list.
+    //
+    for (size_t ig = 0; ig < warmup_groups2run.size(); ++ig) {
+      const std::string& gname(warmup_groups2run[ig]);
+
+      for (size_t kid = 0; kid < NumKernels; ++kid) {
+        KernelID tkid = static_cast<KernelID>(kid);
+        if ( getFullKernelName(tkid).find(gname) != std::string::npos &&
+             exclude_kernels.find(tkid) == exclude_kernels.end()) {
+          run_warmup_kernels.insert(tkid);
+        }
+      }
+
+      warmup_kern_names.remove(gname);
+    }
+
+    //
+    // Look for matching names of individual kernels in remaining warmup_kern_names.
+    //
+    for (Slist::iterator it = warmup_kern_names.begin(); it != warmup_kern_names.end(); ++it)
+    {
+      bool found_it = false;
+
+      for (size_t kid = 0; kid < NumKernels && !found_it; ++kid) {
+        KernelID tkid = static_cast<KernelID>(kid);
+        if ( getKernelName(tkid) == *it || getFullKernelName(tkid) == *it ) {
+          if (exclude_kernels.find(tkid) == exclude_kernels.end()) {
+            run_warmup_kernels.insert(tkid);
+          }
+          found_it = true;
+        }
+      }
+
+      // Assemble invalid input for output message.
+      if ( !found_it ) {
+        invalid_warmup_kernel_input.push_back(*it);
+      }
+
+    } // iterate over kernel name input
+
+  }
+
   run_kernels.clear();
 
   if ( kernel_input.empty() && feature_input.empty() ) {
@@ -1835,7 +2269,8 @@ void RunParams::processKernelInput()
   // Set BadInput state based on invalid kernel input
   //
 
-  if ( !(invalid_kernel_input.empty()) ||
+  if ( !(invalid_warmup_kernel_input.empty()) ||
+       !(invalid_kernel_input.empty()) ||
        !(invalid_exclude_kernel_input.empty()) ) {
     input_state = BadInput;
   }

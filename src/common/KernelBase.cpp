@@ -36,6 +36,8 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params)
     uses_feature[fid] = false;
   }
 
+  complexity = Complexity::NumComplexities;
+
   its_per_rep = -1;
   kernels_per_rep = -1;
   bytes_read_per_rep = -1;
@@ -99,6 +101,8 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params)
                                               CALI_ATTR_AGGREGATABLE |
                                               CALI_ATTR_SKIP_EVENTS);
   }
+  Complexity_attr = cali_create_attribute("Complexity", CALI_TYPE_STRING,
+                                           CALI_ATTR_SKIP_EVENTS);
 #endif
 }
 
@@ -496,6 +500,7 @@ void KernelBase::print(std::ostream& os) const
     os << "\t\t\t\t" << getFeatureName(static_cast<FeatureID>(j))
                      << " : " << uses_feature[j] << std::endl;
   }
+  os << "\t\t\t algorithmic_complexity = " << getComplexityName(complexity) << std::endl;
   os << "\t\t\t variant_tuning_names: " << std::endl;
   for (unsigned j = 0; j < NumVariants; ++j) {
     os << "\t\t\t\t" << getVariantName(static_cast<VariantID>(j))
@@ -574,6 +579,7 @@ void KernelBase::doOnceCaliMetaBegin(VariantID vid, size_t tune_idx)
         std::string feature = getFeatureName(fid);
         cali_set_int(Feature_attrs[feature], usesFeature(fid));
     }
+    cali_set_string(Complexity_attr, getComplexityName(getComplexity()).c_str());
   }
 }
 
@@ -624,8 +630,9 @@ void KernelBase::setCaliperMgrVariantTuning(VariantID vid,
           { "expr": "any(max#Reduction)", "as": "FeatureReduction" },
           { "expr": "any(max#Atomic)", "as": "FeatureAtomic" },
           { "expr": "any(max#View)", "as": "FeatureView" },
-          { "expr": "any(max#MPI)", "as": "FeatureMPI" }
-        ]
+          { "expr": "any(max#MPI)", "as": "FeatureMPI" },
+        ],
+        "group by": ["Complexity"],
       },
       {
         "level"  : "cross",
@@ -650,8 +657,9 @@ void KernelBase::setCaliperMgrVariantTuning(VariantID vid,
           { "expr": "any(any#max#Reduction)", "as": "FeatureReduction" },
           { "expr": "any(any#max#Atomic)", "as": "FeatureAtomic" },
           { "expr": "any(any#max#View)", "as": "FeatureView" },
-          { "expr": "any(any#max#MPI)", "as": "FeatureMPI" }
-        ]
+          { "expr": "any(any#max#MPI)", "as": "FeatureMPI" },
+        ],
+        "group by": ["Complexity"],
       }
     ]
   }

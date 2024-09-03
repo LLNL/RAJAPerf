@@ -24,8 +24,6 @@
 #ifndef RAJAPerf_Basic_ARRAY_OF_PTRS_HPP
 #define RAJAPerf_Basic_ARRAY_OF_PTRS_HPP
 
-#define ARRAY_OF_PTRS_MAX_ARRAY_SIZE 26
-
 #define ARRAY_OF_PTRS_DATA_SETUP_X_ARRAY \
   for (Index_type a = 0; a < array_size; ++a) { \
     x[a] = x_data + a * iend ; \

@@ -69,6 +69,8 @@ POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
               ( static_cast<Checksum_type>(getDefaultProblemSize()) /
                                            getActualProblemSize() );
 
+  setComplexity(Complexity::N_to_the_three_halves);
+
   setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );

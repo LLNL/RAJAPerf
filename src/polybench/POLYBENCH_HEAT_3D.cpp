@@ -49,6 +49,8 @@ POLYBENCH_HEAT_3D::POLYBENCH_HEAT_3D(const RunParams& params)
               ( static_cast<Checksum_type>(getDefaultProblemSize()) /
                                            getActualProblemSize() );
 
+  setComplexity(Complexity::N);
+
   setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );

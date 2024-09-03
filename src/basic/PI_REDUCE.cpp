@@ -33,6 +33,8 @@ PI_REDUCE::PI_REDUCE(const RunParams& params)
   setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(6 * getActualProblemSize() + 1);
 
+  setComplexity(Complexity::N);
+
   setUsesFeature(Forall);
   setUsesFeature(Reduction);
 

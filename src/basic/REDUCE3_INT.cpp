@@ -39,6 +39,8 @@ REDUCE3_INT::REDUCE3_INT(const RunParams& params)
   setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(1 * getActualProblemSize() + 1);
 
+  setComplexity(Complexity::N);
+
   setUsesFeature(Forall);
   setUsesFeature(Reduction);
 

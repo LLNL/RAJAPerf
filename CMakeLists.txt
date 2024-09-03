@@ -15,17 +15,7 @@ else()
   cmake_minimum_required(VERSION 3.20)
 endif()
 
-option(ENABLE_RAJA_SEQUENTIAL "Run sequential variants of RAJA kernels. Disable
-this, and all other variants, to run _only_ base variants." On)
 option(ENABLE_KOKKOS "Include Kokkos implementations of the kernels in the RAJA Perfsuite" Off)
-
-#
-# Note: the BLT build system is inheritted by RAJA and is initialized by RAJA
-#
-
-if (PERFSUITE_ENABLE_WARNINGS)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
-endif()
 
 if (ENABLE_KOKKOS OR ENABLE_SYCL)
   set(CMAKE_CXX_STANDARD 17)
@@ -41,6 +31,13 @@ include(blt/SetupBLT.cmake)
 # Define RAJA PERFSUITE settings...
 #
 
+option(ENABLE_RAJA_SEQUENTIAL "Run sequential variants of RAJA kernels. Disable
+this, and all other variants, to run _only_ base variants." On)
+
+if (PERFSUITE_ENABLE_WARNINGS)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
+endif()
+
 cmake_dependent_option(RAJA_PERFSUITE_ENABLE_TESTS "Enable RAJA Perf Suite Tests" On "ENABLE_TESTS" Off)
 
 if (ENABLE_TESTS)
@@ -49,6 +46,8 @@ if (ENABLE_TESTS)
   set(CAMP_ENABLE_TESTS Off CACHE BOOL "")
 
 endif()
+
+option(PERFSUITE_RUN_SHORT_TEST "Shorter test run to avoid timeout in some CI cases." Off)
 
 cmake_dependent_option(RAJA_PERFSUITE_ENABLE_MPI "Build with MPI" On "ENABLE_MPI" Off)
 if (RAJA_PERFSUITE_ENABLE_MPI)
@@ -132,12 +131,17 @@ set(CAMP_ENABLE_TESTS Off CACHE BOOL "")
 if (ENABLE_RAJA_SEQUENTIAL)
   add_definitions(-DRUN_RAJA_SEQ)
 endif ()
+
 if (ENABLE_OPENMP)
   add_definitions(-DRUN_OPENMP)
 endif ()
 
-set(RAJA_PERFSUITE_VERSION_MAJOR 2023)
-set(RAJA_PERFSUITE_VERSION_MINOR 06)
+if (PERFSUITE_RUN_SHORT_TEST)
+  add_definitions(-DRUN_RAJAPERF_SHORT_TEST)
+endif()
+
+set(RAJA_PERFSUITE_VERSION_MAJOR 2024)
+set(RAJA_PERFSUITE_VERSION_MINOR 07)
 set(RAJA_PERFSUITE_VERSION_PATCHLEVEL 0)
 
 set(RAJA_PERFSUITE_DEPENDS RAJA)

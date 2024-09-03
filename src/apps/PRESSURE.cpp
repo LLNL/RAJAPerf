@@ -37,6 +37,8 @@ PRESSURE::PRESSURE(const RunParams& params)
                   1
                   ) * getActualProblemSize());
 
+  setComplexity(Complexity::N);
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );

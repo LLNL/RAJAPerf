@@ -33,6 +33,8 @@ COPY::COPY(const RunParams& params)
   setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(0);
 
+  setComplexity(Complexity::N);
+
   setUsesFeature( Forall );
 
   setVariantDefined( Base_Seq );

@@ -26,7 +26,7 @@ HALO_SENDRECV::HALO_SENDRECV(const RunParams& params)
 
   setDefaultReps(200);
 
-  m_num_vars = s_num_vars_default;
+  m_num_vars = params.getHaloNumVars();
   m_var_size = m_grid_plus_halo_size ;
 
   setItsPerRep( m_num_vars * (m_var_size - getActualProblemSize()) );
@@ -35,6 +35,8 @@ HALO_SENDRECV::HALO_SENDRECV(const RunParams& params)
   setBytesWrittenPerRep( 1*sizeof(Real_type) * getItsPerRep() ); // recv
   setBytesAtomicModifyWrittenPerRep( 0 );
   setFLOPsPerRep(0);
+
+  setComplexity(Complexity::N_to_the_two_thirds);
 
   setUsesFeature(Forall);
   setUsesFeature(MPI);
