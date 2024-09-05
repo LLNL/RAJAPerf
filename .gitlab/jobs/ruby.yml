@@ -9,9 +9,7 @@
 # Override reproducer section to define project specific variables.
 .ruby_reproducer_vars:
   script:
-    - |
-      echo -e "export MODULE_LIST=\"${MODULE_LIST}\""
-      echo -e "export SPEC=\"${SPEC//\"/\\\"}\""
+    - !reference [.reproducer_vars, script]
 
 #######################
 # Overridden shared jobs
@@ -51,5 +49,5 @@ intel_2022_1_0:
 
 intel_2022_1_0_mpi:
   variables:
-    SPEC: "~shared +openmp +mpi %intel@=2022.1.0 ^mvapich2 ${PROJECT_RUBY_DEPS}"
+    SPEC: "~shared +openmp +mpi %intel@=2022.1.0 ^mvapich2 ^blt@develop"
   extends: .job_on_ruby
