@@ -25,15 +25,10 @@ namespace apps
 #define FIR_DATA_SETUP_SYCL \
   Real_ptr coeff; \
 \
-  allocAndInitSyclDeviceData(in, m_in, getActualProblemSize(), qu); \
-  allocAndInitSyclDeviceData(out, m_out, getActualProblemSize(), qu); \
   Real_ptr tcoeff = &coeff_array[0]; \
   allocAndInitSyclDeviceData(coeff, tcoeff, FIR_COEFFLEN, qu);
 
 #define FIR_DATA_TEARDOWN_SYCL \
-  getSyclDeviceData(m_out, out, getActualProblemSize(), qu); \
-  deallocSyclDeviceData(in, qu); \
-  deallocSyclDeviceData(out, qu); \
   deallocSyclDeviceData(coeff, qu);
 
 
