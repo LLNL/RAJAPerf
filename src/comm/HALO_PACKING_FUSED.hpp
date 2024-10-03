@@ -139,6 +139,7 @@ public:
   void setOpenMPTuningDefinitions(VariantID vid);
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
+  void setOpenMPTargetTuningDefinitions(VariantID vid);
 
   void runSeqVariantDirect(VariantID vid);
   void runOpenMPVariantDirect(VariantID vid);

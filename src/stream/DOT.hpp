@@ -56,6 +56,7 @@ public:
   void runKokkosVariant(VariantID vid, size_t tune_idx);
 
   void setSeqTuningDefinitions(VariantID vid);
+  void setOpenMPTuningDefinitions(VariantID vid);
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
   void setSyclTuningDefinitions(VariantID vid);
