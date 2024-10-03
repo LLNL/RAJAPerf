@@ -27,7 +27,7 @@ namespace algorithm
   const size_t threads_per_team = 256;
 
 
-void REDUCE_SUM::runOpenMPTargetVariant(VariantID vid, size_t tune_idx)
+void REDUCE_SUM::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
