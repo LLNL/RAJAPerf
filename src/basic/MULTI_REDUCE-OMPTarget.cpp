@@ -37,10 +37,12 @@ void MULTI_REDUCE::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_
 
   if ( vid == Base_OpenMPTarget ) {
 
+    MULTI_REDUCE_SETUP_VALUES;
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initOpenMPDeviceData(values, values_init, num_bins);
+      initOpenMPDeviceData(values, values_init.data(), num_bins);
 
       #pragma omp target is_device_ptr(values, bins, data)
       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
@@ -49,10 +51,12 @@ void MULTI_REDUCE::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_
         MULTI_REDUCE_BODY;
       }
 
-      getOpenMPDeviceData(values_final, values, num_bins);
+      getOpenMPDeviceData(values_final.data(), values, num_bins);
 
     }
     stopTimer();
+
+    MULTI_REDUCE_TEARDOWN_VALUES;
 
   } else {
      getCout() << "\n  MULTI_REDUCE : Unknown OMP Target variant id = " << vid << std::endl;
