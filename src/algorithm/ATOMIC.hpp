@@ -74,24 +74,28 @@ public:
   void setOpenMPTuningDefinitions(VariantID vid);
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
-  void setOpenMPTargetTuningDefinitions(VariantID vid);
 
   template < size_t replication >
   void runSeqVariantReplicate(VariantID vid);
+
   template < size_t replication >
   void runOpenMPVariantReplicate(VariantID vid);
+
   template < size_t block_size, size_t replication >
   void runCudaVariantReplicateGlobal(VariantID vid);
   template < size_t block_size, size_t replication >
   void runHipVariantReplicateGlobal(VariantID vid);
   template < size_t block_size, size_t replication >
+
   void runCudaVariantReplicateWarp(VariantID vid);
   template < size_t block_size, size_t replication >
   void runHipVariantReplicateWarp(VariantID vid);
+
   template < size_t block_size, size_t replication >
   void runCudaVariantReplicateBlock(VariantID vid);
   template < size_t block_size, size_t replication >
   void runHipVariantReplicateBlock(VariantID vid);
+
   template < size_t replication >
   void runOpenMPTargetVariantReplicate(VariantID vid);
 

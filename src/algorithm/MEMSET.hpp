@@ -58,6 +58,7 @@ public:
   void setSeqTuningDefinitions(VariantID vid);
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
+
   void runSeqVariantDefault(VariantID vid);
   void runSeqVariantLibrary(VariantID vid);
 

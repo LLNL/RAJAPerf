@@ -105,6 +105,7 @@ public:
 
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
+
   void runCudaVariantLibrary(VariantID vid);
   void runHipVariantLibrary(VariantID vid);
 
