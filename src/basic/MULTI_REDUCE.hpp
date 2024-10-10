@@ -100,6 +100,7 @@ public:
 
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
+
   template < Index_type block_size,
              Index_type preferred_global_replication,
              Index_type preferred_shared_replication,

@@ -37,10 +37,12 @@ void HISTOGRAM::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
 
   if ( vid == Base_OpenMPTarget ) {
 
+    HISTOGRAM_SETUP_COUNTS;
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initOpenMPDeviceData(counts, counts_init, num_bins);
+      initOpenMPDeviceData(counts, counts_init.data(), num_bins);
 
       #pragma omp target is_device_ptr(counts, bins)
       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
@@ -49,10 +51,12 @@ void HISTOGRAM::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
         HISTOGRAM_BODY;
       }
 
-      getOpenMPDeviceData(counts_final, counts, num_bins);
+      getOpenMPDeviceData(counts_final.data(), counts, num_bins);
 
     }
     stopTimer();
+
+    HISTOGRAM_TEARDOWN_COUNTS;
 
   } else {
      getCout() << "\n  HISTOGRAM : Unknown OMP Target variant id = " << vid << std::endl;

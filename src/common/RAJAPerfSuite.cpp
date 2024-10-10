@@ -302,8 +302,8 @@ static const std::string VariantNames [] =
   std::string("Lambda_OpenMP"),
   std::string("RAJA_OpenMP"),
 
-  std::string("Base_OMPTarget"),
-  std::string("RAJA_OMPTarget"),
+  std::string("Base_OpenMPTarget"),
+  std::string("RAJA_OpenMPTarget"),
 
   std::string("Base_CUDA"),
   std::string("Lambda_CUDA"),
