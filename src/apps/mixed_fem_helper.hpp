@@ -309,6 +309,39 @@ constexpr void inner_product(
   }
 }
 
+template<rajaperf::Int_type M>
+RAJA_HOST_DEVICE
+constexpr void inner_product(
+  const rajaperf::Real_type weight,
+  const rajaperf::Real_type (&basis_1_x)[M],
+  const rajaperf::Real_type (&basis_1_y)[M],
+  const rajaperf::Real_type (&basis_1_z)[M],
+  const rajaperf::Real_type (&basis_2_x)[M],
+  const rajaperf::Real_type (&basis_2_y)[M],
+  const rajaperf::Real_type (&basis_2_z)[M],
+  rajaperf::Real_type (&matrix)[(M*(M+1))/2])
+{
+  // inner product is <basis_2, basis_1>
+  rajaperf::Int_type offset = 0;
+
+  for (rajaperf::Int_type p = 0; p < M; p++) {
+
+    const rajaperf::Real_type txi = basis_2_x[p];
+    const rajaperf::Real_type tyi = basis_2_y[p];
+    const rajaperf::Real_type tzi = basis_2_z[p];
+
+    for (rajaperf::Int_type m = 0; m < (M-p); m++) {
+
+      const rajaperf::Real_type txj = basis_1_x[p+m];
+      const rajaperf::Real_type tyj = basis_1_y[p+m];
+      const rajaperf::Real_type tzj = basis_1_z[p+m];
+      matrix[offset + m] += weight*(txi*txj + tyi*tyj + tzi*tzj);
+    }
+
+    offset += (M-p);
+  }
+}
+
 constexpr rajaperf::Int_type flops_bad_zone_algorithm()
 {
   return 5;

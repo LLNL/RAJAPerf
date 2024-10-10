@@ -20,13 +20,13 @@
 ///   double z[NB] = {z0[i],z1[i],z2[i],z3[i],z4[i],z5[i],z6[i],z7[i]};
 ///   double edge_matrix[EB][EB];
 ///
-  // Get integration points and weights
+///   // Get integration points and weights
 ///   double qpts_1d[MAX_QUAD_ORDER];
 ///   double wgts_1d[MAX_QUAD_ORDER];
 ///
 ///   get_quadrature_rule(quad_type, quad_order, qpts_1d, wgts_1d);
 ///
-  // Compute cell centered Jacobian
+///   // Compute cell centered Jacobian
 ///   const double jxx_cc = Jxx(x, y, z, 0.25, 0.25, 0.25, 0.25);
 ///   const double jxy_cc = Jxy(x, y, z, 0.25, 0.25, 0.25, 0.25);
 ///   const double jxz_cc = Jxz(x, y, z, 0.25, 0.25, 0.25, 0.25);
@@ -37,20 +37,20 @@
 ///   const double jzy_cc = Jzy(x, y, z, 0.25, 0.25, 0.25, 0.25);
 ///   const double jzz_cc = Jzz(x, y, z, 0.25, 0.25, 0.25, 0.25);
 ///
-  // Compute cell centered Jacobian determinant
+///   // Compute cell centered Jacobian determinant
 ///   const double detj_cc = compute_detj(
 ///     jxx_cc, jxy_cc, jxz_cc,
 ///     jyx_cc, jyy_cc, jyz_cc,
 ///     jzx_cc, jzy_cc, jzz_cc);
 ///
-  // Initialize the stiffness matrix
+///   // Initialize the stiffness matrix
 ///   for (int m = 0; m < EB; m++) {
 ///     for (int p = m; p < EB; p++) {
 ///       matrix[m][p] = 0.0;
 ///     }
 ///   }
 ///
-  // Compute values at each quadrature point
+///   // Compute values at each quadrature point
 ///   for ( int i = 0; i < quad_order; i++ ) {
 ///
 ///     const double xloc = qpts_1d[i];
@@ -80,7 +80,7 @@
 ///       double dbasisy[EB] = {0};
 ///       curl_edgebasis_y(dbasisy, tmpy, yloc);
 ///
-      // Differeniate basis with respect to z at this quadrature point
+///      // Differeniate basis with respect to z at this quadrature point
 ///
 ///       for ( int k = 0; k < quad_order; k++ ) {
 ///
@@ -158,14 +158,14 @@
 ///           dbasisx, dbasisy, dbasisz,
 ///           tdbasisx, tdbasisy, tdbasisz);
 ///
-        // the inner product: alpha*<w_i, w_j>
+///         // the inner product: alpha*<w_i, w_j>
 ///         inner_product(
 ///           detjwgts*alpha,
 ///           tebasisx, tebasisy, tebasisz,
 ///           tebasisx, tebasisy, tebasisz,
 ///           matrix, true);
 ///
-         // the inner product: beta*<Curl(w_i), Curl(w_j)>
+///         // the inner product: beta*<Curl(w_i), Curl(w_j)>
 ///         inner_product(
 ///           detjwgts*beta,
 ///           tdbasisx, tdbasisy, tdbasisz,
@@ -357,6 +357,195 @@ RAJA_INLINE void edge_MpSmatrix(
           matrix, true);
       }
     }
+  }
+}
+
+RAJA_HOST_DEVICE
+RAJA_INLINE void symmetric_edge_MpSmatrix(
+  const rajaperf::Real_type  (&x)[NB],
+  const rajaperf::Real_type  (&y)[NB],
+  const rajaperf::Real_type  (&z)[NB],
+  rajaperf::Real_type        alpha,
+  rajaperf::Real_type        beta,
+  const rajaperf::Real_type  detj_tol,
+  const rajaperf::Int_type   quad_type,
+  const rajaperf::Int_type   quad_order,
+  rajaperf::Real_type        (&matrix)[EB][EB])
+{
+  // Get integration points and weights
+  rajaperf::Real_type qpts_1d[MAX_QUAD_ORDER];
+  rajaperf::Real_type wgts_1d[MAX_QUAD_ORDER];
+
+  get_quadrature_rule(quad_type, quad_order, qpts_1d, wgts_1d);
+
+  // Compute cell centered Jacobian
+  const rajaperf::Real_type jxx_cc = Jxx(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const rajaperf::Real_type jxy_cc = Jxy(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const rajaperf::Real_type jxz_cc = Jxz(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const rajaperf::Real_type jyx_cc = Jyx(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const rajaperf::Real_type jyy_cc = Jyy(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const rajaperf::Real_type jyz_cc = Jyz(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const rajaperf::Real_type jzx_cc = Jzx(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const rajaperf::Real_type jzy_cc = Jzy(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const rajaperf::Real_type jzz_cc = Jzz(x, y, z, 0.25, 0.25, 0.25, 0.25);
+
+  // Compute cell centered Jacobian determinant
+  const rajaperf::Real_type detj_cc = compute_detj(
+    jxx_cc, jxy_cc, jxz_cc,
+    jyx_cc, jyy_cc, jyz_cc,
+    jzx_cc, jzy_cc, jzz_cc);
+
+  // Initialize the stiffness matrix
+  for (rajaperf::Int_type m = 0; m < EB; m++) {
+    for (rajaperf::Int_type p = m; p < EB; p++) {
+      matrix[m][p] = 0.0;
+    }
+  }
+
+  constexpr rajaperf::Int_type symmetric_size = (EB*(EB+1))/2;
+  rajaperf::Real_type symmetric_matrix[symmetric_size];
+  
+  // Initialize the symmetric stiffness matrix
+  for (rajaperf::Int_type m = 0; m < symmetric_size; m++) {
+    symmetric_matrix[m] = 0.0;
+  }
+
+  // Compute values at each quadrature point
+  for ( rajaperf::Int_type i = 0; i < quad_order; i++ ) {
+
+    const rajaperf::Real_type xloc = qpts_1d[i];
+    const rajaperf::Real_type tmpx = 1. - xloc;
+
+    rajaperf::Real_type dbasisx[EB] = {0};
+    curl_edgebasis_x(dbasisx, tmpx, xloc);
+
+    for ( rajaperf::Int_type j = 0; j < quad_order; j++ ) {
+
+      const rajaperf::Real_type yloc = qpts_1d[j];
+      const rajaperf::Real_type wgtxy = wgts_1d[i]*wgts_1d[j];
+      const rajaperf::Real_type tmpy = 1. - yloc;
+
+      rajaperf::Real_type tmpxy    = tmpx*tmpy;
+      rajaperf::Real_type xyloc    = xloc*yloc;
+      rajaperf::Real_type tmpxyloc = tmpx*yloc;
+      rajaperf::Real_type xloctmpy = xloc*tmpy;
+
+      const rajaperf::Real_type jzx = Jzx(x, y, z, tmpxy, xloctmpy, xyloc, tmpxyloc);
+      const rajaperf::Real_type jzy = Jzy(x, y, z, tmpxy, xloctmpy, xyloc, tmpxyloc);
+      const rajaperf::Real_type jzz = Jzz(x, y, z, tmpxy, xloctmpy, xyloc, tmpxyloc);
+
+      rajaperf::Real_type ebasisz[EB] = {0};
+      edgebasis_z(ebasisz, tmpxy, xloctmpy, xyloc, tmpxyloc);
+
+      rajaperf::Real_type dbasisy[EB] = {0};
+      curl_edgebasis_y(dbasisy, tmpy, yloc);
+
+      // Differeniate basis with respect to z at this quadrature point
+
+      for ( rajaperf::Int_type k = 0; k < quad_order; k++ ) {
+
+        const rajaperf::Real_type zloc = qpts_1d[k];
+        const rajaperf::Real_type wgts = wgtxy*wgts_1d[k];
+        const rajaperf::Real_type tmpz = 1. - zloc;
+
+        const rajaperf::Real_type tmpxz    = tmpx*tmpz;
+        const rajaperf::Real_type tmpyz    = tmpy*tmpz;
+
+        const rajaperf::Real_type xzloc    = xloc*zloc;
+        const rajaperf::Real_type yzloc    = yloc*zloc;
+
+        const rajaperf::Real_type tmpyzloc = tmpy*zloc;
+        const rajaperf::Real_type tmpxzloc = tmpx*zloc;
+
+        const rajaperf::Real_type yloctmpz = yloc*tmpz;
+        const rajaperf::Real_type xloctmpz = xloc*tmpz;
+
+        const rajaperf::Real_type jxx = Jxx(x, y, z, tmpyz, yloctmpz, tmpyzloc, yzloc);
+        const rajaperf::Real_type jxy = Jxy(x, y, z, tmpyz, yloctmpz, tmpyzloc, yzloc);
+        const rajaperf::Real_type jxz = Jxz(x, y, z, tmpyz, yloctmpz, tmpyzloc, yzloc);
+        const rajaperf::Real_type jyx = Jyx(x, y, z, tmpxz, xloctmpz, tmpxzloc, xzloc);
+        const rajaperf::Real_type jyy = Jyy(x, y, z, tmpxz, xloctmpz, tmpxzloc, xzloc);
+        const rajaperf::Real_type jyz = Jyz(x, y, z, tmpxz, xloctmpz, tmpxzloc, xzloc);
+
+        rajaperf::Real_type jinvxx, jinvxy, jinvxz,
+                            jinvyx, jinvyy, jinvyz,
+                            jinvzx, jinvzy, jinvzz,
+                            detj_unfixed, detj, abs_detj, invdetj;
+
+        jacobian_inv(
+          jxx, jxy, jxz,
+          jyx, jyy, jyz,
+          jzx, jzy, jzz,
+          detj_cc, detj_tol,
+          jinvxx, jinvxy, jinvxz,
+          jinvyx, jinvyy, jinvyz,
+          jinvzx, jinvzy, jinvzz,
+          detj_unfixed, detj, abs_detj, invdetj);
+
+        const rajaperf::Real_type detjwgts = wgts*abs_detj;
+
+        rajaperf::Real_type ebasisx[EB] = {0};
+        edgebasis_x(ebasisx, tmpyz, yloctmpz, tmpyzloc, yzloc);
+
+        rajaperf::Real_type ebasisy[EB] = {0};
+        edgebasis_y(ebasisy, tmpxz, xloctmpz, tmpxzloc, xzloc);
+
+        rajaperf::Real_type dbasisz[EB] = {0};
+        curl_edgebasis_z(dbasisz, tmpz, zloc);
+
+        const rajaperf::Real_type inv_abs_detj = 1./(abs_detj+ptiny);
+
+        rajaperf::Real_type tebasisx[EB] = {0};
+        rajaperf::Real_type tebasisy[EB] = {0};
+        rajaperf::Real_type tebasisz[EB] = {0};
+
+        transform_edge_basis(
+          jinvxx, jinvxy, jinvxz,
+          jinvyx, jinvyy, jinvyz,
+          jinvzx, jinvzy, jinvzz,
+          ebasisx, ebasisy, ebasisz,
+          tebasisx, tebasisy, tebasisz);
+
+        rajaperf::Real_type tdbasisx[EB] = {0};
+        rajaperf::Real_type tdbasisy[EB] = {0};
+        rajaperf::Real_type tdbasisz[EB] = {0};
+
+        transform_curl_edge_basis(
+          jxx, jxy, jxz,
+          jyx, jyy, jyz,
+          jzx, jzy, jzz,
+          inv_abs_detj,
+          dbasisx, dbasisy, dbasisz,
+          tdbasisx, tdbasisy, tdbasisz);
+
+        // the inner product: alpha*<w_i, w_j>
+        inner_product(
+          detjwgts*alpha,
+          tebasisx, tebasisy, tebasisz,
+          tebasisx, tebasisy, tebasisz,
+          symmetric_matrix);
+
+         // the inner product: beta*<Curl(w_i), Curl(w_j)>
+        inner_product(
+          detjwgts*beta,
+          tdbasisx, tdbasisy, tdbasisz,
+          tdbasisx, tdbasisy, tdbasisz,
+          symmetric_matrix);
+      }
+    }
+  }
+
+  // write back to matrix
+  rajaperf::Int_type offset = 0;
+  for (rajaperf::Int_type p = 0; p < EB; p++) {
+
+    matrix[p][p] = symmetric_matrix[offset];
+    for (rajaperf::Int_type m = 1; m < (EB-p); m++) {
+      auto x = symmetric_matrix[offset + m];
+      matrix[p][m] = x;
+      matrix[m][p] = x;
+    }
+    offset += (EB-p);
   }
 }
 
