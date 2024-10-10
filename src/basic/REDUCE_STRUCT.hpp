@@ -91,7 +91,6 @@ public:
   void setOpenMPTuningDefinitions(VariantID vid);
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
-  void setOpenMPTargetTuningDefinitions(VariantID vid);
 
   template < size_t block_size, typename MappingHelper >
   void runCudaVariantBase(VariantID vid);

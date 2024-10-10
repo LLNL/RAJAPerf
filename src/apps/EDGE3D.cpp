@@ -58,7 +58,7 @@ EDGE3D::EDGE3D(const RunParams& params)
 
   setFLOPsPerRep(number_of_elements * flops_per_element);
 
-  checksum_scale_factor = 0.001 *
+  m_checksum_scale_factor = 0.001 *
               ( static_cast<Checksum_type>(getDefaultProblemSize()) /
                                            getActualProblemSize() );
 
@@ -116,7 +116,7 @@ void EDGE3D::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void EDGE3D::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_sum, m_array_length, checksum_scale_factor, vid  );
+  checksum[vid][tune_idx] += calcChecksum(m_sum, m_array_length, m_checksum_scale_factor, vid  );
 }
 
 void EDGE3D::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
