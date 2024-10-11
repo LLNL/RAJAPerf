@@ -2410,7 +2410,7 @@ void RunParams::processVariantInput()
   
       // Assemble invalid input items for output message.
       if ( !found_it ) {
-         invalid_variant_input.push_back(variant_input[it]);
+        invalid_variant_input.push_back(variant_input[it]);
       } 
 
     }
