@@ -233,7 +233,7 @@ void REDUCE_STRUCT::runCudaVariantRAJANewReduce(VariantID vid)
       Real_type txmax = m_init_max;
       Real_type tymax = m_init_max;
 
-      RAJA::forall<exec_policy>(
+      RAJA::forall<exec_policy>(res,
         RAJA::RangeSegment(ibegin, iend),
         RAJA::expt::Reduce<RAJA::operators::plus>(&txsum),
         RAJA::expt::Reduce<RAJA::operators::plus>(&tysum),
@@ -241,10 +241,14 @@ void REDUCE_STRUCT::runCudaVariantRAJANewReduce(VariantID vid)
         RAJA::expt::Reduce<RAJA::operators::minimum>(&tymin),
         RAJA::expt::Reduce<RAJA::operators::maximum>(&txmax),
         RAJA::expt::Reduce<RAJA::operators::maximum>(&tymax),
-        [=] __device__ (Index_type i, Real_type& xsum, Real_type& ysum,
-                                      Real_type& xmin, Real_type& ymin,
-                                      Real_type& xmax, Real_type& ymax) {
-          REDUCE_STRUCT_BODY;
+        [=] __device__ (Index_type i,
+          RAJA::expt::ValOp<Real_type, RAJA::operators::plus>& xsum,
+              RAJA::expt::ValOp<Real_type, RAJA::operators::plus>& ysum,
+              RAJA::expt::ValOp<Real_type, RAJA::operators::minimum>& xmin,
+              RAJA::expt::ValOp<Real_type, RAJA::operators::minimum>& ymin,
+              RAJA::expt::ValOp<Real_type, RAJA::operators::maximum>& xmax,
+              RAJA::expt::ValOp<Real_type, RAJA::operators::maximum>& ymax ) {
+          REDUCE_STRUCT_BODY_RAJA;
         }
       );
 

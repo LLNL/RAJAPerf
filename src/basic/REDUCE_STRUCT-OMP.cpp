@@ -152,7 +152,7 @@ void REDUCE_STRUCT::runOpenMPVariant(VariantID vid, size_t tune_idx)
           Real_type txmax = m_init_max;
           Real_type tymax = m_init_max;
 
-          RAJA::forall<RAJA::omp_parallel_for_exec>(
+          RAJA::forall<RAJA::omp_parallel_for_exec>(res,
             RAJA::RangeSegment(ibegin, iend),
             RAJA::expt::Reduce<RAJA::operators::plus>(&txsum),
             RAJA::expt::Reduce<RAJA::operators::plus>(&tysum),
