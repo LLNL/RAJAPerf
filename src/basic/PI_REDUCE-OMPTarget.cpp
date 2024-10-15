@@ -64,7 +64,8 @@ void PI_REDUCE::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
         RAJA::RangeSegment(ibegin, iend),
         RAJA::expt::Reduce<RAJA::operators::plus>(&tpi),
-        [=] (Index_type i, Real_type& pi) {
+        [=] (Index_type i,
+          RAJA::expt::ValOp<Real_type, RAJA::operators::plus>& pi) {
           PI_REDUCE_BODY;
         }
       );
