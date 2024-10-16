@@ -18,20 +18,23 @@
 # We keep ${PROJECT_<MACHINE>_VARIANTS} and ${PROJECT_<MACHINE>_DEPS} So that
 # the comparison with the original job is easier.
 
+# allow failure
+intel_2023_2_1:
+  variables:
+    SPEC: "${PROJECT_POODLE_VARIANTS} %intel@=2023.2.1 ${PROJECT_POODLE_DEPS}"
+  extends: .job_on_poodle
+  allow_failure: true
+
+# omptask variant
 clang_14_0_6:
   variables:
     SPEC: "${PROJECT_POODLE_VARIANTS} +omptask %clang@=14.0.6 ${PROJECT_POODLE_DEPS}"
   extends: .job_on_poodle
 
+# omptask variant
 gcc_10_3_1:
   variables:
     SPEC: "${PROJECT_POODLE_VARIANTS} +omptask %gcc@=10.3.1 ${PROJECT_POODLE_DEPS}"
-  extends: .job_on_poodle
-
-intel_2022_1_0:
-  variables:
-    SPEC: "${PROJECT_POODLE_VARIANTS} %intel@=2022.1.0 ${PROJECT_POODLE_DEPS}"
-  allow_failure: true
   extends: .job_on_poodle
 
 ############
@@ -44,5 +47,4 @@ intel_2022_1_0:
 intel_2022_1_0_mpi:
   variables:
     SPEC: "~shared +openmp +mpi %intel@=2022.1.0 ^mvapich2 ^blt@develop"
-  allow_failure: true
   extends: .job_on_poodle
