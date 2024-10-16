@@ -29,15 +29,9 @@ gcc_10_3_1:
     RUBY_BUILD_AND_TEST_JOB_ALLOC: "--time=60 --nodes=1"
   extends: .job_on_ruby
 
-intel_19_1_2_gcc_10_3_1:
+intel_2023_2_1:
   variables:
-    SPEC: "${PROJECT_RUBY_VARIANTS} %intel@=19.1.2.gcc.10.3.1 ${PROJECT_RUBY_DEPS}"
-    RUBY_BUILD_AND_TEST_JOB_ALLOC: "--time=40 --nodes=1"
-  extends: .job_on_ruby
-
-intel_2022_1_0:
-  variables:
-    SPEC: "${PROJECT_RUBY_VARIANTS} %intel@=2022.1.0 ${PROJECT_RUBY_DEPS}"
+    SPEC: "${PROJECT_RUBY_VARIANTS} %intel@=2023.2.1 ${PROJECT_RUBY_DEPS}"
   extends: .job_on_ruby
 
 ############
@@ -47,7 +41,7 @@ intel_2022_1_0:
 # ${PROJECT_<MACHINE>_DEPS} in the extra jobs. There is no reason not to fully
 # describe the spec here.
 
-intel_2022_1_0_mpi:
+intel_2023_2_1_mpi:
   variables:
-    SPEC: "~shared +openmp +mpi %intel@=2022.1.0 ^mvapich2 ^blt@develop"
+    SPEC: "~shared +openmp +mpi %intel@=2023.2.1 ^mvapich2"
   extends: .job_on_ruby
