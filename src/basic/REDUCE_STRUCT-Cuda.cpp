@@ -243,11 +243,11 @@ void REDUCE_STRUCT::runCudaVariantRAJANewReduce(VariantID vid)
         RAJA::expt::Reduce<RAJA::operators::maximum>(&tymax),
         [=] __device__ (Index_type i,
           RAJA::expt::ValOp<Real_type, RAJA::operators::plus>& xsum,
-              RAJA::expt::ValOp<Real_type, RAJA::operators::plus>& ysum,
-              RAJA::expt::ValOp<Real_type, RAJA::operators::minimum>& xmin,
-              RAJA::expt::ValOp<Real_type, RAJA::operators::minimum>& ymin,
-              RAJA::expt::ValOp<Real_type, RAJA::operators::maximum>& xmax,
-              RAJA::expt::ValOp<Real_type, RAJA::operators::maximum>& ymax ) {
+          RAJA::expt::ValOp<Real_type, RAJA::operators::plus>& ysum,
+          RAJA::expt::ValOp<Real_type, RAJA::operators::minimum>& xmin,
+          RAJA::expt::ValOp<Real_type, RAJA::operators::minimum>& ymin,
+          RAJA::expt::ValOp<Real_type, RAJA::operators::maximum>& xmax,
+          RAJA::expt::ValOp<Real_type, RAJA::operators::maximum>& ymax ) {
           REDUCE_STRUCT_BODY_RAJA;
         }
       );
