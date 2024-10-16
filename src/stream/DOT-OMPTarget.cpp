@@ -68,7 +68,8 @@ void DOT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
         RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
           RAJA::RangeSegment(ibegin, iend),
           RAJA::expt::Reduce<RAJA::operators::plus>(&tdot),
-          [=] (Index_type i, Real_type& dot) {
+          [=] (Index_type i,
+            RAJA::expt::ValOp<Real_type, RAJA::operators::plus>& dot) {
             DOT_BODY;
           }
         );

@@ -74,6 +74,7 @@ public:
   void setOpenMPTuningDefinitions(VariantID vid);
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
+  void setOpenMPTargetTuningDefinitions(VariantID vid);
 
   template < size_t replication >
   void runSeqVariantReplicate(VariantID vid);

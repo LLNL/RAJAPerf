@@ -266,7 +266,8 @@ void REDUCE_SUM::runHipVariantRAJANewReduce(VariantID vid)
       RAJA::forall<exec_policy>( res,
         RAJA::RangeSegment(ibegin, iend),
         RAJA::expt::Reduce<RAJA::operators::plus>(&tsum),
-        [=] __device__ (Index_type i, Real_type& sum) {
+        [=] __device__ (Index_type i,
+          RAJA::expt::ValOp<Real_type, RAJA::operators::plus>& sum) {
           REDUCE_SUM_BODY;
         }
       );

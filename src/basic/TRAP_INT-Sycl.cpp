@@ -85,7 +85,8 @@ void TRAP_INT::runSyclVariantImpl(VariantID vid)
         res,
         RAJA::RangeSegment(ibegin, iend),
         RAJA::expt::Reduce<RAJA::operators::plus>(&tsumx),
-        [=] (Index_type i, Real_type& sumx) {
+        [=] (Index_type i,
+          RAJA::expt::ValOp<Real_type, RAJA::operators::plus>& sumx) {
           TRAP_INT_BODY;
         }
       );

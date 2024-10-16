@@ -87,6 +87,8 @@ void REDUCE3_INT::runSeqVariant(VariantID vid, size_t tune_idx)
 
     case RAJA_Seq : {
 
+      RAJA::resources::Host res;
+
       if (tune_idx == 0) {
 
         startTimer();
@@ -96,7 +98,7 @@ void REDUCE3_INT::runSeqVariant(VariantID vid, size_t tune_idx)
           RAJA::ReduceMin<RAJA::seq_reduce, Int_type> vmin(m_vmin_init);
           RAJA::ReduceMax<RAJA::seq_reduce, Int_type> vmax(m_vmax_init);
   
-          RAJA::forall<RAJA::seq_exec>(
+          RAJA::forall<RAJA::seq_exec>(res,
             RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
             REDUCE3_INT_BODY_RAJA;
           });
@@ -117,13 +119,16 @@ void REDUCE3_INT::runSeqVariant(VariantID vid, size_t tune_idx)
           Int_type tvmin = m_vmin_init; 
           Int_type tvmax = m_vmax_init; 
 
-          RAJA::forall<RAJA::seq_exec>(
+          RAJA::forall<RAJA::seq_exec>(res,
             RAJA::RangeSegment(ibegin, iend),
             RAJA::expt::Reduce<RAJA::operators::plus>(&tvsum),
             RAJA::expt::Reduce<RAJA::operators::minimum>(&tvmin),
             RAJA::expt::Reduce<RAJA::operators::maximum>(&tvmax),
-            [=](Index_type i, Int_type& vsum, Int_type& vmin, Int_type& vmax) {
-              REDUCE3_INT_BODY;
+            [=](Index_type i,
+              RAJA::expt::ValOp<Int_type, RAJA::operators::plus>& vsum,
+              RAJA::expt::ValOp<Int_type, RAJA::operators::minimum>& vmin,
+              RAJA::expt::ValOp<Int_type, RAJA::operators::maximum>& vmax) {
+              REDUCE3_INT_BODY_RAJA;
             }
           );
 

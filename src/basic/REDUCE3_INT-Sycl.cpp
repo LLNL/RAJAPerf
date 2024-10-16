@@ -110,8 +110,11 @@ void REDUCE3_INT::runSyclVariantImpl(VariantID vid)
         RAJA::expt::Reduce<RAJA::operators::plus>(&tvsum),
         RAJA::expt::Reduce<RAJA::operators::minimum>(&tvmin),
         RAJA::expt::Reduce<RAJA::operators::maximum>(&tvmax),
-        [=] (Index_type i, Int_type& vsum, Int_type& vmin, Int_type& vmax) {
-          REDUCE3_INT_BODY;
+        [=] (Index_type i,
+          RAJA::expt::ValOp<Int_type, RAJA::operators::plus>& vsum,
+          RAJA::expt::ValOp<Int_type, RAJA::operators::minimum>& vmin,
+          RAJA::expt::ValOp<Int_type, RAJA::operators::maximum>& vmax) {
+          REDUCE3_INT_BODY_RAJA;
         }
       );
 

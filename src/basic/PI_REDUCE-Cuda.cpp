@@ -168,7 +168,8 @@ void PI_REDUCE::runCudaVariantRAJANewReduce(VariantID vid)
       RAJA::forall< exec_policy >( res,
         RAJA::RangeSegment(ibegin, iend),
         RAJA::expt::Reduce<RAJA::operators::plus>(&tpi),
-        [=] __device__ (Index_type i, Real_type& pi) {
+        [=] __device__ (Index_type i,
+          RAJA::expt::ValOp<Real_type, RAJA::operators::plus>& pi) {
           PI_REDUCE_BODY;
         }
       );

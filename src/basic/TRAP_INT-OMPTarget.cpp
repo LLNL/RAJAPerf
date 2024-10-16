@@ -71,7 +71,8 @@ void TRAP_INT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
         RAJA::RangeSegment(ibegin, iend),
         RAJA::expt::Reduce<RAJA::operators::plus>(&tsumx),
-        [=] (Index_type i, Real_type& sumx) {
+        [=] (Index_type i,
+          RAJA::expt::ValOp<Real_type, RAJA::operators::plus>& sumx) {
           TRAP_INT_BODY;
         }
       );

@@ -76,6 +76,8 @@ void REDUCE_SUM::runOpenMPVariant(VariantID vid, size_t tune_idx)
 
     case RAJA_OpenMP : {
 
+      RAJA::resources::Host res;
+
       if (tune_idx == 0) {
 
         startTimer();
@@ -83,7 +85,7 @@ void REDUCE_SUM::runOpenMPVariant(VariantID vid, size_t tune_idx)
 
           RAJA::ReduceSum<RAJA::omp_reduce, Real_type> sum(m_sum_init);
 
-          RAJA::forall<RAJA::omp_parallel_for_exec>(
+          RAJA::forall<RAJA::omp_parallel_for_exec>(res,
             RAJA::RangeSegment(ibegin, iend),
             [=](Index_type i) {
               REDUCE_SUM_BODY;
@@ -101,10 +103,11 @@ void REDUCE_SUM::runOpenMPVariant(VariantID vid, size_t tune_idx)
 
           Real_type tsum = m_sum_init;
 
-          RAJA::forall<RAJA::omp_parallel_for_exec>(
+          RAJA::forall<RAJA::omp_parallel_for_exec>(res,
             RAJA::RangeSegment(ibegin, iend),
             RAJA::expt::Reduce<RAJA::operators::plus>(&tsum),
-            [=] (Index_type i, Real_type& sum) {
+            [=] (Index_type i,
+              RAJA::expt::ValOp<Real_type, RAJA::operators::plus>& sum) {
               REDUCE_SUM_BODY;
             }
           );
