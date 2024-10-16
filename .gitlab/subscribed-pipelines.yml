@@ -113,3 +113,5 @@ lassen-build-and-test:
     CI_MACHINE: "lassen"
   needs: [lassen-up-check, generate-job-lists]
   extends: [.build-and-test]
+
+

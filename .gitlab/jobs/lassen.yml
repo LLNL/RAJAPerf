@@ -18,7 +18,14 @@
 # We keep ${PROJECT_<MACHINE>_VARIANTS} and ${PROJECT_<MACHINE>_DEPS} So that
 # the comparison with the original job is easier.
 
-# No overriden jobs so far.
+# Overriding shared spec: Longer allocation + extra flags
+xl_2022_08_19_gcc_8_3_1_cuda_11_2_0:
+  variables:
+    SPEC: "${PROJECT_LASSEN_VARIANTS} +cuda cxxflags==\"-qthreaded -std=c++14 -O3 -qstrict -qxlcompatmacros -qlanglvl=extended0x -qalias=noansi -qhot -qpic -qsmp=omp -qsuppress=1500-029 -qsuppress=1500-036\" %xl@=16.1.1.12.gcc.8.3.1 ^cuda@11.2.0+allow-unsupported-compilers ${PROJECT_LASSEN_DEPS}"
+    MODULE_LIST: "cuda/11.2.0"
+    LASSEN_JOB_ALLOC: "1 -W 60 -q pci"
+  extends: .job_on_lassen
+
 
 ############
 # Extra jobs
@@ -32,11 +39,18 @@ gcc_8_3_1:
     SPEC: " ~shared +openmp %gcc@=8.3.1 ${PROJECT_LASSEN_DEPS}"
   extends: .job_on_lassen
 
-gcc_8_3_1_cuda_11_7_0_ats_disabled:
+gcc_8_3_1_cuda_11_5_0_ats_disabled:
   extends: .job_on_lassen
   variables:
-    SPEC: " ~shared +openmp +cuda %gcc@=8.3.1 cuda_arch=70 ^cuda@11.7.0+allow-unsupported-compilers ${PROJECT_LASSEN_DEPS}"
-    MODULE_LIST: "cuda/11.7.0"
+    SPEC: " ~shared +openmp +cuda %gcc@=8.3.1 cuda_arch=70 ^cuda@11.5.0+allow-unsupported-compilers ^blt@develop"
+    MODULE_LIST: "cuda/11.5.0"
+    LASSEN_JOB_ALLOC: "1 --atsdisable -W 30 -q pci"
+
+gcc_8_3_1_cuda_11_5_0_ats_disabled_mpi:
+  extends: .job_on_lassen
+  variables:
+    SPEC: " ~shared +openmp +cuda +mpi %gcc@=8.3.1 cuda_arch=70 ^cuda@11.5.0+allow-unsupported-compilers ^spectrum-mpi ^blt@develop"
+    MODULE_LIST: "cuda/11.5.0"
     LASSEN_JOB_ALLOC: "1 --atsdisable -W 30 -q pci"
 
 ##########
@@ -53,4 +67,10 @@ clang_13_0_1_libcpp:
 #    SPEC: " ~shared +openmp %clang@=14.0.5 cxxflags==\"-fsanitize=address\" ${PROJECT_LASSEN_DEPS}"
 #    ASAN_OPTIONS: "detect_leaks=1"
 #    LSAN_OPTIONS: "suppressions=${CI_PROJECT_DIR}/tpl/RAJA/suppressions.asan"
+#  extends: .job_on_lassen
+
+# Activated in RAJA, but we don't use desul atomics here
+#gcc_8_3_1_cuda_10_1_168_desul_atomics:
+#  variables:
+#    SPEC: "+openmp +cuda +desul %gcc@=8.3.1 cuda_arch=70 cuda_arch=70 ^cuda@10.1.243+allow-unsupported-compilers ${PROJECT_LASSEN_DEPS}"
 #  extends: .job_on_lassen
