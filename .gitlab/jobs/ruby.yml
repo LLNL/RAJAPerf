@@ -23,7 +23,6 @@ intel_2023_2_1:
   variables:
     SPEC: "${PROJECT_RUBY_VARIANTS} +lowopttest cxxflags==-fp-model=precise %intel@=2023.2.1 ${PROJECT_RUBY_DEPS}"
   extends: .job_on_ruby
-  allow_failure: true
 
 # omptask variant
 clang_14_0_6:

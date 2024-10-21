@@ -23,7 +23,6 @@ intel_2023_2_1:
   variables:
     SPEC: "${PROJECT_POODLE_VARIANTS} +lowopttest cxxflags==-fp-model=precise %intel@=2023.2.1 ${PROJECT_POODLE_DEPS}"
   extends: .job_on_poodle
-  allow_failure: true
 
 # omptask variant
 clang_14_0_6:
