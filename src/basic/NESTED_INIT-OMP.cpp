@@ -85,6 +85,8 @@ void NESTED_INIT::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
 
     case RAJA_OpenMP : {
 
+      auto res{getHostResource()};
+
 #if defined(USE_OMP_COLLAPSE)
       using EXEC_POL =
         RAJA::KernelPolicy<
@@ -109,11 +111,12 @@ void NESTED_INIT::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, ni),
-                                                 RAJA::RangeSegment(0, nj),
-                                                 RAJA::RangeSegment(0, nk)),
-                                nestedinit_lam
-                              );
+        RAJA::kernel_resource<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, ni),
+                                                          RAJA::RangeSegment(0, nj),
+                                                          RAJA::RangeSegment(0, nk)),
+                                         res,
+                                         nestedinit_lam
+                                       );
 
       }
       stopTimer();

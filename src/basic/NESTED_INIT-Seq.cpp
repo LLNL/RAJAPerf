@@ -73,6 +73,8 @@ void NESTED_INIT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
 
     case RAJA_Seq : {
 
+      auto res{getHostResource()};
+
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<2, RAJA::seq_exec,    // k
@@ -87,11 +89,12 @@ void NESTED_INIT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, ni),
-                                                 RAJA::RangeSegment(0, nj),
-                                                 RAJA::RangeSegment(0, nk)),
-                                nestedinit_lam
-                              );
+        RAJA::kernel_resource<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, ni),
+                                                          RAJA::RangeSegment(0, nj),
+                                                          RAJA::RangeSegment(0, nk)),
+                                         res,
+                                         nestedinit_lam
+                                       );
 
       }
       stopTimer();

@@ -77,6 +77,8 @@ void PI_REDUCE::runOpenMPVariant(VariantID vid, size_t tune_idx)
 
     case RAJA_OpenMP : {
 
+      auto res{getHostResource()};
+
       if (tune_idx == 0) {
 
         startTimer();
@@ -84,7 +86,7 @@ void PI_REDUCE::runOpenMPVariant(VariantID vid, size_t tune_idx)
 
           RAJA::ReduceSum<RAJA::omp_reduce, Real_type> pi(m_pi_init);
 
-          RAJA::forall<RAJA::omp_parallel_for_exec>(
+          RAJA::forall<RAJA::omp_parallel_for_exec>( res,
             RAJA::RangeSegment(ibegin, iend),
             [=](Index_type i) {
               PI_REDUCE_BODY;
@@ -102,7 +104,7 @@ void PI_REDUCE::runOpenMPVariant(VariantID vid, size_t tune_idx)
 
           Real_type tpi = m_pi_init;
 
-          RAJA::forall<RAJA::omp_parallel_for_exec>(
+          RAJA::forall<RAJA::omp_parallel_for_exec>( res,
             RAJA::RangeSegment(ibegin, iend),
             RAJA::expt::Reduce<RAJA::operators::plus>(&tpi),
             [=] (Index_type i, Real_type& pi) {

@@ -67,10 +67,12 @@ void COPY8::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
     case RAJA_Seq : {
 
+      auto res{getHostResource()};
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::simd_exec>(
+        RAJA::forall<RAJA::simd_exec>( res,
           RAJA::RangeSegment(ibegin, iend), copy8_lam);
 
       }

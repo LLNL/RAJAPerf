@@ -68,6 +68,8 @@ void INIT_VIEW1D_OFFSET::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_
 
     case RAJA_OpenMP : {
 
+      auto res{getHostResource()};
+
       INIT_VIEW1D_OFFSET_VIEW_RAJA;
 
       auto initview1doffset_lam = [=](Index_type i) {
@@ -77,7 +79,7 @@ void INIT_VIEW1D_OFFSET::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(
+        RAJA::forall<RAJA::omp_parallel_for_exec>( res,
           RAJA::RangeSegment(ibegin, iend), initview1doffset_lam);
 
       }

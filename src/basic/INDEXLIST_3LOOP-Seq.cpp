@@ -112,21 +112,23 @@ void INDEXLIST_3LOOP::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
 
     case RAJA_Seq : {
 
+      auto res{getHostResource()};
+
       INDEXLIST_3LOOP_DATA_SETUP_Seq;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::seq_exec>(
+        RAJA::forall<RAJA::seq_exec>( res,
           RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
           counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
         });
 
-        RAJA::exclusive_scan_inplace<RAJA::seq_exec>(
+        RAJA::exclusive_scan_inplace<RAJA::seq_exec>( res,
             RAJA::make_span(counts+ibegin, iend+1-ibegin));
 
-        RAJA::forall<RAJA::seq_exec>(
+        RAJA::forall<RAJA::seq_exec>( res,
           RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
           if (counts[i] != counts[i+1]) {

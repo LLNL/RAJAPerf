@@ -110,6 +110,8 @@ void REDUCE_STRUCT::runOpenMPVariant(VariantID vid, size_t tune_idx)
 
     case RAJA_OpenMP : {
 
+      auto res{getHostResource()};
+
       if (tune_idx == 0) {
 
         startTimer();
@@ -122,7 +124,7 @@ void REDUCE_STRUCT::runOpenMPVariant(VariantID vid, size_t tune_idx)
           RAJA::ReduceMax<RAJA::omp_reduce, Real_type> xmax(m_init_max); 
           RAJA::ReduceMax<RAJA::omp_reduce, Real_type> ymax(m_init_max);
 
-          RAJA::forall<RAJA::omp_parallel_for_exec>(
+          RAJA::forall<RAJA::omp_parallel_for_exec>( res,
             RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
               REDUCE_STRUCT_BODY_RAJA;
           });
@@ -150,7 +152,7 @@ void REDUCE_STRUCT::runOpenMPVariant(VariantID vid, size_t tune_idx)
           Real_type txmax = m_init_max;
           Real_type tymax = m_init_max;
 
-          RAJA::forall<RAJA::omp_parallel_for_exec>(
+          RAJA::forall<RAJA::omp_parallel_for_exec>( res,
             RAJA::RangeSegment(ibegin, iend),
             RAJA::expt::Reduce<RAJA::operators::plus>(&txsum),
             RAJA::expt::Reduce<RAJA::operators::plus>(&tysum),

@@ -91,6 +91,8 @@ void REDUCE3_INT::runOpenMPVariant(VariantID vid, size_t tune_idx)
 
     case RAJA_OpenMP : {
 
+      auto res{getHostResource()};
+
       if (tune_idx == 0) {
 
         startTimer();
@@ -100,7 +102,7 @@ void REDUCE3_INT::runOpenMPVariant(VariantID vid, size_t tune_idx)
           RAJA::ReduceMin<RAJA::omp_reduce, Int_type> vmin(m_vmin_init);
           RAJA::ReduceMax<RAJA::omp_reduce, Int_type> vmax(m_vmax_init);
   
-          RAJA::forall<RAJA::omp_parallel_for_exec>(
+          RAJA::forall<RAJA::omp_parallel_for_exec>( res,
             RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
             REDUCE3_INT_BODY_RAJA;
           });
@@ -121,7 +123,7 @@ void REDUCE3_INT::runOpenMPVariant(VariantID vid, size_t tune_idx)
           Int_type tvmin = m_vmin_init;
           Int_type tvmax = m_vmax_init;
 
-          RAJA::forall<RAJA::omp_parallel_for_exec>(
+          RAJA::forall<RAJA::omp_parallel_for_exec>( res,
             RAJA::RangeSegment(ibegin, iend),
             RAJA::expt::Reduce<RAJA::operators::plus>(&tvsum),
             RAJA::expt::Reduce<RAJA::operators::minimum>(&tvmin),

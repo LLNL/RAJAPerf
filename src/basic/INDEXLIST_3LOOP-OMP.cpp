@@ -198,12 +198,14 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
 
     case RAJA_OpenMP : {
 
+      auto res{getHostResource()};
+
       INDEXLIST_3LOOP_DATA_SETUP_OMP;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(
+        RAJA::forall<RAJA::omp_parallel_for_exec>( res,
           RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
           counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
@@ -212,7 +214,7 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
         RAJA::exclusive_scan_inplace<RAJA::omp_parallel_for_exec>(
             RAJA::make_span(counts+ibegin, iend+1-ibegin));
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(
+        RAJA::forall<RAJA::omp_parallel_for_exec>( res,
           RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
           if (counts[i] != counts[i+1]) {
