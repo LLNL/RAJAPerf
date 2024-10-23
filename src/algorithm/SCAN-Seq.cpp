@@ -66,10 +66,12 @@ void SCAN::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
     case RAJA_Seq : {
 
+      auto res{getHostResource()};
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::exclusive_scan<RAJA::seq_exec>(RAJA_SCAN_ARGS);
+        RAJA::exclusive_scan<RAJA::seq_exec>(res, RAJA_SCAN_ARGS);
 
       }
       stopTimer();

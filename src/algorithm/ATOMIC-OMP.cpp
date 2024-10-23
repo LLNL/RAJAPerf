@@ -71,10 +71,12 @@ void ATOMIC::runOpenMPVariantReplicate(VariantID vid)
 
     case RAJA_OpenMP : {
 
+      auto res{getHostResource()};
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(
+        RAJA::forall<RAJA::omp_parallel_for_exec>( res,
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
             ATOMIC_RAJA_BODY(RAJA::omp_atomic, i, ATOMIC_VALUE);
         });

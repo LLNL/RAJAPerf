@@ -44,7 +44,7 @@ void MEMCPY::runSeqVariantLibrary(VariantID vid)
 #if defined(RUN_RAJA_SEQ)
     case RAJA_Seq : {
 
-      camp::resources::Host res = camp::resources::Host::get_default();
+      auto res{getHostResource()}; 
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -113,10 +113,13 @@ void MEMCPY::runSeqVariantDefault(VariantID vid)
 
     case RAJA_Seq : {
 
+      auto res{getHostResource()}; 
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::seq_exec>( RAJA::RangeSegment(ibegin, iend),
+        RAJA::forall<RAJA::seq_exec>( res,
+          RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
             MEMCPY_BODY;
         });

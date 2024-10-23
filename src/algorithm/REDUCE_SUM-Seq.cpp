@@ -76,6 +76,8 @@ void REDUCE_SUM::runSeqVariant(VariantID vid, size_t tune_idx)
 
     case RAJA_Seq : {
 
+      auto res{getHostResource()};
+
       if (tune_idx == 0) {
 
         startTimer();
@@ -83,7 +85,8 @@ void REDUCE_SUM::runSeqVariant(VariantID vid, size_t tune_idx)
 
           RAJA::ReduceSum<RAJA::seq_reduce, Real_type> sum(m_sum_init);
 
-          RAJA::forall<RAJA::seq_exec>( RAJA::RangeSegment(ibegin, iend),
+          RAJA::forall<RAJA::seq_exec>( res,
+            RAJA::RangeSegment(ibegin, iend),
             [=](Index_type i) {
               REDUCE_SUM_BODY;
           });
@@ -100,7 +103,8 @@ void REDUCE_SUM::runSeqVariant(VariantID vid, size_t tune_idx)
 
           Real_type tsum = m_sum_init;
 
-          RAJA::forall<RAJA::seq_exec>( RAJA::RangeSegment(ibegin, iend),
+          RAJA::forall<RAJA::seq_exec>( res,
+            RAJA::RangeSegment(ibegin, iend),
             RAJA::expt::Reduce<RAJA::operators::plus>(&tsum),
             [=] (Index_type i, Real_type& sum) {
               REDUCE_SUM_BODY;

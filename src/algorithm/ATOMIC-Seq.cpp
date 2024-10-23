@@ -66,10 +66,13 @@ void ATOMIC::runSeqVariantReplicate(VariantID vid)
 
     case RAJA_Seq : {
 
+      auto res{getHostResource()};
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::seq_exec>( RAJA::RangeSegment(ibegin, iend),
+        RAJA::forall<RAJA::seq_exec>( res,
+          RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
             ATOMIC_RAJA_BODY(RAJA::seq_atomic, i, ATOMIC_VALUE);
         });

@@ -238,6 +238,11 @@ public:
 
   void execute(VariantID vid, size_t tune_idx);
 
+  camp::resources::Host getHostResource()
+  {
+    return camp::resources::Host::get_default();
+  }
+
 #if defined(RAJA_ENABLE_CUDA)
   camp::resources::Cuda getCudaResource()
   {
@@ -247,6 +252,7 @@ public:
     return camp::resources::Cuda::get_default();
   }
 #endif
+
 #if defined(RAJA_ENABLE_HIP)
   camp::resources::Hip getHipResource()
   {
@@ -256,6 +262,7 @@ public:
     return camp::resources::Hip::get_default();
   }
 #endif
+
 #if defined(RAJA_ENABLE_SYCL)
   camp::resources::Sycl getSyclResource()
   {
@@ -265,6 +272,13 @@ public:
     }
     */
     return camp::resources::Sycl::get_default();
+  }
+#endif
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+  camp::resources::Omp getHostResource()
+  {
+    return camp::resources::Omp::get_default();
   }
 #endif
 
