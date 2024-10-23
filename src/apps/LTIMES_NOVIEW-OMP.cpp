@@ -79,6 +79,8 @@ void LTIMES_NOVIEW::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
 
     case RAJA_OpenMP : {
 
+      auto res{getHostResource()};
+
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<1, RAJA::omp_parallel_for_exec, // z
@@ -95,12 +97,13 @@ void LTIMES_NOVIEW::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, num_d),
-                                                 RAJA::RangeSegment(0, num_z),
-                                                 RAJA::RangeSegment(0, num_g),
-                                                 RAJA::RangeSegment(0, num_m)),
-                                ltimesnoview_lam
-                              );
+        RAJA::kernel_resource<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, num_d),
+                                                          RAJA::RangeSegment(0, num_z),
+                                                          RAJA::RangeSegment(0, num_g),
+                                                          RAJA::RangeSegment(0, num_m)),
+                                         res,
+                                         ltimesnoview_lam
+                                       );
 
       }
       stopTimer();

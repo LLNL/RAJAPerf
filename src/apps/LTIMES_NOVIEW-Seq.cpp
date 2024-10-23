@@ -78,6 +78,8 @@ void LTIMES_NOVIEW::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
 
     case RAJA_Seq : {
 
+      auto res{getHostResource()};
+
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<1, RAJA::seq_exec,       // z
@@ -94,12 +96,13 @@ void LTIMES_NOVIEW::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, num_d),
-                                                 RAJA::RangeSegment(0, num_z),
-                                                 RAJA::RangeSegment(0, num_g),
-                                                 RAJA::RangeSegment(0, num_m)),
-                                ltimesnoview_lam
-                              );
+        RAJA::kernel_resource<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, num_d),
+                                                          RAJA::RangeSegment(0, num_z),
+                                                          RAJA::RangeSegment(0, num_g),
+                                                          RAJA::RangeSegment(0, num_m)),
+                                         res,
+                                         ltimesnoview_lam
+                                       );
 
       }
       stopTimer();

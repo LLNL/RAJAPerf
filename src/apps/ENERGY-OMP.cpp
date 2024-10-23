@@ -141,27 +141,29 @@ void ENERGY::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
 
     case RAJA_OpenMP : {
 
+      auto res{getHostResource()};
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::region<RAJA::omp_parallel_region>( [=]() {
 
-          RAJA::forall< RAJA::omp_for_nowait_static_exec< > >(
+          RAJA::forall< RAJA::omp_for_nowait_static_exec< > >( res,
             RAJA::RangeSegment(ibegin, iend), energy_lam1);
 
-          RAJA::forall< RAJA::omp_for_nowait_static_exec< > >(
+          RAJA::forall< RAJA::omp_for_nowait_static_exec< > >( res,
             RAJA::RangeSegment(ibegin, iend), energy_lam2);
 
-          RAJA::forall< RAJA::omp_for_nowait_static_exec< > >(
+          RAJA::forall< RAJA::omp_for_nowait_static_exec< > >( res,
             RAJA::RangeSegment(ibegin, iend), energy_lam3);
 
-          RAJA::forall< RAJA::omp_for_nowait_static_exec< > >(
+          RAJA::forall< RAJA::omp_for_nowait_static_exec< > >( res,
             RAJA::RangeSegment(ibegin, iend), energy_lam4);
 
-          RAJA::forall< RAJA::omp_for_nowait_static_exec< > >(
+          RAJA::forall< RAJA::omp_for_nowait_static_exec< > >( res,
             RAJA::RangeSegment(ibegin, iend), energy_lam5);
 
-          RAJA::forall< RAJA::omp_for_nowait_static_exec< > >(
+          RAJA::forall< RAJA::omp_for_nowait_static_exec< > >( res,
             RAJA::RangeSegment(ibegin, iend), energy_lam6);
 
         }); // end omp parallel region

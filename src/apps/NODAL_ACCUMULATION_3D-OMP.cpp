@@ -109,9 +109,10 @@ void NODAL_ACCUMULATION_3D::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUS
 
     case RAJA_OpenMP : {
 
-      camp::resources::Resource working_res{camp::resources::Host::get_default()};
+      auto res{getHostResource()};
+
       RAJA::TypedListSegment<Index_type> zones(real_zones, iend,
-                                               working_res, RAJA::Unowned);
+                                               res, RAJA::Unowned);
 
       auto nodal_accumulation_3d_lam = [=](Index_type i) {
                                          NODAL_ACCUMULATION_3D_RAJA_ATOMIC_BODY(RAJA::omp_atomic);
@@ -120,7 +121,7 @@ void NODAL_ACCUMULATION_3D::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUS
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(
+        RAJA::forall<RAJA::omp_parallel_for_exec>( res,
           zones, nodal_accumulation_3d_lam);
 
       }

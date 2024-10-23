@@ -69,9 +69,10 @@ void ZONAL_ACCUMULATION_3D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_
 
     case RAJA_Seq : {
 
-      camp::resources::Resource working_res{camp::resources::Host::get_default()};
+      auto res{getHostResource()};
+
       RAJA::TypedListSegment<Index_type> zones(real_zones, iend,
-                                               working_res, RAJA::Unowned);
+                                               res, RAJA::Unowned);
 
       auto zonal_accumulation_3d_lam = [=](Index_type i) {
                          ZONAL_ACCUMULATION_3D_BODY;
@@ -80,7 +81,7 @@ void ZONAL_ACCUMULATION_3D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::seq_exec>(zones, zonal_accumulation_3d_lam);
+        RAJA::forall<RAJA::seq_exec>(res, zones, zonal_accumulation_3d_lam);
 
       }
       stopTimer();

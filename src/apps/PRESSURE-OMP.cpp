@@ -91,15 +91,17 @@ void PRESSURE::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
 
     case RAJA_OpenMP : {
 
+      auto res{getHostResource()};
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::region<RAJA::omp_parallel_region>( [=]() {
 
-          RAJA::forall< RAJA::omp_for_nowait_static_exec< > >(
+          RAJA::forall< RAJA::omp_for_nowait_static_exec< > >( res,
             RAJA::RangeSegment(ibegin, iend), pressure_lam1);
 
-          RAJA::forall< RAJA::omp_for_nowait_static_exec< > >(
+          RAJA::forall< RAJA::omp_for_nowait_static_exec< > >( res,
             RAJA::RangeSegment(ibegin, iend), pressure_lam2);
 
         }); // end omp parallel region

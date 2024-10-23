@@ -79,6 +79,8 @@ void LTIMES::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
 
     case RAJA_OpenMP : {
 
+      auto res{getHostResource()};
+
       LTIMES_VIEWS_RANGES_RAJA;
 
       auto ltimes_lam = [=](ID d, IZ z, IG g, IM m) {
@@ -101,12 +103,13 @@ void LTIMES::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(IDRange(0, num_d),
-                                                 IZRange(0, num_z),
-                                                 IGRange(0, num_g),
-                                                 IMRange(0, num_m)),
-                                ltimes_lam
-                              );
+        RAJA::kernel_resource<EXEC_POL>( RAJA::make_tuple(IDRange(0, num_d),
+                                                          IZRange(0, num_z),
+                                                          IGRange(0, num_g),
+                                                          IMRange(0, num_m)),
+                                         res,
+                                         ltimes_lam
+                                       );
 
       }
       stopTimer();

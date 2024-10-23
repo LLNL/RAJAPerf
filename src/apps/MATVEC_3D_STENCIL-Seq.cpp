@@ -69,9 +69,9 @@ void MATVEC_3D_STENCIL::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
 
     case RAJA_Seq : {
 
-      camp::resources::Resource working_res{camp::resources::Host::get_default()};
+      auto res{getHostResource()};
       RAJA::TypedListSegment<Index_type> zones(real_zones, iend,
-                                               working_res, RAJA::Unowned);
+                                               res, RAJA::Unowned);
 
       auto matvec_3d_lam = [=](Index_type i) {
                          MATVEC_3D_STENCIL_BODY;
@@ -80,7 +80,7 @@ void MATVEC_3D_STENCIL::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::seq_exec>(zones, matvec_3d_lam);
+        RAJA::forall<RAJA::seq_exec>(res, zones, matvec_3d_lam);
 
       }
       stopTimer();

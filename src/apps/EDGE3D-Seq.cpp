@@ -69,10 +69,12 @@ void EDGE3D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
     case RAJA_Seq : {
 
+      auto res{getHostResource()};
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::seq_exec>(
+        RAJA::forall<RAJA::seq_exec>( res,
           RAJA::RangeSegment(ibegin, iend), edge3d_lam);
 
       }

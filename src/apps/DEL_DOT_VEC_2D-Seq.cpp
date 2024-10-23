@@ -71,9 +71,10 @@ void DEL_DOT_VEC_2D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
 
     case RAJA_Seq : {
 
-      camp::resources::Resource working_res{camp::resources::Host::get_default()};
+      auto res{getHostResource()};
+
       RAJA::TypedListSegment<Index_type> zones(real_zones, iend,
-                                               working_res, RAJA::Unowned);
+                                               res, RAJA::Unowned);
 
       auto deldotvec2d_lam = [=](Index_type i) {
                                DEL_DOT_VEC_2D_BODY;
@@ -82,7 +83,7 @@ void DEL_DOT_VEC_2D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::seq_exec>(zones, deldotvec2d_lam);
+        RAJA::forall<RAJA::seq_exec>(res, zones, deldotvec2d_lam);
 
       }
       stopTimer();
