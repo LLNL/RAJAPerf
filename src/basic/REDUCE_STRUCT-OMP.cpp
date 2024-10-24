@@ -110,6 +110,8 @@ void REDUCE_STRUCT::runOpenMPVariant(VariantID vid, size_t tune_idx)
 
     case RAJA_OpenMP : {
 
+      RAJA::resources::Host res;
+
       if (tune_idx == 0) {
 
         startTimer();
@@ -122,7 +124,7 @@ void REDUCE_STRUCT::runOpenMPVariant(VariantID vid, size_t tune_idx)
           RAJA::ReduceMax<RAJA::omp_reduce, Real_type> xmax(m_init_max); 
           RAJA::ReduceMax<RAJA::omp_reduce, Real_type> ymax(m_init_max);
 
-          RAJA::forall<RAJA::omp_parallel_for_exec>(
+          RAJA::forall<RAJA::omp_parallel_for_exec>(res,
             RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
               REDUCE_STRUCT_BODY_RAJA;
           });
@@ -150,7 +152,7 @@ void REDUCE_STRUCT::runOpenMPVariant(VariantID vid, size_t tune_idx)
           Real_type txmax = m_init_max;
           Real_type tymax = m_init_max;
 
-          RAJA::forall<RAJA::omp_parallel_for_exec>(
+          RAJA::forall<RAJA::omp_parallel_for_exec>(res,
             RAJA::RangeSegment(ibegin, iend),
             RAJA::expt::Reduce<RAJA::operators::plus>(&txsum),
             RAJA::expt::Reduce<RAJA::operators::plus>(&tysum),
@@ -158,10 +160,14 @@ void REDUCE_STRUCT::runOpenMPVariant(VariantID vid, size_t tune_idx)
             RAJA::expt::Reduce<RAJA::operators::minimum>(&tymin),
             RAJA::expt::Reduce<RAJA::operators::maximum>(&txmax),
             RAJA::expt::Reduce<RAJA::operators::maximum>(&tymax),
-            [=](Index_type i, Real_type& xsum, Real_type& ysum,
-                              Real_type& xmin, Real_type& ymin,
-                              Real_type& xmax, Real_type& ymax) {
-              REDUCE_STRUCT_BODY;
+            [=](Index_type i, 
+              RAJA::expt::ValOp<Real_type, RAJA::operators::plus>& xsum,
+              RAJA::expt::ValOp<Real_type, RAJA::operators::plus>& ysum,
+              RAJA::expt::ValOp<Real_type, RAJA::operators::minimum>& xmin,
+              RAJA::expt::ValOp<Real_type, RAJA::operators::minimum>& ymin,
+              RAJA::expt::ValOp<Real_type, RAJA::operators::maximum>& xmax,
+              RAJA::expt::ValOp<Real_type, RAJA::operators::maximum>& ymax ) {
+              REDUCE_STRUCT_BODY_RAJA;
             }
           );
 

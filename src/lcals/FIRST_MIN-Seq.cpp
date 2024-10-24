@@ -79,15 +79,17 @@ void FIRST_MIN::runSeqVariant(VariantID vid, size_t tune_idx)
 
     case RAJA_Seq : {
 
+      RAJA::resources::Host res;
+
       if (tune_idx == 0) {
 
         startTimer();
         for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
           RAJA::ReduceMinLoc<RAJA::seq_reduce, Real_type, Index_type> loc(
-                                                          m_xmin_init, m_initloc);
+                                               m_xmin_init, m_initloc);
 
-          RAJA::forall<RAJA::seq_exec>(
+          RAJA::forall<RAJA::seq_exec>(res,
             RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
             FIRST_MIN_BODY_RAJA;
           });
@@ -99,22 +101,23 @@ void FIRST_MIN::runSeqVariant(VariantID vid, size_t tune_idx)
 
       } else if (tune_idx == 1) {
 
-        using VL_TYPE = RAJA::expt::ValLoc<Real_type>;
-
         startTimer();
         for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-          VL_TYPE tloc(m_xmin_init, m_initloc); 
+          RAJA::expt::ValLoc<Real_type, RAJA::Index_type> tminloc(m_xmin_init,
+                                                                  m_initloc);
 
-          RAJA::forall<RAJA::seq_exec>(
+          RAJA::forall<RAJA::seq_exec>(res,
             RAJA::RangeSegment(ibegin, iend),
-            RAJA::expt::Reduce<RAJA::operators::minimum>(&tloc),
-            [=](Index_type i, VL_TYPE& loc) {
-              loc.min(x[i], i);
+            RAJA::expt::Reduce<RAJA::operators::minimum>(&tminloc),
+            [=](Index_type i,
+              RAJA::expt::ValLocOp<Real_type, Index_type,
+                                   RAJA::operators::minimum>& minloc) {
+              minloc.minloc(x[i], i);
             }
           );
 
-          m_minloc = static_cast<Index_type>(tloc.getLoc());
+          m_minloc = static_cast<Index_type>(tminloc.getLoc());
 
         }
         stopTimer();
