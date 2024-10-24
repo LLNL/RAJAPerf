@@ -68,11 +68,12 @@ void HYDRO_1D::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
 
     case RAJA_OpenMP : {
 
-      startTimer();
+      auto res{getHostResource()};
 
+      startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(
+        RAJA::forall<RAJA::omp_parallel_for_exec>( res,
           RAJA::RangeSegment(ibegin, iend), hydro1d_lam);
 
       }

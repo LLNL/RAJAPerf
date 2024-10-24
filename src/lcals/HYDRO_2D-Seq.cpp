@@ -104,6 +104,8 @@ void HYDRO_2D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)
 
     case RAJA_Seq : {
 
+      auto res{getHostResource()};
+
       HYDRO_2D_VIEWS_RAJA;
 
       auto hydro2d_lam1 = [=] (Index_type k, Index_type j) {
@@ -128,19 +130,22 @@ void HYDRO_2D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel<EXECPOL>(
+        RAJA::kernel_resource<EXECPOL>(
                      RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                                        RAJA::RangeSegment(jbeg, jend)),
+                     res,
                      hydro2d_lam1);
 
-        RAJA::kernel<EXECPOL>(
+        RAJA::kernel_resource<EXECPOL>(
                      RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                                        RAJA::RangeSegment(jbeg, jend)),
+                     res,
                      hydro2d_lam2);
 
-        RAJA::kernel<EXECPOL>(
+        RAJA::kernel_resource<EXECPOL>(
                      RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                                        RAJA::RangeSegment(jbeg, jend)),
+                     res,
                      hydro2d_lam3);
 
       }

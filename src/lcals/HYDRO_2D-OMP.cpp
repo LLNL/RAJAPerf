@@ -118,6 +118,8 @@ void HYDRO_2D::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
 
     case RAJA_OpenMP : {
 
+      auto res{getHostResource()};
+
       HYDRO_2D_VIEWS_RAJA;
 
       auto hydro2d_lam1 = [=] (Index_type k, Index_type j) {
@@ -144,19 +146,22 @@ void HYDRO_2D::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
 
         RAJA::region<RAJA::omp_parallel_region>( [=]() {
 
-          RAJA::kernel<EXECPOL>(
+          RAJA::kernel_resource<EXECPOL>(
                        RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                                          RAJA::RangeSegment(jbeg, jend)),
+                       res,
                        hydro2d_lam1);
 
-          RAJA::kernel<EXECPOL>(
+          RAJA::kernel_resource<EXECPOL>(
                        RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                                          RAJA::RangeSegment(jbeg, jend)),
+                       res,
                        hydro2d_lam2);
 
-          RAJA::kernel<EXECPOL>(
+          RAJA::kernel_resource<EXECPOL>(
                        RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                                          RAJA::RangeSegment(jbeg, jend)),
+                       res,
                        hydro2d_lam3);
 
         }); // end omp parallel region

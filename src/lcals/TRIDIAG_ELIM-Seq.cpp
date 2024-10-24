@@ -67,10 +67,12 @@ void TRIDIAG_ELIM::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
 
     case RAJA_Seq : {
 
+      auto res{getHostResource()};
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::seq_exec>(
+        RAJA::forall<RAJA::seq_exec>( res,
           RAJA::RangeSegment(ibegin, iend), tridiag_elim_lam);
 
       }

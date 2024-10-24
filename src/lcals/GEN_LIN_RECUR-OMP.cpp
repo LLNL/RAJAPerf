@@ -79,13 +79,15 @@ void GEN_LIN_RECUR::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
 
     case RAJA_OpenMP : {
 
+      auto res{getHostResource()};
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(
+        RAJA::forall<RAJA::omp_parallel_for_exec>( res,
           RAJA::RangeSegment(0, N), genlinrecur_lam1);
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(
+        RAJA::forall<RAJA::omp_parallel_for_exec>( res,
           RAJA::RangeSegment(1, N+1), genlinrecur_lam2);
 
       }
