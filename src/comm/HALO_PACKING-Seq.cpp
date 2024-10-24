@@ -134,6 +134,8 @@ void HALO_PACKING::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
 
     case RAJA_Seq : {
 
+      auto res{getHostResource()};
+
       using EXEC_POL = RAJA::seq_exec;
 
       startTimer();
@@ -148,7 +150,7 @@ void HALO_PACKING::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
             auto halo_packing_pack_base_lam = [=](Index_type i) {
                   HALO_PACK_BODY;
                 };
-            RAJA::forall<EXEC_POL>(
+            RAJA::forall<EXEC_POL>( res,
                 RAJA::TypedRangeSegment<Index_type>(0, len),
                 halo_packing_pack_base_lam );
             buffer += len;
@@ -176,7 +178,7 @@ void HALO_PACKING::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
             auto halo_packing_unpack_base_lam = [=](Index_type i) {
                   HALO_UNPACK_BODY;
                 };
-            RAJA::forall<EXEC_POL>(
+            RAJA::forall<EXEC_POL>( res,
                 RAJA::TypedRangeSegment<Index_type>(0, len),
                 halo_packing_unpack_base_lam );
             buffer += len;

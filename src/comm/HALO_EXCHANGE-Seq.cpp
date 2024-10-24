@@ -163,6 +163,8 @@ void HALO_EXCHANGE::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
 
     case RAJA_Seq : {
 
+      auto res{getHostResource()};
+
       using EXEC_POL = RAJA::seq_exec;
 
       startTimer();
@@ -183,7 +185,7 @@ void HALO_EXCHANGE::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
             auto halo_exchange_pack_base_lam = [=](Index_type i) {
                   HALO_PACK_BODY;
                 };
-            RAJA::forall<EXEC_POL>(
+            RAJA::forall<EXEC_POL>( res,
                 RAJA::TypedRangeSegment<Index_type>(0, len),
                 halo_exchange_pack_base_lam );
             buffer += len;
@@ -217,7 +219,7 @@ void HALO_EXCHANGE::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
             auto halo_exchange_unpack_base_lam = [=](Index_type i) {
                   HALO_UNPACK_BODY;
                 };
-            RAJA::forall<EXEC_POL>(
+            RAJA::forall<EXEC_POL>( res,
                 RAJA::TypedRangeSegment<Index_type>(0, len),
                 halo_exchange_unpack_base_lam );
             buffer += len;
