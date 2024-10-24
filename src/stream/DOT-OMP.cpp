@@ -76,6 +76,8 @@ void DOT::runOpenMPVariant(VariantID vid, size_t tune_idx)
 
     case RAJA_OpenMP : {
 
+      auto res{getHostResource()};
+
       if (tune_idx == 0) {
 
         startTimer();
@@ -83,7 +85,7 @@ void DOT::runOpenMPVariant(VariantID vid, size_t tune_idx)
 
           RAJA::ReduceSum<RAJA::omp_reduce, Real_type> dot(m_dot_init);
 
-          RAJA::forall<RAJA::omp_parallel_for_exec>(
+          RAJA::forall<RAJA::omp_parallel_for_exec>( res,
             RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
             DOT_BODY;
           });
@@ -100,7 +102,7 @@ void DOT::runOpenMPVariant(VariantID vid, size_t tune_idx)
 
           Real_type tdot = m_dot_init;
 
-          RAJA::forall<RAJA::omp_parallel_for_exec>(
+          RAJA::forall<RAJA::omp_parallel_for_exec>( res,
             RAJA::RangeSegment(ibegin, iend),
             RAJA::expt::Reduce<RAJA::operators::plus>(&tdot),
             [=] (Index_type i, Real_type& dot) {
