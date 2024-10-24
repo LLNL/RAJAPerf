@@ -155,7 +155,7 @@ endif()
 if (ENABLE_CUDA)
   list(APPEND RAJA_PERFSUITE_DEPENDS cuda)
 endif()
-if (ENABLE_SYCL)
+if (RAJA_ENABLE_SYCL)
   list(APPEND RAJA_PERFSUITE_DEPENDS sycl)
 endif()
 
