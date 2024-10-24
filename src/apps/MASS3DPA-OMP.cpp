@@ -98,7 +98,8 @@ void MASS3DPA::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
 
   case RAJA_OpenMP: {
 
-    //Currently Teams requires two policies if compiled with a device
+    auto res{getHostResource()};
+
     using launch_policy = RAJA::LaunchPolicy<RAJA::omp_launch_t>;
 
     using outer_x = RAJA::LoopPolicy<RAJA::omp_for_exec>;
@@ -111,7 +112,7 @@ void MASS3DPA::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       //Grid is empty as the host does not need a compute grid to be specified
-      RAJA::launch<launch_policy>(
+      RAJA::launch<launch_policy>( res,
         RAJA::LaunchParams(),
         [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
 

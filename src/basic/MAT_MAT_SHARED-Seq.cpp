@@ -75,7 +75,6 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
 #if defined(RUN_RAJA_SEQ)
   case Lambda_Seq: {
 
-
     startTimer();
     for (Index_type irep = 0; irep < run_reps; ++irep) {
 
@@ -155,6 +154,8 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
 
   case RAJA_Seq: {
 
+    auto res{getHostResource()};
+
     using launch_policy = RAJA::LaunchPolicy<RAJA::seq_launch_t>;
 
     using outer_x = RAJA::LoopPolicy<RAJA::seq_exec>;
@@ -169,7 +170,8 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       //Grid is empty as the host does not need a compute grid to be specified
-      RAJA::launch<launch_policy>(RAJA::LaunchParams(),
+      RAJA::launch<launch_policy>( res,
+        RAJA::LaunchParams(),
         [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
 
           RAJA::loop<outer_y>(ctx, RAJA::RangeSegment(0, Ny),

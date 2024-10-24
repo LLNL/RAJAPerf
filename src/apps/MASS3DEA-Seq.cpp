@@ -69,6 +69,8 @@ void MASS3DEA::runSeqVariant(VariantID vid,
 #if defined(RUN_RAJA_SEQ)
   case RAJA_Seq: {
 
+    auto res{getHostResource()};
+
     // Currently Teams requires two policies if compiled with a device
     using launch_policy = RAJA::LaunchPolicy<RAJA::seq_launch_t>;
 
@@ -83,7 +85,7 @@ void MASS3DEA::runSeqVariant(VariantID vid,
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::launch<launch_policy>(
+      RAJA::launch<launch_policy>( res,
           RAJA::LaunchParams(),
           [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
 
