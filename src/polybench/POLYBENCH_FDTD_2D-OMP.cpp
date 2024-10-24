@@ -124,6 +124,8 @@ void POLYBENCH_FDTD_2D::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_A
 
     case RAJA_OpenMP : {
 
+      auto res{getHostResource()};
+
       POLYBENCH_FDTD_2D_VIEWS_RAJA;
 
       //
@@ -160,25 +162,29 @@ void POLYBENCH_FDTD_2D::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_A
 
         for (t = 0; t < tsteps; ++t) {
 
-          RAJA::forall<EXEC_POL1>( RAJA::RangeSegment(0, ny),
+          RAJA::forall<EXEC_POL1>( res,
+            RAJA::RangeSegment(0, ny),
             poly_fdtd2d_lam1
           );
 
-          RAJA::kernel<EXEC_POL234>(
+          RAJA::kernel_resource<EXEC_POL234>(
             RAJA::make_tuple(RAJA::RangeSegment{1, nx},
                              RAJA::RangeSegment{0, ny}),
+            res,
             poly_fdtd2d_lam2
           );
 
-          RAJA::kernel<EXEC_POL234>(
+          RAJA::kernel_resource<EXEC_POL234>(
             RAJA::make_tuple(RAJA::RangeSegment{0, nx},
                              RAJA::RangeSegment{1, ny}),
+            res,
             poly_fdtd2d_lam3
           );
 
-          RAJA::kernel<EXEC_POL234>(
+          RAJA::kernel_resource<EXEC_POL234>(
             RAJA::make_tuple(RAJA::RangeSegment{0, nx-1},
                              RAJA::RangeSegment{0, ny-1}),
+            res,
             poly_fdtd2d_lam4
           );
 

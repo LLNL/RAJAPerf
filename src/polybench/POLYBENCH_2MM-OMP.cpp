@@ -137,6 +137,8 @@ void POLYBENCH_2MM::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
 
     case RAJA_OpenMP : {
 
+      auto res{getHostResource()};
+
       POLYBENCH_2MM_VIEWS_RAJA;
 
       auto poly_2mm_lam1 = [=](Real_type &dot) {
@@ -192,22 +194,24 @@ void POLYBENCH_2MM::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel_param<EXEC_POL>(
+        RAJA::kernel_param_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                            RAJA::RangeSegment{0, nj},
                            RAJA::RangeSegment{0, nk}),
           RAJA::tuple<Real_type>{0.0},
+          res,
 
           poly_2mm_lam1,
           poly_2mm_lam2,
           poly_2mm_lam3
         );
 
-        RAJA::kernel_param<EXEC_POL>(
+        RAJA::kernel_param_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                            RAJA::RangeSegment{0, nl},
                            RAJA::RangeSegment{0, nj}),
           RAJA::tuple<Real_type>{0.0},
+          res,
 
           poly_2mm_lam4,
           poly_2mm_lam5,

@@ -128,6 +128,8 @@ void POLYBENCH_ADI::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
 
     case RAJA_Seq : {
 
+      auto res{getHostResource()};
+
       POLYBENCH_ADI_VIEWS_RAJA;
 
       auto poly_adi_lam2 = [=](Index_type i) {
@@ -174,10 +176,11 @@ void POLYBENCH_ADI::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
 
         for (Index_type t = 1; t <= tsteps; ++t) {
 
-          RAJA::kernel<EXEC_POL>(
+          RAJA::kernel_resource<EXEC_POL>(
             RAJA::make_tuple(RAJA::RangeSegment{1, n-1},
                              RAJA::RangeSegment{1, n-1},
                              RAJA::RangeStrideSegment{n-2, 0, -1}),
+            res,
 
             poly_adi_lam2,
             poly_adi_lam3,
@@ -186,10 +189,11 @@ void POLYBENCH_ADI::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
 
           );
 
-          RAJA::kernel<EXEC_POL>(
+          RAJA::kernel_resource<EXEC_POL>(
             RAJA::make_tuple(RAJA::RangeSegment{1, n-1},
                              RAJA::RangeSegment{1, n-1},
                              RAJA::RangeStrideSegment{n-2, 0, -1}),
+            res,
 
             poly_adi_lam6,
             poly_adi_lam7,

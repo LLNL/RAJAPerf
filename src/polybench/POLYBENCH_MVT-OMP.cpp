@@ -116,6 +116,8 @@ void POLYBENCH_MVT::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
 
     case RAJA_OpenMP : {
 
+      auto res{getHostResource()};
+
       POLYBENCH_MVT_VIEWS_RAJA;
 
       auto poly_mvt_lam1 = [=] (Real_type &dot) {
@@ -153,10 +155,11 @@ void POLYBENCH_MVT::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
 
         RAJA::region<RAJA::omp_parallel_region>( [=]() {
 
-          RAJA::kernel_param<EXEC_POL>(
+          RAJA::kernel_param_resource<EXEC_POL>(
             RAJA::make_tuple(RAJA::RangeSegment{0, N},
                              RAJA::RangeSegment{0, N}),
             RAJA::tuple<Real_type>{0.0},
+            res,
 
             poly_mvt_lam1,
             poly_mvt_lam2,
@@ -164,10 +167,11 @@ void POLYBENCH_MVT::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
 
           );
 
-          RAJA::kernel_param<EXEC_POL>(
+          RAJA::kernel_param_resource<EXEC_POL>(
             RAJA::make_tuple(RAJA::RangeSegment{0, N},
                              RAJA::RangeSegment{0, N}),
             RAJA::tuple<Real_type>{0.0},
+            res,
 
             poly_mvt_lam4,
             poly_mvt_lam5,

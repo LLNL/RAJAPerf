@@ -106,6 +106,8 @@ void POLYBENCH_ATAX::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
 
     case RAJA_OpenMP : {
 
+      auto res{getHostResource()};
+
       POLYBENCH_ATAX_VIEWS_RAJA;
 
       auto poly_atax_lam1 = [=] (Index_type i, Real_type &dot) {
@@ -152,10 +154,11 @@ void POLYBENCH_ATAX::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel_param<EXEC_POL1>(
+        RAJA::kernel_param_resource<EXEC_POL1>(
           RAJA::make_tuple(RAJA::RangeSegment{0, N},
                            RAJA::RangeSegment{0, N}),
           RAJA::tuple<Real_type>{0.0},
+          res,
 
           poly_atax_lam1,
           poly_atax_lam2,
@@ -163,10 +166,11 @@ void POLYBENCH_ATAX::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
 
         );
 
-        RAJA::kernel_param<EXEC_POL2>(
+        RAJA::kernel_param_resource<EXEC_POL2>(
           RAJA::make_tuple(RAJA::RangeSegment{0, N},
                            RAJA::RangeSegment{0, N}),
           RAJA::tuple<Real_type>{0.0},
+          res,
 
           poly_atax_lam4,
           poly_atax_lam5,

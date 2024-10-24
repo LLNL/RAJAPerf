@@ -106,6 +106,8 @@ void POLYBENCH_HEAT_3D::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_A
 
     case RAJA_OpenMP : {
 
+      auto res{getHostResource()};
+
       POLYBENCH_HEAT_3D_VIEWS_RAJA;
 
       using EXEC_POL =
@@ -123,17 +125,21 @@ void POLYBENCH_HEAT_3D::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_A
 
         for (Index_type t = 0; t < tsteps; ++t) {
 
-          RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
-                                                   RAJA::RangeSegment{1, N-1},
-                                                   RAJA::RangeSegment{1, N-1}),
+          RAJA::kernel_resource<EXEC_POL>(
+            RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
+                             RAJA::RangeSegment{1, N-1},
+                             RAJA::RangeSegment{1, N-1}),
+            res,
             [=](Index_type i, Index_type j, Index_type k) {
               POLYBENCH_HEAT_3D_BODY1_RAJA;
             }
           );
 
-          RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
-                                                   RAJA::RangeSegment{1, N-1},
-                                                   RAJA::RangeSegment{1, N-1}),
+          RAJA::kernel_resource<EXEC_POL>(
+            RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
+                             RAJA::RangeSegment{1, N-1},
+                             RAJA::RangeSegment{1, N-1}),
+            res,
             [=](Index_type i, Index_type j, Index_type k) {
               POLYBENCH_HEAT_3D_BODY2_RAJA;
             }

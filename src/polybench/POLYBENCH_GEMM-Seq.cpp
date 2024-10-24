@@ -86,6 +86,8 @@ void POLYBENCH_GEMM::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
 
     case RAJA_Seq : {
 
+      auto res{getHostResource()}; 
+
       POLYBENCH_GEMM_VIEWS_RAJA;
 
       auto poly_gemm_lam1 = [=](Real_type& dot) {
@@ -120,12 +122,13 @@ void POLYBENCH_GEMM::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel_param<EXEC_POL>(
+        RAJA::kernel_param_resource<EXEC_POL>(
 
           RAJA::make_tuple( RAJA::RangeSegment{0, ni},
                             RAJA::RangeSegment{0, nj},
                             RAJA::RangeSegment{0, nk} ),
           RAJA::tuple<Real_type>{0.0},  // variable for dot
+          res,
 
           poly_gemm_lam1,
           poly_gemm_lam2,

@@ -126,6 +126,8 @@ void POLYBENCH_GEMVER::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
 
     case RAJA_Seq : {
 
+      auto res{getHostResource()};
+
       POLYBENCH_GEMVER_VIEWS_RAJA;
 
       auto poly_gemver_lam1 = [=] (Index_type i, Index_type j) {
@@ -178,29 +180,34 @@ void POLYBENCH_GEMVER::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel<EXEC_POL1>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
-                                                  RAJA::RangeSegment{0, n}),
+        RAJA::kernel_resource<EXEC_POL1>(
+          RAJA::make_tuple(RAJA::RangeSegment{0, n},
+                           RAJA::RangeSegment{0, n}),
+          res,
           poly_gemver_lam1
         );
 
-        RAJA::kernel_param<EXEC_POL24>(
+        RAJA::kernel_param_resource<EXEC_POL24>(
           RAJA::make_tuple(RAJA::RangeSegment{0, n},
                            RAJA::RangeSegment{0, n}),
           RAJA::tuple<Real_type>{0.0},
+          res,
 
           poly_gemver_lam2,
           poly_gemver_lam3,
           poly_gemver_lam4
         );
 
-        RAJA::forall<EXEC_POL3> (RAJA::RangeSegment{0, n},
+        RAJA::forall<EXEC_POL3>(res, 
+          RAJA::RangeSegment{0, n},
           poly_gemver_lam5
         );
 
-        RAJA::kernel_param<EXEC_POL24>(
+        RAJA::kernel_param_resource<EXEC_POL24>(
           RAJA::make_tuple(RAJA::RangeSegment{0, n},
                            RAJA::RangeSegment{0, n}),
           RAJA::tuple<Real_type>{0.0},
+          res,
 
           poly_gemver_lam6,
           poly_gemver_lam7,

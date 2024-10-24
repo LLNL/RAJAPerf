@@ -76,6 +76,8 @@ void POLYBENCH_GESUMMV::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
     }
 
     case RAJA_Seq : {
+ 
+      auto res{getHostResource()}; 
 
       POLYBENCH_GESUMMV_VIEWS_RAJA;
 
@@ -105,11 +107,12 @@ void POLYBENCH_GESUMMV::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel_param<EXEC_POL>(
+        RAJA::kernel_param_resource<EXEC_POL>(
           RAJA::make_tuple( RAJA::RangeSegment{0, N},
                             RAJA::RangeSegment{0, N} ),
           RAJA::make_tuple(static_cast<Real_type>(0.0),
                            static_cast<Real_type>(0.0)),
+          res,
 
           poly_gesummv_lam1,
           poly_gesummv_lam2,

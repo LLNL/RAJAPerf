@@ -89,6 +89,8 @@ void POLYBENCH_FLOYD_WARSHALL::runOpenMPVariant(VariantID vid, size_t RAJAPERF_U
 
     case RAJA_OpenMP : {
 
+      auto res{getHostResource()};
+
       POLYBENCH_FLOYD_WARSHALL_VIEWS_RAJA;
 
       auto poly_floydwarshall_lam = [=](Index_type k, Index_type i,
@@ -122,9 +124,11 @@ void POLYBENCH_FLOYD_WARSHALL::runOpenMPVariant(VariantID vid, size_t RAJAPERF_U
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
-                                                 RAJA::RangeSegment{0, N},
-                                                 RAJA::RangeSegment{0, N}),
+        RAJA::kernel_resource<EXEC_POL>(
+          RAJA::make_tuple(RAJA::RangeSegment{0, N},
+                           RAJA::RangeSegment{0, N},
+                           RAJA::RangeSegment{0, N}),
+          res,
           poly_floydwarshall_lam
         );
 

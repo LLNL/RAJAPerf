@@ -96,6 +96,8 @@ void POLYBENCH_JACOBI_2D::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED
 
     case RAJA_OpenMP : {
 
+      auto res{getHostResource()};
+
       POLYBENCH_JACOBI_2D_VIEWS_RAJA;
 
       auto poly_jacobi2d_lam1 = [=](Index_type i, Index_type j) {
@@ -124,8 +126,10 @@ void POLYBENCH_JACOBI_2D::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED
 
         for (Index_type t = 0; t < tsteps; ++t) {
 
-          RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
-                                                   RAJA::RangeSegment{1, N-1}),
+          RAJA::kernel_resource<EXEC_POL>(
+            RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
+                             RAJA::RangeSegment{1, N-1}),
+            res,
 
 	    poly_jacobi2d_lam1,
 	    poly_jacobi2d_lam2
