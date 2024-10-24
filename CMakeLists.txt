@@ -17,7 +17,7 @@ endif()
 
 option(ENABLE_KOKKOS "Include Kokkos implementations of the kernels in the RAJA Perfsuite" Off)
 
-if (ENABLE_KOKKOS OR ENABLE_SYCL)
+if (ENABLE_KOKKOS OR RAJA_ENABLE_SYCL)
   set(CMAKE_CXX_STANDARD 17)
   set(BLT_CXX_STD c++17)
 else()
