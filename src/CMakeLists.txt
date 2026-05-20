@@ -67,6 +67,8 @@ blt_add_executable(
   apps/FIR-OMPTarget.cpp
   apps/INTSC_HEXHEX.cpp
   apps/INTSC_HEXHEX-Seq.cpp
+  apps/INTSC_HEXHEX_NEW.cpp
+  apps/INTSC_HEXHEX_NEW-Seq.cpp
   apps/INTSC_HEXRECT.cpp
   apps/INTSC_HEXRECT-Seq.cpp
   apps/LTIMES.cpp

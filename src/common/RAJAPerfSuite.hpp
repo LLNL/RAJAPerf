@@ -152,6 +152,7 @@ enum KernelID {
   Apps_FEMSWEEP,
   Apps_FIR,
   Apps_INTSC_HEXHEX,
+  Apps_INTSC_HEXHEX_NEW,
   Apps_INTSC_HEXRECT,
   Apps_LTIMES,
   Apps_LTIMES_NOVIEW,
