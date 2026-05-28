@@ -33,7 +33,7 @@ namespace apps
 
 template < Size_type block_size >
 __launch_bounds__(block_size)
-__global__ void intsc_hexhex
+__global__ void intsc_hexhex_new
   ( Real_ptr const dsubz,
     Real_ptr const tsubz,
     Size_type  const nisc_stage,
@@ -53,7 +53,7 @@ __global__ void intsc_hexhex
 
 
 template < Size_type block_size >
-__global__ void intsc_hexhex_fixup_vv_64to72
+__global__ void intsc_hexhex_new_fixup_vv_64to72
     ( Real_ptr const vv_int,   // [8*intsc blks] blocked volumes, moments
       Size_type const n_szpairs,  // number of subzone pairs
       Real_ptr vv_pair )       // [4*n_szpairs] output voluments, moments
@@ -99,13 +99,13 @@ void INTSC_HEXHEX_NEW::runCudaVariantImpl(VariantID vid)
       const Size_type grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr Size_type shmem = 0;
 
-      RPlaunchCudaKernel( (intsc_hexhex<block_size>),
+      RPlaunchCudaKernel( (intsc_hexhex_new<block_size>),
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           m_dsubz, m_tsubz,
                           n_subz_intsc, m_vv_int ) ;
 
-      RPlaunchCudaKernel( (intsc_hexhex_fixup_vv_64to72<block_size>),
+      RPlaunchCudaKernel( (intsc_hexhex_new_fixup_vv_64to72<block_size>),
                           gsize_fixup, block_size,
                           shmem, res.get_stream(),
                           m_vv_int, n_subz_intsc, m_vv_out ) ;
@@ -122,7 +122,7 @@ void INTSC_HEXHEX_NEW::runCudaVariantImpl(VariantID vid)
 
       const Size_type grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
-      auto intsc_hexhex_lambda = [=] __device__ ( Index_type i ) {
+      auto intsc_hexhex_new_lambda = [=] __device__ ( Index_type i ) {
 
           __shared__ Real_type vv_reduce[hexhex_new_len_vv_reduce] ;
 
@@ -135,25 +135,25 @@ void INTSC_HEXHEX_NEW::runCudaVariantImpl(VariantID vid)
           INTSC_HEXHEX_NEW_BODY ;
       } ;
 
-      auto intsc_hexhex_fixup_lambda = [=] __device__ ( Index_type i ) {
+      auto intsc_hexhex_new_fixup_lambda = [=] __device__ ( Index_type i ) {
           INTSC_HEXHEX_NEW_FIXUP_VV_BODY ;
       } ;
 
       constexpr Size_type shmem = 0;
 
       RPlaunchCudaKernel( (lambda_cuda_forall<block_size,
-                           decltype(intsc_hexhex_lambda)>),
+                           decltype(intsc_hexhex_new_lambda)>),
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           ibegin, iend,
-                          intsc_hexhex_lambda );
+                          intsc_hexhex_new_lambda );
 
       RPlaunchCudaKernel( (lambda_cuda_forall<block_size,
-                           decltype(intsc_hexhex_fixup_lambda)>),
+                           decltype(intsc_hexhex_new_fixup_lambda)>),
                           gsize_fixup, block_size,
                           shmem, res.get_stream(),
                           ibegin, iend_fixup,
-                          intsc_hexhex_fixup_lambda );
+                          intsc_hexhex_new_fixup_lambda );
 
 
     }
