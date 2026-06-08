@@ -12,37 +12,114 @@
 
 namespace rajaperf {
 
+constexpr int hexhex_new_max_poly_vertices = 9;
+static constexpr unsigned long long HEXHEX_NEW_NEXT_INIT = 0xF87654F21ULL;
+
+enum class HexHexPackedPlaneNew {
+  H2,   // 1 - x - y >= 0
+  X,    // x >= 0
+  Y,    // y >= 0
+  Z,    // z >= 0
+  H,    // h >= 0
+  NEG_H // -h - eps >= 0
+};
 
 RAJA_HOST_DEVICE
-RAJA_INLINE void clip_polygon_ge_0_new
-    ( Real_ptr cin,   // the cut coordinate, can be xin, yin, or zin.
-      Real_ptr xin, Real_ptr yin,
-      Real_ptr zin, Real_ptr hin, // input coordinates
-      Int_type &first, Int_type &avail, Int_ptr next )   // linked list
-{
-  Int_type j  = first ;
+RAJA_INLINE Int_type hexhex_new_next_get(unsigned long long pack,
+                                         Int_type idx) {
+  unsigned int const v =
+      static_cast<unsigned int>((pack >> (4 * idx)) & 0xFULL);
+
+  return (v == 0xFULL) ? Int_type(-1) : Int_type(v);
+}
+
+RAJA_HOST_DEVICE
+RAJA_INLINE void hexhex_new_next_set(unsigned long long &pack, Int_type idx,
+                                     Int_type next) {
+  unsigned long long const shift = static_cast<unsigned long long>(4 * idx);
+  unsigned long long const mask = 0xFULL << shift;
+
+  unsigned long long const v = static_cast<unsigned long long>(
+      next < 0 ? 0xFULL : static_cast<unsigned int>(next));
+
+  pack = (pack & ~mask) | ((v & 0xFULL) << shift);
+}
+
+template <HexHexPackedPlaneNew P>
+RAJA_HOST_DEVICE RAJA_INLINE Real_type hexhex_plane_value_packed_new(
+    Real_type const x[hexhex_new_max_poly_vertices],
+    Real_type const y[hexhex_new_max_poly_vertices],
+    Real_type const z[hexhex_new_max_poly_vertices], Int_type const j) {
+  switch (P) {
+  case HexHexPackedPlaneNew::H2:
+    return Real_type(1.0) - x[j] - y[j];
+  case HexHexPackedPlaneNew::X:
+    return x[j];
+  case HexHexPackedPlaneNew::Y:
+    return y[j];
+  case HexHexPackedPlaneNew::Z:
+    return z[j];
+  case HexHexPackedPlaneNew::H:
+    return Real_type(1.0) - x[j] - y[j] - z[j];
+  case HexHexPackedPlaneNew::NEG_H:
+    return x[j] + y[j] + z[j] - Real_type(1.0) - Real_type(1.0e-50);
+  }
+
+  return Real_type(0.0);
+}
+
+RAJA_HOST_DEVICE
+RAJA_INLINE void
+hexhex_interp_zero_packed_new(Real_type x[hexhex_new_max_poly_vertices],
+                              Real_type y[hexhex_new_max_poly_vertices],
+                              Real_type z[hexhex_new_max_poly_vertices],
+                              Int_type out, Int_type a, Int_type b,
+                              Real_type ca, Real_type cb) {
+  Real_type t = ca / (ca - cb);
+  Real_type omt = Real_type(1.0) - t;
+
+  x[out] = x[a] * omt + x[b] * t;
+  y[out] = y[a] * omt + y[b] * t;
+  z[out] = z[a] * omt + z[b] * t;
+}
+
+template <HexHexPackedPlaneNew P>
+RAJA_HOST_DEVICE RAJA_INLINE void
+clip_polygon_ge_0_packed_new(Real_type x[hexhex_new_max_poly_vertices],
+                             Real_type y[hexhex_new_max_poly_vertices],
+                             Real_type z[hexhex_new_max_poly_vertices],
+                             Int_type &first, Int_type &avail,
+                             unsigned long long &next_pack) {
+  Int_type j = first;
+
+  if (j < 0) {
+    return;
+  }
 
   Int_type first0 = first ;
   Int_type j1 = -1, j2 = -1 ;
   Int_type jj1 = -1, jj2 = -1 ;
 
-  Real_type c0 = ( j >= 0 ) ? cin[j] : 0.0 ;
-  Real_type c00 = c0 ;
-  Real_type clast = c0 ;
+  Real_type c0 = hexhex_plane_value_packed_new<P>(x, y, z, j);
+  Real_type c00 = c0;
+  Real_type clast = c0;
 
-  while ( j >= 0 ) {
-    Int_type jj = next[j] ;
-    Int_type jp = jj ;       // advancing, jp is -1 at end.
-    if ( jj < 0 ) { jj = first0 ; }   // last edge of polygon
-
-    Real_type c1 = cin[jj] ;
-    if ( ( c0 >= 0 ) && ( c1 < 0 ) ) {
-      j1 = j ;
-      jj1 = jj ;
+#pragma unroll 1
+  while (j >= 0) {
+    Int_type jj = hexhex_new_next_get(next_pack, j);
+    Int_type jp = jj;
+    if (jj < 0) {
+      jj = first0;
     }
-    if ( ( c0 < 0 ) && ( c1 >= 0 ) ) {
-      j2 = j ;
-      jj2 = jj ;
+
+    Real_type c1 = hexhex_plane_value_packed_new<P>(x, y, z, jj);
+    if ((c0 >= Real_type(0.0)) && (c1 < Real_type(0.0))) {
+      j1 = j;
+      jj1 = jj;
+    }
+    if ((c0 < Real_type(0.0)) && (c1 >= Real_type(0.0))) {
+      j2 = j;
+      jj2 = jj;
     }
     j = jp ;
     clast = c0 ;
@@ -51,44 +128,43 @@ RAJA_INLINE void clip_polygon_ge_0_new
 
   Int_type jr1=-1, jr2=-1 ;
 
-  if ( j1 >= 0 ) {   // Insert first crossover point
+  if (j1 >= 0) {
+    jr1 = avail;
+    avail = hexhex_new_next_get(next_pack, avail);
+    hexhex_interp_zero_packed_new(
+        x, y, z, jr1, j1, jj1, hexhex_plane_value_packed_new<P>(x, y, z, j1),
+        hexhex_plane_value_packed_new<P>(x, y, z, jj1));
 
-    jr1 = avail ;
-    avail = next[avail] ;
-    Real_type eta = ( 0.0 - cin[jj1] ) / ( cin[j1] - cin[jj1] ) ;
-    xin[jr1] = xin[j1] * eta + xin[jj1] * ( 1.0 - eta ) ;
-    yin[jr1] = yin[j1] * eta + yin[jj1] * ( 1.0 - eta ) ;
-    zin[jr1] = zin[j1] * eta + zin[jj1] * ( 1.0 - eta ) ;
-    hin[jr1] = hin[j1] * eta + hin[jj1] * ( 1.0 - eta ) ;
-
-    jr2 = avail ;      // Insert second crossover point
-    avail = next[avail] ;
-    eta = ( 0.0 - cin[j2] ) / ( cin[jj2] - cin[j2] ) ;
-    xin[jr2] = xin[jj2] * eta + xin[j2] * ( 1.0 - eta ) ;
-    yin[jr2] = yin[jj2] * eta + yin[j2] * ( 1.0 - eta ) ;
-    zin[jr2] = zin[jj2] * eta + zin[j2] * ( 1.0 - eta ) ;
-    hin[jr2] = hin[jj2] * eta + hin[j2] * ( 1.0 - eta ) ;
+    jr2 = avail;
+    avail = hexhex_new_next_get(next_pack, avail);
+    hexhex_interp_zero_packed_new(
+        x, y, z, jr2, j2, jj2, hexhex_plane_value_packed_new<P>(x, y, z, j2),
+        hexhex_plane_value_packed_new<P>(x, y, z, jj2));
   }
 
   first = -1 ;
 
-  j = first0 ;
-  while ( j >= 0 ) {   // Make removed points available.
-    Int_type jp = next[j] ;
-    if ( cin[j] < 0.0 ) {
-      next[j] = avail ;
-      avail = j ;
-    } else if ( first == -1 ) {
-      first = j ;        // Set first point for output polygon.
+  j = first0;
+#pragma unroll 1
+  while (j >= 0) {
+    Int_type jp = hexhex_new_next_get(next_pack, j);
+    if (hexhex_plane_value_packed_new<P>(x, y, z, j) < Real_type(0.0)) {
+      hexhex_new_next_set(next_pack, j, avail);
+      avail = j;
+    } else if (first == -1) {
+      first = j;
     }
     j = jp ;
   }
 
 
-  if ( j1 >= 0 ) {     // Set linked list for crossover points.
-    next[j1] = jr1 ;
-    next[jr1] = jr2 ;
-    next[jr2] = ( ( clast < 0 ) || ( c00 < 0 ) ) ? -1 : jj2 ;
+  if (j1 >= 0) {
+    hexhex_new_next_set(next_pack, j1, jr1);
+    hexhex_new_next_set(next_pack, jr1, jr2);
+    hexhex_new_next_set(next_pack, jr2,
+                        ((clast < Real_type(0.0)) || (c00 < Real_type(0.0)))
+                            ? Int_type(-1)
+                            : jj2);
   }
 }
 
@@ -99,24 +175,25 @@ RAJA_INLINE void clip_polygon_ge_0_new
 //   Planar polygon.
 //   Compute volume, moments between polygon and the z=0 plane.
 RAJA_HOST_DEVICE
-RAJA_INLINE void cuda_hex_volpolyh_1poly_new
-    ( Real_ptr x, Real_ptr y, Real_ptr z,
-      Int_type const first,
-      Int_const_ptr next,
-      Real_type &vv,
-      Real_type &vx,
-      Real_type &vy,
-      Real_type &vz )
-{
-  if ( first < 0 ) { return ; }   // No polygon remains after clipping.
+RAJA_INLINE void cuda_hex_volpolyh_1poly_packed_new(
+    Real_type const x[hexhex_new_max_poly_vertices],
+    Real_type const y[hexhex_new_max_poly_vertices],
+    Real_type const z[hexhex_new_max_poly_vertices], Int_type const first,
+    unsigned long long const next_pack, Real_type &vv, Real_type &vx,
+    Real_type &vy, Real_type &vz) {
+  if (first < 0) {
+    return;
+  }
 
-  Int_type j0 = first ;
+  Int_type const j0 = first;
+  Real_type x0 = x[j0];
+  Real_type y0 = y[j0];
+  Real_type z0 = z[j0];
 
-  Real_type x0  = x[j0] ;
-  Real_type y0  = y[j0] ;
-  Real_type z0  = z[j0] ;
-
-  Int_type j1 = next[j0] ;
+  Int_type const j1 = hexhex_new_next_get(next_pack, j0);
+  if (j1 < 0) {
+    return;
+  }
 
   Real_type x1  = x[j1] ;
   Real_type y1  = y[j1] ;
@@ -124,15 +201,15 @@ RAJA_INLINE void cuda_hex_volpolyh_1poly_new
   Real_type dx1 = x1 - x0 ;
   Real_type dy1 = y1 - y0 ;
 
-  Int_type j2 = next[j1] ;
+  Int_type j2 = hexhex_new_next_get(next_pack, j1);
 
-  while ( j2 >= 0 ) {   // Vertices
-
-    Real_type x2  = x[j2] ;
-    Real_type y2  = y[j2] ;
-    Real_type z2  = z[j2] ;
-    Real_type dx2 = x2 - x0 ;
-    Real_type dy2 = y2 - y0 ;
+#pragma unroll 1
+  while (j2 >= 0) {
+    Real_type x2 = x[j2];
+    Real_type y2 = y[j2];
+    Real_type z2 = z[j2];
+    Real_type dx2 = x2 - x0;
+    Real_type dy2 = y2 - y0;
 
     Real_type area2 = (dx1 * dy2 - dx2 * dy1) ;
     Real_type v0 = ( z0 + z1 + z2 ) * area2 ;
@@ -145,7 +222,7 @@ RAJA_INLINE void cuda_hex_volpolyh_1poly_new
     x1=x2 ;   y1=y2 ;   z1=z2 ;    // Rotate.
     dx1=dx2 ; dy1=dy2 ;
 
-    j2 = next[j2] ;
+    j2 = hexhex_new_next_get(next_pack, j2);
   }
 }
 
@@ -164,12 +241,10 @@ RAJA_INLINE void cuda_intsc_tri_tet_new
       Real_type &vy_thr,     // y moment contribution for this triangle-tet
       Real_type &vz_thr )    // z moment contribution for this triangle-tet
 {
-  Real_type det, deti ;
-  Real_type ha[9] ;      // 1 - x - y - z
-
-  Real_type xa[9], ya[9], za[9], h2[10] ;
-  Int_ptr next1 = (Int_ptr) h2 ;
-  Int_ptr next  = next1 + 10 ;
+  Real_type det, deti;
+  Real_type xa0, xa1, xa2;
+  Real_type ya0, ya1, ya2;
+  Real_type za0, za1, za2;
 
   Real_type vv = 0.0, vx = 0.0, vy = 0.0, vz = 0.0 ;  // volume, moments.
 
@@ -195,102 +270,128 @@ RAJA_INLINE void cuda_intsc_tri_tet_new
   Real_type cxy = xtt[2] * ytt[3] - ytt[2] * xtt[3] ;
 
   //   Coordinates of the facet in the transformed frame.
-  xa[0] = (xdt[0] - xtt[0]) * cyz + (ydt[0] - ytt[0]) * czx +
-      (zdt[0] - ztt[0]) * cxy ;
-  xa[1] = (xdt[1] - xtt[0]) * cyz + (ydt[1] - ytt[0]) * czx +
-      (zdt[1] - ztt[0]) * cxy ;
-  xa[2] = (xdt[2] - xtt[0]) * cyz + (ydt[2] - ytt[0]) * czx +
-      (zdt[2] - ztt[0]) * cxy ;
+  xa0 = (xdt[0] - xtt[0]) * cyz + (ydt[0] - ytt[0]) * czx +
+        (zdt[0] - ztt[0]) * cxy;
+  xa1 = (xdt[1] - xtt[0]) * cyz + (ydt[1] - ytt[0]) * czx +
+        (zdt[1] - ztt[0]) * cxy;
+  xa2 = (xdt[2] - xtt[0]) * cyz + (ydt[2] - ytt[0]) * czx +
+        (zdt[2] - ztt[0]) * cxy;
 
   cyz = ytt[3] * ztt[1] - ztt[3] * ytt[1] ;
   czx = ztt[3] * xtt[1] - xtt[3] * ztt[1] ;
   cxy = xtt[3] * ytt[1] - ytt[3] * xtt[1] ;
 
-  ya[0] = (xdt[0] - xtt[0]) * cyz + (ydt[0] - ytt[0]) * czx +
-      (zdt[0] - ztt[0]) * cxy ;
-  ya[1] = (xdt[1] - xtt[0]) * cyz + (ydt[1] - ytt[0]) * czx +
-      (zdt[1] - ztt[0]) * cxy ;
-  ya[2] = (xdt[2] - xtt[0]) * cyz + (ydt[2] - ytt[0]) * czx +
-      (zdt[2] - ztt[0]) * cxy ;
+  ya0 = (xdt[0] - xtt[0]) * cyz + (ydt[0] - ytt[0]) * czx +
+        (zdt[0] - ztt[0]) * cxy;
+  ya1 = (xdt[1] - xtt[0]) * cyz + (ydt[1] - ytt[0]) * czx +
+        (zdt[1] - ztt[0]) * cxy;
+  ya2 = (xdt[2] - xtt[0]) * cyz + (ydt[2] - ytt[0]) * czx +
+        (zdt[2] - ztt[0]) * cxy;
 
   cyz = ytt[1] * ztt[2] - ztt[1] * ytt[2] ;
   czx = ztt[1] * xtt[2] - xtt[1] * ztt[2] ;
   cxy = xtt[1] * ytt[2] - ytt[1] * xtt[2] ;
 
-  za[0] = (xdt[0] - xtt[0]) * cyz + (ydt[0] - ytt[0]) * czx +
-      (zdt[0] - ztt[0]) * cxy ;
-  za[1] = (xdt[1] - xtt[0]) * cyz + (ydt[1] - ytt[0]) * czx +
-      (zdt[1] - ztt[0]) * cxy ;
-  za[2] = (xdt[2] - xtt[0]) * cyz + (ydt[2] - ytt[0]) * czx +
-      (zdt[2] - ztt[0]) * cxy ;
+  za0 = (xdt[0] - xtt[0]) * cyz + (ydt[0] - ytt[0]) * czx +
+        (zdt[0] - ztt[0]) * cxy;
+  za1 = (xdt[1] - xtt[0]) * cyz + (ydt[1] - ytt[0]) * czx +
+        (zdt[1] - ztt[0]) * cxy;
+  za2 = (xdt[2] - xtt[0]) * cyz + (ydt[2] - ytt[0]) * czx +
+        (zdt[2] - ztt[0]) * cxy;
 
-  xa[0] *= deti ;    xa[1] *= deti ;    xa[2] *= deti ;
-  ya[0] *= deti ;    ya[1] *= deti ;    ya[2] *= deti ;
-  za[0] *= deti ;    za[1] *= deti ;    za[2] *= deti ;
+  xa0 *= deti;
+  xa1 *= deti;
+  xa2 *= deti;
+  ya0 *= deti;
+  ya1 *= deti;
+  ya2 *= deti;
+  za0 *= deti;
+  za1 *= deti;
+  za2 *= deti;
 
-  //  Clip on h2 first.
-  ha[0] = 1.0 - xa[0] - ya[0] - za[0] ;
-  ha[1] = 1.0 - xa[1] - ya[1] - za[1] ;
-  ha[2] = 1.0 - xa[2] - ya[2] - za[2] ;
-  h2[0] = 1.0 - xa[0] - ya[0] ;
-  h2[1] = 1.0 - xa[1] - ya[1] ;
-  h2[2] = 1.0 - xa[2] - ya[2] ;
+  Real_type xa[hexhex_new_max_poly_vertices];
+  Real_type ya[hexhex_new_max_poly_vertices];
+  Real_type za[hexhex_new_max_poly_vertices];
 
-  //  Initialize triangle and available slots.
-  next[0] = 1 ;   next[1] = 2 ;   next[2] = -1 ;
-  next[3] = 4 ;   next[4] = 5 ;   next[5] = 6 ;  next[6] = 7 ;
-  next[7] = 8 ;   next[8] = -1 ;
+  xa[0] = xa0;
+  xa[1] = xa1;
+  xa[2] = xa2;
 
-  Int_type first = 0 ;
-  Int_type avail = 3 ;
+  ya[0] = ya0;
+  ya[1] = ya1;
+  ya[2] = ya2;
 
-  clip_polygon_ge_0_new
-      ( h2, xa, ya, za, ha, first, avail, next ) ;
+  za[0] = za0;
+  za[1] = za1;
+  za[2] = za2;
 
-  //  Clip on Cartesian faces of the unit tet.
-  clip_polygon_ge_0_new
-      ( xa, xa, ya, za, ha, first, avail, next ) ;
+  // NOTE: early exit to see if triangle and plane are clipping
 
-  clip_polygon_ge_0_new
-      ( ya, xa, ya, za, ha, first, avail, next ) ;
+  Real_type const h20 = Real_type(1.0) - xa[0] - ya[0];
+  Real_type const h21 = Real_type(1.0) - xa[1] - ya[1];
+  Real_type const h22 = Real_type(1.0) - xa[2] - ya[2];
 
-  clip_polygon_ge_0_new
-      ( za, xa, ya, za, ha, first, avail, next ) ;
-
-  Int_type first1 = first, avail1 = avail;
-  for ( Index_type k = 0 ; k < 9 ; ++k ) {
-    next1[k] = next[k] ;
+  if ((h20 < Real_type(0.0) && h21 < Real_type(0.0) && h22 < Real_type(0.0)) ||
+      (xa[0] < Real_type(0.0) && xa[1] < Real_type(0.0) &&
+       xa[2] < Real_type(0.0)) ||
+      (ya[0] < Real_type(0.0) && ya[1] < Real_type(0.0) &&
+       ya[2] < Real_type(0.0)) ||
+      (za[0] < Real_type(0.0) && za[1] < Real_type(0.0) &&
+       za[2] < Real_type(0.0))) {
+    return;
   }
 
-  //  Clip on h>=0
+  unsigned long long next_pack = HEXHEX_NEW_NEXT_INIT;
+  Int_type first = 0;
+  Int_type avail = 3;
 
-  clip_polygon_ge_0_new
-      ( ha, xa, ya, za, ha, first, avail, next ) ;
-
-
-  cuda_hex_volpolyh_1poly_new( xa, ya, za, first, next, vv, vx, vy, vz ) ;
-
-
-  //  In dimensionless transformed coordinates, quantity smaller
-  // than machine epsilon is not significant.
-  Int_type j = first1 ;
-  while ( j >= 0 ) {
-    ha[j] = -ha[j] - 1.0e-50 ;
-    j = next1[j] ;
+  clip_polygon_ge_0_packed_new<HexHexPackedPlaneNew::H2>(xa, ya, za, first,
+                                                         avail, next_pack);
+  if (first < 0) {
+    return;
   }
 
-  // Clip on h<0
-  clip_polygon_ge_0_new
-      ( ha, xa, ya, za, ha, first1, avail1, next1 ) ;
-
-  //  project to unit tet.
-  j = first1 ;
-  while ( j >= 0 ) {
-    za[j] = 1.0 - xa[j] - ya[j] ;
-    j = next1[j] ;
+  clip_polygon_ge_0_packed_new<HexHexPackedPlaneNew::X>(xa, ya, za, first,
+                                                        avail, next_pack);
+  if (first < 0) {
+    return;
   }
 
-  cuda_hex_volpolyh_1poly_new( xa, ya, za, first1, next1, vv, vx, vy, vz ) ;
+  clip_polygon_ge_0_packed_new<HexHexPackedPlaneNew::Y>(xa, ya, za, first,
+                                                        avail, next_pack);
+  if (first < 0) {
+    return;
+  }
+
+  clip_polygon_ge_0_packed_new<HexHexPackedPlaneNew::Z>(xa, ya, za, first,
+                                                        avail, next_pack);
+  if (first < 0) {
+    return;
+  }
+
+  Int_type const first_saved = first;
+  Int_type const avail_saved = avail;
+  unsigned long long const next_saved = next_pack;
+
+  clip_polygon_ge_0_packed_new<HexHexPackedPlaneNew::H>(xa, ya, za, first,
+                                                        avail, next_pack);
+  cuda_hex_volpolyh_1poly_packed_new(xa, ya, za, first, next_pack, vv, vx, vy,
+                                     vz);
+
+  first = first_saved;
+  avail = avail_saved;
+  next_pack = next_saved;
+
+  clip_polygon_ge_0_packed_new<HexHexPackedPlaneNew::NEG_H>(xa, ya, za, first,
+                                                            avail, next_pack);
+
+#pragma unroll 1
+  for (Int_type j = first; j >= 0; j = hexhex_new_next_get(next_pack, j)) {
+    za[j] = Real_type(1.0) - xa[j] - ya[j];
+  }
+
+  cuda_hex_volpolyh_1poly_packed_new(xa, ya, za, first, next_pack, vv, vx, vy,
+                                     vz);
 
   //  Volume, moments of the intersection in the unit tet frame.
   vv *= 0.16666666666666667 ;

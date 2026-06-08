@@ -99,6 +99,7 @@ std::vector<T> str_to_list(const std::string& str) {
 
 const adiak::version adiak_perfsuite_version = std::string("@CMAKE_PROJECT_VERSION@");
 const adiak::version adiak_raja_version = std::string("@RAJA_LOADED@");
+const adiak::catstring adiak_git_hash = std::string("@RAJAPERF_GIT_HASH@");
 const adiak::catstring adiak_cmake_build_type = std::string("@CMAKE_BUILD_TYPE@");
 const std::vector<adiak::catstring> adiak_cmake_cxx_flags = str_to_list<adiak::catstring>(std::string("@CMAKE_CXX_FLAGS@"));
 const std::vector<adiak::catstring> adiak_cmake_exe_linker_flags = str_to_list<adiak::catstring>(std::string("@CMAKE_EXE_LINKER_FLAGS@"));
