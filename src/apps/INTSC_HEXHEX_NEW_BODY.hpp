@@ -121,12 +121,21 @@ clip_polygon_ge_0_packed_new(Real_type x[hexhex_new_max_poly_vertices],
       j2 = j;
       jj2 = jj;
     }
-    j = jp ;
-    clast = c0 ;
-    c0 = c1 ;
+    j = jp;
+    clast = c0;
+    c0 = c1;
   }
 
-  Int_type jr1=-1, jr2=-1 ;
+  if (j1 < 0) {
+    if (c00 >= Real_type(0.0)) {
+      return;
+    } else {
+      first = -1;
+      return;
+    }
+  }
+
+  Int_type jr1 = -1, jr2 = -1;
 
   if (j1 >= 0) {
     jr1 = avail;
