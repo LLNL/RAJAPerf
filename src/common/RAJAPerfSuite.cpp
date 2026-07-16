@@ -92,7 +92,6 @@
 #include "apps/FEMSWEEP.hpp"
 #include "apps/FIR.hpp"
 #include "apps/INTSC_HEXHEX.hpp"
-#include "apps/INTSC_HEXHEX_NEW.hpp"
 #include "apps/INTSC_HEXRECT.hpp"
 #include "apps/LTIMES.hpp"
 #include "apps/LTIMES_NOVIEW.hpp"
@@ -254,7 +253,6 @@ static const std::string KernelNames [] =
   std::string("Apps_FEMSWEEP"),
   std::string("Apps_FIR"),
   std::string("Apps_INTSC_HEXHEX"),
-  std::string("Apps_INTSC_HEXHEX_NEW"),
   std::string("Apps_INTSC_HEXRECT"),
   std::string("Apps_LTIMES"),
   std::string("Apps_LTIMES_NOVIEW"),
@@ -1197,10 +1195,6 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Apps_INTSC_HEXHEX : {
        kernel = new apps::INTSC_HEXHEX(run_params);
-       break;
-    }
-    case Apps_INTSC_HEXHEX_NEW : {
-       kernel = new apps::INTSC_HEXHEX_NEW(run_params);
        break;
     }
     case Apps_INTSC_HEXRECT : {
