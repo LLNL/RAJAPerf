@@ -12,30 +12,64 @@
 
 namespace rajaperf {
 
+struct HexHexNext {
+  struct Reference {
+    unsigned long long *pack ;
+    Int_type idx ;
+
+    RAJA_HOST_DEVICE
+    RAJA_INLINE operator Int_type() const
+    {
+      return HexHexNext::get(*pack, idx) ;
+    }
+
+    RAJA_HOST_DEVICE
+    RAJA_INLINE Reference& operator=(Int_type const next)
+    {
+      HexHexNext::set(*pack, idx, next) ;
+      return *this ;
+    }
+  };
+
+  unsigned long long pack ;
+
+  RAJA_HOST_DEVICE
+  RAJA_INLINE Int_type operator[](Int_type const idx) const
+  {
+    return get(pack, idx) ;
+  }
+
+  RAJA_HOST_DEVICE
+  RAJA_INLINE Reference operator[](Int_type const idx)
+  {
+    return Reference{&pack, idx} ;
+  }
+
+  RAJA_HOST_DEVICE
+  RAJA_INLINE static Int_type get(unsigned long long const pack_in,
+                                  Int_type const idx)
+  {
+    unsigned int const v =
+        static_cast<unsigned int>((pack_in >> (4 * idx)) & 0xFULL);
+
+    return (v == 0xFULL) ? Int_type(-1) : Int_type(v);
+  }
+
+  RAJA_HOST_DEVICE
+  RAJA_INLINE static void set(unsigned long long &pack_in, Int_type const idx,
+                              Int_type const next)
+  {
+    unsigned long long const shift = static_cast<unsigned long long>(4 * idx);
+    unsigned long long const mask = 0xFULL << shift;
+    unsigned long long const v = static_cast<unsigned long long>(
+        next < 0 ? 0xFULL : static_cast<unsigned int>(next));
+
+    pack_in = (pack_in & ~mask) | ((v & 0xFULL) << shift);
+  }
+};
+
 // Initial polygon vertex order with 4 bits per vertex.
-static constexpr unsigned long long HEXHEX_NEXT_INIT = 0xF87654F21ULL;
-
-RAJA_HOST_DEVICE
-RAJA_INLINE Int_type hexhex_next_get(unsigned long long const pack,
-                                     Int_type const idx)
-{
-  unsigned int const v =
-      static_cast<unsigned int>((pack >> (4 * idx)) & 0xFULL);
-
-  return (v == 0xFULL) ? Int_type(-1) : Int_type(v);
-}
-
-RAJA_HOST_DEVICE
-RAJA_INLINE void hexhex_next_set(unsigned long long &pack, Int_type const idx,
-                                 Int_type const next)
-{
-  unsigned long long const shift = static_cast<unsigned long long>(4 * idx);
-  unsigned long long const mask = 0xFULL << shift;
-  unsigned long long const v = static_cast<unsigned long long>(
-      next < 0 ? 0xFULL : static_cast<unsigned int>(next));
-
-  pack = (pack & ~mask) | ((v & 0xFULL) << shift);
-}
+static constexpr HexHexNext HEXHEX_NEXT_INIT = { 0xF87654F21ULL };
 
 struct HexHexScratchArray {
   Real_ptr data ;
@@ -120,7 +154,7 @@ RAJA_INLINE void clip_polygon_ge_0
       HexHexScratchArray xin, HexHexScratchArray yin,
       HexHexScratchArray zin, HexHexScratchArray hin, // input coordinates
       Int_type &first, Int_type &avail,
-      unsigned long long &next_pack )   // packed linked list
+      HexHexNext &next )   // packed linked list
 {
   Int_type j  = first ;
 
@@ -133,7 +167,7 @@ RAJA_INLINE void clip_polygon_ge_0
   Real_type clast = c0 ;
 
   while ( j >= 0 ) {
-    Int_type jj = hexhex_next_get(next_pack, j) ;
+    Int_type jj = next[j] ;
     Int_type jp = jj ;       // advancing, jp is -1 at end.
     if ( jj < 0 ) { jj = first0 ; }   // last edge of polygon
 
@@ -156,7 +190,7 @@ RAJA_INLINE void clip_polygon_ge_0
   if ( j1 >= 0 ) {   // Insert first crossover point
 
     jr1 = avail ;
-    avail = hexhex_next_get(next_pack, avail) ;
+    avail = next[avail] ;
     Real_type eta = ( 0.0 - cin[jj1] ) / ( cin[j1] - cin[jj1] ) ;
     xin[jr1] = xin[j1] * eta + xin[jj1] * ( 1.0 - eta ) ;
     yin[jr1] = yin[j1] * eta + yin[jj1] * ( 1.0 - eta ) ;
@@ -164,7 +198,7 @@ RAJA_INLINE void clip_polygon_ge_0
     hin[jr1] = hin[j1] * eta + hin[jj1] * ( 1.0 - eta ) ;
 
     jr2 = avail ;      // Insert second crossover point
-    avail = hexhex_next_get(next_pack, avail) ;
+    avail = next[avail] ;
     eta = ( 0.0 - cin[j2] ) / ( cin[jj2] - cin[j2] ) ;
     xin[jr2] = xin[jj2] * eta + xin[j2] * ( 1.0 - eta ) ;
     yin[jr2] = yin[jj2] * eta + yin[j2] * ( 1.0 - eta ) ;
@@ -176,9 +210,9 @@ RAJA_INLINE void clip_polygon_ge_0
 
   j = first0 ;
   while ( j >= 0 ) {   // Make removed points available.
-    Int_type jp = hexhex_next_get(next_pack, j) ;
+    Int_type jp = next[j] ;
     if ( cin[j] < 0.0 ) {
-      hexhex_next_set(next_pack, j, avail) ;
+      next[j] = avail ;
       avail = j ;
     } else if ( first == -1 ) {
       first = j ;        // Set first point for output polygon.
@@ -188,10 +222,9 @@ RAJA_INLINE void clip_polygon_ge_0
 
 
   if ( j1 >= 0 ) {     // Set linked list for crossover points.
-    hexhex_next_set(next_pack, j1, jr1) ;
-    hexhex_next_set(next_pack, jr1, jr2) ;
-    hexhex_next_set(next_pack, jr2,
-        ( ( clast < 0 ) || ( c00 < 0 ) ) ? -1 : jj2) ;
+    next[j1] = jr1 ;
+    next[jr1] = jr2 ;
+    next[jr2] = ( ( clast < 0 ) || ( c00 < 0 ) ) ? -1 : jj2 ;
   }
 }
 
@@ -205,7 +238,7 @@ RAJA_HOST_DEVICE
 RAJA_INLINE void cuda_hex_volpolyh_1poly
     ( HexHexScratchArray x, HexHexScratchArray y, HexHexScratchArray z,
       Int_type const first,
-      unsigned long long const next_pack,
+      HexHexNext const next,
       Real_type &vv,
       Real_type &vx,
       Real_type &vy,
@@ -219,7 +252,7 @@ RAJA_INLINE void cuda_hex_volpolyh_1poly
   Real_type y0  = y[j0] ;
   Real_type z0  = z[j0] ;
 
-  Int_type j1 = hexhex_next_get(next_pack, j0) ;
+  Int_type j1 = next[j0] ;
 
   Real_type x1  = x[j1] ;
   Real_type y1  = y[j1] ;
@@ -227,7 +260,7 @@ RAJA_INLINE void cuda_hex_volpolyh_1poly
   Real_type dx1 = x1 - x0 ;
   Real_type dy1 = y1 - y0 ;
 
-  Int_type j2 = hexhex_next_get(next_pack, j1) ;
+  Int_type j2 = next[j1] ;
 
   while ( j2 >= 0 ) {   // Vertices
 
@@ -248,7 +281,7 @@ RAJA_INLINE void cuda_hex_volpolyh_1poly
     x1=x2 ;   y1=y2 ;   z1=z2 ;    // Rotate.
     dx1=dx2 ; dy1=dy2 ;
 
-    j2 = hexhex_next_get(next_pack, j2) ;
+    j2 = next[j2] ;
   }
 }
 
@@ -341,34 +374,34 @@ RAJA_INLINE void cuda_intsc_tri_tet
   h2[2] = 1.0 - xa[2] - ya[2] ;
 
   //  Initialize triangle and available slots.
-  unsigned long long next_pack = HEXHEX_NEXT_INIT ;
+  HexHexNext next = HEXHEX_NEXT_INIT ;
 
   Int_type first = 0 ;
   Int_type avail = 3 ;
 
   clip_polygon_ge_0
-      ( h2, xa, ya, za, ha, first, avail, next_pack ) ;
+      ( h2, xa, ya, za, ha, first, avail, next ) ;
 
   //  Clip on Cartesian faces of the unit tet.
   clip_polygon_ge_0
-      ( xa, xa, ya, za, ha, first, avail, next_pack ) ;
+      ( xa, xa, ya, za, ha, first, avail, next ) ;
 
   clip_polygon_ge_0
-      ( ya, xa, ya, za, ha, first, avail, next_pack ) ;
+      ( ya, xa, ya, za, ha, first, avail, next ) ;
 
   clip_polygon_ge_0
-      ( za, xa, ya, za, ha, first, avail, next_pack ) ;
+      ( za, xa, ya, za, ha, first, avail, next ) ;
 
   Int_type first1 = first, avail1 = avail;
-  unsigned long long next1_pack = next_pack ;
+  HexHexNext next1 = next ;
 
   //  Clip on h>=0
 
   clip_polygon_ge_0
-      ( ha, xa, ya, za, ha, first, avail, next_pack ) ;
+      ( ha, xa, ya, za, ha, first, avail, next ) ;
 
 
-  cuda_hex_volpolyh_1poly( xa, ya, za, first, next_pack, vv, vx, vy, vz ) ;
+  cuda_hex_volpolyh_1poly( xa, ya, za, first, next, vv, vx, vy, vz ) ;
 
 
   //  In dimensionless transformed coordinates, quantity smaller
@@ -376,21 +409,21 @@ RAJA_INLINE void cuda_intsc_tri_tet
   Int_type j = first1 ;
   while ( j >= 0 ) {
     ha[j] = -ha[j] - 1.0e-50 ;
-    j = hexhex_next_get(next1_pack, j) ;
+    j = next1[j] ;
   }
 
   // Clip on h<0
   clip_polygon_ge_0
-      ( ha, xa, ya, za, ha, first1, avail1, next1_pack ) ;
+      ( ha, xa, ya, za, ha, first1, avail1, next1 ) ;
 
   //  project to unit tet.
   j = first1 ;
   while ( j >= 0 ) {
     za[j] = 1.0 - xa[j] - ya[j] ;
-    j = hexhex_next_get(next1_pack, j) ;
+    j = next1[j] ;
   }
 
-  cuda_hex_volpolyh_1poly( xa, ya, za, first1, next1_pack, vv, vx, vy, vz ) ;
+  cuda_hex_volpolyh_1poly( xa, ya, za, first1, next1, vv, vx, vy, vz ) ;
 
   //  Volume, moments of the intersection in the unit tet frame.
   vv *= 0.16666666666666667 ;
