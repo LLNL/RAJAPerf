@@ -12,17 +12,99 @@
 
 namespace rajaperf {
 
+  struct PackedNext
+  {
+  private:
+    static constexpr uint64_t bit_width = 4 ;
+    static constexpr uint64_t mask = (1<<bit_width) - 1 ;
+    uint64_t pack_next ;
+    Int_type first, avail ;
+
+  public:
+    RAJA_HOST_DEVICE
+    RAJA_INLINE void init ( )
+    {
+      pack_next = 0xF87654F21 ;
+      first = 0 ;
+      avail = 3 ;
+    }
+
+
+    RAJA_HOST_DEVICE
+    RAJA_INLINE void copy
+        ( PackedNext const &in )
+    {
+      pack_next = in.pack_next ;
+      first     = in.first ;
+      avail     = in.avail ;
+    }
+
+
+    RAJA_HOST_DEVICE
+    RAJA_INLINE void set_first ( int const j )
+    {
+      first = j ;
+    }
+
+
+    RAJA_HOST_DEVICE
+    RAJA_INLINE  int get_first()
+    {
+      return first ;
+    }
+
+
+    //  Return -1 if the four bits are 0xF, terminating the linked list.
+    RAJA_HOST_DEVICE
+    RAJA_INLINE int get_next
+        ( uint64_t const j )
+    {
+      Int_type jnext = ( pack_next >> j*bit_width ) & mask ;
+      return jnext == mask ? -1 : jnext ;
+    }
+
+
+    RAJA_HOST_DEVICE
+    RAJA_INLINE void set_next
+        ( uint64_t const j, int const jnext )
+    {
+      // Clear the four bits for the index j.
+      pack_next &= ( ~ (mask << j*bit_width) ) ;
+
+      uint64_t jnext_bits = jnext & mask ;    // -1 becomes mask
+      pack_next |= jnext_bits << j*bit_width ;   // Sets the four bits
+    }
+
+    RAJA_HOST_DEVICE
+    RAJA_INLINE int pop_avail ( )
+    {
+      Int_type j = avail ;
+      avail = get_next(avail) ;
+      return j ;
+    }
+
+
+    RAJA_HOST_DEVICE
+    RAJA_INLINE void push_avail
+        ( Int_type const j )
+    {
+      set_next (j, avail) ;
+      avail = j ;
+    }
+  } ;
+
+
 
 RAJA_HOST_DEVICE
 RAJA_INLINE void clip_polygon_ge_0
     ( Real_ptr cin,   // the cut coordinate, can be xin, yin, or zin.
       Real_ptr xin, Real_ptr yin,
       Real_ptr zin, Real_ptr hin, // input coordinates
-      Int_type &first, Int_type &avail, Int_ptr next )   // linked list
+      PackedNext &nexta )   // linked list
 {
-  Int_type j  = first ;
+  Int_type j  = nexta.get_first() ;
 
-  Int_type first0 = first ;
+  Int_type first0 = j ;
   Int_type j1 = -1, j2 = -1 ;
   Int_type jj1 = -1, jj2 = -1 ;
 
@@ -31,7 +113,7 @@ RAJA_INLINE void clip_polygon_ge_0
   Real_type clast = c0 ;
 
   while ( j >= 0 ) {
-    Int_type jj = next[j] ;
+    Int_type jj = nexta.get_next(j) ;
     Int_type jp = jj ;       // advancing, jp is -1 at end.
     if ( jj < 0 ) { jj = first0 ; }   // last edge of polygon
 
@@ -53,16 +135,14 @@ RAJA_INLINE void clip_polygon_ge_0
 
   if ( j1 >= 0 ) {   // Insert first crossover point
 
-    jr1 = avail ;
-    avail = next[avail] ;
+    jr1 = nexta.pop_avail() ;
     Real_type eta = ( 0.0 - cin[jj1] ) / ( cin[j1] - cin[jj1] ) ;
     xin[jr1] = xin[j1] * eta + xin[jj1] * ( 1.0 - eta ) ;
     yin[jr1] = yin[j1] * eta + yin[jj1] * ( 1.0 - eta ) ;
     zin[jr1] = zin[j1] * eta + zin[jj1] * ( 1.0 - eta ) ;
     hin[jr1] = hin[j1] * eta + hin[jj1] * ( 1.0 - eta ) ;
 
-    jr2 = avail ;      // Insert second crossover point
-    avail = next[avail] ;
+    jr2 = nexta.pop_avail() ;      // Insert second crossover point
     eta = ( 0.0 - cin[j2] ) / ( cin[jj2] - cin[j2] ) ;
     xin[jr2] = xin[jj2] * eta + xin[j2] * ( 1.0 - eta ) ;
     yin[jr2] = yin[jj2] * eta + yin[j2] * ( 1.0 - eta ) ;
@@ -70,25 +150,26 @@ RAJA_INLINE void clip_polygon_ge_0
     hin[jr2] = hin[jj2] * eta + hin[j2] * ( 1.0 - eta ) ;
   }
 
-  first = -1 ;
+  Int_type my_first = -1 ;
 
   j = first0 ;
   while ( j >= 0 ) {   // Make removed points available.
-    Int_type jp = next[j] ;
+    Int_type jp = nexta.get_next(j) ;
     if ( cin[j] < 0.0 ) {
-      next[j] = avail ;
-      avail = j ;
-    } else if ( first == -1 ) {
-      first = j ;        // Set first point for output polygon.
+      nexta.push_avail(j) ;
+    } else if ( my_first == -1 ) {
+      // Set first point for output polygon.
+      my_first = j ;
     }
     j = jp ;
   }
+  nexta.set_first ( my_first ) ;
 
 
   if ( j1 >= 0 ) {     // Set linked list for crossover points.
-    next[j1] = jr1 ;
-    next[jr1] = jr2 ;
-    next[jr2] = ( ( clast < 0 ) || ( c00 < 0 ) ) ? -1 : jj2 ;
+    nexta.set_next ( j1 , jr1 ) ;
+    nexta.set_next ( jr1, jr2 ) ;
+    nexta.set_next ( jr2, (( clast < 0 ) or ( c00 < 0 )) ? -1 : jj2 ) ;
   }
 }
 
@@ -101,22 +182,22 @@ RAJA_INLINE void clip_polygon_ge_0
 RAJA_HOST_DEVICE
 RAJA_INLINE void cuda_hex_volpolyh_1poly
     ( Real_ptr x, Real_ptr y, Real_ptr z,
-      Int_type const first,
-      Int_const_ptr next,
+      PackedNext &nexta,
       Real_type &vv,
       Real_type &vx,
       Real_type &vy,
       Real_type &vz )
 {
-  if ( first < 0 ) { return ; }   // No polygon remains after clipping.
+  // No polygon remains after clipping.
+  if ( nexta.get_first() < 0 ) { return ; }
 
-  Int_type j0 = first ;
+  Int_type j0 = nexta.get_first() ;
 
   Real_type x0  = x[j0] ;
   Real_type y0  = y[j0] ;
   Real_type z0  = z[j0] ;
 
-  Int_type j1 = next[j0] ;
+  Int_type j1 = nexta.get_next(j0) ;
 
   Real_type x1  = x[j1] ;
   Real_type y1  = y[j1] ;
@@ -124,7 +205,7 @@ RAJA_INLINE void cuda_hex_volpolyh_1poly
   Real_type dx1 = x1 - x0 ;
   Real_type dy1 = y1 - y0 ;
 
-  Int_type j2 = next[j1] ;
+  Int_type j2 = nexta.get_next(j1) ;
 
   while ( j2 >= 0 ) {   // Vertices
 
@@ -145,7 +226,7 @@ RAJA_INLINE void cuda_hex_volpolyh_1poly
     x1=x2 ;   y1=y2 ;   z1=z2 ;    // Rotate.
     dx1=dx2 ; dy1=dy2 ;
 
-    j2 = next[j2] ;
+    j2 = nexta.get_next(j2) ;
   }
 }
 
@@ -167,9 +248,10 @@ RAJA_INLINE void cuda_intsc_tri_tet
   Real_type det, deti ;
   Real_type ha[9] ;      // 1 - x - y - z
 
-  Real_type xa[9], ya[9], za[9], h2[10] ;
-  Int_ptr next1 = (Int_ptr) h2 ;
-  Int_ptr next  = next1 + 10 ;
+  Real_type xa[9], ya[9], za[9] ;
+
+  // h2 is clipped first, and the first clip writes to at most za[4].
+  Int_type constexpr h2_offs = 5 ;
 
   Real_type vv = 0.0, vx = 0.0, vy = 0.0, vz = 0.0 ;  // volume, moments.
 
@@ -232,65 +314,72 @@ RAJA_INLINE void cuda_intsc_tri_tet
   ha[0] = 1.0 - xa[0] - ya[0] - za[0] ;
   ha[1] = 1.0 - xa[1] - ya[1] - za[1] ;
   ha[2] = 1.0 - xa[2] - ya[2] - za[2] ;
-  h2[0] = 1.0 - xa[0] - ya[0] ;
-  h2[1] = 1.0 - xa[1] - ya[1] ;
-  h2[2] = 1.0 - xa[2] - ya[2] ;
+
+  za[h2_offs+0] = 1.0 - xa[0] - ya[0] ;
+  za[h2_offs+1] = 1.0 - xa[1] - ya[1] ;
+  za[h2_offs+2] = 1.0 - xa[2] - ya[2] ;
 
   //  Initialize triangle and available slots.
-  next[0] = 1 ;   next[1] = 2 ;   next[2] = -1 ;
-  next[3] = 4 ;   next[4] = 5 ;   next[5] = 6 ;  next[6] = 7 ;
-  next[7] = 8 ;   next[8] = -1 ;
-
-  Int_type first = 0 ;
-  Int_type avail = 3 ;
+  PackedNext nexta ;
+  nexta.init ( ) ;
 
   clip_polygon_ge_0
-      ( h2, xa, ya, za, ha, first, avail, next ) ;
+      ( za+h2_offs, xa, ya, za, ha, nexta ) ;
 
   //  Clip on Cartesian faces of the unit tet.
   clip_polygon_ge_0
-      ( xa, xa, ya, za, ha, first, avail, next ) ;
+      ( xa, xa, ya, za, ha, nexta ) ;
 
   clip_polygon_ge_0
-      ( ya, xa, ya, za, ha, first, avail, next ) ;
+      ( ya, xa, ya, za, ha, nexta ) ;
 
   clip_polygon_ge_0
-      ( za, xa, ya, za, ha, first, avail, next ) ;
+      ( za, xa, ya, za, ha, nexta ) ;
 
-  Int_type first1 = first, avail1 = avail;
-  for ( Index_type k = 0 ; k < 9 ; ++k ) {
-    next1[k] = next[k] ;
-  }
+  PackedNext nexta1 ;
+  nexta1.copy ( nexta ) ;
 
   //  Clip on h>=0
 
   clip_polygon_ge_0
-      ( ha, xa, ya, za, ha, first, avail, next ) ;
+      ( ha, xa, ya, za, ha, nexta ) ;
 
 
-  cuda_hex_volpolyh_1poly( xa, ya, za, first, next, vv, vx, vy, vz ) ;
+  cuda_hex_volpolyh_1poly( xa, ya, za, nexta, vv, vx, vy, vz ) ;
 
 
   //  In dimensionless transformed coordinates, quantity smaller
   // than machine epsilon is not significant.
-  Int_type j = first1 ;
+  Int_type j = nexta1.get_first() ;
   while ( j >= 0 ) {
     ha[j] = -ha[j] - 1.0e-50 ;
-    j = next1[j] ;
+    j = nexta1.get_next(j) ;
   }
 
   // Clip on h<0
   clip_polygon_ge_0
-      ( ha, xa, ya, za, ha, first1, avail1, next1 ) ;
+      ( ha, xa, ya, za, ha, nexta1 ) ;
 
   //  project to unit tet.
-  j = first1 ;
+  j = nexta1.get_first() ;
   while ( j >= 0 ) {
     za[j] = 1.0 - xa[j] - ya[j] ;
-    j = next1[j] ;
+    j = nexta1.get_next(j) ;
   }
 
-  cuda_hex_volpolyh_1poly( xa, ya, za, first1, next1, vv, vx, vy, vz ) ;
+  cuda_hex_volpolyh_1poly( xa, ya, za, nexta1, vv, vx, vy, vz ) ;
+
+  // Degenerate target tet can lead to incorrect vv from roundoffs.
+  //  Ensure the valid range abs(vv) <= 1/6 and abs(vx,vy,vz) <= 1/24,
+  //  in the unit tet frame.
+  if ( vv < -1.0 ) { vv = -1.0 ; }
+  if ( vv >  1.0 ) { vv =  1.0 ; }
+  if ( vx < -1.0 ) { vx = -1.0 ; }
+  if ( vx >  1.0 ) { vx =  1.0 ; }
+  if ( vy < -1.0 ) { vy = -1.0 ; }
+  if ( vy >  1.0 ) { vy =  1.0 ; }
+  if ( vz < -1.0 ) { vz = -1.0 ; }
+  if ( vz >  1.0 ) { vz =  1.0 ; }
 
   //  Volume, moments of the intersection in the unit tet frame.
   vv *= 0.16666666666666667 ;
