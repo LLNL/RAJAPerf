@@ -171,8 +171,15 @@ public:
 private:
   void check_intsc_volume_moments(Real_const_ptr vv, VariantID vid);
 
+  Real_type shiftTarget ( Int_type which_coord, Int_type iseq ) ;
+  void exactVolMoments
+      ( Int_type const kx, Int_type const ky, Int_type const kz,
+        Real_type &v0, Real_type &vx, Real_type &vy, Real_type &vz ) ;
+
   static const size_t default_gpu_block_size = 64;
   using gpu_block_sizes_type = integer::make_gpu_block_size_list_type<default_gpu_block_size>;
+
+  Size_type m_subz_side_length ;  // cube root of m_n_subz_intsc, even integer
 
   Size_type m_n_std_intsc; // number of standard intersections
   Index_type m_n_subz_intsc; // number of subzone intersections
@@ -193,7 +200,6 @@ private:
   static constexpr Real_type m_ymax =  0.2 ;
   static constexpr Real_type m_zmin = -0.8 ;
   static constexpr Real_type m_zmax = -0.7 ;
-  static constexpr Real_type m_shift = 0.01 ; // shift target relative to donor
 };
 
 } // end namespace apps

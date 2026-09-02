@@ -59,14 +59,18 @@ INTSC_HEXHEX::INTSC_HEXHEX(const RunParams& params)
 void INTSC_HEXHEX::setSize(Index_type target_size, Index_type target_reps)
 {
   // Number of standard intersections, by convention a cube number.
-  Size_type a3 =
+  Size_type side_length =
       (Size_type) ( std::cbrt((Real_type) target_size + 0.5) );
 
-  if ( a3 < 1UL ) { a3 = 1UL ; }
+  if ( side_length < 1UL ) { side_length = 1UL ; }
+
+  m_n_std_intsc = side_length * side_length * side_length ;
 
   // One standard intersection is 8 subzone intersections.
-  m_n_std_intsc = a3*a3*a3 ;
   m_n_subz_intsc = npairs_per_std_intsc * m_n_std_intsc ;
+
+  // 8 subzones is two subzones on each side.
+  m_subz_side_length = 2 * side_length ;
 
   const Int_type block_size = default_gpu_block_size ;
   m_nthreads = tri_per_pair * m_n_subz_intsc ;  // 72 threads per subzone pair
@@ -112,10 +116,34 @@ INTSC_HEXHEX::~INTSC_HEXHEX()
 }
 
 
+Real_type INTSC_HEXHEX::shiftTarget
+    ( Int_type which_coord,   //  0=X, 1=Y, 2=Z
+      Int_type iseq )     // sequence number of intersection along the "side"
+{
+  // phase multiplier for sin, ~2Pi * (2-golden ratio)
+  Real_type constexpr q = 2.3999632297286533 ;
+  Real_type  width ;
+
+  switch ( which_coord ) {
+  case 0:    width = m_xmax - m_xmin ; break ;
+  case 1:    width = m_ymax - m_ymin ; break ;
+  case 2:    width = m_zmax - m_zmin ; break ;
+  default:
+    getCout() << "INTSC_HEXHEX::shift_target : Error in which_coord\n" <<
+      std::endl ;
+  }
+
+  // The 0.95 ensures at least 5% overlap each direction.
+  Real_type shift = 0.95 * sin ( q * ((Real_type)iseq + 0.5) ) * width ;
+
+  return shift ;
+}
+
+
 void INTSC_HEXHEX::setUp(VariantID vid,
                          Size_type RAJAPERF_UNUSED_ARG(tune_idx))
 {
-  // coordinates for donor zone (the eight corner points)
+  // coordinates for donor subzone (the eight corner points)
   Real_type xdzone[8] =
       { m_xmin, m_xmax, m_xmin, m_xmax, m_xmin, m_xmax, m_xmin, m_xmax } ;
 
@@ -125,26 +153,26 @@ void INTSC_HEXHEX::setUp(VariantID vid,
   Real_type zdzone[8] =
       { m_zmin, m_zmin, m_zmin, m_zmin, m_zmax, m_zmax, m_zmax, m_zmax } ;
 
-  Real_type xtzone[8], ytzone[8], ztzone[8] ;
-  for ( Index_type i=0 ; i<8 ; ++i ) {
-    xtzone[i] = xdzone[i] + m_shift ;
-    ytzone[i] = ydzone[i] + m_shift ;
-    ztzone[i] = zdzone[i] + m_shift ;
-  }
-
   auto a_ds = allocDataForInit ( m_dsubz, 24L*m_n_subz_intsc, vid ) ;
   auto a_ts = allocDataForInit ( m_tsubz, 24L*m_n_subz_intsc, vid ) ;
 
-  //  Repeat the same calculation m_n_subz_intsc times, expand the
-  //  same donor and target zones.
-  for ( Index_type k=0 ; k < m_n_subz_intsc ; ++k ) {
-    for ( Index_type i=0 ; i<8 ; ++i ) {
-      m_dsubz[24L*k+ 0+i] = xdzone[i] ;
-      m_dsubz[24L*k+ 8+i] = ydzone[i] ;
-      m_dsubz[24L*k+16+i] = zdzone[i] ;
-      m_tsubz[24L*k+ 0+i] = xtzone[i] ;
-      m_tsubz[24L*k+ 8+i] = ytzone[i] ;
-      m_tsubz[24L*k+16+i] = ztzone[i] ;
+  //  Set up donor and target coordinates for each subzone intersection.
+  //  Same donor coordinates for all intersections,
+  //  target coordinates vary.
+  Index_type k = 0 ;
+  for ( Index_type kz=0 ; kz < m_subz_side_length ; ++kz ) {
+    for ( Index_type ky=0 ; ky < m_subz_side_length ; ++ky ) {
+      for ( Index_type kx=0 ; kx < m_subz_side_length ; ++kx ) {
+        for ( Index_type i=0 ; i<8 ; ++i ) {
+          m_dsubz[24L*k+ 0+i] = xdzone[i] ;
+          m_dsubz[24L*k+ 8+i] = ydzone[i] ;
+          m_dsubz[24L*k+16+i] = zdzone[i] ;
+          m_tsubz[24L*k+ 0+i] = xdzone[i] + shiftTarget(0, kx) ;
+          m_tsubz[24L*k+ 8+i] = ydzone[i] + shiftTarget(1, ky) ;
+          m_tsubz[24L*k+16+i] = zdzone[i] + shiftTarget(2, kz) ;
+        }
+        ++k ;
+      }
     }
   }
 
@@ -158,6 +186,47 @@ void INTSC_HEXHEX::setUp(VariantID vid,
 }
 
 
+//  Get exact volume and moments of Cartesian aligned zone intersections.
+void INTSC_HEXHEX::exactVolMoments
+    ( Int_type const kx,   //  x index of the subzone
+      Int_type const ky,   //  y index of the subzone
+      Int_type const kz,   //  z index of the subzone
+      Real_type &v0,       // exact intersection volume
+      Real_type &vx,       // exact intersection x moment
+      Real_type &vy,       // exact intersection y moment
+      Real_type &vz )      // exact intersection z moment
+{
+  Real_type xshift = shiftTarget (0, kx) ;
+  Real_type yshift = shiftTarget (1, ky) ;
+  Real_type zshift = shiftTarget (2, kz) ;
+
+  Real_type xmin = ( xshift > 0.0 ) ? m_xmin + xshift : m_xmin ;
+  Real_type ymin = ( yshift > 0.0 ) ? m_ymin + yshift : m_ymin ;
+  Real_type zmin = ( zshift > 0.0 ) ? m_zmin + zshift : m_zmin ;
+
+  Real_type xmax = ( xshift > 0.0 ) ? m_xmax : m_xmax + xshift ;
+  Real_type ymax = ( yshift > 0.0 ) ? m_ymax : m_ymax + yshift ;
+  Real_type zmax = ( zshift > 0.0 ) ? m_zmax : m_zmax + zshift ;
+
+  Real_type dx = xmax - xmin ;
+  Real_type dy = ymax - ymin ;
+  Real_type dz = zmax - zmin ;
+  if ( dx <= 0.0 || dy <= 0.0 || dz <= 0.0 ) {
+    v0 = vx = vy = vz = 0.0 ;
+  } else {
+    Real_type xc = 0.5 * ( xmax + xmin ) ;
+    Real_type yc = 0.5 * ( ymax + ymin ) ;
+    Real_type zc = 0.5 * ( zmax + zmin ) ;
+
+    v0 = dx * dy * dz ;
+    vx = v0 * xc ;
+    vy = v0 * yc ;
+    vz = v0 * zc ;
+  }
+}
+
+
+
 //   Number of subzone intersections = 8 * number of standard intersections.
 //
 void INTSC_HEXHEX::check_intsc_volume_moments(
@@ -168,93 +237,86 @@ void INTSC_HEXHEX::check_intsc_volume_moments(
   {
     Char_const_ptr tst = "INTSC_HEXHEX:" ;
 
-    //   Determine the correct volume and moments.
-    Real_type v0, vx, vy, vz ;
+    // volume of the donor and target subzones (all the same)
+    Real_type zvol =
+        ( m_xmax - m_xmin ) *
+        ( m_ymax - m_ymin ) *
+        ( m_zmax - m_zmin ) ;
 
-    Real_type xmin = m_xmin, ymin = m_ymin, zmin = m_zmin ;
-    Real_type xmax = m_xmax, ymax = m_ymax, zmax = m_zmax ;
-
-    if ( m_shift > 0.0 ) {
-      xmin += m_shift ;   ymin += m_shift ;   zmin += m_shift ;
-    } else {
-      xmax -= m_shift ;   ymax -= m_shift ;   zmax -= m_shift ;
-    }
-
-    Real_type dx = xmax - xmin ;
-    Real_type dy = ymax - ymin ;
-    Real_type dz = zmax - zmin ;
-    if ( dx <= 0.0 || dy <= 0.0 || dz <= 0.0 ) {
-      v0 = vx = vy = vz = 0.0 ;
-    } else {
-      Real_type xc = 0.5 * ( xmax + xmin ) ;
-      Real_type yc = 0.5 * ( ymax + ymin ) ;
-      Real_type zc = 0.5 * ( zmax + zmin ) ;
-
-      v0 = dx * dy * dz ;
-      vx = v0 * xc ;
-      vy = v0 * yc ;
-      vz = v0 * zc ;
-    }
-
-    // Do the check.
     Real_type tolsq = 1.0e-24 ;
-    Real_type tolsqv = tolsq * v0*v0 ;
-    Real_type tolsqx = tolsq * v0*v0 *
-        ( fabs(xmax) + fabs(xmin) ) *  ( fabs(xmax) + fabs(xmin) ) ;
-    Real_type tolsqy = tolsq * v0*v0 *
-        ( fabs(ymax) + fabs(ymin) ) *  ( fabs(ymax) + fabs(ymin) ) ;
-    Real_type tolsqz = tolsq * v0*v0 *
-        ( fabs(zmax) + fabs(zmin) ) *  ( fabs(zmax) + fabs(zmin) ) ;
+    Real_type tolsqv = tolsq * zvol*zvol ;
+    Real_type tolsqx = tolsq * zvol*zvol *
+        ( fabs(m_xmax) + fabs(m_xmin) ) * ( fabs(m_xmax) + fabs(m_xmin) ) ;
+    Real_type tolsqy = tolsq * zvol*zvol *
+        ( fabs(m_ymax) + fabs(m_ymin) ) * ( fabs(m_ymax) + fabs(m_ymin) ) ;
+    Real_type tolsqz = tolsq * zvol*zvol *
+        ( fabs(m_zmax) + fabs(m_zmin) ) * ( fabs(m_zmax) + fabs(m_zmin) ) ;
 
-    for ( Index_type k = 0 ; k < m_n_subz_intsc ; ++k ) {
+    Index_type k=0 ;
 
-      //  differences between computed and correct
-      Real_type dv  = vv[ nvals_per_pair*k + 0 ] - v0 ;
-      Real_type dxm = vv[ nvals_per_pair*k + 1 ] - vx ;
-      Real_type dym = vv[ nvals_per_pair*k + 2 ] - vy ;
-      Real_type dzm = vv[ nvals_per_pair*k + 3 ] - vz ;
+    for ( Index_type kz=0 ; kz < m_subz_side_length ; ++kz ) {
+      for ( Index_type ky=0 ; ky < m_subz_side_length ; ++ky ) {
+        for ( Index_type kx=0 ; kx < m_subz_side_length ; ++kx ) {
 
-      // Print an error message if a volume or moment is incorrect.
-      if ( ( dv*dv   > tolsqv ) ||
-           ( dxm*dxm > tolsqx ) ||
-           ( dym*dym > tolsqy ) ||
-           ( dzm*dzm > tolsqz ) ) {
+          //   The correct volume and moments.
+          Real_type v0, vx, vy, vz ;
 
-        auto show_comparison = [&]
-            ( Int_type  kintsc,
-              std::string lbl,
-              Real_type vcalc,
-              Real_type const vexpected,
-              Real_type const tol )
-        {
-          getCout()
-              << tst << " k = " << kintsc
-              << "    " << lbl << " = "
-              << std::scientific
-              << std::setprecision(15)
-              << std::setw(23) << vcalc
-              << "  expected "
-              << std::setw(23) << vexpected
-              << "   tolerance"
-              << std::setprecision(3)
-              << std::setw(12) << tol
-              << std::endl ;
-        } ;
+          exactVolMoments ( kx, ky, kz, v0, vx, vy, vz ) ;
 
-        getCout()
-            << tst
-            << " Calculated Volumes and/or moments are INCORRECT for "
-            << getVariantName(vid).c_str() << "." << std::endl
-            << tst
-            << " First error encountered:" << std::endl ;
+          //  differences between computed and correct
+          Real_type dv  = vv[ nvals_per_pair*k + 0 ] - v0 ;
+          Real_type dxm = vv[ nvals_per_pair*k + 1 ] - vx ;
+          Real_type dym = vv[ nvals_per_pair*k + 2 ] - vy ;
+          Real_type dzm = vv[ nvals_per_pair*k + 3 ] - vz ;
 
-        show_comparison ( k, "vv", vv[nvals_per_pair*k+0], v0, sqrt(tolsqv) ) ;
-        show_comparison ( k, "vx", vv[nvals_per_pair*k+1], vx, sqrt(tolsqx) ) ;
-        show_comparison ( k, "vy", vv[nvals_per_pair*k+2], vy, sqrt(tolsqy) ) ;
-        show_comparison ( k, "vz", vv[nvals_per_pair*k+3], vz, sqrt(tolsqz) ) ;
-        getCout() << std::endl ;
+          // Print an error message if a volume or moment is incorrect.
+          if ( ( dv*dv   > tolsqv ) ||
+               ( dxm*dxm > tolsqx ) ||
+               ( dym*dym > tolsqy ) ||
+               ( dzm*dzm > tolsqz ) ) {
 
-        break ;
+            auto show_comparison = [&]
+                ( Int_type  kintsc,
+                  std::string lbl,
+                  Real_type vcalc,
+                  Real_type const vexpected,
+                  Real_type const tol )
+                                   {
+                                     getCout()
+                                         << tst << " k = " << kintsc
+                                         << "    " << lbl << " = "
+                                         << std::scientific
+                                         << std::setprecision(15)
+                                         << std::setw(23) << vcalc
+                                         << "  expected "
+                                         << std::setw(23) << vexpected
+                                         << "   tolerance"
+                                         << std::setprecision(3)
+                                         << std::setw(12) << tol
+                                         << std::endl ;
+                                   } ;
+
+            getCout()
+                << tst
+                << " Calculated Volumes and/or moments are INCORRECT for "
+                << getVariantName(vid).c_str() << "." << std::endl
+                << tst
+                << " First error encountered:" << std::endl ;
+
+            show_comparison
+                ( k, "vv", vv[nvals_per_pair*k+0], v0, sqrt(tolsqv) ) ;
+            show_comparison
+                ( k, "vx", vv[nvals_per_pair*k+1], vx, sqrt(tolsqx) ) ;
+            show_comparison
+                ( k, "vy", vv[nvals_per_pair*k+2], vy, sqrt(tolsqy) ) ;
+            show_comparison
+                ( k, "vz", vv[nvals_per_pair*k+3], vz, sqrt(tolsqz) ) ;
+            getCout() << std::endl ;
+
+            break ;
+          }
+          ++k ;
+        }
       }
     }
   }
