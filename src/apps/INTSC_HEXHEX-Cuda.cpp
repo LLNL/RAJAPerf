@@ -90,6 +90,25 @@ void INTSC_HEXHEX::runCudaVariantImpl(VariantID vid)
 
   INTSC_HEXHEX_DATA_SETUP;
 
+  //  Insert a warmup call to the kernel in order to remove the
+  //  time of initialization that affects the first call to the kernel.
+  //   The warmup calls send n_subz_intsc=0 and hence return immediately.
+  Bool_type const do_warmup = true ;
+  if ( do_warmup ) {
+    const Size_type grid_size1 = 1 ;
+    constexpr Size_type shmem = 0;
+
+    RPlaunchCudaKernel( (intsc_hexhex<block_size>),
+                        grid_size1, block_size,
+                        shmem, res.get_stream(),
+                        m_dsubz, m_tsubz,
+                        0UL, m_vv_int ) ;
+    RPlaunchCudaKernel( (intsc_hexhex_fixup_vv_64to72<block_size>),
+                        grid_size1, block_size,
+                        shmem, res.get_stream(),
+                        m_vv_int, 0UL, m_vv_out ) ;
+  }
+
   if ( vid == Base_CUDA ) {
 
     startTimer();
