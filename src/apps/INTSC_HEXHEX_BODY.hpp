@@ -15,9 +15,9 @@ namespace rajaperf {
   struct PackedNext
   {
   private:
-    static constexpr uint64_t bit_width = 4 ;
-    static constexpr uint64_t mask = (1<<bit_width) - 1 ;
-    uint64_t pack_next ;
+    static constexpr Uint64_type bit_width = 4ULL ;
+    static constexpr Uint64_type mask = (1ULL << bit_width) - 1ULL ;
+    Uint64_type pack_next ;
     Int_type first, avail ;
 
   public:
@@ -57,7 +57,7 @@ namespace rajaperf {
     //  Return -1 if the four bits are 0xF, terminating the linked list.
     RAJA_HOST_DEVICE
     RAJA_INLINE int get_next
-        ( uint64_t const j )
+        ( Uint64_type const j )
     {
       Int_type jnext = ( pack_next >> j*bit_width ) & mask ;
       return jnext == mask ? -1 : jnext ;
@@ -66,12 +66,12 @@ namespace rajaperf {
 
     RAJA_HOST_DEVICE
     RAJA_INLINE void set_next
-        ( uint64_t const j, int const jnext )
+        ( Uint64_type const j, int const jnext )
     {
       // Clear the four bits for the index j.
       pack_next &= ( ~ (mask << j*bit_width) ) ;
 
-      uint64_t jnext_bits = jnext & mask ;    // -1 becomes mask
+      Uint64_type jnext_bits = jnext & mask ;    // -1 becomes mask
       pack_next |= jnext_bits << j*bit_width ;   // Sets the four bits
     }
 
