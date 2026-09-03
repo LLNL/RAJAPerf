@@ -129,6 +129,7 @@ Real_type INTSC_HEXHEX::shiftTarget
   case 1:    width = m_ymax - m_ymin ; break ;
   case 2:    width = m_zmax - m_zmin ; break ;
   default:
+    width = 0.0 ;
     getCout() << "INTSC_HEXHEX::shift_target : Error in which_coord\n" <<
       std::endl ;
   }
@@ -160,9 +161,9 @@ void INTSC_HEXHEX::setUp(VariantID vid,
   //  Same donor coordinates for all intersections,
   //  target coordinates vary.
   Index_type k = 0 ;
-  for ( Index_type kz=0 ; kz < m_subz_side_length ; ++kz ) {
-    for ( Index_type ky=0 ; ky < m_subz_side_length ; ++ky ) {
-      for ( Index_type kx=0 ; kx < m_subz_side_length ; ++kx ) {
+  for ( Size_type kz=0 ; kz < m_subz_side_length ; ++kz ) {
+    for ( Size_type ky=0 ; ky < m_subz_side_length ; ++ky ) {
+      for ( Size_type kx=0 ; kx < m_subz_side_length ; ++kx ) {
         for ( Index_type i=0 ; i<8 ; ++i ) {
           m_dsubz[24L*k+ 0+i] = xdzone[i] ;
           m_dsubz[24L*k+ 8+i] = ydzone[i] ;
@@ -254,9 +255,9 @@ void INTSC_HEXHEX::check_intsc_volume_moments(
 
     Index_type k=0 ;
 
-    for ( Index_type kz=0 ; kz < m_subz_side_length ; ++kz ) {
-      for ( Index_type ky=0 ; ky < m_subz_side_length ; ++ky ) {
-        for ( Index_type kx=0 ; kx < m_subz_side_length ; ++kx ) {
+    for ( Size_type kz=0 ; kz < m_subz_side_length ; ++kz ) {
+      for ( Size_type ky=0 ; ky < m_subz_side_length ; ++ky ) {
+        for ( Size_type kx=0 ; kx < m_subz_side_length ; ++kx ) {
 
           //   The correct volume and moments.
           Real_type v0, vx, vy, vz ;
