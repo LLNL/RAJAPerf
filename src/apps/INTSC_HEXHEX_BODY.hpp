@@ -41,14 +41,14 @@ namespace rajaperf {
 
 
     RAJA_HOST_DEVICE
-    RAJA_INLINE void set_first ( int const j )
+    RAJA_INLINE void set_first ( Int_type const j )
     {
       first = j ;
     }
 
 
     RAJA_HOST_DEVICE
-    RAJA_INLINE  int get_first()
+    RAJA_INLINE  Int_type get_first()
     {
       return first ;
     }
@@ -56,7 +56,7 @@ namespace rajaperf {
 
     //  Return -1 if the four bits are 0xF, terminating the linked list.
     RAJA_HOST_DEVICE
-    RAJA_INLINE int get_next
+    RAJA_INLINE Int_type get_next
         ( Uint64_type const j )
     {
       Int_type jnext = ( pack_next >> j*bit_width ) & mask ;
@@ -66,7 +66,7 @@ namespace rajaperf {
 
     RAJA_HOST_DEVICE
     RAJA_INLINE void set_next
-        ( Uint64_type const j, int const jnext )
+        ( Uint64_type const j, Int_type const jnext )
     {
       // Clear the four bits for the index j.
       pack_next &= ( ~ (mask << j*bit_width) ) ;
@@ -76,7 +76,7 @@ namespace rajaperf {
     }
 
     RAJA_HOST_DEVICE
-    RAJA_INLINE int pop_avail ( )
+    RAJA_INLINE Int_type pop_avail ( )
     {
       Int_type j = avail ;
       avail = get_next(avail) ;
@@ -169,7 +169,7 @@ RAJA_INLINE void clip_polygon_ge_0
   if ( j1 >= 0 ) {     // Set linked list for crossover points.
     nexta.set_next ( j1 , jr1 ) ;
     nexta.set_next ( jr1, jr2 ) ;
-    nexta.set_next ( jr2, (( clast < 0 ) or ( c00 < 0 )) ? -1 : jj2 ) ;
+    nexta.set_next ( jr2, (( clast < 0 ) || ( c00 < 0 )) ? -1 : jj2 ) ;
   }
 }
 
