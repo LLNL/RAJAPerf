@@ -47,6 +47,9 @@ RunParams::RunParams(int argc, char** argv)
    ltimes_num_d(6),
    ltimes_num_g(32),
    ltimes_num_m(25),
+   MCHistoryParticles(10000),
+   MCHistoryCubeSz(3),
+   MCHistoryGroups(10),
    femsweep_angles_polar(3),
    femsweep_angles_azim(3),
    femsweep_groups(16),
@@ -702,6 +705,69 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
           input_state = BadInput;
         } else {
           ltimes_num_m = num;
+        }
+      } else {
+        getCout() << "\nBad input:"
+                  << " must give " << opt << " a value (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--MCHistoryParticles") ) {
+
+      i++;
+      if ( i < argc ) {
+        long long num = ::atoll( argv[i] );
+        long long min_num = 1;
+        if ( num < min_num ) {
+          getCout() << "\nBad input:"
+                << " must give " << opt << " a value of at least " << min_num
+                << std::endl;
+          input_state = BadInput;
+        } else {
+          MCHistoryParticles = num;
+        }
+      } else {
+        getCout() << "\nBad input:"
+                  << " must give " << opt << " a value (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--MCHistoryCubeSz") ) {
+
+      i++;
+      if ( i < argc ) {
+        long long num = ::atoll( argv[i] );
+        long long min_num = 1;
+        if ( num < min_num ) {
+          getCout() << "\nBad input:"
+                << " must give " << opt << " a value of at least " << min_num
+                << std::endl;
+          input_state = BadInput;
+        } else {
+          MCHistoryCubeSz = num;
+        }
+      } else {
+        getCout() << "\nBad input:"
+                  << " must give " << opt << " a value (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--MCHistoryGroups") ) {
+
+      i++;
+      if ( i < argc ) {
+        long long num = ::atoll( argv[i] );
+        long long min_num = 1;
+        if ( num < min_num ) {
+          getCout() << "\nBad input:"
+                << " must give " << opt << " a value of at least " << min_num
+                << std::endl;
+          input_state = BadInput;
+        } else {
+          MCHistoryGroups = num;
         }
       } else {
         getCout() << "\nBad input:"
