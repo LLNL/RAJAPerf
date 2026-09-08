@@ -25,10 +25,7 @@ void DIFF_PREDICT::runKokkosVariant(VariantID vid) {
 
   // DIFF_PREDICT_DATA_SETUP shifts both pointers back by offset * 4, so
   // px + offset * 4 is m_px (10 * iend elements) and cx + offset * 4 is
-  // m_cx (iend elements). Wrap the allocations, not the shifted pointers:
-  // getViewFromPointer copies the whole extent it is given, in both
-  // directions. The body only touches px columns 4..13 and cx column 4,
-  // so the column index is rebased by 4 below.
+  // m_cx (iend elements)
 
   auto px_flat_view = getViewFromPointer(px + offset * 4, iend * 10);
   auto cx_view = getViewFromPointer(cx + offset * 4, iend);
