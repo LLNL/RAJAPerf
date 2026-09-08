@@ -57,9 +57,9 @@ void REDUCE3_INT::runKokkosVariant(VariantID vid) {
           },
           Kokkos::Max<Int_type>(max_value), Kokkos::Min<Int_type>(min_value),
           sum);
-      m_vsum += static_cast<Int_type>(sum);
-      m_vmin = std::min(m_vmin, static_cast<Int_type>(min_value));
-      m_vmax = std::max(m_vmax, static_cast<Int_type>(max_value));
+      m_vsum = static_cast<Int_type>(sum);
+      m_vmin = static_cast<Int_type>(min_value);
+      m_vmax = static_cast<Int_type>(max_value);
       RP_CALI_SUBKERNEL_END("REDUCE3_INT_1");
     }
     Kokkos::fence();
