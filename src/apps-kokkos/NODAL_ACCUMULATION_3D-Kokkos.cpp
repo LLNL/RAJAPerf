@@ -30,18 +30,21 @@ void NODAL_ACCUMULATION_3D::runKokkosVariant(VariantID vid)
     int jp = m_domain->jp;
     int kp = m_domain->kp;
     auto real_zones_v = getViewFromPointer(real_zones, iend);
-    auto vol_v = getViewFromPointer(vol, m_nodal_array_length);
+    auto vol_v = getViewFromPointer(vol, m_zonal_array_length);
     auto x_v = getViewFromPointer(x, m_nodal_array_length);
    
+    // Offsets must match NDPTRSET in AppsData.hpp:
+    //   x0 = x        x1 = x + 1        x2 = x + jp        x3 = x + 1 + jp
+    //   x4 = x + kp   x5 = x + 1 + kp   x6 = x + jp + kp   x7 = x + 1 + jp + kp
     using view_t = decltype(x_v);
     view_t x0_v = x_v;
-    view_t x1_v(x_v.data() + 1, m_nodal_array_length - 1); 
-    view_t x2_v(x_v.data() + jp, m_nodal_array_length - jp); 
-    view_t x3_v(x_v.data() + jp, m_nodal_array_length - jp); 
-    view_t x4_v(x_v.data() + jp, m_nodal_array_length - jp); 
-    view_t x5_v(x_v.data() + kp, m_nodal_array_length - kp); 
-    view_t x6_v(x_v.data() + kp, m_nodal_array_length - kp); 
-    view_t x7_v(x_v.data() + kp, m_nodal_array_length - kp); 
+    view_t x1_v(x_v.data() + 1, m_nodal_array_length - 1);
+    view_t x2_v(x_v.data() + jp, m_nodal_array_length - jp);
+    view_t x3_v(x_v.data() + 1 + jp, m_nodal_array_length - 1 - jp);
+    view_t x4_v(x_v.data() + kp, m_nodal_array_length - kp);
+    view_t x5_v(x_v.data() + 1 + kp, m_nodal_array_length - 1 - kp);
+    view_t x6_v(x_v.data() + jp + kp, m_nodal_array_length - jp - kp);
+    view_t x7_v(x_v.data() + 1 + jp + kp, m_nodal_array_length - 1 - jp - kp);
 
     Kokkos::fence();
     startTimer();
