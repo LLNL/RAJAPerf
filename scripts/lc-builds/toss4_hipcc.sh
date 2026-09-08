@@ -52,7 +52,7 @@ else
 fi
 
 BUILD_SUFFIX=lc_toss4-hipcc-${COMP_VER}-${COMP_ARCH}
-RAJA_HOST_CONFIG=../tpl/RAJA/host-configs/lc-builds/toss4/${HOSTCONFIG}.cmake
+RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/toss4/${HOSTCONFIG}.cmake
 
 echo
 echo "Creating build directory build_${BUILD_SUFFIX} and generating configuration in it"

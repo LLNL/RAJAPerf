@@ -106,7 +106,7 @@ a summary of command-line arguments it was given if the input contains
 something that the code does not know how to parse. For example, running the
 command::
 
-  $ ./bin/raja-perf.exe --dry-run -k DAXPY Foo
+  $ ./bin/raja-perf.exe --dryrun -k DAXPY Foo
 
 will report the following in the screen output::
 
@@ -129,6 +129,44 @@ in the Suite.
           it does not know how to parse. Ill-formed input will be noted in
           screen output, hopefully making it easy for users to correct
           erroneous usage, such as mis-spelled option names.
+
+.. _compiler-matrix-label:
+
+=========================
+Compiler matrix workflow
+=========================
+
+For compiler sweeps, use ``scripts/lc-builds/run_compiler_matrix.sh`` rather
+than invoking a single build script by hand. The matrix driver reads a compiler
+list file, sources the selected build script for each line, builds each
+configuration, and then runs the Suite with the launcher command you provide
+via ``--run-cmd``.
+
+A typical invocation looks like::
+
+  $ ./scripts/lc-builds/run_compiler_matrix.sh toss4_amdclang.sh compiler_list.txt \
+      --run-cmd "srun -N1 -n1 -c 64 --" --kernel-file kernels.txt -- --dryrun
+
+The trailing ``--`` in ``--run-cmd`` is part of the launcher prefix. It tells
+``srun`` to stop parsing its own options so the matrix script can append
+``./bin/raja-perf.exe`` and the RAJAPerf run arguments after it.
+
+The compiler list file contains one build configuration per non-comment line.
+If you pass ``from-list`` as the build-script argument, the first token on each
+line names the build script and the remaining tokens are passed to that script.
+
+The generated ``*-kernel-run-data.csv`` files can then be merged and plotted
+with the processing scripts in ``scripts/`` such as
+``scripts/build_compiler_matrix.py`` where it will generate corresponding plots.
+
+By default the script writes its outputs under ``./compiler-matrix-output``.
+Throughput plots are placed under ``./compiler-matrix-output/throughput-plots``.
+For example, the ``VOL3D`` throughput plot can be embedded with:
+
+.. figure:: ../_static/compiler-comparison-output/throughput-plots/Apps_VOL3D_Mean_flops_gigaFLOP_per_sec_throughput.pdf
+   :alt: VOL3D throughput plot
+
+   VOL3D throughput plot.
 
 .. _run_mpi-label:
 

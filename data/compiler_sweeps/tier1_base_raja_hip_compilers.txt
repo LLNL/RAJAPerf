@@ -1,0 +1,5 @@
+# build_script mpi_version rocm_version gpu_arch
+toss4_cray-mpich_amdclang.sh 9.0.1 6.3.1 gfx942
+toss4_cray-mpich_amdclang.sh 9.0.1 6.4.3 gfx942
+toss4_cray-mpich_amdclang.sh 9.0.1 7.2.1 gfx942
+
