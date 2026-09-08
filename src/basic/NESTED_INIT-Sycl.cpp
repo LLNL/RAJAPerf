@@ -110,7 +110,161 @@ void NESTED_INIT::runSyclVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(NESTED_INIT, Sycl, Base_SYCL, RAJA_SYCL)
+template < size_t work_group_size >
+void NESTED_INIT::runSyclVariantFornest(VariantID vid)
+{
+  setBlockSize(work_group_size);
+
+  const Index_type run_reps = getRunReps();
+
+  auto res{getSyclResource()};
+
+  NESTED_INIT_DATA_SETUP;
+
+  if ( vid == RAJA_SYCL ) {
+
+    using EXEC_POL =
+      RAJA::fornest_collapsed_policy<RAJA::sycl_exec<work_group_size>>;
+
+    startTimer();
+    // Loop counter increment uses macro to quiet C++20 compiler warning
+    for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
+      RP_CALI_SUBKERNEL_BEGIN("NESTED_INIT_1");
+      RAJA::fornest(res, EXEC_POL {},
+                    RAJA::range(nk), RAJA::range(nj), RAJA::range(ni),
+                    [=] (Index_type k, Index_type j, Index_type i) {
+        NESTED_INIT_BODY;
+      });
+      RP_CALI_SUBKERNEL_END("NESTED_INIT_1");
+
+    }
+    stopTimer();
+
+  } else {
+     getCout() << "\n  NESTED_INIT : Unknown Sycl variant id = " << vid << std::endl;
+  }
+}
+
+template < size_t work_group_size, size_t tile_k, size_t tile_j, size_t tile_i >
+void NESTED_INIT::runSyclVariantFornestRuntimeTiled(VariantID vid)
+{
+  setBlockSize(work_group_size);
+
+  const Index_type run_reps = getRunReps();
+
+  auto res{getSyclResource()};
+
+  NESTED_INIT_DATA_SETUP;
+
+  if ( vid == RAJA_SYCL ) {
+
+    using EXEC_POL =
+      RAJA::fornest_tiling_policy<RAJA::sycl_exec<work_group_size>,
+                                  RAJA::fornest_tile_runtime,
+                                  RAJA::fornest_tile_runtime,
+                                  RAJA::fornest_tile_runtime>;
+
+    startTimer();
+    // Loop counter increment uses macro to quiet C++20 compiler warning
+    for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
+      RP_CALI_SUBKERNEL_BEGIN("NESTED_INIT_1");
+      RAJA::fornest(res,
+                    EXEC_POL {RAJA::TileSize(tile_k),
+                              RAJA::TileSize(tile_j),
+                              RAJA::TileSize(tile_i)},
+                    RAJA::range(nk), RAJA::range(nj), RAJA::range(ni),
+                    [=] (Index_type k, Index_type j, Index_type i) {
+        NESTED_INIT_BODY;
+      });
+      RP_CALI_SUBKERNEL_END("NESTED_INIT_1");
+
+    }
+    stopTimer();
+
+  } else {
+     getCout() << "\n  NESTED_INIT : Unknown Sycl variant id = " << vid << std::endl;
+  }
+}
+
+template < size_t work_group_size >
+void NESTED_INIT::runSyclVariantFornestAutoTiled(VariantID vid)
+{
+  setBlockSize(work_group_size);
+
+  const Index_type run_reps = getRunReps();
+
+  auto res{getSyclResource()};
+
+  NESTED_INIT_DATA_SETUP;
+
+  if ( vid == RAJA_SYCL ) {
+
+    using EXEC_POL =
+      RAJA::fornest_tiling_policy<RAJA::sycl_exec<work_group_size>,
+                                  RAJA::fornest_tile_auto,
+                                  RAJA::fornest_tile_auto,
+                                  RAJA::fornest_tile_auto>;
+
+    startTimer();
+    // Loop counter increment uses macro to quiet C++20 compiler warning
+    for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
+      RP_CALI_SUBKERNEL_BEGIN("NESTED_INIT_1");
+      RAJA::fornest(res, EXEC_POL {},
+                    RAJA::range(nk), RAJA::range(nj), RAJA::range(ni),
+                    [=] (Index_type k, Index_type j, Index_type i) {
+        NESTED_INIT_BODY;
+      });
+      RP_CALI_SUBKERNEL_END("NESTED_INIT_1");
+
+    }
+    stopTimer();
+
+  } else {
+     getCout() << "\n  NESTED_INIT : Unknown Sycl variant id = " << vid << std::endl;
+  }
+}
+
+void NESTED_INIT::defineSyclVariantTunings()
+{
+  for (VariantID vid : {Base_SYCL, RAJA_SYCL}) {
+
+    seq_for(gpu_block_sizes_type{}, [&](auto work_group_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(work_group_size)) {
+
+        addVariantTuning<&NESTED_INIT::runSyclVariantImpl<work_group_size>>(
+            vid, "block_"+std::to_string(work_group_size));
+
+        if (vid == RAJA_SYCL) {
+          addVariantTuning<&NESTED_INIT::runSyclVariantFornest<work_group_size>>(
+              vid, "fornest-collapse_block_"+std::to_string(work_group_size));
+          addVariantTuning<&NESTED_INIT::runSyclVariantFornestAutoTiled<work_group_size>>(
+              vid, "fornest-auto-tile_block_"+std::to_string(work_group_size));
+
+          if constexpr (decltype(work_group_size)::value == 1 * 8 * 32) {
+            addVariantTuning<&NESTED_INIT::runSyclVariantFornestRuntimeTiled<work_group_size, 1, 8, 32>>(
+                vid, "fornest-runtime-tile_1x8x32_block_"+std::to_string(work_group_size));
+          }
+          if constexpr (decltype(work_group_size)::value == 2 * 4 * 32) {
+            addVariantTuning<&NESTED_INIT::runSyclVariantFornestRuntimeTiled<work_group_size, 2, 4, 32>>(
+                vid, "fornest-runtime-tile_2x4x32_block_"+std::to_string(work_group_size));
+          }
+          if constexpr (decltype(work_group_size)::value == 4 * 4 * 16) {
+            addVariantTuning<&NESTED_INIT::runSyclVariantFornestRuntimeTiled<work_group_size, 4, 4, 16>>(
+                vid, "fornest-runtime-tile_4x4x16_block_"+std::to_string(work_group_size));
+          }
+        }
+
+      }
+
+    });
+
+  }
+}
 
 } // end namespace basic
 } // end namespace rajaperf
