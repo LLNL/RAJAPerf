@@ -56,7 +56,7 @@ perf_variants=${PERF_VARIANTS:-""}
 perf_run_opts=${PERF_RUN_OPTS:-""}
 perf_mpi_exec=${PERF_MPI_EXEC:-""}
 
-raja_version=${UPDATE_RAJA:-""}
+raja_reference=${RAJA_REFERENCE:-""}
 sys_type=${SYS_TYPE:-""}
 
 spack_upstream_path=${SPACK_UPSTREAM_PATH:-"/usr/workspace/umdev/RAJAPerf/upstream"}
@@ -390,11 +390,12 @@ then
     declare -A core_counts=(["dane"]=28 ["matrix"]=28 ["corona"]=32 ["rzansel"]=48 ["tioga"]=32 ["tuolumne"]=48)
 
     # If using Multi-project, set up the submodule
-    if [[ -n ${raja_version} ]]
+    if [[ -n ${raja_reference} ]]
     then
       section_start "submodule_update" "Updating RAJA Submodule" "collapsed"
       cd tpl/RAJA
-      git pull origin develop
+      git fetch origin "${raja_reference}"
+      git checkout --detach "${raja_reference}"
       git submodule update --init --recursive
       cd -
       section_end
