@@ -13,7 +13,9 @@
 
 #include <cstdlib>
 #include <cstdio>
+#include <cerrno>
 #include <iostream>
+#include <limits>
 
 #include <list>
 #include <set>
@@ -53,6 +55,7 @@ RunParams::RunParams(int argc, char** argv)
    femsweep_mesh_dims({5, 5, 5}),
    use_femsweep_mesh_dims(false),
    array_of_ptrs_array_size(ARRAY_OF_PTRS_MAX_ARRAY_SIZE),
+   pointer_chase_traversals(POINTER_CHASE_DEFAULT_TRAVERSALS),
    halo_width(1),
    halo_num_vars(3),
    enable_custom_scan(true),
@@ -161,6 +164,7 @@ void RunParams::print(std::ostream& str) const
   }
 
   str << "\n array_of_ptrs_array_size = " << array_of_ptrs_array_size;
+  str << "\n pointer_chase_traversals = " << pointer_chase_traversals;
 
   str << "\n halo_width = " << halo_width;
   str << "\n halo_num_vars = " << halo_num_vars;
@@ -826,6 +830,31 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
           input_state = BadInput;
         } else {
           array_of_ptrs_array_size = num;
+        }
+      } else {
+        getCout() << "\nBad input:"
+                  << " must give " << opt << " a value (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--pointer_chase_traversals") ) {
+
+      i++;
+      if ( i < argc ) {
+        char* end = nullptr;
+        errno = 0;
+        const char* value = argv[i];
+        unsigned long long num = std::strtoull(value, &end, 10);
+        if ( value[0] == '-' || errno == ERANGE || end == value ||
+             *end != '\0' || num == 0 ||
+             num > std::numeric_limits<std::uint64_t>::max() ) {
+          getCout() << "\nBad input:"
+                    << " must give " << opt << " a positive 64-bit integer"
+                    << std::endl;
+          input_state = BadInput;
+        } else {
+          pointer_chase_traversals = static_cast<std::uint64_t>(num);
         }
       } else {
         getCout() << "\nBad input:"
@@ -1761,6 +1790,13 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t      Must be less than or equal to " << ARRAY_OF_PTRS_MAX_ARRAY_SIZE << ".\n";
   str << "\t\t Example...\n"
       << "\t\t --array_of_ptrs_array_size 4\n\n";
+
+  str << "\t --pointer_chase_traversals <int> [default is "
+      << POINTER_CHASE_DEFAULT_TRAVERSALS << "]\n"
+      << "\t      (For POINTER_CHASE only: full chain traversals per repetition)\n"
+      << "\t      Must be greater than 0.\n";
+  str << "\t\t Example...\n"
+      << "\t\t --pointer_chase_traversals 4\n\n";
 
   str << "\t --halo_width <int> [default is 1]\n"
       << "\t      (For HALO kernels only: halo width used in kernels)\n"

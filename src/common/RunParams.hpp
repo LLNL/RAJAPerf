@@ -14,6 +14,7 @@
 #include <set>
 #include <vector>
 #include <array>
+#include <cstdint>
 #include <iosfwd>
 
 #include "RAJAPerfSuite.hpp"
@@ -25,6 +26,8 @@
 
 namespace rajaperf
 {
+
+inline constexpr std::uint64_t POINTER_CHASE_DEFAULT_TRAVERSALS = 1;
 
 /*!
  *******************************************************************************
@@ -284,6 +287,9 @@ public:
 
   Index_type getArrayOfPtrsArraySize() const { return array_of_ptrs_array_size; }
 
+  std::uint64_t getPointerChaseTraversals() const
+  { return pointer_chase_traversals; }
+
   Index_type getHaloWidth() const { return halo_width; }
   Index_type getHaloNumVars() const { return halo_num_vars; }
 
@@ -447,6 +453,8 @@ private:
   bool use_femsweep_mesh_dims; /*!< enable user input of femsweep mesh dimensions x, y, and z in femsweep kernel (true if vector femsweep_mesh_dims is properly passed on command line) */
 
   Index_type array_of_ptrs_array_size; /*!< number of pointers used in ARRAY_OF_PTRS kernel (input option) */
+
+  std::uint64_t pointer_chase_traversals; /*!< number of full POINTER_CHASE traversals per repetition */
 
   Index_type halo_width; /*!< halo width used in halo kernels (input option) */
   Index_type halo_num_vars; /*!< num vars used in halo kernels (input option) */
