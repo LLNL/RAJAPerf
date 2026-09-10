@@ -9,6 +9,8 @@
 
 ///
 /// LTIMES kernel reference implementation:
+/// Dependent on running in Kripke --layout ZGD
+/// https://github.com/llnl/Kripke/blob/develop/src/Kripke/Kernel/LTimes.cpp#L27
 ///
 /// for (Index_type z = 0; z < num_z; ++z ) {
 ///   for (Index_type g = 0; g < num_g; ++g ) {
@@ -16,7 +18,7 @@
 ///       for (Index_type d = 0; d < num_d; ++d ) {
 ///
 ///         phi[m+ (g * num_m) + (z * num_m * num_g)] +=
-///           ell[d+ (m * num_d)] * psi[d+ (g * num_d) + (z * num_d * num_g];
+///           ell[m+ (d * num_m)] * psi[d+ (g * num_d) + (z * num_d * num_g];
 ///
 ///       }
 ///     }
@@ -42,7 +44,7 @@
                      RAJA::as_array<RAJA::Perm<0, 1, 2> >::get() ) ); \
   ELL_VIEW ell(m_elldat, \
                RAJA::make_permuted_layout( {{*num_m, *num_d}}, \
-                     RAJA::as_array<RAJA::Perm<0, 1> >::get() ) ); \
+                     RAJA::as_array<RAJA::Perm<1, 0> >::get() ) ); \
   PHI_VIEW phi(m_phidat, \
                RAJA::make_permuted_layout( {{*num_z, *num_g, *num_m}}, \
                      RAJA::as_array<RAJA::Perm<0, 1, 2> >::get() ) );
@@ -76,7 +78,7 @@ namespace ltimes_idx {
                                    RAJA::Layout<3, Index_type, 2>,
                                    IZ, IG, ID>;
   using ELL_VIEW = RAJA::TypedView<Real_type,
-                                   RAJA::Layout<2, Index_type, 1>,
+                                   RAJA::Layout<2, Index_type, 0>,
                                    IM, ID>;
   using PHI_VIEW = RAJA::TypedView<Real_type,
                                    RAJA::Layout<3, Index_type, 2>,
@@ -114,17 +116,35 @@ public:
   void runOpenMPVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 
-  template < size_t block_size, size_t tune_idx >
+  template < size_t tune_idx >
+  void runCudaVariantM(VariantID vid);
+  template < size_t tune_idx, size_t block_size >
+  void runCudaVariantZGM(VariantID vid);
+
+  template < size_t tune_idx >
+  void runHipVariantM(VariantID vid);
+  template < size_t tune_idx, size_t block_size >
+  void runHipVariantZGM(VariantID vid);
+
+  void runSyclVariantM(VariantID vid);
+  void runSyclVariantLaunchM(VariantID vid);
+  template < size_t work_group_size >
+  void runSyclVariantZGM(VariantID vid);
+  template < size_t work_group_size >
+  void runSyclVariantLaunchZGM(VariantID vid);
+
+  template < size_t tune_idx, size_t block_size = 0 >
   void runCudaVariantImpl(VariantID vid);
-  template < size_t block_size, size_t tune_idx >
+  template < size_t tune_idx, size_t block_size = 0 >
   void runHipVariantImpl(VariantID vid);
-  template < size_t work_group_size, size_t tune_idx >
+  template < size_t tune_idx, size_t work_group_size = 0 >
   void runSyclVariantImpl(VariantID vid);
 
 private:
-  static const size_t default_gpu_block_size = 256;
-  using gpu_block_sizes_type = integer::make_gpu_block_size_list_type<default_gpu_block_size,
-                                                         integer::MultipleOf<32>>;
+  static const size_t zgm_default_gpu_block_size = 256;
+  using zgm_gpu_block_sizes_type =
+      integer::make_gpu_block_size_list_type<zgm_default_gpu_block_size,
+                                             integer::MultipleOf<32>>;
 
   Real_ptr m_phidat;
   Real_ptr m_elldat;
