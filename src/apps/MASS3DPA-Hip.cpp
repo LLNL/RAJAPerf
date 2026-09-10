@@ -219,8 +219,8 @@ void MASS3DPA::runHipVariantImpl(VariantID vid) {
                 }
               );  // RAJA::loop<inner_z>
 
-              RAJA::loop<inner_z>(ctx, RAJA::range(1),
-                [&](Index_type RAJA_UNUSED_ARG(zbatch)) {
+              RAJA::mask<inner_z>(ctx,
+                [&] {
                   RAJA::loop<inner_y>(ctx, RAJA::range(MD1),
                     [&](Index_type dy) {
                       RAJA::loop<inner_x>(ctx, RAJA::range(MQ1),
@@ -231,7 +231,7 @@ void MASS3DPA::runHipVariantImpl(VariantID vid) {
                     }
                   );  // RAJA::loop<inner_y>
                 }
-              );  // RAJA::loop<inner_z>
+              );  // RAJA::mask<inner_z>
 
               ctx.teamSync();
 
@@ -301,10 +301,8 @@ void MASS3DPA::runHipVariantImpl(VariantID vid) {
 
               ctx.teamSync();
 
-              RAJA::loop<inner_z>(ctx, RAJA::range(1),
-                [&](Index_type zbatch) {
-                  MASS3DPA_GPU_SMEM_SLICE(zbatch)
-
+              RAJA::mask<inner_z>(ctx,
+                [&] {
                   RAJA::loop<inner_y>(ctx, RAJA::range(MD1),
                     [&](Index_type d) {
                       RAJA::loop<inner_x>(ctx, RAJA::range(MQ1),
@@ -315,7 +313,7 @@ void MASS3DPA::runHipVariantImpl(VariantID vid) {
                     }
                   );  // RAJA::loop<inner_y>
                 }
-              );  // RAJA::loop<inner_z>
+              );  // RAJA::mask<inner_z>
 
               ctx.teamSync();
 
