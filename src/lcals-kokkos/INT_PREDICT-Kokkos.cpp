@@ -35,6 +35,7 @@ void INT_PREDICT::runKokkosVariant(VariantID vid) {
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("INT_PREDICT_1");
       Kokkos::parallel_for(
           "INT_PREDICT_Kokkos Kokkos_Lambda",
           Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
@@ -50,6 +51,7 @@ void INT_PREDICT::runKokkosVariant(VariantID vid) {
                 c0 * (px_view[i + offset * 4] + px_view[i + offset * 5]) +
                 px_view[i + offset * 2];
           });
+      RP_CALI_SUBKERNEL_END("INT_PREDICT_1");
     }
     Kokkos::fence();
     stopTimer();

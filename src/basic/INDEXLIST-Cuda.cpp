@@ -108,6 +108,7 @@ void INDEXLIST::runCudaVariantCustom(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_1");
       CAMP_CUDA_API_INVOKE_AND_CHECK( cudaMemsetAsync,
           block_readys, 0, sizeof(unsigned)*grid_size, res.get_stream() );
       RPlaunchCudaKernel( (indexlist_custom<block_size, items_per_thread>),
@@ -119,6 +120,7 @@ void INDEXLIST::runCudaVariantCustom(VariantID vid)
 
       CAMP_CUDA_API_INVOKE_AND_CHECK( cudaStreamSynchronize, res.get_stream() );
       m_len = *len;
+      RP_CALI_SUBKERNEL_END("INDEXLIST_1");
 
     }
     stopTimer();

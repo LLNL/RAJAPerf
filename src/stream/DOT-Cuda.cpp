@@ -79,6 +79,7 @@ void DOT::runCudaVariantBase(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("DOT_1");
       RAJAPERF_CUDA_REDUCER_INITIALIZE(&m_dot_init, dprod, hdprod, 1, 1);
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
@@ -91,6 +92,7 @@ void DOT::runCudaVariantBase(VariantID vid)
 
       RAJAPERF_CUDA_REDUCER_COPY_BACK(dprod, hdprod, 1, 1);
       m_dot += hdprod[0];
+      RP_CALI_SUBKERNEL_END("DOT_1");
 
     }
     stopTimer();
@@ -129,6 +131,7 @@ void DOT::runCudaVariantRAJA(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+       RP_CALI_SUBKERNEL_BEGIN("DOT_1");
        RAJA::ReduceSum<reduction_policy, Real_type> dot(m_dot_init);
 
        RAJA::forall<exec_policy>( res,
@@ -137,6 +140,7 @@ void DOT::runCudaVariantRAJA(VariantID vid)
        });
 
        m_dot += static_cast<Real_type>(dot.get());
+       RP_CALI_SUBKERNEL_END("DOT_1");
 
     }
     stopTimer();
@@ -169,6 +173,7 @@ void DOT::runCudaVariantRAJANewReduce(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+       RP_CALI_SUBKERNEL_BEGIN("DOT_1");
        Real_type tdot = m_dot_init;
 
        RAJA::forall<exec_policy>( res,
@@ -181,6 +186,7 @@ void DOT::runCudaVariantRAJANewReduce(VariantID vid)
        );
 
        m_dot += static_cast<Real_type>(tdot);
+       RP_CALI_SUBKERNEL_END("DOT_1");
 
     }
     stopTimer();

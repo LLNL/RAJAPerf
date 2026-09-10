@@ -50,19 +50,20 @@ void FIRST_MIN::runSyclVariantImpl(VariantID vid)
 
     using result_type = reduce_pair<Real_type, Index_type>;
 
-    auto result = sycl::malloc_shared< result_type >(1, *qu); 
+    auto result = sycl::malloc_shared< result_type >(1, qu); 
  
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("FIRST_MIN_1");
       const size_t global_size = work_group_size * RAJA_DIVIDE_CEILING_INT(iend, work_group_size);
 
       result_type result_init = { m_xmin_init, m_initloc };
       *result = result_init;
       auto reduction_obj = sycl::reduction( result, result_init, sycl::minimum<result_type>() ); 
 
-      qu->submit([&] (sycl::handler& h) {
+      qu.submit([&] (sycl::handler& h) {
 
         h.parallel_for(sycl::nd_range<1>(global_size, work_group_size),
                        reduction_obj,
@@ -77,14 +78,15 @@ void FIRST_MIN::runSyclVariantImpl(VariantID vid)
 
       });
 
-      qu->wait();
+      qu.wait();
 
       m_minloc = static_cast<Index_type>(result->idx);
+      RP_CALI_SUBKERNEL_END("FIRST_MIN_1");
 
     }
     stopTimer();
 
-    sycl::free(result, *qu);
+    sycl::free(result, qu);
 
   } else if ( vid == RAJA_SYCL ) {
 
@@ -92,6 +94,7 @@ void FIRST_MIN::runSyclVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+       RP_CALI_SUBKERNEL_BEGIN("FIRST_MIN_1");
        RAJA::expt::ValLoc<Real_type, Index_type> tminloc(m_xmin_init,
                                                          m_initloc);
 
@@ -107,6 +110,7 @@ void FIRST_MIN::runSyclVariantImpl(VariantID vid)
        );
 
        m_minloc = static_cast<Index_type>(tminloc.getLoc());
+       RP_CALI_SUBKERNEL_END("FIRST_MIN_1");
 
     }
     stopTimer();

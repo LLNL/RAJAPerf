@@ -120,16 +120,20 @@ void INTSC_HEXHEX::runHipVariantImpl(VariantID vid)
       const Size_type grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr Size_type shmem = 0;
 
+      RP_CALI_SUBKERNEL_BEGIN("INTSC_HEXHEX_1");
       RPlaunchHipKernel( (intsc_hexhex_hip<block_size>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          m_dsubz, m_tsubz,
                          n_subz_intsc, m_vv_int ) ;
+      RP_CALI_SUBKERNEL_END("INTSC_HEXHEX_1");
 
+      RP_CALI_SUBKERNEL_BEGIN("INTSC_HEXHEX_2");
       RPlaunchHipKernel( (intsc_hexhex_hip_fixup_vv_64to72<block_size>),
                          gsize_fixup, block_size,
                          shmem, res.get_stream(),
                          m_vv_int, n_subz_intsc, m_vv_out ) ;
+      RP_CALI_SUBKERNEL_END("INTSC_HEXHEX_2");
 
 
     }
@@ -162,19 +166,23 @@ void INTSC_HEXHEX::runHipVariantImpl(VariantID vid)
 
       constexpr Size_type shmem = 0;
 
+      RP_CALI_SUBKERNEL_BEGIN("INTSC_HEXHEX_1");
       RPlaunchHipKernel( (lambda_hip_forall<block_size,
                           decltype(intsc_hexhex_lambda)>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          ibegin, iend,
                          intsc_hexhex_lambda );
+      RP_CALI_SUBKERNEL_END("INTSC_HEXHEX_1");
 
+      RP_CALI_SUBKERNEL_BEGIN("INTSC_HEXHEX_2");
       RPlaunchHipKernel( (lambda_hip_forall<block_size,
                           decltype(intsc_hexhex_fixup_lambda)>),
                          gsize_fixup, block_size,
                          shmem, res.get_stream(),
                          ibegin, iend_fixup,
                          intsc_hexhex_fixup_lambda );
+      RP_CALI_SUBKERNEL_END("INTSC_HEXHEX_2");
 
 
     }
@@ -186,6 +194,7 @@ void INTSC_HEXHEX::runHipVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("INTSC_HEXHEX_1");
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i)
           {
@@ -200,13 +209,16 @@ void INTSC_HEXHEX::runHipVariantImpl(VariantID vid)
             INTSC_HEXHEX_BODY;
           }
       ) ;
+      RP_CALI_SUBKERNEL_END("INTSC_HEXHEX_1");
 
+      RP_CALI_SUBKERNEL_BEGIN("INTSC_HEXHEX_2");
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend_fixup), [=] __device__ (Index_type i)
           {
             FIXUP_VV_BODY ;
           }
       ) ;
+      RP_CALI_SUBKERNEL_END("INTSC_HEXHEX_2");
 
     }
     stopTimer();

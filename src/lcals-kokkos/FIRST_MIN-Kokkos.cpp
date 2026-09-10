@@ -35,6 +35,7 @@ void FIRST_MIN::runKokkosVariant(VariantID vid) {
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("FIRST_MIN_1");
       // The third template argument, `Kokkos::HostSpace`, is the memory space
       // where the result will be stored; the result will be stored in the same
       // place the kernel is called from , i.e., the Host
@@ -58,6 +59,7 @@ void FIRST_MIN::runKokkosVariant(VariantID vid) {
           reducer_type(min_result_obj));
 
       m_minloc = min_result_obj.loc;
+      RP_CALI_SUBKERNEL_END("FIRST_MIN_1");
     }
     Kokkos::fence();
     stopTimer();

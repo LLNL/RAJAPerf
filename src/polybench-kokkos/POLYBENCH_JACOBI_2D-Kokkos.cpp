@@ -35,6 +35,7 @@ void POLYBENCH_JACOBI_2D::runKokkosVariant(VariantID vid) {
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_JACOBI_2D_1");
         Kokkos::parallel_for(
             "JACOBI_2D_Kokkos Kokkos_Lambda--BODY1",
             Kokkos::MDRangePolicy<Kokkos::Rank<2>,
@@ -45,7 +46,9 @@ void POLYBENCH_JACOBI_2D::runKokkosVariant(VariantID vid) {
                   0.2 * (A_view(i, j) + A_view(i, j - 1) + A_view(i, j + 1) +
                          A_view(i + 1, j) + A_view(i - 1, j));
             });
+        RP_CALI_SUBKERNEL_END("POLYBENCH_JACOBI_2D_1");
 
+        RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_JACOBI_2D_2");
         Kokkos::parallel_for(
             "JACOBI_2D_Kokkos Kokkos_Lambda--BODY2",
             Kokkos::MDRangePolicy<Kokkos::Rank<2>,
@@ -56,14 +59,12 @@ void POLYBENCH_JACOBI_2D::runKokkosVariant(VariantID vid) {
                   0.2 * (B_view(i, j) + B_view(i, j - 1) + B_view(i, j + 1) +
                          B_view(i + 1, j) + B_view(i - 1, j));
             });
+        RP_CALI_SUBKERNEL_END("POLYBENCH_JACOBI_2D_2");
 
       }
 
       Kokkos::fence();
       stopTimer();
-
-      moveDataToHostFromKokkosView(A, A_view, N, N);
-      moveDataToHostFromKokkosView(B, B_view, N, N);
 
       break;
     }
@@ -73,6 +74,9 @@ void POLYBENCH_JACOBI_2D::runKokkosVariant(VariantID vid) {
                 << std::endl;
     }
   }
+
+  moveDataToHostFromKokkosView(A, A_view, N, N);
+  moveDataToHostFromKokkosView(B, B_view, N, N);
 }
 
 RAJAPERF_DEFAULT_TUNING_DEFINE_BOILERPLATE(POLYBENCH_JACOBI_2D, Kokkos, Kokkos_Lambda)

@@ -130,13 +130,16 @@ void ENERGY::runCudaVariantImpl(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
 
+      RP_CALI_SUBKERNEL_BEGIN("ENERGY_1");
       RPlaunchCudaKernel( (energycalc1<block_size>),
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           e_new, e_old, delvc,
                           p_old, q_old, work,
                           iend );
+      RP_CALI_SUBKERNEL_END("ENERGY_1");
 
+      RP_CALI_SUBKERNEL_BEGIN("ENERGY_2");
       RPlaunchCudaKernel( (energycalc2<block_size>),
                           grid_size, block_size,
                           shmem, res.get_stream(),
@@ -146,7 +149,9 @@ void ENERGY::runCudaVariantImpl(VariantID vid)
                           ql_old, qq_old,
                           rho0,
                           iend );
+      RP_CALI_SUBKERNEL_END("ENERGY_2");
 
+      RP_CALI_SUBKERNEL_BEGIN("ENERGY_3");
       RPlaunchCudaKernel( (energycalc3<block_size>),
                           grid_size, block_size,
                           shmem, res.get_stream(),
@@ -154,14 +159,18 @@ void ENERGY::runCudaVariantImpl(VariantID vid)
                           p_old, q_old,
                           pHalfStep, q_new,
                           iend );
+      RP_CALI_SUBKERNEL_END("ENERGY_3");
 
+      RP_CALI_SUBKERNEL_BEGIN("ENERGY_4");
       RPlaunchCudaKernel( (energycalc4<block_size>),
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           e_new, work,
                           e_cut, emin,
                           iend );
+      RP_CALI_SUBKERNEL_END("ENERGY_4");
 
+      RP_CALI_SUBKERNEL_BEGIN("ENERGY_5");
       RPlaunchCudaKernel( (energycalc5<block_size>),
                           grid_size, block_size,
                           shmem, res.get_stream(),
@@ -173,7 +182,9 @@ void ENERGY::runCudaVariantImpl(VariantID vid)
                           pHalfStep, q_new,
                           rho0, e_cut, emin,
                           iend );
+      RP_CALI_SUBKERNEL_END("ENERGY_5");
 
+      RP_CALI_SUBKERNEL_BEGIN("ENERGY_6");
       RPlaunchCudaKernel( (energycalc6<block_size>),
                           grid_size, block_size,
                           shmem, res.get_stream(),
@@ -184,6 +195,7 @@ void ENERGY::runCudaVariantImpl(VariantID vid)
                           ql_old, qq_old,
                           rho0, q_cut,
                           iend );
+      RP_CALI_SUBKERNEL_END("ENERGY_6");
 
     }
     stopTimer();
@@ -202,35 +214,47 @@ void ENERGY::runCudaVariantImpl(VariantID vid)
       RAJA::region<RAJA::seq_region>( [=]() {
 #endif
 
+        RP_CALI_SUBKERNEL_BEGIN("ENERGY_1");
         RAJA::forall< RAJA::cuda_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY1;
         });
+        RP_CALI_SUBKERNEL_END("ENERGY_1");
 
+        RP_CALI_SUBKERNEL_BEGIN("ENERGY_2");
         RAJA::forall< RAJA::cuda_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY2;
         });
+        RP_CALI_SUBKERNEL_END("ENERGY_2");
 
+        RP_CALI_SUBKERNEL_BEGIN("ENERGY_3");
         RAJA::forall< RAJA::cuda_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY3;
         });
+        RP_CALI_SUBKERNEL_END("ENERGY_3");
 
+        RP_CALI_SUBKERNEL_BEGIN("ENERGY_4");
         RAJA::forall< RAJA::cuda_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY4;
         });
+        RP_CALI_SUBKERNEL_END("ENERGY_4");
 
+        RP_CALI_SUBKERNEL_BEGIN("ENERGY_5");
         RAJA::forall< RAJA::cuda_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY5;
         });
+        RP_CALI_SUBKERNEL_END("ENERGY_5");
 
+        RP_CALI_SUBKERNEL_BEGIN("ENERGY_6");
         RAJA::forall< RAJA::cuda_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY6;
         });
+        RP_CALI_SUBKERNEL_END("ENERGY_6");
 
 #if CUDART_VERSION >= 9000
       }); // end sequential region (for single-source code)

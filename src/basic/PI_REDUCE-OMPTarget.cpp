@@ -42,6 +42,7 @@ void PI_REDUCE::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("PI_REDUCE_1");
       Real_type pi = m_pi_init;
 
       #pragma omp target device( did ) map(tofrom:pi)
@@ -52,6 +53,7 @@ void PI_REDUCE::runOpenMPTargetVariant(VariantID vid)
       }
 
       m_pi = 4.0 * pi;
+      RP_CALI_SUBKERNEL_END("PI_REDUCE_1");
 
     }
     stopTimer();
@@ -64,6 +66,7 @@ void PI_REDUCE::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("PI_REDUCE_1");
       Real_type tpi = m_pi_init;
 
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>( res,
@@ -76,6 +79,7 @@ void PI_REDUCE::runOpenMPTargetVariant(VariantID vid)
       );
 
       m_pi = static_cast<Real_type>(tpi) * 4.0;
+      RP_CALI_SUBKERNEL_END("PI_REDUCE_1");
 
     }
     stopTimer();

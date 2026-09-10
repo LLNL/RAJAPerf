@@ -44,7 +44,8 @@ void CONVECTION3DPA::runSyclVariantImpl(VariantID vid) {
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
-      qu->submit([&](::sycl::handler& h) {
+      RP_CALI_SUBKERNEL_BEGIN("CONVECTION3DPA_1");
+      qu.submit([&](::sycl::handler& h) {
 
         constexpr Index_type max_D1D = conv::D1D;
         constexpr Index_type max_Q1D = conv::Q1D;
@@ -180,6 +181,7 @@ void CONVECTION3DPA::runSyclVariantImpl(VariantID vid) {
            });
 
       });
+      RP_CALI_SUBKERNEL_END("CONVECTION3DPA_1");
 
 
     }
@@ -222,6 +224,7 @@ void CONVECTION3DPA::runSyclVariantImpl(VariantID vid) {
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("CONVECTION3DPA_1");
       //clang-format off
       RAJA::launch<launch_policy>( res,
           RAJA::LaunchParams(RAJA::Teams(NE),
@@ -404,6 +407,7 @@ void CONVECTION3DPA::runSyclVariantImpl(VariantID vid) {
         }  // outer lambda (ctx)
       );  // RAJA::launch
       //clang-format on
+      RP_CALI_SUBKERNEL_END("CONVECTION3DPA_1");
 
     } // loop over kernel reps
     stopTimer();

@@ -37,12 +37,14 @@ void PI_ATOMIC::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("PI_ATOMIC_1");
         *pi = m_pi_init;
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
           PI_ATOMIC_BODY(RAJAPERF_ATOMIC_ADD_OMP);
         }
         m_pi_final = *pi * 4.0;
+        RP_CALI_SUBKERNEL_END("PI_ATOMIC_1");
 
       }
       stopTimer();
@@ -60,12 +62,14 @@ void PI_ATOMIC::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("PI_ATOMIC_1");
         *pi = m_pi_init;
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
           piatomic_base_lam(i);
         }
         m_pi_final = *pi * 4.0;
+        RP_CALI_SUBKERNEL_END("PI_ATOMIC_1");
 
       }
       stopTimer();
@@ -81,12 +85,14 @@ void PI_ATOMIC::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("PI_ATOMIC_1");
         *pi = m_pi_init;
         RAJA::forall<RAJA::omp_parallel_for_exec>( res,
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
             PI_ATOMIC_BODY(RAJAPERF_ATOMIC_ADD_RAJA_OMP);
         });
         m_pi_final = *pi * 4.0;
+        RP_CALI_SUBKERNEL_END("PI_ATOMIC_1");
 
       }
       stopTimer();

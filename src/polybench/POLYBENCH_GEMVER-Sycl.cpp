@@ -54,7 +54,8 @@ void POLYBENCH_GEMVER::runSyclVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
-      qu->submit([&] (sycl::handler& h) {
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_1");
+      qu.submit([&] (sycl::handler& h) {
         h.parallel_for(sycl::nd_range<3>( global_dim1, wkgroup_dim1),
                        [=] (sycl::nd_item<3> item) {
 
@@ -67,8 +68,10 @@ void POLYBENCH_GEMVER::runSyclVariantImpl(VariantID vid)
 
         });
       });
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_1");
 
-      qu->submit([&] (sycl::handler& h) {
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_2");
+      qu.submit([&] (sycl::handler& h) {
         h.parallel_for(sycl::nd_range<1>(global_size234, work_group_size),
                        [=] (sycl::nd_item<1> item ) {
 
@@ -83,8 +86,10 @@ void POLYBENCH_GEMVER::runSyclVariantImpl(VariantID vid)
 
         });
       });
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_2");
 
-      qu->submit([&] (sycl::handler& h) {
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_3");
+      qu.submit([&] (sycl::handler& h) {
         h.parallel_for(sycl::nd_range<1>(global_size234, work_group_size),
                        [=] (sycl::nd_item<1> item ) {
 
@@ -95,8 +100,10 @@ void POLYBENCH_GEMVER::runSyclVariantImpl(VariantID vid)
 
         });
       });
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_3");
 
-      qu->submit([&] (sycl::handler& h) {
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_4");
+      qu.submit([&] (sycl::handler& h) {
         h.parallel_for(sycl::nd_range<1>(global_size234, work_group_size),
                        [=] (sycl::nd_item<1> item ) {
 
@@ -111,6 +118,7 @@ void POLYBENCH_GEMVER::runSyclVariantImpl(VariantID vid)
 
         });
       });
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_4");
 
     }
     stopTimer();
@@ -149,6 +157,7 @@ void POLYBENCH_GEMVER::runSyclVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_1");
       RAJA::kernel_resource<EXEC_POL1>(
         RAJA::make_tuple(RAJA::RangeSegment{0, n},
                          RAJA::RangeSegment{0, n}),
@@ -157,7 +166,9 @@ void POLYBENCH_GEMVER::runSyclVariantImpl(VariantID vid)
           POLYBENCH_GEMVER_BODY1_RAJA;
         }
       );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_1");
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_2");
       RAJA::kernel_param_resource<EXEC_POL24>(
         RAJA::make_tuple(RAJA::RangeSegment{0, n},
                          RAJA::RangeSegment{0, n}),
@@ -174,13 +185,17 @@ void POLYBENCH_GEMVER::runSyclVariantImpl(VariantID vid)
           POLYBENCH_GEMVER_BODY4_RAJA;
         }
       );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_2");
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_3");
       RAJA::forall<EXEC_POL3> ( res, RAJA::RangeSegment{0, n},
         [=] (Index_type i) {
           POLYBENCH_GEMVER_BODY5_RAJA;
         }
       );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_3");
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_4");
       RAJA::kernel_param_resource<EXEC_POL24>(
         RAJA::make_tuple(RAJA::RangeSegment{0, n},
                          RAJA::RangeSegment{0, n}),
@@ -197,6 +212,7 @@ void POLYBENCH_GEMVER::runSyclVariantImpl(VariantID vid)
           POLYBENCH_GEMVER_BODY8_RAJA;
         }
       );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_4");
 
     }
     stopTimer();

@@ -33,6 +33,7 @@ void MASS3DEA::runSeqVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("MASS3DEA_1");
       for (Index_type e = 0; e < NE; ++e) {
 
         MASS3DEA_0_CPU
@@ -62,6 +63,7 @@ void MASS3DEA::runSeqVariant(VariantID vid)
         }
 
       } // element loop
+      RP_CALI_SUBKERNEL_END("MASS3DEA_1");
     }
     stopTimer();
 
@@ -88,6 +90,7 @@ void MASS3DEA::runSeqVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("MASS3DEA_1");
       //clang-format off
       RAJA::launch<launch_policy>( res,
           RAJA::LaunchParams(),
@@ -149,6 +152,7 @@ void MASS3DEA::runSeqVariant(VariantID vid)
           }       // outer lambda (ctx)
       );          // RAJA::launch
       //clang-format on
+      RP_CALI_SUBKERNEL_END("MASS3DEA_1");
 
     } // loop over kernel reps
     stopTimer();

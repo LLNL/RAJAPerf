@@ -17,7 +17,6 @@ namespace lcals {
 
 void GEN_LIN_RECUR::runKokkosVariant(VariantID vid) {
   const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 1;
   const Index_type iend = getActualProblemSize();
 
   GEN_LIN_RECUR_DATA_SETUP;
@@ -39,6 +38,7 @@ void GEN_LIN_RECUR::runKokkosVariant(VariantID vid) {
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("GEN_LIN_RECUR_1");
       Kokkos::parallel_for(
           "GEN_LIN_RECUR_Kokkos Kokkos Lambda -- BODY1",
           Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(0, N),
@@ -46,7 +46,9 @@ void GEN_LIN_RECUR::runKokkosVariant(VariantID vid) {
             b5_view[k + kb5i] = sa_view[k] + stb5_view[k] * sb_view[k];
             stb5_view[k] = b5_view[k + kb5i] - stb5_view[k];
           });
+      RP_CALI_SUBKERNEL_END("GEN_LIN_RECUR_1");
 
+      RP_CALI_SUBKERNEL_BEGIN("GEN_LIN_RECUR_2");
       Kokkos::parallel_for(
           "GEN_LIN_RECUR_Kokkos Kokkos Lambda -- BODY2",
           Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(1, N + 1),
@@ -56,6 +58,7 @@ void GEN_LIN_RECUR::runKokkosVariant(VariantID vid) {
             b5_view[k + kb5i] = sa_view[k] + stb5_view[k] * sb_view[k];
             stb5_view[k] = b5_view[k + kb5i] - stb5_view[k];
           });
+      RP_CALI_SUBKERNEL_END("GEN_LIN_RECUR_2");
     }
 
     Kokkos::fence();

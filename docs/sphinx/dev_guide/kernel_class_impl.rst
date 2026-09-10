@@ -286,6 +286,18 @@ A few details are worth noting:
     compilers from optimizing certain loop execution operations. The syntax
     inside the macro definition quiets compiler warnings when the code is 
     compiled using the C++20 standard.
+  * Every timed kernel body should be marked with
+    ``RP_CALI_SUBKERNEL_BEGIN("<name>")`` and
+    ``RP_CALI_SUBKERNEL_END("<name>")``. These macros add the Caliper
+    ``subkernel`` attribute when Caliper support and
+    ``RAJA_PERFSUITE_USE_CALIPER_SUBKERNEL`` are enabled, and compile away
+    otherwise. Configure with ``-DRAJA_PERFSUITE_USE_CALIPER_SUBKERNEL=Off`` to
+    exclude subkernel regions from Caliper output.
+  * Name fixed-count subkernels by appending a one-based numeric suffix to the
+    kernel name, for example ``DAXPY_1``, ``POLYBENCH_JACOBI_1D_1``, and
+    ``POLYBENCH_JACOBI_1D_2``. Single-body kernels use the ``_1`` suffix. For a
+    variable number of launches, append ``_k`` instead, for example
+    ``HALO_PACKING_pack_k`` or ``HALO_EXCHANGE_unpack_k``.
 
 All kernel source files follow a similar organization and implementation 
 pattern for each set of back-end execution variants. However, there are some

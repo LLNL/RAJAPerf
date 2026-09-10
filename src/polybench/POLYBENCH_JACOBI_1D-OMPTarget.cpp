@@ -39,17 +39,21 @@ void POLYBENCH_JACOBI_1D::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_JACOBI_1D_1");
       #pragma omp target is_device_ptr(A,B) device( did )
       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = 1; i < N-1; ++i ) {
         POLYBENCH_JACOBI_1D_BODY1;
       }
+      RP_CALI_SUBKERNEL_END("POLYBENCH_JACOBI_1D_1");
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_JACOBI_1D_2");
       #pragma omp target is_device_ptr(A,B) device( did )
       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = 1; i < N-1; ++i ) {
         POLYBENCH_JACOBI_1D_BODY2;
       }
+      RP_CALI_SUBKERNEL_END("POLYBENCH_JACOBI_1D_2");
 
     }
     stopTimer();
@@ -62,15 +66,19 @@ void POLYBENCH_JACOBI_1D::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_JACOBI_1D_1");
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>> ( res,
         RAJA::RangeSegment{1, N-1}, [=] (Index_type i) {
           POLYBENCH_JACOBI_1D_BODY1;
       });
+      RP_CALI_SUBKERNEL_END("POLYBENCH_JACOBI_1D_1");
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_JACOBI_1D_2");
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>> ( res,
         RAJA::RangeSegment{1, N-1}, [=] (Index_type i) {
           POLYBENCH_JACOBI_1D_BODY2;
       });
+      RP_CALI_SUBKERNEL_END("POLYBENCH_JACOBI_1D_2");
 
     }
     stopTimer();
@@ -87,4 +95,3 @@ RAJAPERF_DEFAULT_TUNING_DEFINE_BOILERPLATE(POLYBENCH_JACOBI_1D, OpenMPTarget, Ba
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_TARGET_OPENMP
-

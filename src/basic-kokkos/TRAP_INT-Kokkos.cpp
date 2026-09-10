@@ -44,6 +44,7 @@ void TRAP_INT::runKokkosVariant(VariantID vid) {
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("TRAP_INT_1");
       Real_type trap_integral_val = m_sumx_init;
 
       Kokkos::parallel_reduce(
@@ -53,6 +54,7 @@ void TRAP_INT::runKokkosVariant(VariantID vid) {
           trap_integral_val);
 
       m_sumx += static_cast<Real_type>(trap_integral_val) * h;
+      RP_CALI_SUBKERNEL_END("TRAP_INT_1");
     }
     Kokkos::fence();
     stopTimer();

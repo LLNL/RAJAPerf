@@ -36,9 +36,11 @@ void ATOMIC::runSeqVariantReplicate(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("ATOMIC_1");
         for (Index_type i = ibegin; i < iend; ++i ) {
           ATOMIC_BODY(RAJAPERF_ATOMIC_ADD_SEQ, i, ATOMIC_VALUE);
         }
+        RP_CALI_SUBKERNEL_END("ATOMIC_1");
 
       }
       stopTimer();
@@ -57,9 +59,11 @@ void ATOMIC::runSeqVariantReplicate(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
      for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("ATOMIC_1");
         for (Index_type i = ibegin; i < iend; ++i ) {
           atomic_base_lam(i);
         }
+        RP_CALI_SUBKERNEL_END("ATOMIC_1");
 
       }
       stopTimer();
@@ -75,11 +79,13 @@ void ATOMIC::runSeqVariantReplicate(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("ATOMIC_1");
         RAJA::forall<RAJA::seq_exec>( res,
           RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
             ATOMIC_BODY(RAJAPERF_ATOMIC_ADD_RAJA_SEQ, i, ATOMIC_VALUE);
         });
+        RP_CALI_SUBKERNEL_END("ATOMIC_1");
 
       }
       stopTimer();

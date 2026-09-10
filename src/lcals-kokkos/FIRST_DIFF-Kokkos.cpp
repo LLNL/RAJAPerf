@@ -35,12 +35,14 @@ void FIRST_DIFF::runKokkosVariant(VariantID vid) {
 
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+      RP_CALI_SUBKERNEL_BEGIN("FIRST_DIFF_1");
       Kokkos::parallel_for(
           "FIRST_DIFF_Kokkos Kokkos_Lambda",
           Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
           KOKKOS_LAMBDA(Index_type i) {
             x_view[i] = y_view[i + 1] - y_view[i];
           });
+      RP_CALI_SUBKERNEL_END("FIRST_DIFF_1");
     }
 
     Kokkos::fence();

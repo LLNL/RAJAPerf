@@ -68,6 +68,7 @@ void DEL_DOT_VEC_2D::runHipVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("DEL_DOT_VEC_2D_1");
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
 
@@ -82,6 +83,7 @@ void DEL_DOT_VEC_2D::runHipVariantImpl(VariantID vid)
                          real_zones,
                          half, ptiny,
                          iend );
+      RP_CALI_SUBKERNEL_END("DEL_DOT_VEC_2D_1");
 
     }
     stopTimer();
@@ -92,6 +94,7 @@ void DEL_DOT_VEC_2D::runHipVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("DEL_DOT_VEC_2D_1");
       auto deldotvec2d_lambda = [=] __device__ (Index_type ii) {
         DEL_DOT_VEC_2D_BODY_INDEX;
         DEL_DOT_VEC_2D_BODY;
@@ -106,6 +109,7 @@ void DEL_DOT_VEC_2D::runHipVariantImpl(VariantID vid)
                          shmem, res.get_stream(),
                          ibegin, iend,
                          deldotvec2d_lambda );
+      RP_CALI_SUBKERNEL_END("DEL_DOT_VEC_2D_1");
 
     }
     stopTimer();
@@ -119,10 +123,12 @@ void DEL_DOT_VEC_2D::runHipVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("DEL_DOT_VEC_2D_1");
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
          zones, [=] __device__ (Index_type i) {
          DEL_DOT_VEC_2D_BODY;
        });
+      RP_CALI_SUBKERNEL_END("DEL_DOT_VEC_2D_1");
 
     }
     stopTimer();

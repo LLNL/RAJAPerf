@@ -47,15 +47,19 @@ void PRESSURE::runOpenMPVariant(VariantID vid)
         #pragma omp parallel
         {
 
+          RP_CALI_SUBKERNEL_BEGIN("PRESSURE_1");
           #pragma omp for schedule(static) nowait
           for (Index_type i = ibegin; i < iend; ++i ) {
             PRESSURE_BODY1;
           }
+          RP_CALI_SUBKERNEL_END("PRESSURE_1");
 
+          RP_CALI_SUBKERNEL_BEGIN("PRESSURE_2");
           #pragma omp for schedule(static) nowait
           for (Index_type i = ibegin; i < iend; ++i ) {
             PRESSURE_BODY2;
           }
+          RP_CALI_SUBKERNEL_END("PRESSURE_2");
 
         } // end omp parallel region
 
@@ -74,15 +78,19 @@ void PRESSURE::runOpenMPVariant(VariantID vid)
         #pragma omp parallel
         {
 
+          RP_CALI_SUBKERNEL_BEGIN("PRESSURE_1");
           #pragma omp for schedule(static) nowait
           for (Index_type i = ibegin; i < iend; ++i ) {
             pressure_lam1(i);
           }
+          RP_CALI_SUBKERNEL_END("PRESSURE_1");
 
+          RP_CALI_SUBKERNEL_BEGIN("PRESSURE_2");
           #pragma omp for schedule(static) nowait
           for (Index_type i = ibegin; i < iend; ++i ) {
             pressure_lam2(i);
           }
+          RP_CALI_SUBKERNEL_END("PRESSURE_2");
 
         } // end omp parallel region
 
@@ -102,11 +110,15 @@ void PRESSURE::runOpenMPVariant(VariantID vid)
 
         RAJA::region<RAJA::omp_parallel_region>( [=]() {
 
+          RP_CALI_SUBKERNEL_BEGIN("PRESSURE_1");
           RAJA::forall< RAJA::omp_for_nowait_static_exec< > >( res,
             RAJA::RangeSegment(ibegin, iend), pressure_lam1);
+          RP_CALI_SUBKERNEL_END("PRESSURE_1");
 
+          RP_CALI_SUBKERNEL_BEGIN("PRESSURE_2");
           RAJA::forall< RAJA::omp_for_nowait_static_exec< > >( res,
             RAJA::RangeSegment(ibegin, iend), pressure_lam2);
+          RP_CALI_SUBKERNEL_END("PRESSURE_2");
 
         }); // end omp parallel region
 

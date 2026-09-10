@@ -42,11 +42,13 @@ void DAXPY::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("DAXPY_1");
       #pragma omp target is_device_ptr(x, y) device( did )
       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         DAXPY_BODY;
       }
+      RP_CALI_SUBKERNEL_END("DAXPY_1");
 
     }
     stopTimer();
@@ -59,10 +61,12 @@ void DAXPY::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("DAXPY_1");
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>( res,
         RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
         DAXPY_BODY;
       });
+      RP_CALI_SUBKERNEL_END("DAXPY_1");
 
     }
     stopTimer();

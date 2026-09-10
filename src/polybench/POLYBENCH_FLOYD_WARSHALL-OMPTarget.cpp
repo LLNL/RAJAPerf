@@ -36,6 +36,7 @@ void POLYBENCH_FLOYD_WARSHALL::runOpenMPTargetVariant(VariantID vid)
 
       for (Index_type k = 0; k < N; ++k) {
 
+        RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_FLOYD_WARSHALL_k");
         #pragma omp target is_device_ptr(pout,pin) device( did )
         #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
         for (Index_type i = 0; i < N; ++i) {
@@ -43,6 +44,7 @@ void POLYBENCH_FLOYD_WARSHALL::runOpenMPTargetVariant(VariantID vid)
             POLYBENCH_FLOYD_WARSHALL_BODY;
           }
         }
+        RP_CALI_SUBKERNEL_END("POLYBENCH_FLOYD_WARSHALL_k");
 
       }
 
@@ -69,6 +71,7 @@ void POLYBENCH_FLOYD_WARSHALL::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_FLOYD_WARSHALL_k");
       RAJA::kernel_resource<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
                                                         RAJA::RangeSegment{0, N},
                                                         RAJA::RangeSegment{0, N}),
@@ -77,6 +80,7 @@ void POLYBENCH_FLOYD_WARSHALL::runOpenMPTargetVariant(VariantID vid)
           POLYBENCH_FLOYD_WARSHALL_BODY_RAJA;
         }
       );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_FLOYD_WARSHALL_k");
 
     }
     stopTimer();

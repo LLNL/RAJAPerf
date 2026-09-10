@@ -49,10 +49,12 @@ void HALO_EXCHANGE::runOpenMPVariant(VariantID vid)
           Index_type len = pack_index_list_lengths[l];
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
+            RP_CALI_SUBKERNEL_BEGIN("HALO_EXCHANGE_pack_k");
             #pragma omp parallel for
             for (Index_type i = 0; i < len; i++) {
               HALO_PACK_BODY;
             }
+            RP_CALI_SUBKERNEL_END("HALO_EXCHANGE_pack_k");
             buffer += len;
           }
 
@@ -77,10 +79,12 @@ void HALO_EXCHANGE::runOpenMPVariant(VariantID vid)
 
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
+            RP_CALI_SUBKERNEL_BEGIN("HALO_EXCHANGE_unpack_k");
             #pragma omp parallel for
             for (Index_type i = 0; i < len; i++) {
               HALO_UNPACK_BODY;
             }
+            RP_CALI_SUBKERNEL_END("HALO_EXCHANGE_unpack_k");
             buffer += len;
           }
         }
@@ -114,10 +118,12 @@ void HALO_EXCHANGE::runOpenMPVariant(VariantID vid)
             auto halo_exchange_pack_base_lam = [=](Index_type i) {
                   HALO_PACK_BODY;
                 };
+            RP_CALI_SUBKERNEL_BEGIN("HALO_EXCHANGE_pack_k");
             #pragma omp parallel for
             for (Index_type i = 0; i < len; i++) {
               halo_exchange_pack_base_lam(i);
             }
+            RP_CALI_SUBKERNEL_END("HALO_EXCHANGE_pack_k");
             buffer += len;
           }
 
@@ -145,10 +151,12 @@ void HALO_EXCHANGE::runOpenMPVariant(VariantID vid)
             auto halo_exchange_unpack_base_lam = [=](Index_type i) {
                   HALO_UNPACK_BODY;
                 };
+            RP_CALI_SUBKERNEL_BEGIN("HALO_EXCHANGE_unpack_k");
             #pragma omp parallel for
             for (Index_type i = 0; i < len; i++) {
               halo_exchange_unpack_base_lam(i);
             }
+            RP_CALI_SUBKERNEL_END("HALO_EXCHANGE_unpack_k");
             buffer += len;
           }
         }
@@ -186,9 +194,11 @@ void HALO_EXCHANGE::runOpenMPVariant(VariantID vid)
             auto halo_exchange_pack_base_lam = [=](Index_type i) {
                   HALO_PACK_BODY;
                 };
+            RP_CALI_SUBKERNEL_BEGIN("HALO_EXCHANGE_pack_k");
             RAJA::forall<EXEC_POL>( res,
                 RAJA::TypedRangeSegment<Index_type>(0, len),
                 halo_exchange_pack_base_lam );
+            RP_CALI_SUBKERNEL_END("HALO_EXCHANGE_pack_k");
             buffer += len;
           }
 
@@ -216,9 +226,11 @@ void HALO_EXCHANGE::runOpenMPVariant(VariantID vid)
             auto halo_exchange_unpack_base_lam = [=](Index_type i) {
                   HALO_UNPACK_BODY;
                 };
+            RP_CALI_SUBKERNEL_BEGIN("HALO_EXCHANGE_unpack_k");
             RAJA::forall<EXEC_POL>( res,
                 RAJA::TypedRangeSegment<Index_type>(0, len),
                 halo_exchange_unpack_base_lam );
+            RP_CALI_SUBKERNEL_END("HALO_EXCHANGE_unpack_k");
             buffer += len;
           }
         }

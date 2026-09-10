@@ -44,6 +44,7 @@ void VOL3D::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("VOL3D_1");
       #pragma omp target is_device_ptr(x0,x1,x2,x3,x4,x5,x6,x7, \
                                        y0,y1,y2,y3,y4,y5,y6,y7, \
                                        z0,z1,z2,z3,z4,z5,z6,z7, \
@@ -52,6 +53,7 @@ void VOL3D::runOpenMPTargetVariant(VariantID vid)
       for (Index_type i = ibegin ; i < iend ; ++i ) {
         VOL3D_BODY;
       }
+      RP_CALI_SUBKERNEL_END("VOL3D_1");
 
     }
     stopTimer();
@@ -64,11 +66,13 @@ void VOL3D::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("VOL3D_1");
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>( res,
         RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
 
         VOL3D_BODY;
       });
+      RP_CALI_SUBKERNEL_END("VOL3D_1");
 
     }
     stopTimer();

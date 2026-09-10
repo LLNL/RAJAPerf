@@ -44,13 +44,17 @@ void PRESSURE::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("PRESSURE_1");
         for (Index_type i = ibegin; i < iend; ++i ) {
           PRESSURE_BODY1;
         }
+        RP_CALI_SUBKERNEL_END("PRESSURE_1");
 
+        RP_CALI_SUBKERNEL_BEGIN("PRESSURE_2");
         for (Index_type i = ibegin; i < iend; ++i ) {
           PRESSURE_BODY2;
         }
+        RP_CALI_SUBKERNEL_END("PRESSURE_2");
 
       }
       stopTimer();
@@ -65,13 +69,17 @@ void PRESSURE::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+       RP_CALI_SUBKERNEL_BEGIN("PRESSURE_1");
        for (Index_type i = ibegin; i < iend; ++i ) {
          pressure_lam1(i);
        }
+       RP_CALI_SUBKERNEL_END("PRESSURE_1");
 
+       RP_CALI_SUBKERNEL_BEGIN("PRESSURE_2");
        for (Index_type i = ibegin; i < iend; ++i ) {
          pressure_lam2(i);
        }
+       RP_CALI_SUBKERNEL_END("PRESSURE_2");
 
       }
       stopTimer();
@@ -89,11 +97,15 @@ void PRESSURE::runSeqVariant(VariantID vid)
 
         RAJA::region<RAJA::seq_region>( [=]() {
 
+          RP_CALI_SUBKERNEL_BEGIN("PRESSURE_1");
           RAJA::forall<RAJA::seq_exec>( res,
             RAJA::RangeSegment(ibegin, iend), pressure_lam1);
+          RP_CALI_SUBKERNEL_END("PRESSURE_1");
 
+          RP_CALI_SUBKERNEL_BEGIN("PRESSURE_2");
           RAJA::forall<RAJA::seq_exec>( res,
             RAJA::RangeSegment(ibegin, iend), pressure_lam2);
+          RP_CALI_SUBKERNEL_END("PRESSURE_2");
 
         }); // end sequential region (for single-source code)
 

@@ -42,13 +42,16 @@ void ENERGY::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("ENERGY_1");
       #pragma omp target is_device_ptr(e_new, e_old, delvc, \
                                        p_old, q_old, work) device( did )
       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         ENERGY_BODY1;
       }
+      RP_CALI_SUBKERNEL_END("ENERGY_1");
 
+      RP_CALI_SUBKERNEL_BEGIN("ENERGY_2");
       #pragma omp target is_device_ptr(delvc, q_new, compHalfStep, \
                                        pHalfStep, e_new, bvc, pbvc, \
                                        ql_old, qq_old) device( did )
@@ -56,20 +59,26 @@ void ENERGY::runOpenMPTargetVariant(VariantID vid)
       for (Index_type i = ibegin; i < iend; ++i ) {
         ENERGY_BODY2;
       }
+      RP_CALI_SUBKERNEL_END("ENERGY_2");
 
+      RP_CALI_SUBKERNEL_BEGIN("ENERGY_3");
       #pragma omp target is_device_ptr(e_new, delvc, p_old, \
                                        q_old, pHalfStep, q_new) device( did )
       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         ENERGY_BODY3;
       }
+      RP_CALI_SUBKERNEL_END("ENERGY_3");
 
+      RP_CALI_SUBKERNEL_BEGIN("ENERGY_4");
       #pragma omp target is_device_ptr(e_new, work) device( did )
       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         ENERGY_BODY4;
       }
+      RP_CALI_SUBKERNEL_END("ENERGY_4");
 
+      RP_CALI_SUBKERNEL_BEGIN("ENERGY_5");
       #pragma omp target is_device_ptr(delvc, pbvc, e_new, vnewc, \
                                        bvc, p_new, ql_old, qq_old, \
                                        p_old, q_old, pHalfStep, q_new) device( did )
@@ -77,7 +86,9 @@ void ENERGY::runOpenMPTargetVariant(VariantID vid)
       for (Index_type i = ibegin; i < iend; ++i ) {
         ENERGY_BODY5;
       }
+      RP_CALI_SUBKERNEL_END("ENERGY_5");
 
+      RP_CALI_SUBKERNEL_BEGIN("ENERGY_6");
       #pragma omp target is_device_ptr(delvc, pbvc, e_new, vnewc, \
                                        bvc, p_new, q_new, ql_old, qq_old) \
                                        device( did )
@@ -85,6 +96,7 @@ void ENERGY::runOpenMPTargetVariant(VariantID vid)
       for (Index_type i = ibegin; i < iend; ++i ) {
         ENERGY_BODY6;
       }
+      RP_CALI_SUBKERNEL_END("ENERGY_6");
 
     }
     stopTimer();
@@ -99,35 +111,47 @@ void ENERGY::runOpenMPTargetVariant(VariantID vid)
 
       RAJA::region<RAJA::seq_region>( [=]() {
 
+        RP_CALI_SUBKERNEL_BEGIN("ENERGY_1");
         RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>( res,
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           ENERGY_BODY1;
         });
+        RP_CALI_SUBKERNEL_END("ENERGY_1");
 
+        RP_CALI_SUBKERNEL_BEGIN("ENERGY_2");
         RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>( res,
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           ENERGY_BODY2;
         });
+        RP_CALI_SUBKERNEL_END("ENERGY_2");
 
+        RP_CALI_SUBKERNEL_BEGIN("ENERGY_3");
         RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>( res,
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           ENERGY_BODY3;
         });
+        RP_CALI_SUBKERNEL_END("ENERGY_3");
 
+        RP_CALI_SUBKERNEL_BEGIN("ENERGY_4");
         RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>( res,
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           ENERGY_BODY4;
         });
+        RP_CALI_SUBKERNEL_END("ENERGY_4");
 
+        RP_CALI_SUBKERNEL_BEGIN("ENERGY_5");
         RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>( res,
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           ENERGY_BODY5;
         });
+        RP_CALI_SUBKERNEL_END("ENERGY_5");
 
+        RP_CALI_SUBKERNEL_BEGIN("ENERGY_6");
         RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>( res,
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           ENERGY_BODY6;
         });
+        RP_CALI_SUBKERNEL_END("ENERGY_6");
 
       }); // end sequential region (for single-source code)
 

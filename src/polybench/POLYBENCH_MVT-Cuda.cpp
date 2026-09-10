@@ -75,15 +75,19 @@ void POLYBENCH_MVT::runCudaVariantImpl(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
       constexpr size_t shmem = 0;
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_MVT_1");
       RPlaunchCudaKernel( (poly_mvt_1<block_size>),
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           A, x1, y1, N );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_MVT_1");
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_MVT_2");
       RPlaunchCudaKernel( (poly_mvt_2<block_size>),
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           A, x2, y2, N );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_MVT_2");
 
     }
     stopTimer();
@@ -115,6 +119,7 @@ void POLYBENCH_MVT::runCudaVariantImpl(VariantID vid)
       RAJA::region<RAJA::seq_region>( [=]() {
 #endif
 
+        RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_MVT_1");
         RAJA::kernel_param_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{0, N},
                            RAJA::RangeSegment{0, N}),
@@ -132,7 +137,9 @@ void POLYBENCH_MVT::runCudaVariantImpl(VariantID vid)
           }
 
         );
+        RP_CALI_SUBKERNEL_END("POLYBENCH_MVT_1");
 
+        RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_MVT_2");
         RAJA::kernel_param_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{0, N},
                            RAJA::RangeSegment{0, N}),
@@ -150,6 +157,7 @@ void POLYBENCH_MVT::runCudaVariantImpl(VariantID vid)
           }
 
         );
+        RP_CALI_SUBKERNEL_END("POLYBENCH_MVT_2");
 
 #if CUDART_VERSION >= 9000
       }); // end sequential region (for single-source code)

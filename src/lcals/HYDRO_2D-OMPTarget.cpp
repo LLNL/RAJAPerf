@@ -40,30 +40,36 @@ void HYDRO_2D::runOpenMPTargetVariant(VariantID vid)
 
       #pragma omp target is_device_ptr(zadat, zbdat, zpdat, \
                                        zqdat, zrdat, zmdat) device( did )
+      RP_CALI_SUBKERNEL_BEGIN("HYDRO_2D_1");
       #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
       for (Index_type k = kbeg; k < kend; ++k ) {
         for (Index_type j = jbeg; j < jend; ++j ) {
           HYDRO_2D_BODY1;
         }
       }
+      RP_CALI_SUBKERNEL_END("HYDRO_2D_1");
 
       #pragma omp target is_device_ptr(zudat, zvdat, zadat, \
                                        zbdat, zzdat, zrdat) device( did )
+      RP_CALI_SUBKERNEL_BEGIN("HYDRO_2D_2");
       #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
       for (Index_type k = kbeg; k < kend; ++k ) {
         for (Index_type j = jbeg; j < jend; ++j ) {
           HYDRO_2D_BODY2;
         }
       }
+      RP_CALI_SUBKERNEL_END("HYDRO_2D_2");
 
       #pragma omp target is_device_ptr(zroutdat, zzoutdat, \
                                        zrdat, zudat, zzdat, zvdat) device( did )
+      RP_CALI_SUBKERNEL_BEGIN("HYDRO_2D_3");
       #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
       for (Index_type k = kbeg; k < kend; ++k ) {
         for (Index_type j = jbeg; j < jend; ++j ) {
           HYDRO_2D_BODY3;
         }
       }
+      RP_CALI_SUBKERNEL_END("HYDRO_2D_3");
 
     }
     stopTimer();
@@ -86,6 +92,7 @@ void HYDRO_2D::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("HYDRO_2D_1");
       RAJA::kernel_resource<EXECPOL>(
         RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                           RAJA::RangeSegment(jbeg, jend)),
@@ -93,7 +100,9 @@ void HYDRO_2D::runOpenMPTargetVariant(VariantID vid)
         [=] (Index_type k, Index_type j) {
         HYDRO_2D_BODY1_RAJA;
       });
+      RP_CALI_SUBKERNEL_END("HYDRO_2D_1");
 
+      RP_CALI_SUBKERNEL_BEGIN("HYDRO_2D_2");
       RAJA::kernel_resource<EXECPOL>(
         RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                           RAJA::RangeSegment(jbeg, jend)),
@@ -101,7 +110,9 @@ void HYDRO_2D::runOpenMPTargetVariant(VariantID vid)
         [=] (Index_type k, Index_type j) {
         HYDRO_2D_BODY2_RAJA;
       });
+      RP_CALI_SUBKERNEL_END("HYDRO_2D_2");
 
+      RP_CALI_SUBKERNEL_BEGIN("HYDRO_2D_3");
       RAJA::kernel_resource<EXECPOL>(
         RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                           RAJA::RangeSegment(jbeg, jend)),
@@ -109,6 +120,7 @@ void HYDRO_2D::runOpenMPTargetVariant(VariantID vid)
         [=] (Index_type k, Index_type j) {
         HYDRO_2D_BODY3_RAJA;
       });
+      RP_CALI_SUBKERNEL_END("HYDRO_2D_3");
 
     }
     stopTimer();

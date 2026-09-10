@@ -89,6 +89,7 @@ void NESTED_INIT::runCudaVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("NESTED_INIT_1");
       NESTED_INIT_THREADS_PER_BLOCK_CUDA;
       NESTED_INIT_NBLOCKS_CUDA;
       constexpr size_t shmem = 0;
@@ -98,6 +99,7 @@ void NESTED_INIT::runCudaVariantImpl(VariantID vid)
         nblocks, nthreads_per_block,
         shmem, res.get_stream(),
         array, ni, nj, nk );
+      RP_CALI_SUBKERNEL_END("NESTED_INIT_1");
 
     }
     stopTimer();
@@ -108,6 +110,7 @@ void NESTED_INIT::runCudaVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("NESTED_INIT_1");
       auto nested_init_lambda = [=] __device__ (Index_type i, 
                                                 Index_type j, 
                                                 Index_type k) {
@@ -125,6 +128,7 @@ void NESTED_INIT::runCudaVariantImpl(VariantID vid)
         shmem, res.get_stream(),
         ni, nj, nk,
         nested_init_lambda );
+      RP_CALI_SUBKERNEL_END("NESTED_INIT_1");
 
     }
     stopTimer();
@@ -149,6 +153,7 @@ void NESTED_INIT::runCudaVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("NESTED_INIT_1");
       RAJA::kernel_resource<EXEC_POL>(
         RAJA::make_tuple(RAJA::RangeSegment(0, ni),
                          RAJA::RangeSegment(0, nj),
@@ -157,6 +162,7 @@ void NESTED_INIT::runCudaVariantImpl(VariantID vid)
         [=] __device__ (Index_type i, Index_type j, Index_type k) {
         NESTED_INIT_BODY;
       });
+      RP_CALI_SUBKERNEL_END("NESTED_INIT_1");
 
     }
     stopTimer();

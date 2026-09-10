@@ -163,30 +163,36 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
 
       POLY_3MM_1_NBLOCKS_HIP;
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_3MM_1");
       RPlaunchHipKernel(
         (poly_3mm_1<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
         nblocks1, nthreads_per_block,
         shmem, res.get_stream(),
         E, A, B,
         ni, nj, nk );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_3MM_1");
 
       POLY_3MM_2_NBLOCKS_HIP;
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_3MM_2");
       RPlaunchHipKernel(
         (poly_3mm_2<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
         nblocks2, nthreads_per_block,
         shmem, res.get_stream(),
         F, C, D,
         nj, nl, nm );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_3MM_2");
 
       POLY_3MM_3_NBLOCKS_HIP;
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_3MM_3");
       RPlaunchHipKernel(
         (poly_3mm_3<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
         nblocks3, nthreads_per_block,
         shmem, res.get_stream(),
         G, E, F,
         ni, nl, nj );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_3MM_3");
 
     }
     stopTimer();
@@ -210,12 +216,14 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
         POLYBENCH_3MM_BODY3;
       };
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_3MM_1");
       RPlaunchHipKernel(
         (poly_3mm_1_lam<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP,
                         decltype(poly_3mm_1_lambda)>),
         nblocks1, nthreads_per_block,
         shmem, res.get_stream(),
         ni, nj, poly_3mm_1_lambda );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_3MM_1");
 
       POLY_3MM_2_NBLOCKS_HIP;
 
@@ -227,12 +235,14 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
         POLYBENCH_3MM_BODY6;
       };
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_3MM_2");
       RPlaunchHipKernel(
         (poly_3mm_2_lam<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP,
                         decltype(poly_3mm_2_lambda)>),
         nblocks2, nthreads_per_block,
         shmem, res.get_stream(),
         nj, nl, poly_3mm_2_lambda );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_3MM_2");
 
       POLY_3MM_3_NBLOCKS_HIP;
 
@@ -244,12 +254,14 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
         POLYBENCH_3MM_BODY9;
       };
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_3MM_3");
       RPlaunchHipKernel(
         (poly_3mm_3_lam<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP,
                         decltype(poly_3mm_3_lambda)>),
         nblocks3, nthreads_per_block,
         shmem, res.get_stream(),
         ni, nl, poly_3mm_3_lambda );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_3MM_3");
 
     }
     stopTimer();
@@ -277,6 +289,7 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_3MM_1");
       RAJA::kernel_param_resource<EXEC_POL>(
         RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                          RAJA::RangeSegment{0, nj},
@@ -297,7 +310,9 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
         }
 
       );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_3MM_1");
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_3MM_2");
       RAJA::kernel_param_resource<EXEC_POL>(
         RAJA::make_tuple(RAJA::RangeSegment{0, nj},
                          RAJA::RangeSegment{0, nl},
@@ -318,7 +333,9 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
         }
 
       );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_3MM_2");
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_3MM_3");
       RAJA::kernel_param_resource<EXEC_POL>(
         RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                          RAJA::RangeSegment{0, nl},
@@ -339,6 +356,7 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
         }
 
       );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_3MM_3");
 
     }
     stopTimer();

@@ -147,6 +147,7 @@ void MASS3DEA::runHipVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("MASS3DEA_1");
       dim3 nthreads_per_block(mea::D1D, mea::D1D, mea::D1D);
       constexpr size_t shmem = 0;
 
@@ -154,6 +155,7 @@ void MASS3DEA::runHipVariantImpl(VariantID vid)
                          NE, nthreads_per_block,
                          shmem, res.get_stream(),
                          B, D, M );
+      RP_CALI_SUBKERNEL_END("MASS3DEA_1");
     }
     stopTimer();
 
@@ -182,7 +184,9 @@ void MASS3DEA::runHipVariantImpl(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+        RP_CALI_SUBKERNEL_BEGIN("MASS3DEA_1");
         MASS3DEA_HIP_RAJA_LAUNCH;
+        RP_CALI_SUBKERNEL_END("MASS3DEA_1");
 
       }  // loop over kernel reps
       stopTimer();
@@ -210,7 +214,9 @@ void MASS3DEA::runHipVariantImpl(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+        RP_CALI_SUBKERNEL_BEGIN("MASS3DEA_1");
         MASS3DEA_HIP_RAJA_LAUNCH;
+        RP_CALI_SUBKERNEL_END("MASS3DEA_1");
 
       }  // loop over kernel reps
       stopTimer();

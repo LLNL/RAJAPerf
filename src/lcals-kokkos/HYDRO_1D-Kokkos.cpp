@@ -37,6 +37,7 @@ void HYDRO_1D::runKokkosVariant(VariantID vid) {
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("HYDRO_1D_1");
       Kokkos::parallel_for(
           "HYDRO_1D_Kokkos Kokkos_Lambda",
           Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
@@ -44,6 +45,7 @@ void HYDRO_1D::runKokkosVariant(VariantID vid) {
             x_view[i] =
                 q + y_view[i] * (r * z_view[i + 10] + t * z_view[i + 11]);
           });
+      RP_CALI_SUBKERNEL_END("HYDRO_1D_1");
     }
 
     Kokkos::fence();

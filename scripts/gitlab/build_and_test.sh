@@ -432,7 +432,6 @@ then
         $cmake_exe \
           -C ${hostconfig_path} \
           ${cmake_options} \
-          -DCMAKE_INSTALL_PREFIX=${install_dir} \
           ${project_dir} --debug-output --trace-expand
 
         exit ${status}

@@ -54,3 +54,6 @@ report_results:
   extends: .report_to_gh_benchmark
   dependencies:
     - process_results
+  # TODO The pushing of performance results up to github is failing due to permissions error.  Allowing failure until this can be resolved
+  # since hubcast will soon be required.
+  allow_failure: true

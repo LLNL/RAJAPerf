@@ -40,6 +40,7 @@ void REDUCE_SUM::runSeqVariant(VariantID vid)
         // Loop counter increment uses macro to quiet C++20 compiler warning
         for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+          RP_CALI_SUBKERNEL_BEGIN("REDUCE_SUM_1");
           Real_type sum = m_sum_init;
 
           for (Index_type i = ibegin; i < iend; ++i ) {
@@ -47,6 +48,7 @@ void REDUCE_SUM::runSeqVariant(VariantID vid)
           }
 
           m_sum = sum;
+          RP_CALI_SUBKERNEL_END("REDUCE_SUM_1");
 
         }
         stopTimer();
@@ -57,6 +59,7 @@ void REDUCE_SUM::runSeqVariant(VariantID vid)
         // Loop counter increment uses macro to quiet C++20 compiler warning
         for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+          RP_CALI_SUBKERNEL_BEGIN("REDUCE_SUM_1");
           RAJA::KahanSum<Real_type> sum(m_sum_init);
 
           for (Index_type i = ibegin; i < iend; ++i ) {
@@ -64,6 +67,7 @@ void REDUCE_SUM::runSeqVariant(VariantID vid)
           }
 
           m_sum = sum.get();
+          RP_CALI_SUBKERNEL_END("REDUCE_SUM_1");
 
         }
         stopTimer();
@@ -74,6 +78,7 @@ void REDUCE_SUM::runSeqVariant(VariantID vid)
         // Loop counter increment uses macro to quiet C++20 compiler warning
         for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+          RP_CALI_SUBKERNEL_BEGIN("REDUCE_SUM_1");
           RAJA::BinaryTreeReduce<Real_type, RAJA::operators::plus<Real_type>> sum(m_sum_init);
 
           for (Index_type i = ibegin; i < iend; ++i ) {
@@ -81,6 +86,7 @@ void REDUCE_SUM::runSeqVariant(VariantID vid)
           }
 
           m_sum = sum.get();
+          RP_CALI_SUBKERNEL_END("REDUCE_SUM_1");
 
         }
         stopTimer();
@@ -101,6 +107,7 @@ void REDUCE_SUM::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("REDUCE_SUM_1");
         Real_type sum = m_sum_init;
 
         for (Index_type i = ibegin; i < iend; ++i ) {
@@ -108,6 +115,7 @@ void REDUCE_SUM::runSeqVariant(VariantID vid)
         }
 
         m_sum = sum;
+        RP_CALI_SUBKERNEL_END("REDUCE_SUM_1");
 
       }
       stopTimer();
@@ -125,6 +133,7 @@ void REDUCE_SUM::runSeqVariant(VariantID vid)
         // Loop counter increment uses macro to quiet C++20 compiler warning
         for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+          RP_CALI_SUBKERNEL_BEGIN("REDUCE_SUM_1");
           RAJA::ReduceSum<RAJA::seq_reduce, Real_type> sum(m_sum_init);
 
           RAJA::forall<RAJA::seq_exec>( res,
@@ -134,6 +143,7 @@ void REDUCE_SUM::runSeqVariant(VariantID vid)
           });
 
           m_sum = sum.get();
+          RP_CALI_SUBKERNEL_END("REDUCE_SUM_1");
 
         }
         stopTimer();
@@ -144,6 +154,7 @@ void REDUCE_SUM::runSeqVariant(VariantID vid)
         // Loop counter increment uses macro to quiet C++20 compiler warning
         for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+          RP_CALI_SUBKERNEL_BEGIN("REDUCE_SUM_1");
           Real_type tsum = m_sum_init;
 
           RAJA::forall<RAJA::seq_exec>( res,
@@ -156,6 +167,7 @@ void REDUCE_SUM::runSeqVariant(VariantID vid)
           );
 
           m_sum = static_cast<Real_type>(tsum);
+          RP_CALI_SUBKERNEL_END("REDUCE_SUM_1");
 
         }
         stopTimer();

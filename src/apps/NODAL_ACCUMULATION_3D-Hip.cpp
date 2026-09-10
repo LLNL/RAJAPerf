@@ -62,6 +62,7 @@ void NODAL_ACCUMULATION_3D::runHipVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("NODAL_ACCUMULATION_3D_1");
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
 
@@ -72,6 +73,7 @@ void NODAL_ACCUMULATION_3D::runHipVariantImpl(VariantID vid)
                          x0, x1, x2, x3, x4, x5, x6, x7,
                          real_zones,
                          ibegin, iend );
+      RP_CALI_SUBKERNEL_END("NODAL_ACCUMULATION_3D_1");
 
     }
     stopTimer();
@@ -85,10 +87,12 @@ void NODAL_ACCUMULATION_3D::runHipVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("NODAL_ACCUMULATION_3D_1");
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         zones, [=] __device__ (Index_type i) {
           NODAL_ACCUMULATION_3D_BODY(RAJAPERF_ATOMIC_ADD_RAJA_HIP);
       });
+      RP_CALI_SUBKERNEL_END("NODAL_ACCUMULATION_3D_1");
 
     }
     stopTimer();

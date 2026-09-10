@@ -54,6 +54,7 @@ void DAXPY_ATOMIC::runHipVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("DAXPY_ATOMIC_1");
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
 
@@ -61,6 +62,7 @@ void DAXPY_ATOMIC::runHipVariantImpl(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          y, x, a, iend );
+      RP_CALI_SUBKERNEL_END("DAXPY_ATOMIC_1");
 
     }
     stopTimer();
@@ -71,6 +73,7 @@ void DAXPY_ATOMIC::runHipVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("DAXPY_ATOMIC_1");
       auto daxpy_atomic_lambda = [=] __device__ (Index_type i) {
         DAXPY_ATOMIC_BODY(RAJAPERF_ATOMIC_ADD_HIP);
       };
@@ -83,6 +86,7 @@ void DAXPY_ATOMIC::runHipVariantImpl(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          ibegin, iend, daxpy_atomic_lambda );
+      RP_CALI_SUBKERNEL_END("DAXPY_ATOMIC_1");
 
     }
     stopTimer();
@@ -93,10 +97,12 @@ void DAXPY_ATOMIC::runHipVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("DAXPY_ATOMIC_1");
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
         DAXPY_ATOMIC_BODY(RAJAPERF_ATOMIC_ADD_RAJA_HIP);
       });
+      RP_CALI_SUBKERNEL_END("DAXPY_ATOMIC_1");
 
     }
     stopTimer();

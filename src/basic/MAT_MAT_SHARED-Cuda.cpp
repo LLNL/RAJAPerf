@@ -76,10 +76,12 @@ void MAT_MAT_SHARED::runCudaVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("MAT_MAT_SHARED_1");
       RPlaunchCudaKernel( (mat_mat_shared<tile_size>),
                           gridDim, blockDim,
                           shmem, res.get_stream(),
                           N, C, A, B );
+      RP_CALI_SUBKERNEL_END("MAT_MAT_SHARED_1");
     }
     stopTimer();
 
@@ -89,6 +91,7 @@ void MAT_MAT_SHARED::runCudaVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("MAT_MAT_SHARED_1");
       auto mat_mat_shared_lambda = [=] __device__() {
 
         auto outer_y = [&](Index_type by) {
@@ -184,6 +187,7 @@ void MAT_MAT_SHARED::runCudaVariantImpl(VariantID vid)
                           gridDim, blockDim,
                           shmem, res.get_stream(),
                           mat_mat_shared_lambda ); 
+      RP_CALI_SUBKERNEL_END("MAT_MAT_SHARED_1");
     }
     stopTimer();
 
@@ -205,6 +209,7 @@ void MAT_MAT_SHARED::runCudaVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("MAT_MAT_SHARED_1");
       RAJA::launch<launch_policy>( res,
         RAJA::LaunchParams(RAJA::Teams(Nx, Ny),
                          RAJA::Threads(tile_size, tile_size)),
@@ -273,6 +278,7 @@ void MAT_MAT_SHARED::runCudaVariantImpl(VariantID vid)
 
         }   // outer lambda (ctx)
       );  // RAJA::launch
+      RP_CALI_SUBKERNEL_END("MAT_MAT_SHARED_1");
 
     }  // loop over kernel reps
     stopTimer();

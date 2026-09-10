@@ -131,6 +131,8 @@ blt_add_executable(
   basic/INIT_VIEW1D_OFFSET.cpp
   basic/INIT_VIEW1D_OFFSET-Seq.cpp
   basic/INIT_VIEW1D_OFFSET-OMPTarget.cpp
+  basic/MAT_MAT.cpp
+  basic/MAT_MAT-Seq.cpp
   basic/MAT_MAT_SHARED.cpp
   basic/MAT_MAT_SHARED-Seq.cpp
   basic/MULADDSUB.cpp

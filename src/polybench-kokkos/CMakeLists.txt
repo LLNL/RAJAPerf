@@ -10,6 +10,7 @@
 blt_add_library(
   NAME polybench-kokkos
   SOURCES
+          POLYBENCH_GEMM-Kokkos.cpp
           POLYBENCH_HEAT_3D-Kokkos.cpp
           POLYBENCH_JACOBI_1D-Kokkos.cpp
           POLYBENCH_JACOBI_2D-Kokkos.cpp

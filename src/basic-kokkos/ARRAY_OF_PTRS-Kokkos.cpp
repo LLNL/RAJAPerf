@@ -37,6 +37,7 @@ void ARRAY_OF_PTRS::runKokkosVariant(VariantID vid) {
 
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+      RP_CALI_SUBKERNEL_BEGIN("ARRAY_OF_PTRS_1");
       Kokkos::parallel_for(
           "ARRAY_OF_PTRS-Kokkos Kokkos_Lambda",
           Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
@@ -46,6 +47,7 @@ void ARRAY_OF_PTRS::runKokkosVariant(VariantID vid) {
               y_view[i] += a * x_view[a][i];
             }
           });
+      RP_CALI_SUBKERNEL_END("ARRAY_OF_PTRS_1");
     }
 
     Kokkos::fence();

@@ -58,7 +58,7 @@ cmake \
   -DMPI_CXX_COMPILER="/usr/tce/packages/mvapich2/mvapich2-${MPI_VER}-gcc-${COMP_VER}/bin/mpicxx" \
   -DCMAKE_C_COMPILER=/usr/tce/packages/gcc/gcc-${COMP_VER}/bin/gcc \
   -DCMAKE_CXX_COMPILER=/usr/tce/packages/gcc/gcc-${COMP_VER}/bin/g++ \
-  -DBLT_CXX_STD=c++17 \
+  -DBLT_CXX_STD=c++20 \
   -C ${RAJA_HOSTCONFIG} \
   -DENABLE_MPI=ON \
   -DENABLE_OPENMP=On \

@@ -104,6 +104,7 @@ void HALO_EXCHANGE_FUSED::runOpenMPTargetVariantDirect(VariantID vid)
       }
       HALO_EXCHANGE_FUSED_MANUAL_FUSER_COPY_PACK_OMP_TARGET;
       Index_type pack_len_ave = (pack_len_sum + pack_index-1) / pack_index;
+      RP_CALI_SUBKERNEL_BEGIN("HALO_EXCHANGE_FUSED_pack");
       #pragma omp target is_device_ptr(pack_buffer_ptrs, pack_list_ptrs, pack_var_ptrs, pack_len_ptrs) device( did )
       #pragma omp teams distribute parallel for collapse(2) schedule(static, 1)
       for (Index_type j = 0; j < pack_index; j++) {
@@ -119,6 +120,7 @@ void HALO_EXCHANGE_FUSED::runOpenMPTargetVariantDirect(VariantID vid)
           }
         }
       }
+      RP_CALI_SUBKERNEL_END("HALO_EXCHANGE_FUSED_pack");
       if (separate_buffers) {
         for (Index_type l = 0; l < num_neighbors; ++l) {
           Index_type len = pack_index_list_lengths[l];
@@ -161,6 +163,7 @@ void HALO_EXCHANGE_FUSED::runOpenMPTargetVariantDirect(VariantID vid)
       }
       HALO_EXCHANGE_FUSED_MANUAL_FUSER_COPY_UNPACK_OMP_TARGET;
       Index_type unpack_len_ave = (unpack_len_sum + unpack_index-1) / unpack_index;
+      RP_CALI_SUBKERNEL_BEGIN("HALO_EXCHANGE_FUSED_unpack");
       #pragma omp target is_device_ptr(unpack_buffer_ptrs, unpack_list_ptrs, unpack_var_ptrs, unpack_len_ptrs) device( did )
       #pragma omp teams distribute parallel for collapse(2) schedule(static, 1)
       for (Index_type j = 0; j < unpack_index; j++) {
@@ -176,6 +179,7 @@ void HALO_EXCHANGE_FUSED::runOpenMPTargetVariantDirect(VariantID vid)
           }
         }
       }
+      RP_CALI_SUBKERNEL_END("HALO_EXCHANGE_FUSED_unpack");
 
       MPI_Waitall(num_neighbors, pack_mpi_requests.data(), MPI_STATUSES_IGNORE);
 
@@ -259,7 +263,9 @@ void HALO_EXCHANGE_FUSED::runOpenMPTargetVariantWorkGroup(VariantID vid)
         }
       }
       workgroup group_pack = pool_pack.instantiate();
+      RP_CALI_SUBKERNEL_BEGIN("HALO_EXCHANGE_FUSED_pack");
       worksite site_pack = group_pack.run(res);
+      RP_CALI_SUBKERNEL_END("HALO_EXCHANGE_FUSED_pack");
       if (separate_buffers) {
         for (Index_type l = 0; l < num_neighbors; ++l) {
           Index_type len = pack_index_list_lengths[l];
@@ -289,7 +295,9 @@ void HALO_EXCHANGE_FUSED::runOpenMPTargetVariantWorkGroup(VariantID vid)
         }
       }
       workgroup group_unpack = pool_unpack.instantiate();
+      RP_CALI_SUBKERNEL_BEGIN("HALO_EXCHANGE_FUSED_unpack");
       worksite site_unpack = group_unpack.run(res);
+      RP_CALI_SUBKERNEL_END("HALO_EXCHANGE_FUSED_unpack");
 
       MPI_Waitall(num_neighbors, pack_mpi_requests.data(), MPI_STATUSES_IGNORE);
 

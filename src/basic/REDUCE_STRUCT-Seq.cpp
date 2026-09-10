@@ -41,6 +41,7 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid)
         // Loop counter increment uses macro to quiet C++20 compiler warning
         for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+          RP_CALI_SUBKERNEL_BEGIN("REDUCE_STRUCT_1");
           Real_type xsum = m_init_sum;
           Real_type ysum = m_init_sum;
           Real_type xmin = m_init_min;
@@ -58,6 +59,7 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid)
           points.SetYMin(ymin);
           points.SetYMax(ymax);
           m_points = points;
+          RP_CALI_SUBKERNEL_END("REDUCE_STRUCT_1");
 
         }
         stopTimer();
@@ -68,6 +70,7 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid)
         // Loop counter increment uses macro to quiet C++20 compiler warning
         for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+          RP_CALI_SUBKERNEL_BEGIN("REDUCE_STRUCT_1");
           RAJA::KahanSum<Real_type> xsum(m_init_sum);
           RAJA::KahanSum<Real_type> ysum(m_init_sum);
           Real_type xmin = m_init_min;
@@ -85,6 +88,7 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid)
           points.SetYMin(ymin);
           points.SetYMax(ymax);
           m_points = points;
+          RP_CALI_SUBKERNEL_END("REDUCE_STRUCT_1");
 
         }
         stopTimer();
@@ -95,6 +99,7 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid)
         // Loop counter increment uses macro to quiet C++20 compiler warning
         for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+          RP_CALI_SUBKERNEL_BEGIN("REDUCE_STRUCT_1");
           RAJA::BinaryTreeReduce<Real_type, RAJA::operators::plus<Real_type>> xsum(m_init_sum);
           RAJA::BinaryTreeReduce<Real_type, RAJA::operators::plus<Real_type>> ysum(m_init_sum);
           Real_type xmin = m_init_min;
@@ -112,6 +117,7 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid)
           points.SetYMin(ymin);
           points.SetYMax(ymax);
           m_points = points;
+          RP_CALI_SUBKERNEL_END("REDUCE_STRUCT_1");
 
         }
         stopTimer();
@@ -136,6 +142,7 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("REDUCE_STRUCT_1");
         Real_type xsum = m_init_sum;
         Real_type ysum = m_init_sum;
         Real_type xmin = m_init_min;
@@ -158,6 +165,7 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid)
         points.SetYMin(ymin); 
         points.SetYMax(ymax);
         m_points = points;
+        RP_CALI_SUBKERNEL_END("REDUCE_STRUCT_1");
 
       }
       stopTimer();
@@ -174,7 +182,8 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid)
         startTimer();
         // Loop counter increment uses macro to quiet C++20 compiler warning
         for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-  
+
+          RP_CALI_SUBKERNEL_BEGIN("REDUCE_STRUCT_1");
           RAJA::ReduceSum<RAJA::seq_reduce, Real_type> xsum(m_init_sum);
           RAJA::ReduceSum<RAJA::seq_reduce, Real_type> ysum(m_init_sum);
           RAJA::ReduceMin<RAJA::seq_reduce, Real_type> xmin(m_init_min);
@@ -194,6 +203,7 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid)
           points.SetYMin(ymin.get());
           points.SetYMax(ymax.get());
           m_points = points;
+          RP_CALI_SUBKERNEL_END("REDUCE_STRUCT_1");
 
         }
         stopTimer();
@@ -204,6 +214,7 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid)
         // Loop counter increment uses macro to quiet C++20 compiler warning
         for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+          RP_CALI_SUBKERNEL_BEGIN("REDUCE_STRUCT_1");
           Real_type txsum = m_init_sum;
           Real_type tysum = m_init_sum;
           Real_type txmin = m_init_min;
@@ -237,6 +248,7 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid)
           points.SetYMin(static_cast<Real_type>(tymin));
           points.SetYMax(static_cast<Real_type>(tymax));
           m_points = points;
+          RP_CALI_SUBKERNEL_END("REDUCE_STRUCT_1");
 
         }
         stopTimer();

@@ -42,8 +42,9 @@ void MASS3DEA::runSyclVariantImpl(VariantID vid) {
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("MASS3DEA_1");
       constexpr size_t shmem = 0;
-      qu->submit([&](::sycl::handler& h) {
+      qu.submit([&](::sycl::handler& h) {
 
       ::sycl::local_accessor<Real_type, 2> s_B(::sycl::range<2>(mea::Q1D,mea::D1D),h);
       ::sycl::local_accessor<Real_type, 3> s_D(::sycl::range<3>(mea::Q1D,mea::Q1D,mea::Q1D),h);
@@ -85,6 +86,7 @@ void MASS3DEA::runSyclVariantImpl(VariantID vid) {
 
          });
       });
+      RP_CALI_SUBKERNEL_END("MASS3DEA_1");
 
     }
     stopTimer();
@@ -112,6 +114,7 @@ void MASS3DEA::runSyclVariantImpl(VariantID vid) {
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("MASS3DEA_1");
       //clang-format off
       RAJA::launch<launch_policy>( res,
         RAJA::LaunchParams(RAJA::Teams(NE),
@@ -180,6 +183,7 @@ void MASS3DEA::runSyclVariantImpl(VariantID vid) {
         }  // outer lambda (ctx)
       );  // RAJA::launch
       //clang-format on      
+      RP_CALI_SUBKERNEL_END("MASS3DEA_1");
 
     }  // loop over kernel reps
     stopTimer();

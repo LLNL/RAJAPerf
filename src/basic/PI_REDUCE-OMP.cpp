@@ -37,6 +37,7 @@ void PI_REDUCE::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("PI_REDUCE_1");
         Real_type pi = m_pi_init;
 
         #pragma omp parallel for reduction(+:pi)
@@ -45,6 +46,7 @@ void PI_REDUCE::runOpenMPVariant(VariantID vid)
         }
 
         m_pi = 4.0 * pi;
+        RP_CALI_SUBKERNEL_END("PI_REDUCE_1");
 
       }
       stopTimer();
@@ -62,6 +64,7 @@ void PI_REDUCE::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("PI_REDUCE_1");
         Real_type pi = m_pi_init;
 
         #pragma omp parallel for reduction(+:pi)
@@ -70,6 +73,7 @@ void PI_REDUCE::runOpenMPVariant(VariantID vid)
         }
 
         m_pi = 4.0 * pi;
+        RP_CALI_SUBKERNEL_END("PI_REDUCE_1");
 
       }
       stopTimer();
@@ -87,6 +91,7 @@ void PI_REDUCE::runOpenMPVariant(VariantID vid)
         // Loop counter increment uses macro to quiet C++20 compiler warning
         for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+          RP_CALI_SUBKERNEL_BEGIN("PI_REDUCE_1");
           RAJA::ReduceSum<RAJA::omp_reduce, Real_type> pi(m_pi_init);
 
           RAJA::forall<RAJA::omp_parallel_for_exec>( res,
@@ -96,6 +101,7 @@ void PI_REDUCE::runOpenMPVariant(VariantID vid)
           });
 
           m_pi = 4.0 * pi.get();
+          RP_CALI_SUBKERNEL_END("PI_REDUCE_1");
 
         }
         stopTimer();
@@ -106,6 +112,7 @@ void PI_REDUCE::runOpenMPVariant(VariantID vid)
         // Loop counter increment uses macro to quiet C++20 compiler warning
         for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+          RP_CALI_SUBKERNEL_BEGIN("PI_REDUCE_1");
           Real_type tpi = m_pi_init;
 
           RAJA::forall<RAJA::omp_parallel_for_exec>( res,
@@ -118,6 +125,7 @@ void PI_REDUCE::runOpenMPVariant(VariantID vid)
           );
 
           m_pi = static_cast<Real_type>(tpi) * 4.0;
+          RP_CALI_SUBKERNEL_END("PI_REDUCE_1");
 
         }
         stopTimer();

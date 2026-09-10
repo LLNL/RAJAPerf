@@ -144,28 +144,36 @@ void POLYBENCH_GEMVER::runHipVariantImpl(VariantID vid)
       GEMVER_NBLOCKS_HIP;
       constexpr size_t shmem = 0;
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_1");
       RPlaunchHipKernel(
         (poly_gemver_1<GEMVER_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
         nblocks1, nthreads_per_block1,
         shmem, res.get_stream(),
         A, u1, v1, u2, v2, n );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_1");
 
       size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_n, block_size);
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_2");
       RPlaunchHipKernel( (poly_gemver_2<block_size>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          A, x, y, beta, n );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_2");
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_3");
       RPlaunchHipKernel( (poly_gemver_3<block_size>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          x, z, n );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_3");
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_4");
       RPlaunchHipKernel( (poly_gemver_4<block_size>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          A, x, w, alpha, n );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_4");
 
     }
     stopTimer();
@@ -184,12 +192,14 @@ void POLYBENCH_GEMVER::runHipVariantImpl(VariantID vid)
         POLYBENCH_GEMVER_BODY1;
       };
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_1");
       RPlaunchHipKernel(
        (poly_gemver_1_lam<GEMVER_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP,
                           decltype(poly_gemver1_lambda)>),
        nblocks1, nthreads_per_block1,
        shmem, res.get_stream(),
        n, poly_gemver1_lambda );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_1");
 
       size_t grid_size = RAJA_DIVIDE_CEILING_INT(n, block_size);
 
@@ -201,21 +211,25 @@ void POLYBENCH_GEMVER::runHipVariantImpl(VariantID vid)
         POLYBENCH_GEMVER_BODY4;
       };
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_2");
       RPlaunchHipKernel( (poly_gemver_234_lam<block_size,
                                               decltype(poly_gemver2_lambda)>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          n, poly_gemver2_lambda );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_2");
 
       auto poly_gemver3_lambda = [=] __device__ (Index_type i) {
         POLYBENCH_GEMVER_BODY5;
       };
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_3");
       RPlaunchHipKernel( (poly_gemver_234_lam<block_size,
                                               decltype(poly_gemver3_lambda)>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          n, poly_gemver3_lambda );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_3");
 
       auto poly_gemver4_lambda = [=] __device__ (Index_type i) {
         POLYBENCH_GEMVER_BODY6;
@@ -225,11 +239,13 @@ void POLYBENCH_GEMVER::runHipVariantImpl(VariantID vid)
         POLYBENCH_GEMVER_BODY8;
       };
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_4");
       RPlaunchHipKernel( (poly_gemver_234_lam<block_size,
                                               decltype(poly_gemver4_lambda)>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          n, poly_gemver4_lambda );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_4");
 
     }
     stopTimer();
@@ -268,6 +284,7 @@ void POLYBENCH_GEMVER::runHipVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_1");
       RAJA::kernel_resource<EXEC_POL1>(
         RAJA::make_tuple(RAJA::RangeSegment{0, n},
                          RAJA::RangeSegment{0, n}),
@@ -276,7 +293,9 @@ void POLYBENCH_GEMVER::runHipVariantImpl(VariantID vid)
           POLYBENCH_GEMVER_BODY1_RAJA;
         }
       );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_1");
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_2");
       RAJA::kernel_param_resource<EXEC_POL24>(
         RAJA::make_tuple(RAJA::RangeSegment{0, n},
                          RAJA::RangeSegment{0, n}),
@@ -293,13 +312,17 @@ void POLYBENCH_GEMVER::runHipVariantImpl(VariantID vid)
           POLYBENCH_GEMVER_BODY4_RAJA;
         }
       );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_2");
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_3");
       RAJA::forall<EXEC_POL3> ( res, RAJA::RangeSegment{0, n},
         [=] __device__ (Index_type i) {
           POLYBENCH_GEMVER_BODY5_RAJA;
         }
       );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_3");
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_4");
       RAJA::kernel_param_resource<EXEC_POL24>(
         RAJA::make_tuple(RAJA::RangeSegment{0, n},
                          RAJA::RangeSegment{0, n}),
@@ -316,6 +339,7 @@ void POLYBENCH_GEMVER::runHipVariantImpl(VariantID vid)
           POLYBENCH_GEMVER_BODY8_RAJA;
         }
       );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_4");
 
     }
     stopTimer();

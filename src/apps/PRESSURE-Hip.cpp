@@ -71,12 +71,15 @@ void PRESSURE::runHipVariantImpl(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
 
+      RP_CALI_SUBKERNEL_BEGIN("PRESSURE_1");
       RPlaunchHipKernel( (pressurecalc1<block_size>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          bvc, compression, cls, 
                          iend );
+      RP_CALI_SUBKERNEL_END("PRESSURE_1");
 
+      RP_CALI_SUBKERNEL_BEGIN("PRESSURE_2");
       RPlaunchHipKernel( (pressurecalc2<block_size>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
@@ -84,6 +87,7 @@ void PRESSURE::runHipVariantImpl(VariantID vid)
                          vnewc,
                          p_cut, eosvmax, pmin,
                          iend );
+      RP_CALI_SUBKERNEL_END("PRESSURE_2");
 
     }
     stopTimer();
@@ -98,14 +102,18 @@ void PRESSURE::runHipVariantImpl(VariantID vid)
 
       RAJA::region<RAJA::seq_region>( [=]() {
 
+        RP_CALI_SUBKERNEL_BEGIN("PRESSURE_1");
         RAJA::forall< RAJA::hip_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           PRESSURE_BODY1;
         });
+        RP_CALI_SUBKERNEL_END("PRESSURE_1");
+        RP_CALI_SUBKERNEL_BEGIN("PRESSURE_2");
         RAJA::forall< RAJA::hip_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           PRESSURE_BODY2;
         });
+        RP_CALI_SUBKERNEL_END("PRESSURE_2");
 
       });  // end sequential region (for single-source code)
 

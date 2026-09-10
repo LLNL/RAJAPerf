@@ -43,6 +43,7 @@ void INDEXLIST::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_1");
         Index_type count = 0;
 
 #if _OPENMP >= 201811 && defined(RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN)
@@ -99,6 +100,7 @@ void INDEXLIST::runOpenMPVariant(VariantID vid)
 #endif
 
         m_len = count;
+        RP_CALI_SUBKERNEL_END("INDEXLIST_1");
 
       }
       stopTimer();
@@ -138,6 +140,7 @@ void INDEXLIST::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_1");
         Index_type count = 0;
 
 #if _OPENMP >= 201811 && defined(RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN)
@@ -186,6 +189,7 @@ void INDEXLIST::runOpenMPVariant(VariantID vid)
 #endif
 
         m_len = count;
+        RP_CALI_SUBKERNEL_END("INDEXLIST_1");
 
       }
       stopTimer();

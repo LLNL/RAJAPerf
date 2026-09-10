@@ -40,6 +40,7 @@ void HALO_SENDRECV::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("HALO_SENDRECV_1");
       for (Index_type l = 0; l < num_neighbors; ++l) {
         Index_type len = unpack_index_list_lengths[l];
         MPI_Irecv(recv_buffers[l], len*num_vars, Real_MPI_type,
@@ -55,6 +56,7 @@ void HALO_SENDRECV::runOpenMPTargetVariant(VariantID vid)
       MPI_Waitall(num_neighbors, unpack_mpi_requests.data(), MPI_STATUSES_IGNORE);
 
       MPI_Waitall(num_neighbors, pack_mpi_requests.data(), MPI_STATUSES_IGNORE);
+      RP_CALI_SUBKERNEL_END("HALO_SENDRECV_1");
 
     }
     stopTimer();

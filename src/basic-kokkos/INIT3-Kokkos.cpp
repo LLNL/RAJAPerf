@@ -44,6 +44,7 @@ void INIT3::runKokkosVariant(VariantID vid) {
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("INIT3_1");
       Kokkos::parallel_for(
           "INIT3-Kokkos Kokkos_Lambda",
           Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
@@ -51,6 +52,7 @@ void INIT3::runKokkosVariant(VariantID vid) {
             out1_view[i] = out2_view[i] = out3_view[i] =
                 -in1_view[i] - in2_view[i];
           });
+      RP_CALI_SUBKERNEL_END("INIT3_1");
     }
     Kokkos::fence();
     stopTimer();

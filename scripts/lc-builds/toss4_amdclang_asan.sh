@@ -102,7 +102,7 @@ cmake \
   -DCMAKE_CXX_FLAGS="-fsanitize=address -fsanitize=undefined -shared-libsan" \
   -DCMAKE_HIP_FLAGS="-fsanitize=address -fsanitize=undefined -shared-libsan -fgpu-rdc --hip-version=${COMP_HIP_VER}" \
   -DCMAKE_EXE_LINKER_FLAGS="-L/opt/rocm-${COMP_HIP_VER}/lib/asan/ -L/opt/rocm-${COMP_HIP_VER}/llvm/lib/asan -Wl,-rpath,/opt/rocm-${COMP_HIP_VER}/lib/asan/:/opt/rocm-${COMP_HIP_VER}/llvm/lib/asan:/opt/rocm-${COMP_HIP_VER}/lib/llvm/lib/clang/${COMP_CLANG_MAJOR_VER}/lib/linux -fgpu-rdc --hip-version=${COMP_HIP_VER}" \
-  -DBLT_CXX_STD=c++17 \
+  -DBLT_CXX_STD=c++20 \
   -C ${RAJA_HOSTCONFIG} \
   -DENABLE_HIP=ON \
   -DENABLE_OPENMP=ON \

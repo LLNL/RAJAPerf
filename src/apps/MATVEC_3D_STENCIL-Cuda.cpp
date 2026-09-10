@@ -112,6 +112,7 @@ void MATVEC_3D_STENCIL::runCudaVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("MATVEC_3D_STENCIL_1");
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
 
@@ -175,6 +176,7 @@ void MATVEC_3D_STENCIL::runCudaVariantImpl(VariantID vid)
                           ufr,
                           real_zones,
                           ibegin, iend );
+      RP_CALI_SUBKERNEL_END("MATVEC_3D_STENCIL_1");
 
     }
     stopTimer();
@@ -188,10 +190,12 @@ void MATVEC_3D_STENCIL::runCudaVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("MATVEC_3D_STENCIL_1");
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         zones, [=] __device__ (Index_type i) {
           MATVEC_3D_STENCIL_BODY;
       });
+      RP_CALI_SUBKERNEL_END("MATVEC_3D_STENCIL_1");
 
     }
     stopTimer();

@@ -39,7 +39,9 @@ void SORT::runHipVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("SORT_1");
       RAJA::sort< RAJA::hip_exec<default_gpu_block_size, true /*async*/> >(res, RAJA_SORT_ARGS);
+      RP_CALI_SUBKERNEL_END("SORT_1");
 
     }
     stopTimer();

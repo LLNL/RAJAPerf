@@ -20,14 +20,11 @@ if(NOT DEFINED BLT_CXX_STD)
   if("cxx_std_20" IN_LIST CMAKE_CXX_KNOWN_FEATURES)
     set(BLT_CXX_STD c++20 CACHE STRING "Version of C++ standard")
     message("Using C++ standard: ${BLT_CXX_STD}")
-  elseif("cxx_std_17" IN_LIST CMAKE_CXX_KNOWN_FEATURES)
-    set(BLT_CXX_STD c++17 CACHE STRING "Version of C++ standard")
-    message("Using C++ standard: ${BLT_CXX_STD}")
   elseif("${CMAKE_CXX_COMPILER_ID}" IN_LIST COMPILERS_KNOWN_TO_CMAKE33)
-    set(BLT_CXX_STD c++17 CACHE STRING "Version of C++ standard")
+    set(BLT_CXX_STD c++20 CACHE STRING "Version of C++ standard")
     message("Using C++ standard: ${BLT_CXX_STD}")
   else() #cmake has no idea what to do, do it ourselves...
-    set(flag_var "c++17")
+    set(flag_var "c++20")
     CHECK_CXX_COMPILER_FLAG("-std=${flag_var}" COMPILER_SUPPORTS_${flag_var})
     if(COMPILER_SUPPORTS_${flag_var})
       set(BLT_CXX_STD ${flag_var} CACHE STRING "Version of C++ standard")
@@ -38,8 +35,9 @@ if(NOT DEFINED BLT_CXX_STD)
 else() #check BLT_CXX_STD is high enough by disallowing the only invalid option
   if(("${BLT_CXX_STD}" STREQUAL "c++98") OR
      ("${BLT_CXX_STD}" STREQUAL "c++11") OR
-     ("${BLT_CXX_STD}" STREQUAL "c++14"))
-    message(FATAL_ERROR "RAJA requires minimum C++ standard of c++17")
+     ("${BLT_CXX_STD}" STREQUAL "c++14") OR
+     ("${BLT_CXX_STD}" STREQUAL "c++17"))
+    message(FATAL_ERROR "RAJA requires minimum C++ standard of c++20")
   endif()
 endif(NOT DEFINED BLT_CXX_STD)
 
@@ -217,10 +215,16 @@ endif()
 #
 set(RAJA_PERFSUITE_USE_CALIPER off CACHE BOOL "")
 if (RAJA_PERFSUITE_USE_CALIPER)
+  set(RAJA_PERFSUITE_USE_CALIPER_SUBKERNEL on CACHE BOOL
+      "Enable Caliper subkernel regions")
   find_package(caliper REQUIRED)
   list(APPEND RAJA_PERFSUITE_DEPENDS caliper)
   add_definitions(-DRAJA_PERFSUITE_USE_CALIPER)
   message(STATUS "Using Caliper")
+  if (RAJA_PERFSUITE_USE_CALIPER_SUBKERNEL)
+    add_definitions(-DRAJA_PERFSUITE_USE_CALIPER_SUBKERNEL)
+    message(STATUS "Using Caliper subkernel regions")
+  endif()
   find_package(adiak REQUIRED)
   # use ${adiak_LIBRARIES} since version could have adiak vs adiak::adiak export
   list(APPEND RAJA_PERFSUITE_DEPENDS ${adiak_LIBRARIES})
@@ -237,6 +241,8 @@ if (RAJA_PERFSUITE_USE_CALIPER)
   message(STATUS "Adiak includes : ${adiak_INCLUDE_DIRS}")
   include_directories(${caliper_INCLUDE_DIR})
   include_directories(${adiak_INCLUDE_DIRS})
+else ()
+  unset(RAJA_PERFSUITE_USE_CALIPER_SUBKERNEL CACHE)
 endif ()
 
 

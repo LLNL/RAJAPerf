@@ -44,6 +44,7 @@ void NODAL_ACCUMULATION_3D::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("NODAL_ACCUMULATION_3D_1");
       #pragma omp target is_device_ptr(x0,x1,x2,x3,x4,x5,x6,x7, \
                                        vol, real_zones) device( did )
       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
@@ -51,6 +52,7 @@ void NODAL_ACCUMULATION_3D::runOpenMPTargetVariant(VariantID vid)
         NODAL_ACCUMULATION_3D_BODY_INDEX;
         NODAL_ACCUMULATION_3D_BODY(RAJAPERF_ATOMIC_ADD_OMP);
       }
+      RP_CALI_SUBKERNEL_END("NODAL_ACCUMULATION_3D_1");
 
     }
     stopTimer();
@@ -66,10 +68,12 @@ void NODAL_ACCUMULATION_3D::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("NODAL_ACCUMULATION_3D_1");
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>( res,
         zones, [=](Index_type i) {
         NODAL_ACCUMULATION_3D_BODY(RAJAPERF_ATOMIC_ADD_RAJA_OMP);
       });
+      RP_CALI_SUBKERNEL_END("NODAL_ACCUMULATION_3D_1");
 
     }
     stopTimer();

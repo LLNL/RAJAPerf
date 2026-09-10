@@ -271,6 +271,23 @@ Base_OpenMP-default.cali, Lambda_OpenMP-default.cali, Base_CUDA-block_128.cali, 
 Also, by using the `--variants` and `--tunings` options on the command-line,
 you can specify which variant/tunings to run.
 
+Kernels with multiple loop bodies or kernel launches may include an additional
+``subkernel`` level in the Caliper tree. Fixed-count subkernels are named with
+a numeric suffix, such as ``POLYBENCH_JACOBI_1D_1`` and
+``POLYBENCH_JACOBI_1D_2``. Kernels with a variable number of launches use a
+``_k`` suffix, such as ``HALO_PACKING_pack_k`` or
+``HALO_EXCHANGE_unpack_k``. Kernels with only one launch per repetition do not
+add this level.
+
+When Caliper support is enabled, subkernel regions are compiled in by default.
+To exclude these regions from the Caliper tree, configure the build with::
+
+  -DRAJA_PERFSUITE_USE_CALIPER_SUBKERNEL=Off
+
+This compiles the ``RP_CALI_SUBKERNEL_BEGIN`` and
+``RP_CALI_SUBKERNEL_END`` annotations away while preserving the top-level
+Caliper timing regions.
+
 There are several techniques to display the Caliper trees (Timing Hierarchy)
 
 | 1: Caliper's cali-query tool.

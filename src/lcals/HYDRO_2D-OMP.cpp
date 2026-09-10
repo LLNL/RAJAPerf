@@ -42,26 +42,32 @@ void HYDRO_2D::runOpenMPVariant(VariantID vid)
         #pragma omp parallel
         {
 
+          RP_CALI_SUBKERNEL_BEGIN("HYDRO_2D_1");
           #pragma omp for schedule(static) nowait
 	  for (Index_type k = kbeg; k < kend; ++k ) {
 	    for (Index_type j = jbeg; j < jend; ++j ) {
 	      HYDRO_2D_BODY1;
 	    }
 	  }
+          RP_CALI_SUBKERNEL_END("HYDRO_2D_1");
 
+          RP_CALI_SUBKERNEL_BEGIN("HYDRO_2D_2");
           #pragma omp for schedule(static) nowait
 	  for (Index_type k = kbeg; k < kend; ++k ) {
 	    for (Index_type j = jbeg; j < jend; ++j ) {
 	      HYDRO_2D_BODY2;
 	    }
 	  }
+          RP_CALI_SUBKERNEL_END("HYDRO_2D_2");
 
+          RP_CALI_SUBKERNEL_BEGIN("HYDRO_2D_3");
           #pragma omp for schedule(static) nowait
 	  for (Index_type k = kbeg; k < kend; ++k ) {
 	    for (Index_type j = jbeg; j < jend; ++j ) {
 	      HYDRO_2D_BODY3;
 	    }
 	  }
+          RP_CALI_SUBKERNEL_END("HYDRO_2D_3");
 
         } // end omp parallel region
 
@@ -90,26 +96,32 @@ void HYDRO_2D::runOpenMPVariant(VariantID vid)
         #pragma omp parallel
         {
 
+          RP_CALI_SUBKERNEL_BEGIN("HYDRO_2D_1");
           #pragma omp for schedule(static) nowait
           for (Index_type k = kbeg; k < kend; ++k ) {
             for (Index_type j = jbeg; j < jend; ++j ) {
               hydro2d_base_lam1(k, j);
             }
           }
+          RP_CALI_SUBKERNEL_END("HYDRO_2D_1");
 
+          RP_CALI_SUBKERNEL_BEGIN("HYDRO_2D_2");
           #pragma omp for schedule(static) nowait
           for (Index_type k = kbeg; k < kend; ++k ) {
             for (Index_type j = jbeg; j < jend; ++j ) {
               hydro2d_base_lam2(k, j);
             }
           }
+          RP_CALI_SUBKERNEL_END("HYDRO_2D_2");
 
+          RP_CALI_SUBKERNEL_BEGIN("HYDRO_2D_3");
           #pragma omp for schedule(static) nowait
           for (Index_type k = kbeg; k < kend; ++k ) {
             for (Index_type j = jbeg; j < jend; ++j ) {
               hydro2d_base_lam3(k, j);
             }
           }
+          RP_CALI_SUBKERNEL_END("HYDRO_2D_3");
 
         } // end omp parallel region
 
@@ -150,23 +162,29 @@ void HYDRO_2D::runOpenMPVariant(VariantID vid)
 
         RAJA::region<RAJA::omp_parallel_region>( [=]() {
 
+          RP_CALI_SUBKERNEL_BEGIN("HYDRO_2D_1");
           RAJA::kernel_resource<EXECPOL>(
                        RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                                          RAJA::RangeSegment(jbeg, jend)),
                        res,
                        hydro2d_lam1);
+          RP_CALI_SUBKERNEL_END("HYDRO_2D_1");
 
+          RP_CALI_SUBKERNEL_BEGIN("HYDRO_2D_2");
           RAJA::kernel_resource<EXECPOL>(
                        RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                                          RAJA::RangeSegment(jbeg, jend)),
                        res,
                        hydro2d_lam2);
+          RP_CALI_SUBKERNEL_END("HYDRO_2D_2");
 
+          RP_CALI_SUBKERNEL_BEGIN("HYDRO_2D_3");
           RAJA::kernel_resource<EXECPOL>(
                        RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                                          RAJA::RangeSegment(jbeg, jend)),
                        res,
                        hydro2d_lam3);
+          RP_CALI_SUBKERNEL_END("HYDRO_2D_3");
 
         }); // end omp parallel region
 

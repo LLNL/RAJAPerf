@@ -22,7 +22,6 @@ namespace apps
 void NODAL_ACCUMULATION_3D::runKokkosVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize(); //m_domain->n_real_zones;
 
   NODAL_ACCUMULATION_3D_DATA_SETUP;
@@ -48,6 +47,7 @@ void NODAL_ACCUMULATION_3D::runKokkosVariant(VariantID vid)
     startTimer();
     // Awkward expression for loop counter quiets C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; ((irep = irep + 1), 0)) {
+      RP_CALI_SUBKERNEL_BEGIN("NODAL_ACCUMULATION_3D_1");
       Kokkos::parallel_for("NODAL_ACCUMULATION_3D", iend, KOKKOS_LAMBDA(Index_type ii) {
         Index_type i = real_zones_v(ii);
         Real_type val = 0.125 * vol_v(i);
@@ -60,6 +60,7 @@ void NODAL_ACCUMULATION_3D::runKokkosVariant(VariantID vid)
         Kokkos::atomic_add(&x6_v(i), val);
         Kokkos::atomic_add(&x7_v(i), val);
       });
+      RP_CALI_SUBKERNEL_END("NODAL_ACCUMULATION_3D_1");
     }
     Kokkos::fence();
     stopTimer();

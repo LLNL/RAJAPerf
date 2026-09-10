@@ -46,6 +46,7 @@ void TRAP_INT::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("TRAP_INT_1");
       Real_type sumx = m_sumx_init;
 
       #pragma omp target teams distribute parallel for \
@@ -57,6 +58,7 @@ void TRAP_INT::runOpenMPTargetVariant(VariantID vid)
       }
 
       m_sumx += sumx * h;
+      RP_CALI_SUBKERNEL_END("TRAP_INT_1");
 
     }
     stopTimer();
@@ -71,6 +73,7 @@ void TRAP_INT::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("TRAP_INT_1");
       Real_type tsumx = m_sumx_init;
 
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>( res,
@@ -83,6 +86,7 @@ void TRAP_INT::runOpenMPTargetVariant(VariantID vid)
       );
 
       m_sumx += static_cast<Real_type>(tsumx) * h;
+      RP_CALI_SUBKERNEL_END("TRAP_INT_1");
 
     }
     stopTimer();
