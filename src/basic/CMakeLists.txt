@@ -83,6 +83,12 @@ blt_add_library(
           INIT_VIEW1D_OFFSET-OMP.cpp
           INIT_VIEW1D_OFFSET-OMPTarget.cpp
           INIT_VIEW1D_OFFSET-Sycl.cpp
+          MAT_MAT.cpp
+          MAT_MAT-Seq.cpp
+          MAT_MAT-Hip.cpp
+          MAT_MAT-Cuda.cpp
+          MAT_MAT-OMP.cpp
+          MAT_MAT-Sycl.cpp
           MAT_MAT_SHARED.cpp
           MAT_MAT_SHARED-Seq.cpp
           MAT_MAT_SHARED-Hip.cpp
