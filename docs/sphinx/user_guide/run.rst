@@ -60,9 +60,10 @@ were specified to configure the build.
 The Suite can be run in many different ways chosen by the command-line 
 options passed to the executable. For example, you can run or exclude subsets 
 of kernels, variants, or groups. You can also pass options to set problem 
-sizes, number of times each kernel is run (sampled), and many other run 
-parameters. The goal is to build the code once and use scripts or other means 
-to run the Suite in different ways for the analyses you want to perform.
+sizes, number of times each kernel is run (sampled), how to run warmup kernels
+for more precise execution timings, etc. The goal is to build the code once and
+use scripts or other means to run the Suite in different ways for the analyses
+you want to perform.
 
 Many options appear in a *long form* with a double hyphen prefix (i.e., '--').
 Commonly used options are also available in a one or two character *short form*
