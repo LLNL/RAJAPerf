@@ -1117,7 +1117,7 @@ void Executor::runWarmupKernels()
       warmup_kernel_ids.insert( kernel->getKernelID() );
     } // iterate over kernels to run
 
-  } else if ( warmup_mode == RunParams::WarmupMode::Default ) {
+  } else if ( warmup_mode == RunParams::WarmupMode::Minimal ) {
 
     //
     // No warmup kernel input given, choose a warmup kernel for each feature
