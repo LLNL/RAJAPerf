@@ -62,22 +62,6 @@ void INTSC_HEXRECT::runHipVariantImpl(VariantID vid)
 
   INTSC_HEXRECT_DATA_SETUP;
 
-  //  Insert a warmup call to the kernel in order to remove the
-  //  time of initialization that affects the first call to the kernel.
-  //
-  Bool_type const do_warmup = true ;
-  if ( do_warmup ) {
-    const Size_type grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-    constexpr Size_type shmem = 0;
-
-    RPlaunchHipKernel( (intsc_hexrect_hip<block_size>),
-                       grid_size, block_size,
-                       shmem, res.get_stream(),
-                       m_xdnode, m_ydnode, m_zdnode, m_znlist,
-                       m_ncord, m_intsc_d, m_intsc_t,
-                       m_nrecords, m_records ) ;
-  }
-
   if ( vid == Base_HIP ) {
 
     startTimer();
