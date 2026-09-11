@@ -121,20 +121,20 @@ void MASS3DPA::runSeqVariant(VariantID vid) {
         RAJA::LaunchParams(),
         [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
 
-          RAJA::loop<outer_x>(ctx, RAJA::RangeSegment(0, NE),
+          RAJA::loop<outer_x>(ctx, RAJA::range(NE),
             [&](Index_type e) {
 
               MASS3DPA_0_CPU
 
-              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, mpa::D1D),
+              RAJA::loop<inner_y>(ctx, RAJA::range(mpa::D1D),
                 [&](Index_type dy) {
-                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, mpa::D1D),
+                  RAJA::loop<inner_x>(ctx, RAJA::range(mpa::D1D),
                     [&](Index_type dx) {
                       MASS3DPA_1
                     }
                   );  // RAJA::loop<inner_x>
 
-                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, mpa::Q1D),
+                  RAJA::loop<inner_x>(ctx, RAJA::range(mpa::Q1D),
                     [&](Index_type dx) {
                       MASS3DPA_2
                     }
@@ -144,9 +144,9 @@ void MASS3DPA::runSeqVariant(VariantID vid) {
 
               ctx.teamSync();
 
-              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, mpa::D1D),
+              RAJA::loop<inner_y>(ctx, RAJA::range(mpa::D1D),
                 [&](Index_type dy) {
-                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, mpa::Q1D),
+                  RAJA::loop<inner_x>(ctx, RAJA::range(mpa::Q1D),
                     [&](Index_type qx) {
                       MASS3DPA_3
                     }
@@ -156,9 +156,9 @@ void MASS3DPA::runSeqVariant(VariantID vid) {
 
               ctx.teamSync();
 
-              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, mpa::Q1D),
+              RAJA::loop<inner_y>(ctx, RAJA::range(mpa::Q1D),
                 [&](Index_type qy) {
-                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, mpa::Q1D),
+                  RAJA::loop<inner_x>(ctx, RAJA::range(mpa::Q1D),
                     [&](Index_type qx) {
                       MASS3DPA_4
                     }
@@ -168,9 +168,9 @@ void MASS3DPA::runSeqVariant(VariantID vid) {
 
               ctx.teamSync();
 
-              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, mpa::Q1D),
+              RAJA::loop<inner_y>(ctx, RAJA::range(mpa::Q1D),
                 [&](Index_type qy) {
-                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, mpa::Q1D),
+                  RAJA::loop<inner_x>(ctx, RAJA::range(mpa::Q1D),
                     [&](Index_type qx) {
                       MASS3DPA_5
                     }
@@ -180,9 +180,9 @@ void MASS3DPA::runSeqVariant(VariantID vid) {
 
               ctx.teamSync();
 
-              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, mpa::D1D),
+              RAJA::loop<inner_y>(ctx, RAJA::range(mpa::D1D),
                 [&](Index_type d) {
-                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, mpa::Q1D),
+                  RAJA::loop<inner_x>(ctx, RAJA::range(mpa::Q1D),
                     [&](Index_type q) {
                       MASS3DPA_6
                     }
@@ -192,9 +192,9 @@ void MASS3DPA::runSeqVariant(VariantID vid) {
 
               ctx.teamSync();
 
-              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, mpa::Q1D),
+              RAJA::loop<inner_y>(ctx, RAJA::range(mpa::Q1D),
                 [&](Index_type qy) {
-                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, mpa::D1D),
+                  RAJA::loop<inner_x>(ctx, RAJA::range(mpa::D1D),
                     [&](Index_type dx) {
                       MASS3DPA_7
                     }
@@ -204,9 +204,9 @@ void MASS3DPA::runSeqVariant(VariantID vid) {
 
               ctx.teamSync();
 
-              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, mpa::D1D),
+              RAJA::loop<inner_y>(ctx, RAJA::range(mpa::D1D),
                 [&](Index_type dy) {
-                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, mpa::D1D),
+                  RAJA::loop<inner_x>(ctx, RAJA::range(mpa::D1D),
                     [&](Index_type dx) {
                       MASS3DPA_8
                     }
@@ -216,9 +216,9 @@ void MASS3DPA::runSeqVariant(VariantID vid) {
 
               ctx.teamSync();
 
-              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, mpa::D1D),
+              RAJA::loop<inner_y>(ctx, RAJA::range(mpa::D1D),
                 [&](Index_type dy) {
-                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, mpa::D1D),
+                  RAJA::loop<inner_x>(ctx, RAJA::range(mpa::D1D),
                     [&](Index_type dx) {
                       MASS3DPA_9
                     }

@@ -20,7 +20,6 @@ namespace rajaperf
 namespace apps
 {
 
-
 MASS3DPA::MASS3DPA(const RunParams& params)
   : KernelBase(rajaperf::Apps_MASS3DPA, params)
 {
@@ -78,7 +77,6 @@ MASS3DPA::~MASS3DPA()
 
 void MASS3DPA::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
-
   allocAndInitDataConst(m_B,  mpa::Q1D*mpa::D1D, Real_type(1.0), vid);
   allocAndInitDataConst(m_Bt, mpa::Q1D*mpa::D1D, Real_type(1.0), vid);
   allocAndInitDataConst(m_D,  mpa::Q1D*mpa::Q1D*mpa::Q1D*m_NE, Real_type(1.0), vid);

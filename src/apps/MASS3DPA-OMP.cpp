@@ -123,20 +123,20 @@ RP_CALI_SUBKERNEL_END("MASS3DPA_1");
         RAJA::LaunchParams(),
         [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
 
-          RAJA::loop<outer_x>(ctx, RAJA::RangeSegment(0, NE),
+          RAJA::loop<outer_x>(ctx, RAJA::range(NE),
             [&](Index_type e) {
 
               MASS3DPA_0_CPU
 
-              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, mpa::D1D),
+              RAJA::loop<inner_y>(ctx, RAJA::range(mpa::D1D),
                 [&](Index_type dy) {
-                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, mpa::D1D),
+                  RAJA::loop<inner_x>(ctx, RAJA::range(mpa::D1D),
                     [&](Index_type dx) {
                       MASS3DPA_1
                     }
                   );  // RAJA::loop<inner_x>
 
-                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, mpa::Q1D),
+                  RAJA::loop<inner_x>(ctx, RAJA::range(mpa::Q1D),
                     [&](Index_type dx) {
                       MASS3DPA_2
                     }
@@ -146,9 +146,9 @@ RP_CALI_SUBKERNEL_END("MASS3DPA_1");
 
               ctx.teamSync();
 
-              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, mpa::D1D),
+              RAJA::loop<inner_y>(ctx, RAJA::range(mpa::D1D),
                 [&](Index_type dy) {
-                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, mpa::Q1D),
+                  RAJA::loop<inner_x>(ctx, RAJA::range(mpa::Q1D),
                     [&](Index_type qx) {
                       MASS3DPA_3
                     }
@@ -158,9 +158,9 @@ RP_CALI_SUBKERNEL_END("MASS3DPA_1");
 
               ctx.teamSync();
 
-              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, mpa::Q1D),
+              RAJA::loop<inner_y>(ctx, RAJA::range(mpa::Q1D),
                 [&](Index_type qy) {
-                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, mpa::Q1D),
+                  RAJA::loop<inner_x>(ctx, RAJA::range(mpa::Q1D),
                     [&](Index_type qx) {
                       MASS3DPA_4
                     }
@@ -170,9 +170,9 @@ RP_CALI_SUBKERNEL_END("MASS3DPA_1");
 
               ctx.teamSync();
 
-              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, mpa::Q1D),
+              RAJA::loop<inner_y>(ctx, RAJA::range(mpa::Q1D),
                 [&](Index_type qy) {
-                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, mpa::Q1D),
+                  RAJA::loop<inner_x>(ctx, RAJA::range(mpa::Q1D),
                     [&](Index_type qx) {
                       MASS3DPA_5
                     }
@@ -182,9 +182,9 @@ RP_CALI_SUBKERNEL_END("MASS3DPA_1");
 
               ctx.teamSync();
 
-              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, mpa::D1D),
+              RAJA::loop<inner_y>(ctx, RAJA::range(mpa::D1D),
                 [&](Index_type d) {
-                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, mpa::Q1D),
+                  RAJA::loop<inner_x>(ctx, RAJA::range(mpa::Q1D),
                     [&](Index_type q) {
                       MASS3DPA_6
                     }
@@ -194,9 +194,9 @@ RP_CALI_SUBKERNEL_END("MASS3DPA_1");
 
               ctx.teamSync();
 
-              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, mpa::Q1D),
+              RAJA::loop<inner_y>(ctx, RAJA::range(mpa::Q1D),
                 [&](Index_type qy) {
-                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, mpa::D1D),
+                  RAJA::loop<inner_x>(ctx, RAJA::range(mpa::D1D),
                     [&](Index_type dx) {
                       MASS3DPA_7
                     }
@@ -206,9 +206,9 @@ RP_CALI_SUBKERNEL_END("MASS3DPA_1");
 
               ctx.teamSync();
 
-              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, mpa::D1D),
+              RAJA::loop<inner_y>(ctx, RAJA::range(mpa::D1D),
                 [&](Index_type dy) {
-                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, mpa::D1D),
+                  RAJA::loop<inner_x>(ctx, RAJA::range(mpa::D1D),
                     [&](Index_type dx) {
                       MASS3DPA_8
                     }
@@ -218,9 +218,9 @@ RP_CALI_SUBKERNEL_END("MASS3DPA_1");
 
               ctx.teamSync();
 
-              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, mpa::D1D),
+              RAJA::loop<inner_y>(ctx, RAJA::range(mpa::D1D),
                 [&](Index_type dy) {
-                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, mpa::D1D),
+                  RAJA::loop<inner_x>(ctx, RAJA::range(mpa::D1D),
                     [&](Index_type dx) {
                       MASS3DPA_9
                     }
