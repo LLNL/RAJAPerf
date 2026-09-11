@@ -1120,7 +1120,7 @@ void Executor::runWarmupKernels()
   } else if ( warmup_mode == RunParams::WarmupMode::Minimal ) {
 
     //
-    // No warmup kernel input given, choose a warmup kernel for each feature
+    // Minimal warmup mode. Choose a warmup kernel for each feature.
     //
     // First, assemble a set of feature IDs
     //
