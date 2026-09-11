@@ -44,7 +44,7 @@ void ARRAY_OF_PTRS::runKokkosVariant(VariantID vid) {
           KOKKOS_LAMBDA(Index_type i) {
             y_view[i] = 0.0;
             for (Index_type a = 0; a < array_size; ++a) {
-              y_view[i] += a * x_view[a][i];
+              y_view[i] += x_view[a][i];
             }
           });
       RP_CALI_SUBKERNEL_END("ARRAY_OF_PTRS_1");

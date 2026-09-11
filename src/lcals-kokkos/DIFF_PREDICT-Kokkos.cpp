@@ -23,16 +23,15 @@ void DIFF_PREDICT::runKokkosVariant(VariantID vid) {
 
   DIFF_PREDICT_DATA_SETUP;
 
-  // Wrapping pointers in Kokkos Views
-  // Nota bene: get the actual array size to catch errors
+  // DIFF_PREDICT_DATA_SETUP shifts both pointers back by offset * 4, so
+  // px + offset * 4 is m_px (10 * iend elements) and cx + offset * 4 is
+  // m_cx (iend elements)
 
-  auto px_flat_view = getViewFromPointer(px, iend * 14);
-  auto cx_flat_view = getViewFromPointer(cx, iend * 14);
+  auto px_flat_view = getViewFromPointer(px + offset * 4, iend * 10);
+  auto cx_view = getViewFromPointer(cx + offset * 4, iend);
 
   // 2D View w/ runtime and compile time dimension
-  Kokkos::View<Real_type *[14], Kokkos::LayoutLeft> px_view(px_flat_view.data(),
-                                                            iend);
-  Kokkos::View<Real_type *[14], Kokkos::LayoutLeft> cx_view(cx_flat_view.data(),
+  Kokkos::View<Real_type *[10], Kokkos::LayoutLeft> px_view(px_flat_view.data(),
                                                             iend);
   switch (vid) {
 
@@ -52,25 +51,25 @@ void DIFF_PREDICT::runKokkosVariant(VariantID vid) {
             // DIFF_PREDICT_BODY with Kokkos Views
             Real_type ar, br, cr;
 
-            ar = cx_view(i, 4);
-            br = ar - px_view(i, 4);
-            px_view(i, 4) = ar;
-            cr = br - px_view(i, 5);
-            px_view(i, 5) = br;
-            ar = cr - px_view(i, 6);
-            px_view(i, 6) = cr;
-            br = ar - px_view(i, 7);
-            px_view(i, 7) = ar;
-            cr = br - px_view(i, 8);
-            px_view(i, 8) = br;
-            ar = cr - px_view(i, 9);
-            px_view(i, 9) = cr;
-            br = ar - px_view(i, 10);
-            px_view(i, 10) = ar;
-            cr = br - px_view(i, 11);
-            px_view(i, 11) = br;
-            px_view(i, 13) = cr - px_view(i, 12);
-            px_view(i, 12) = cr;
+            ar = cx_view(i);
+            br = ar - px_view(i, 0);
+            px_view(i, 0) = ar;
+            cr = br - px_view(i, 1);
+            px_view(i, 1) = br;
+            ar = cr - px_view(i, 2);
+            px_view(i, 2) = cr;
+            br = ar - px_view(i, 3);
+            px_view(i, 3) = ar;
+            cr = br - px_view(i, 4);
+            px_view(i, 4) = br;
+            ar = cr - px_view(i, 5);
+            px_view(i, 5) = cr;
+            br = ar - px_view(i, 6);
+            px_view(i, 6) = ar;
+            cr = br - px_view(i, 7);
+            px_view(i, 7) = br;
+            px_view(i, 9) = cr - px_view(i, 8);
+            px_view(i, 8) = cr;
           });
       RP_CALI_SUBKERNEL_END("DIFF_PREDICT_1");
     }
@@ -84,8 +83,8 @@ void DIFF_PREDICT::runKokkosVariant(VariantID vid) {
   }
   }
 
-  moveDataToHostFromKokkosView(px, px_flat_view, iend * 14);
-  moveDataToHostFromKokkosView(cx, cx_flat_view, iend * 14);
+  moveDataToHostFromKokkosView(px + offset * 4, px_flat_view, iend * 10);
+  moveDataToHostFromKokkosView(cx + offset * 4, cx_view, iend);
 }
 
 RAJAPERF_DEFAULT_TUNING_DEFINE_BOILERPLATE(DIFF_PREDICT, Kokkos, Kokkos_Lambda)

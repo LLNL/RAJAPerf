@@ -83,10 +83,10 @@ void POLYBENCH_HEAT_3D::runKokkosVariant(VariantID vid) {
       std::cout << "\n  POLYBENCH_HEAT_3D : Unknown variant id = " << vid
                 << std::endl;
     }
-
-    moveDataToHostFromKokkosView(A, A_view, N, N, N);
-    moveDataToHostFromKokkosView(B, B_view, N, N, N);
   }
+
+  moveDataToHostFromKokkosView(A, A_view, N, N, N);
+  moveDataToHostFromKokkosView(B, B_view, N, N, N);
 }
 
 RAJAPERF_DEFAULT_TUNING_DEFINE_BOILERPLATE(POLYBENCH_HEAT_3D, Kokkos, Kokkos_Lambda)
