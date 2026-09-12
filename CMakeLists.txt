@@ -37,7 +37,7 @@ else() #check BLT_CXX_STD is high enough by disallowing the only invalid option
      ("${BLT_CXX_STD}" STREQUAL "c++11") OR
      ("${BLT_CXX_STD}" STREQUAL "c++14") OR
      ("${BLT_CXX_STD}" STREQUAL "c++17"))
-    message(FATAL_ERROR "RAJA requires minimum C++ standard of c++20")
+    message(FATAL_ERROR "RAJAPerf requires minimum C++ standard of c++20")
   endif()
 endif(NOT DEFINED BLT_CXX_STD)
 
