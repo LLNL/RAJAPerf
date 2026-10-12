@@ -53,6 +53,7 @@ void FIRST_DIFF::runHipVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+       RP_CALI_SUBKERNEL_BEGIN("FIRST_DIFF_1");
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
        constexpr size_t shmem = 0;
 
@@ -61,6 +62,7 @@ void FIRST_DIFF::runHipVariantImpl(VariantID vid)
                           shmem, res.get_stream(),
                           x, y, 
                           iend );
+       RP_CALI_SUBKERNEL_END("FIRST_DIFF_1");
 
     }
     stopTimer();
@@ -71,10 +73,12 @@ void FIRST_DIFF::runHipVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+       RP_CALI_SUBKERNEL_BEGIN("FIRST_DIFF_1");
        RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          FIRST_DIFF_BODY;
        });
+       RP_CALI_SUBKERNEL_END("FIRST_DIFF_1");
 
     }
     stopTimer();

@@ -34,6 +34,7 @@ void PI_ATOMIC::runKokkosVariant(VariantID vid) {
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("PI_ATOMIC_1");
       // Initializing a value, pi, on the host
       *pi = m_pi_init;
 
@@ -51,7 +52,8 @@ void PI_ATOMIC::runKokkosVariant(VariantID vid) {
       // Moving the data on the device (held in the KokkosView) BACK to the
       // pointer, pi.
       moveDataToHostFromKokkosView(pi, pi_view, 1);
-      *pi *= 4.0;
+      m_pi_final = *pi * 4.0;
+      RP_CALI_SUBKERNEL_END("PI_ATOMIC_1");
     }
 
     Kokkos::fence();
@@ -64,6 +66,8 @@ void PI_ATOMIC::runKokkosVariant(VariantID vid) {
     std::cout << "\n  PI_ATOMIC : Unknown variant id = " << vid << std::endl;
   }
   }
+
+  PI_ATOMIC_DATA_TEARDOWN;
 }
 
 RAJAPERF_DEFAULT_TUNING_DEFINE_BOILERPLATE(PI_ATOMIC, Kokkos, Kokkos_Lambda)

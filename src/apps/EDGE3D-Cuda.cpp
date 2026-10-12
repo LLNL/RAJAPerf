@@ -67,6 +67,7 @@ void EDGE3D::runCudaVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("EDGE3D_1");
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
 
@@ -78,6 +79,7 @@ void EDGE3D::runCudaVariantImpl(VariantID vid)
                           y0, y1, y2, y3, y4, y5, y6, y7,
                           z0, z1, z2, z3, z4, z5, z6, z7,
                           ibegin, iend );
+      RP_CALI_SUBKERNEL_END("EDGE3D_1");
 
     }
     stopTimer();
@@ -88,6 +90,7 @@ void EDGE3D::runCudaVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("EDGE3D_1");
       auto edge3d_lambda = [=] __device__ (Index_type i) { EDGE3D_BODY; };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
@@ -99,6 +102,7 @@ void EDGE3D::runCudaVariantImpl(VariantID vid)
                           shmem, res.get_stream(),
                           ibegin, iend, 
                           edge3d_lambda );
+      RP_CALI_SUBKERNEL_END("EDGE3D_1");
 
     }
     stopTimer();
@@ -109,10 +113,12 @@ void EDGE3D::runCudaVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("EDGE3D_1");
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
         EDGE3D_BODY;
       });
+      RP_CALI_SUBKERNEL_END("EDGE3D_1");
 
     }
     stopTimer();

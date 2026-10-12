@@ -137,6 +137,7 @@ void HISTOGRAM::runHipVariantLibrary(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("HISTOGRAM_1");
       // Run
 #if defined(__HIPCC__)
       CAMP_HIP_API_INVOKE_AND_CHECK(::rocprim::histogram_even,
@@ -162,6 +163,7 @@ void HISTOGRAM::runHipVariantLibrary(VariantID vid)
 
       RAJAPERF_HIP_REDUCER_COPY_BACK(counts, hcounts, num_bins, 1);
       HISTOGRAM_GPU_FINALIZE_COUNTS(hcounts, num_bins, 1);
+      RP_CALI_SUBKERNEL_END("HISTOGRAM_1");
 
     }
     stopTimer();
@@ -219,6 +221,7 @@ void HISTOGRAM::runHipVariantAtomicRuntime(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("HISTOGRAM_1");
       RAJAPERF_HIP_REDUCER_INITIALIZE(counts_init, counts, hcounts, num_bins, global_replication);
 
       RPlaunchHipKernel( func,
@@ -240,6 +243,7 @@ void HISTOGRAM::runHipVariantAtomicRuntime(VariantID vid)
         }
         counts_final[bin] = count_final;
       }
+      RP_CALI_SUBKERNEL_END("HISTOGRAM_1");
 
     }
     stopTimer();
@@ -270,6 +274,7 @@ void HISTOGRAM::runHipVariantAtomicRuntime(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("HISTOGRAM_1");
       HISTOGRAM_INIT_COUNTS_RAJA(multi_reduce_policy);
 
       RAJA::forall<exec_policy>( res,
@@ -279,6 +284,7 @@ void HISTOGRAM::runHipVariantAtomicRuntime(VariantID vid)
       });
 
       HISTOGRAM_FINALIZE_COUNTS_RAJA(multi_reduce_policy);
+      RP_CALI_SUBKERNEL_END("HISTOGRAM_1");
 
     }
     stopTimer();

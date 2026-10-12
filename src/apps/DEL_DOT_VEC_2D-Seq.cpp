@@ -39,10 +39,12 @@ void DEL_DOT_VEC_2D::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("DEL_DOT_VEC_2D_1");
         for (Index_type ii = ibegin ; ii < iend ; ++ii ) {
           DEL_DOT_VEC_2D_BODY_INDEX;
           DEL_DOT_VEC_2D_BODY;
         }
+        RP_CALI_SUBKERNEL_END("DEL_DOT_VEC_2D_1");
 
       }
       stopTimer();
@@ -62,9 +64,11 @@ void DEL_DOT_VEC_2D::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("DEL_DOT_VEC_2D_1");
         for (Index_type ii = ibegin ; ii < iend ; ++ii ) {
           deldotvec2d_base_lam(ii);
         }
+        RP_CALI_SUBKERNEL_END("DEL_DOT_VEC_2D_1");
 
       }
       stopTimer();
@@ -87,7 +91,9 @@ void DEL_DOT_VEC_2D::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("DEL_DOT_VEC_2D_1");
         RAJA::forall<RAJA::seq_exec>(res, zones, deldotvec2d_lam);
+        RP_CALI_SUBKERNEL_END("DEL_DOT_VEC_2D_1");
 
       }
       stopTimer();

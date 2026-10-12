@@ -48,11 +48,12 @@ void TRAP_INT::runSyclVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("TRAP_INT_1");
       const size_t global_size = work_group_size * RAJA_DIVIDE_CEILING_INT(iend, work_group_size);
 
       initSyclDeviceData(sumx, &m_sumx_init, 1, qu);
   
-      qu->submit([&] (sycl::handler& hdl) {
+      qu.submit([&] (sycl::handler& hdl) {
 
         auto sum_reduction = sycl::reduction(sumx, sycl::plus<>());
 
@@ -72,6 +73,7 @@ void TRAP_INT::runSyclVariantImpl(VariantID vid)
       Real_ptr plsumx = &lsumx;
       getSyclDeviceData(plsumx, sumx, 1, qu);
       m_sumx += lsumx * h;
+      RP_CALI_SUBKERNEL_END("TRAP_INT_1");
 
     }
     stopTimer();
@@ -84,6 +86,7 @@ void TRAP_INT::runSyclVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("TRAP_INT_1");
       Real_type tsumx = m_sumx_init;
 
       RAJA::forall< RAJA::sycl_exec<work_group_size, false /*async*/> >(
@@ -97,6 +100,7 @@ void TRAP_INT::runSyclVariantImpl(VariantID vid)
       );
 
       m_sumx += static_cast<Real_type>(tsumx) * h;
+      RP_CALI_SUBKERNEL_END("TRAP_INT_1");
 
     }
     stopTimer();

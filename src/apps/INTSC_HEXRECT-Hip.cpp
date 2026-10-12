@@ -62,28 +62,13 @@ void INTSC_HEXRECT::runHipVariantImpl(VariantID vid)
 
   INTSC_HEXRECT_DATA_SETUP;
 
-  //  Insert a warmup call to the kernel in order to remove the
-  //  time of initialization that affects the first call to the kernel.
-  //
-  Bool_type const do_warmup = true ;
-  if ( do_warmup ) {
-    const Size_type grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-    constexpr Size_type shmem = 0;
-
-    RPlaunchHipKernel( (intsc_hexrect_hip<block_size>),
-                       grid_size, block_size,
-                       shmem, res.get_stream(),
-                       m_xdnode, m_ydnode, m_zdnode, m_znlist,
-                       m_ncord, m_intsc_d, m_intsc_t,
-                       m_nrecords, m_records ) ;
-  }
-
   if ( vid == Base_HIP ) {
 
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("INTSC_HEXRECT_1");
       const Size_type grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr Size_type shmem = 0;
 
@@ -93,6 +78,7 @@ void INTSC_HEXRECT::runHipVariantImpl(VariantID vid)
                          m_xdnode, m_ydnode, m_zdnode, m_znlist,
                          m_ncord, m_intsc_d, m_intsc_t,
                          m_nrecords, m_records ) ;
+      RP_CALI_SUBKERNEL_END("INTSC_HEXRECT_1");
     }
     stopTimer();
 
@@ -102,6 +88,7 @@ void INTSC_HEXRECT::runHipVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("INTSC_HEXRECT_1");
       const Size_type grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
       auto intsc_hexrect_lambda = [=] __device__ ( Index_type i ) {
@@ -124,6 +111,7 @@ void INTSC_HEXRECT::runHipVariantImpl(VariantID vid)
                          shmem, res.get_stream(),
                          ibegin, iend,
                          intsc_hexrect_lambda );
+      RP_CALI_SUBKERNEL_END("INTSC_HEXRECT_1");
 
     }
     stopTimer();
@@ -134,6 +122,7 @@ void INTSC_HEXRECT::runHipVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("INTSC_HEXRECT_1");
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i)
           {
@@ -147,6 +136,7 @@ void INTSC_HEXRECT::runHipVariantImpl(VariantID vid)
             INTSC_HEXRECT_BODY;
           }
       ) ;
+      RP_CALI_SUBKERNEL_END("INTSC_HEXRECT_1");
     }
     stopTimer();
 

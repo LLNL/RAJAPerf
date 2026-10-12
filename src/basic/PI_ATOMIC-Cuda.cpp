@@ -57,6 +57,7 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("PI_ATOMIC_1");
       RAJAPERF_CUDA_REDUCER_INITIALIZE(&m_pi_init, pi, hpi, 1, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
@@ -71,6 +72,7 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
 
       RAJAPERF_CUDA_REDUCER_COPY_BACK(pi, hpi, 1, 1);
       m_pi_final = hpi[0] * static_cast<Real_type>(4);
+      RP_CALI_SUBKERNEL_END("PI_ATOMIC_1");
 
     }
     stopTimer();
@@ -81,6 +83,7 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("PI_ATOMIC_1");
       RAJAPERF_CUDA_REDUCER_INITIALIZE(&m_pi_init, pi, hpi, 1, 1);
 
       auto pi_atomic_lambda = [=] __device__ (Index_type i) {
@@ -98,6 +101,7 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
 
       RAJAPERF_CUDA_REDUCER_COPY_BACK(pi, hpi, 1, 1);
       m_pi_final = hpi[0] * static_cast<Real_type>(4);
+      RP_CALI_SUBKERNEL_END("PI_ATOMIC_1");
 
     }
     stopTimer();
@@ -108,6 +112,7 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("PI_ATOMIC_1");
       RAJAPERF_CUDA_REDUCER_INITIALIZE(&m_pi_init, pi, hpi, 1, 1);
 
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
@@ -117,6 +122,7 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
 
       RAJAPERF_CUDA_REDUCER_COPY_BACK(pi, hpi, 1, 1);
       m_pi_final = hpi[0] * static_cast<Real_type>(4);
+      RP_CALI_SUBKERNEL_END("PI_ATOMIC_1");
 
     }
     stopTimer();

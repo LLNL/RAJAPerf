@@ -36,6 +36,9 @@ The most recent version of these documents (develop branch) is available here: h
 
 To access docs for other branches or version versions: https://readthedocs.org/projects/rajaperf/
 
+A performance benchmark dashboard tracking changes on `develop` is available here:
+https://software.llnl.gov/RAJAPerf/dev/bench/
+
 Please see the [RAJA] project for more information about RAJA.
 
 To cite RAJA Performance Suite, please use the following references:

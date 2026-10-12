@@ -37,10 +37,12 @@ void INIT_VIEW1D_OFFSET::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("INIT_VIEW1D_OFFSET_1");
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
           INIT_VIEW1D_OFFSET_BODY;
         }
+        RP_CALI_SUBKERNEL_END("INIT_VIEW1D_OFFSET_1");
 
       }
       stopTimer();
@@ -58,10 +60,12 @@ void INIT_VIEW1D_OFFSET::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("INIT_VIEW1D_OFFSET_1");
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
           initview1doffset_base_lam(i);
         }
+        RP_CALI_SUBKERNEL_END("INIT_VIEW1D_OFFSET_1");
 
       }
       stopTimer();
@@ -83,8 +87,10 @@ void INIT_VIEW1D_OFFSET::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("INIT_VIEW1D_OFFSET_1");
         RAJA::forall<RAJA::omp_parallel_for_exec>( res,
           RAJA::RangeSegment(ibegin, iend), initview1doffset_lam);
+        RP_CALI_SUBKERNEL_END("INIT_VIEW1D_OFFSET_1");
 
       }
       stopTimer();

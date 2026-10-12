@@ -46,7 +46,9 @@ MASS3DEA::MASS3DEA(const RunParams& params)
 
 void MASS3DEA::setSize(Index_type target_size, Index_type target_reps)
 {
-  const Index_type ea_mat_entries = mea::D1D*mea::D1D*mea::D1D*mea::D1D*mea::D1D*mea::D1D;
+  const Index_type ea_mat_entries = mea::D1D * mea::D1D * mea::D1D * mea::D1D * mea::D1D * mea::D1D;
+  const Index_type qpt_entries = mea::Q1D * mea::Q1D * mea::Q1D;
+  const Index_type flops_per_qpt = 7;
 
   m_NE = std::max((target_size + (ea_mat_entries)/2) / (ea_mat_entries), Index_type(1));
 
@@ -65,7 +67,7 @@ void MASS3DEA::setSize(Index_type target_size, Index_type target_reps)
   setBytesModifyWrittenPerRep( 0 );
   setBytesAtomicModifyWrittenPerRep( 0 );
 
-  setFLOPsPerRep(m_NE * 7 * ea_mat_entries);
+  setFLOPsPerRep(m_NE * flops_per_qpt * qpt_entries * ea_mat_entries);
 }
 
 MASS3DEA::~MASS3DEA()

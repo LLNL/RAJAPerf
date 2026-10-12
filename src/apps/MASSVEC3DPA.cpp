@@ -44,11 +44,11 @@ MASSVEC3DPA::MASSVEC3DPA(const RunParams &params)
 void MASSVEC3DPA::setSize(Index_type target_size, Index_type target_reps)
 {
   m_NE =
-      std::max((target_size + (mvpa::DIM * mvpa::Q1D * mvpa::Q1D * mvpa::Q1D) / 2) /
-                   (mvpa::DIM * mvpa::Q1D * mvpa::Q1D * mvpa::Q1D),
+      std::max((target_size + (mvpa::DIM * mvpa::D1D * mvpa::D1D * mvpa::D1D) / 2) /
+                   (mvpa::DIM * mvpa::D1D * mvpa::D1D * mvpa::D1D),
                Index_type(1));
 
-  setActualProblemSize(m_NE * mvpa::DIM * mvpa::Q1D * mvpa::Q1D * mvpa::Q1D);
+  setActualProblemSize(m_NE * mvpa::DIM * mvpa::D1D * mvpa::D1D * mvpa::D1D);
   setRunReps( target_reps );
 
   setItsPerRep(getActualProblemSize());

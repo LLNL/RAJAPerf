@@ -60,9 +60,10 @@ were specified to configure the build.
 The Suite can be run in many different ways chosen by the command-line 
 options passed to the executable. For example, you can run or exclude subsets 
 of kernels, variants, or groups. You can also pass options to set problem 
-sizes, number of times each kernel is run (sampled), and many other run 
-parameters. The goal is to build the code once and use scripts or other means 
-to run the Suite in different ways for the analyses you want to perform.
+sizes, number of times each kernel is run (sampled), how to run warmup kernels
+for more precise execution timings, etc. The goal is to build the code once and
+use scripts or other means to run the Suite in different ways for the analyses
+you want to perform.
 
 Many options appear in a *long form* with a double hyphen prefix (i.e., '--').
 Commonly used options are also available in a one or two character *short form*
@@ -106,7 +107,7 @@ a summary of command-line arguments it was given if the input contains
 something that the code does not know how to parse. For example, running the
 command::
 
-  $ ./bin/raja-perf.exe --dry-run -k DAXPY Foo
+  $ ./bin/raja-perf.exe --dryrun -k DAXPY Foo
 
 will report the following in the screen output::
 
@@ -129,6 +130,97 @@ in the Suite.
           it does not know how to parse. Ill-formed input will be noted in
           screen output, hopefully making it easy for users to correct
           erroneous usage, such as mis-spelled option names.
+
+.. _compiler-matrix-label:
+
+=========================
+Compiler matrix workflow
+=========================
+
+For compiler sweeps, use ``scripts/lc-builds/run_compiler_matrix.sh`` rather
+than invoking a single build script by hand. The matrix driver reads a compiler
+list file, sources the selected build script for each line, builds each
+configuration, and then runs the Suite with the launcher command you provide
+via ``--run-cmd``.
+
+A typical invocation looks like::
+
+  $ ./scripts/lc-builds/run_compiler_matrix.sh toss4_amdclang.sh compiler_list.txt \
+      --run-cmd "srun -N1 -n1 -c 64 --" --kernel-file kernels.txt -- --dryrun
+
+In the example above, ``toss4_amdclang.sh`` is *not* added to
+``compiler_list.txt``. Instead, it selects the build-script template that is
+held fixed for the whole run, and each line in ``compiler_list.txt`` provides
+one set of arguments that gets passed to that script (one matrix entry per
+non-comment line). This is useful when you want to sweep compiler versions (or
+other build parameters) while keeping the rest of the build flags consistent.
+
+The trailing ``--`` in ``--run-cmd`` is part of the launcher prefix. It tells
+``srun`` to stop parsing its own options so the matrix script can append
+``./bin/raja-perf.exe`` and the RAJAPerf run arguments after it.
+
+``--run-cmd`` is required when the script will run RAJAPerf. It is not required
+if you pass ``--configure-only`` or ``--build-only``.
+
+The compiler list file contains one build configuration per non-comment line.
+The meaning of the tokens on each line is determined by the build script you
+selected.
+
+**Fixed build-script mode (single script for the whole run)**
+
+When the first argument is a build script name (e.g., ``toss4_amdclang.sh``),
+each non-comment line in the list file is treated as arguments to that script.
+For example, ``scripts/lc-builds/toss4_amdclang.sh`` expects::
+
+  <hip_compiler_version> <gpu_arch> [cmake_version] [extra_cmake_args...]
+
+so a corresponding ``compiler_list.txt`` might look like::
+
+  # hip_compiler_version gpu_arch [cmake_version] [extra_cmake_args...]
+  6.4.1 gfx942
+  6.4.1 gfx942 3.27.4 -DRAJA_PERFSUITE_ENABLE_TESTS=On
+
+**from-list mode (mix scripts per entry)**
+
+If you want different build scripts for different entries, pass ``from-list``
+as the build-script argument. In this mode, the first token on each line is the
+build script and the remaining tokens are its arguments::
+
+  $ ./scripts/lc-builds/run_compiler_matrix.sh from-list compiler_matrix.txt \
+      --run-cmd "srun -N1 -n1 -c 64 --" --kernel-file kernels.txt -- --dryrun
+
+Example ``compiler_matrix.txt``::
+
+  # build_script args...
+  toss4_amdclang.sh 6.4.1 gfx942
+  toss4_cray-mpich_amdclang.sh 9.0.1 6.4.2 gfx942
+
+This is the only way to select multiple build scripts in a single matrix run;
+the command line accepts either a single build script (fixed for the run) or
+``from-list``.
+
+.. note:: The scripts in ``scripts/lc-builds`` are primarily examples for
+          LLNL/Livermore Computing environments (modules, Slurm, etc.). The
+          matrix driver is general: you can provide your own build script (or a
+          list of scripts via ``from-list``) as long as the script can be
+          sourced and accepts positional arguments.
+
+For complete options and more examples, see
+``./scripts/lc-builds/run_compiler_matrix.sh --help`` and the worked sweep
+example in ``data/compiler_sweeps/tier1_base_raja_hip_repro.md``.
+
+The generated ``*-kernel-run-data.csv`` files can then be merged and plotted
+with the processing scripts in ``scripts/`` such as
+``scripts/build_compiler_matrix.py`` where it will generate corresponding plots.
+
+By default the script writes its outputs under ``./compiler-matrix-output``.
+Throughput plots are placed under ``./compiler-matrix-output/throughput-plots``.
+For example, the ``VOL3D`` throughput plot can be embedded with:
+
+.. figure:: ../_static/compiler-comparison-output/throughput-plots/Apps_VOL3D_Mean_flops_gigaFLOP_per_sec_throughput.pdf
+   :alt: VOL3D throughput plot
+
+   VOL3D throughput plot.
 
 .. _run_mpi-label:
 

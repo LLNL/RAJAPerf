@@ -43,10 +43,12 @@ void DAXPY::runKokkosVariant(VariantID vid) {
 
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+      RP_CALI_SUBKERNEL_BEGIN("DAXPY_1");
       Kokkos::parallel_for(
           "DAXPY-Kokkos Kokkos_Lambda",
           Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
           KOKKOS_LAMBDA(Index_type i) { y_view[i] += a * x_view[i]; });
+      RP_CALI_SUBKERNEL_END("DAXPY_1");
     }
 
     Kokkos::fence();

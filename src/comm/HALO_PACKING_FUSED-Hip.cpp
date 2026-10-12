@@ -135,6 +135,7 @@ void HALO_PACKING_FUSED::runHipVariantDirect(VariantID vid)
       Index_type pack_len_ave = (pack_len_sum + pack_index-1) / pack_index;
       dim3 pack_nthreads_per_block(block_size);
       dim3 pack_nblocks((pack_len_ave + block_size-1) / block_size, pack_index);
+      RP_CALI_SUBKERNEL_BEGIN("HALO_PACKING_FUSED_pack");
       RPlaunchHipKernel( (halo_packing_fused_pack<block_size>),
                          pack_nblocks, pack_nthreads_per_block,
                          shmem, res.get_stream(),
@@ -142,6 +143,7 @@ void HALO_PACKING_FUSED::runHipVariantDirect(VariantID vid)
                          pack_list_ptrs,
                          pack_var_ptrs, 
                          pack_len_ptrs );
+      RP_CALI_SUBKERNEL_END("HALO_PACKING_FUSED_pack");
       if (separate_buffers) {
         for (Index_type l = 0; l < num_neighbors; ++l) {
           Index_type len = pack_index_list_lengths[l];
@@ -181,6 +183,7 @@ void HALO_PACKING_FUSED::runHipVariantDirect(VariantID vid)
       dim3 unpack_nthreads_per_block(block_size);
       dim3 unpack_nblocks((unpack_len_ave + block_size-1) / block_size,
                           unpack_index);
+      RP_CALI_SUBKERNEL_BEGIN("HALO_PACKING_FUSED_unpack");
       RPlaunchHipKernel( (halo_packing_fused_unpack<block_size>),
                          unpack_nblocks, unpack_nthreads_per_block,
                          shmem, res.get_stream(),
@@ -188,6 +191,7 @@ void HALO_PACKING_FUSED::runHipVariantDirect(VariantID vid)
                          unpack_list_ptrs,
                          unpack_var_ptrs,
                          unpack_len_ptrs );
+      RP_CALI_SUBKERNEL_END("HALO_PACKING_FUSED_unpack");
       CAMP_HIP_API_INVOKE_AND_CHECK( hipStreamSynchronize, res.get_stream() );
 
     }
@@ -265,7 +269,9 @@ void HALO_PACKING_FUSED::runHipVariantWorkGroup(VariantID vid)
         }
       }
       workgroup group_pack = pool_pack.instantiate();
+      RP_CALI_SUBKERNEL_BEGIN("HALO_PACKING_FUSED_pack");
       worksite site_pack = group_pack.run(res);
+      RP_CALI_SUBKERNEL_END("HALO_PACKING_FUSED_pack");
       if (separate_buffers) {
         for (Index_type l = 0; l < num_neighbors; ++l) {
           Index_type len = pack_index_list_lengths[l];
@@ -289,7 +295,9 @@ void HALO_PACKING_FUSED::runHipVariantWorkGroup(VariantID vid)
         }
       }
       workgroup group_unpack = pool_unpack.instantiate();
+      RP_CALI_SUBKERNEL_BEGIN("HALO_PACKING_FUSED_unpack");
       worksite site_unpack = group_unpack.run(res);
+      RP_CALI_SUBKERNEL_END("HALO_PACKING_FUSED_unpack");
       res.wait();
 
     }

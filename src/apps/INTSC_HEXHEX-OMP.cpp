@@ -35,6 +35,7 @@ void INTSC_HEXHEX::runOpenMPVariant(VariantID vid)
 
   //  Thread loop is over grouped intersections between subzone pairs.
   const Index_type iend = RAJA_DIVIDE_CEILING_INT(n_subz_intsc, fixup_groupsize);
+  const Index_type iend_fixup = iend ;
 
   INTSC_HEXHEX_DATA_SETUP ;
 
@@ -45,20 +46,6 @@ void INTSC_HEXHEX::runOpenMPVariant(VariantID vid)
       FIXUP_VV_BODY ;
   } ;
 
-  // Insert a warmup call to remove time of initialization of OpenMP
-  // that affects the first call to the function.
-  Bool_type const do_warmup = true ;
-  if ( do_warmup ) {
-#pragma omp parallel for
-    for (Index_type i = ibegin ; i < iend ; ++i ) {
-      INTSC_HEXHEX_OMP( i, iend ) ;
-    }
-#pragma omp parallel for
-    for (Index_type i = ibegin ; i < n_szpairs ; ++i ) {
-      FIXUP_VV_BODY ;
-    }
-  }
-
   switch ( vid ) {
 
     case Base_OpenMP : {
@@ -67,14 +54,18 @@ void INTSC_HEXHEX::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("INTSC_HEXHEX_1");
         #pragma omp parallel for
         for (Index_type i = ibegin ; i < iend ; ++i ) {
           INTSC_HEXHEX_OMP( i, iend ) ;
         }
+        RP_CALI_SUBKERNEL_END("INTSC_HEXHEX_1");
+        RP_CALI_SUBKERNEL_BEGIN("INTSC_HEXHEX_2");
         #pragma omp parallel for
-        for (Index_type i = ibegin ; i < n_szpairs ; ++i ) {
+        for (Index_type i = ibegin ; i < iend_fixup ; ++i ) {
           FIXUP_VV_BODY ;
         }
+        RP_CALI_SUBKERNEL_END("INTSC_HEXHEX_2");
 
       }
       stopTimer();
@@ -88,14 +79,18 @@ void INTSC_HEXHEX::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("INTSC_HEXHEX_1");
         #pragma omp parallel for
         for (Index_type i = ibegin ; i < iend ; ++i ) {
           intsc_hexhex_lam(i);
         }
+        RP_CALI_SUBKERNEL_END("INTSC_HEXHEX_1");
+        RP_CALI_SUBKERNEL_BEGIN("INTSC_HEXHEX_2");
         #pragma omp parallel for
-        for (Index_type i = ibegin ; i < n_szpairs ; ++i ) {
+        for (Index_type i = ibegin ; i < iend_fixup ; ++i ) {
           fixup_vv_lam( i ) ;
         }
+        RP_CALI_SUBKERNEL_END("INTSC_HEXHEX_2");
 
       }
       stopTimer();
@@ -111,10 +106,14 @@ void INTSC_HEXHEX::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("INTSC_HEXHEX_1");
         RAJA::forall<RAJA::omp_parallel_for_exec>( res,
           RAJA::RangeSegment(ibegin, iend), intsc_hexhex_lam);
+        RP_CALI_SUBKERNEL_END("INTSC_HEXHEX_1");
+        RP_CALI_SUBKERNEL_BEGIN("INTSC_HEXHEX_2");
         RAJA::forall<RAJA::omp_parallel_for_exec>( res,
-          RAJA::RangeSegment(ibegin, n_szpairs), fixup_vv_lam);
+          RAJA::RangeSegment(ibegin, iend_fixup), fixup_vv_lam);
+        RP_CALI_SUBKERNEL_END("INTSC_HEXHEX_2");
 
       }
       stopTimer();

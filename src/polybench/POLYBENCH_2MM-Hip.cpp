@@ -130,6 +130,7 @@ void POLYBENCH_2MM::runHipVariantImpl(VariantID vid)
 
       POLY_2MM_1_NBLOCKS_HIP;
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_2MM_1");
       RPlaunchHipKernel(
         (poly_2mm_1<POLY_2MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
         nblocks1, nthreads_per_block,
@@ -137,9 +138,11 @@ void POLYBENCH_2MM::runHipVariantImpl(VariantID vid)
         tmp, A, B,
         alpha,
         ni, nj, nk );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_2MM_1");
 
       POLY_2MM_2_NBLOCKS_HIP;
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_2MM_2");
       RPlaunchHipKernel(
         (poly_2mm_2<POLY_2MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
         nblocks2, nthreads_per_block,
@@ -147,6 +150,7 @@ void POLYBENCH_2MM::runHipVariantImpl(VariantID vid)
         tmp, C, D,
         beta,
         ni, nl, nj );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_2MM_2");
 
     }
     stopTimer();
@@ -170,12 +174,14 @@ void POLYBENCH_2MM::runHipVariantImpl(VariantID vid)
         POLYBENCH_2MM_BODY3;
       };
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_2MM_1");
       RPlaunchHipKernel(
         (poly_2mm_1_lam<POLY_2MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP,
                         decltype(poly_2mm_1_lambda)>),
         nblocks1, nthreads_per_block,
         shmem, res.get_stream(),
         ni, nj, poly_2mm_1_lambda );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_2MM_1");
 
       POLY_2MM_2_NBLOCKS_HIP;
 
@@ -187,12 +193,14 @@ void POLYBENCH_2MM::runHipVariantImpl(VariantID vid)
         POLYBENCH_2MM_BODY6;
       };
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_2MM_2");
       RPlaunchHipKernel(
         (poly_2mm_2_lam<POLY_2MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP,
                         decltype(poly_2mm_2_lambda)>),
         nblocks2, nthreads_per_block,
         shmem, res.get_stream(),
         ni, nl, poly_2mm_2_lambda );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_2MM_2");
 
     }
     stopTimer();
@@ -220,6 +228,7 @@ void POLYBENCH_2MM::runHipVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_2MM_1");
       RAJA::kernel_param_resource<EXEC_POL>(
         RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                          RAJA::RangeSegment{0, nj},
@@ -239,7 +248,9 @@ void POLYBENCH_2MM::runHipVariantImpl(VariantID vid)
           POLYBENCH_2MM_BODY3_RAJA;
         }
       );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_2MM_1");
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_2MM_2");
       RAJA::kernel_param_resource<EXEC_POL>(
         RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                          RAJA::RangeSegment{0, nl},
@@ -259,6 +270,7 @@ void POLYBENCH_2MM::runHipVariantImpl(VariantID vid)
           POLYBENCH_2MM_BODY6_RAJA;
         }
       );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_2MM_2");
 
     }
     stopTimer();

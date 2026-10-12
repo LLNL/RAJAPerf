@@ -24,6 +24,7 @@ namespace apps
 {
 
 
+template < bool unroll >
 void FEMSWEEP::runOpenMPVariant(VariantID vid)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
@@ -40,6 +41,7 @@ void FEMSWEEP::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+RP_CALI_SUBKERNEL_BEGIN("FEMSWEEP_1");
 #if defined(USE_OMP_COLLAPSE)
         #pragma omp parallel for collapse(2)
         for (Index_type a = 0; a < na; ++a)
@@ -59,7 +61,11 @@ void FEMSWEEP::runOpenMPVariant(VariantID vid)
               const Index_type nehp = phpaa_r[ohp + hp];
               for (Index_type k = 0; k < nehp; ++k)
               {
-                FEMSWEEP_KERNEL_HYPERPLANE_ELEMENT;
+                femsweepHyperplaneElement<unroll>(
+                    Bdat, Adat, Fdat, Xdat, Sgdat, M0dat,
+                    ne, ng, sharedinteriorfaces, order_r,
+                    AngleElem2FaceType, elem_to_faces, F_g2l, idx1, idx2,
+                    a, g, k, nehp_pos, Ffactor);
               }
               nehp_pos += nehp;
             }
@@ -69,6 +75,7 @@ void FEMSWEEP::runOpenMPVariant(VariantID vid)
       stopTimer();
 
       break;
+RP_CALI_SUBKERNEL_END("FEMSWEEP_1");
     }
 
     case RAJA_OpenMP : {
@@ -90,6 +97,7 @@ void FEMSWEEP::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("FEMSWEEP_1");
         RAJA::launch<launch_policy>( res,
             RAJA::LaunchParams(),
             [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
@@ -104,13 +112,18 @@ void FEMSWEEP::runOpenMPVariant(VariantID vid)
               const Index_type nehp = phpaa_r[ohp + hp];
               RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, nehp),
                   [&](Index_type k) {
-                FEMSWEEP_KERNEL_HYPERPLANE_ELEMENT;
+                femsweepHyperplaneElement<unroll>(
+                    Bdat, Adat, Fdat, Xdat, Sgdat, M0dat,
+                    ne, ng, sharedinteriorfaces, order_r,
+                    AngleElem2FaceType, elem_to_faces, F_g2l, idx1, idx2,
+                    a, g, k, nehp_pos, Ffactor);
               });  // k loop
               ctx.teamSync();
               nehp_pos += nehp;
             }
           });  // ag loop
         });
+        RP_CALI_SUBKERNEL_END("FEMSWEEP_1");
 
       }
       stopTimer();
@@ -130,7 +143,16 @@ void FEMSWEEP::runOpenMPVariant(VariantID vid)
 
 }
 
-RAJAPERF_DEFAULT_TUNING_DEFINE_BOILERPLATE(FEMSWEEP, OpenMP, Base_OpenMP, RAJA_OpenMP)
+void FEMSWEEP::defineOpenMPVariantTunings()
+{
+  for (VariantID vid : {Base_OpenMP, RAJA_OpenMP}) {
+    addVariantTuning<&FEMSWEEP::runOpenMPVariant<false>>(
+        vid, getDefaultTuningName());
+
+    addVariantTuning<&FEMSWEEP::runOpenMPVariant<true>>(
+        vid, FEMSWEEP_UNROLL_TUNING_NAME);
+  }
+}
 
 } // end namespace apps
 } // end namespace rajaperf

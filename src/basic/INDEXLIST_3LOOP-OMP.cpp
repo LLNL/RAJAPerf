@@ -45,10 +45,12 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_3LOOP_1");
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
           counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
         }
+        RP_CALI_SUBKERNEL_END("INDEXLIST_3LOOP_1");
 
 #if _OPENMP >= 201811 && defined(RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN)
         Index_type count = 0;
@@ -92,10 +94,12 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid)
         }
 #endif
 
+        RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_3LOOP_2");
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
           INDEXLIST_3LOOP_MAKE_LIST;
         }
+        RP_CALI_SUBKERNEL_END("INDEXLIST_3LOOP_2");
 
         m_len = counts[iend];
 
@@ -130,10 +134,12 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_3LOOP_1");
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
           indexlist_conditional_lam(i);
         }
+        RP_CALI_SUBKERNEL_END("INDEXLIST_3LOOP_1");
 
 #if _OPENMP >= 201811 && defined(RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN)
         Index_type count = 0;
@@ -177,10 +183,12 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid)
         }
 #endif
 
+        RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_3LOOP_2");
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
           indexlist_make_list_lam(i);
         }
+        RP_CALI_SUBKERNEL_END("INDEXLIST_3LOOP_2");
 
         m_len = counts[iend];
 
@@ -202,15 +210,17 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_3LOOP_1");
         RAJA::forall<RAJA::omp_parallel_for_exec>( res,
           RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
           counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
         });
-
+        RP_CALI_SUBKERNEL_END("INDEXLIST_3LOOP_1");
         RAJA::exclusive_scan_inplace<RAJA::omp_parallel_for_exec>(
             RAJA::make_span(counts+ibegin, iend+1-ibegin));
 
+        RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_3LOOP_2");
         RAJA::forall<RAJA::omp_parallel_for_exec>( res,
           RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
@@ -218,6 +228,7 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid)
             list[counts[i]] = i;
           }
         });
+        RP_CALI_SUBKERNEL_END("INDEXLIST_3LOOP_2");
 
         m_len = counts[iend];
 

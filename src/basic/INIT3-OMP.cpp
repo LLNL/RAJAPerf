@@ -41,10 +41,12 @@ void INIT3::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("INIT3_1");
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
           INIT3_BODY;
         }
+        RP_CALI_SUBKERNEL_END("INIT3_1");
 
       }
       stopTimer();
@@ -58,10 +60,12 @@ void INIT3::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("INIT3_1");
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
           init3_lam(i);
         }
+        RP_CALI_SUBKERNEL_END("INIT3_1");
 
       }
       stopTimer();
@@ -77,8 +81,10 @@ void INIT3::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("INIT3_1");
         RAJA::forall<RAJA::omp_parallel_for_exec>( res,
           RAJA::RangeSegment(ibegin, iend), init3_lam);
+        RP_CALI_SUBKERNEL_END("INIT3_1");
 
       }
       stopTimer();

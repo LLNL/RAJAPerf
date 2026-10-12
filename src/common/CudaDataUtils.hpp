@@ -146,6 +146,41 @@ inline int getCudaDevice()
 }
 
 /*!
+ * \brief Apply CUDA memory advice for the current device.
+ */
+inline void adviseCudaMemoryForDevice(const void* ptr, Size_type len, cudaMemoryAdvise advice)
+{
+  const int device = getCudaDevice();
+#if CUDART_VERSION >= 13000
+  cudaMemLocation devLoc {};
+  devLoc.type = cudaMemLocationTypeDevice;
+  devLoc.id = device;
+  CAMP_CUDA_API_INVOKE_AND_CHECK( cudaMemAdvise,
+      ptr, len, advice, devLoc );
+#else
+  CAMP_CUDA_API_INVOKE_AND_CHECK( cudaMemAdvise,
+      ptr, len, advice, device );
+#endif
+}
+
+/*!
+ * \brief Apply CUDA memory advice for the host.
+ */
+inline void adviseCudaMemoryForHost(const void* ptr, Size_type len, cudaMemoryAdvise advice)
+{
+#if CUDART_VERSION >= 13000
+  cudaMemLocation hostLoc {};
+  hostLoc.type = cudaMemLocationTypeHost;
+  hostLoc.id = 0;
+  CAMP_CUDA_API_INVOKE_AND_CHECK( cudaMemAdvise,
+      ptr, len, advice, hostLoc );
+#else
+  CAMP_CUDA_API_INVOKE_AND_CHECK( cudaMemAdvise,
+      ptr, len, advice, cudaCpuDeviceId );
+#endif
+}
+
+/*!
  * \brief Get properties of the current cuda device.
  */
 inline cudaDeviceProp getCudaDeviceProp()
@@ -211,8 +246,7 @@ inline void* allocCudaManagedHostPreferredData(Size_type len)
   void* mptr = nullptr;
   CAMP_CUDA_API_INVOKE_AND_CHECK( cudaMallocManaged,
       &mptr, len, cudaMemAttachGlobal );
-  CAMP_CUDA_API_INVOKE_AND_CHECK( cudaMemAdvise,
-      mptr, len, cudaMemAdviseSetPreferredLocation, cudaCpuDeviceId );
+  adviseCudaMemoryForHost( mptr, len, cudaMemAdviseSetPreferredLocation );
   return mptr;
 }
 
@@ -224,8 +258,7 @@ inline void* allocCudaManagedDevicePreferredData(Size_type len)
   void* mptr = nullptr;
   CAMP_CUDA_API_INVOKE_AND_CHECK( cudaMallocManaged,
       &mptr, len, cudaMemAttachGlobal );
-  CAMP_CUDA_API_INVOKE_AND_CHECK( cudaMemAdvise,
-      mptr, len, cudaMemAdviseSetPreferredLocation, getCudaDevice() );
+  adviseCudaMemoryForDevice( mptr, len, cudaMemAdviseSetPreferredLocation );
   return mptr;
 }
 
@@ -237,10 +270,8 @@ inline void* allocCudaManagedHostPreferredDeviceAccessedData(Size_type len)
   void* mptr = nullptr;
   CAMP_CUDA_API_INVOKE_AND_CHECK( cudaMallocManaged,
       &mptr, len, cudaMemAttachGlobal );
-  CAMP_CUDA_API_INVOKE_AND_CHECK( cudaMemAdvise,
-      mptr, len, cudaMemAdviseSetPreferredLocation, cudaCpuDeviceId );
-  CAMP_CUDA_API_INVOKE_AND_CHECK( cudaMemAdvise,
-      mptr, len, cudaMemAdviseSetAccessedBy, getCudaDevice() );
+  adviseCudaMemoryForHost( mptr, len, cudaMemAdviseSetPreferredLocation );
+  adviseCudaMemoryForDevice( mptr, len, cudaMemAdviseSetAccessedBy );
   return mptr;
 }
 
@@ -252,10 +283,8 @@ inline void* allocCudaManagedDevicePreferredHostAccessedData(Size_type len)
   void* mptr = nullptr;
   CAMP_CUDA_API_INVOKE_AND_CHECK( cudaMallocManaged,
       &mptr, len, cudaMemAttachGlobal );
-  CAMP_CUDA_API_INVOKE_AND_CHECK( cudaMemAdvise,
-      mptr, len, cudaMemAdviseSetPreferredLocation, getCudaDevice() );
-  CAMP_CUDA_API_INVOKE_AND_CHECK( cudaMemAdvise,
-      mptr, len, cudaMemAdviseSetAccessedBy, cudaCpuDeviceId );
+  adviseCudaMemoryForDevice( mptr, len, cudaMemAdviseSetPreferredLocation );
+  adviseCudaMemoryForHost( mptr, len, cudaMemAdviseSetAccessedBy );
   return mptr;
 }
 

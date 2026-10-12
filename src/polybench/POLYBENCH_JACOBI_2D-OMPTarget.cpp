@@ -34,6 +34,7 @@ void POLYBENCH_JACOBI_2D::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_JACOBI_2D_1");
       #pragma omp target is_device_ptr(A,B) device( did )
       #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
       for (Index_type i = 1; i < N-1; ++i ) {
@@ -41,7 +42,9 @@ void POLYBENCH_JACOBI_2D::runOpenMPTargetVariant(VariantID vid)
           POLYBENCH_JACOBI_2D_BODY1;
         }
       }
+      RP_CALI_SUBKERNEL_END("POLYBENCH_JACOBI_2D_1");
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_JACOBI_2D_2");
       #pragma omp target is_device_ptr(A,B) device( did )
       #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
       for (Index_type i = 1; i < N-1; ++i ) {
@@ -49,6 +52,7 @@ void POLYBENCH_JACOBI_2D::runOpenMPTargetVariant(VariantID vid)
           POLYBENCH_JACOBI_2D_BODY2;
         }
       }
+      RP_CALI_SUBKERNEL_END("POLYBENCH_JACOBI_2D_2");
 
     }
     stopTimer();
@@ -64,10 +68,6 @@ void POLYBENCH_JACOBI_2D::runOpenMPTargetVariant(VariantID vid)
         RAJA::statement::Collapse<RAJA::omp_target_parallel_collapse_exec,
                                   RAJA::ArgList<0, 1>,
           RAJA::statement::Lambda<0>
-        >,
-        RAJA::statement::Collapse<RAJA::omp_target_parallel_collapse_exec,
-                                  RAJA::ArgList<0, 1>,
-          RAJA::statement::Lambda<1>
         >
       >;
 
@@ -75,17 +75,27 @@ void POLYBENCH_JACOBI_2D::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_JACOBI_2D_1");
       RAJA::kernel_resource<EXEC_POL>(
         RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
                          RAJA::RangeSegment{1, N-1}),
         res,
         [=] (Index_type i, Index_type j) {
           POLYBENCH_JACOBI_2D_BODY1_RAJA;
-        },
+        }
+      );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_JACOBI_2D_1");
+
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_JACOBI_2D_2");
+      RAJA::kernel_resource<EXEC_POL>(
+        RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
+                         RAJA::RangeSegment{1, N-1}),
+        res,
         [=] (Index_type i, Index_type j) {
           POLYBENCH_JACOBI_2D_BODY2_RAJA;
         }
       );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_JACOBI_2D_2");
 
     }
     stopTimer();
@@ -102,4 +112,3 @@ RAJAPERF_DEFAULT_TUNING_DEFINE_BOILERPLATE(POLYBENCH_JACOBI_2D, OpenMPTarget, Ba
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_TARGET_OPENMP
-

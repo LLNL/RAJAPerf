@@ -39,6 +39,7 @@ void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_1");
       #pragma omp target is_device_ptr(A,u1,v1,u2,v2) device( did )
       #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
       for (Index_type i = 0; i < n; i++) {
@@ -46,7 +47,9 @@ void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
           POLYBENCH_GEMVER_BODY1;
         }
       }
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_1");
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_2");
       #pragma omp target is_device_ptr(A,x,y) device( did )
       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = 0; i < n; i++) {
@@ -56,13 +59,17 @@ void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
         }
         POLYBENCH_GEMVER_BODY4;
       }
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_2");
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_3");
       #pragma omp target is_device_ptr(x,z) device( did )
       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = 0; i < n; i++) {
         POLYBENCH_GEMVER_BODY5;
       }
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_3");
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_4");
       #pragma omp target is_device_ptr(A,w,x) device( did )
       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = 0; i < n; i++) {
@@ -72,6 +79,7 @@ void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
         }
         POLYBENCH_GEMVER_BODY8;
       }
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_4");
 
     } // end run_reps
     stopTimer();
@@ -107,6 +115,7 @@ void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_1");
       RAJA::kernel_resource<EXEC_POL1>(
         RAJA::make_tuple(RAJA::RangeSegment{0, n},
                          RAJA::RangeSegment{0, n}),
@@ -115,7 +124,9 @@ void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
           POLYBENCH_GEMVER_BODY1_RAJA;
         }
       );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_1");
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_2");
       RAJA::kernel_param_resource<EXEC_POL24>(
         RAJA::make_tuple(RAJA::RangeSegment{0, n},
                          RAJA::RangeSegment{0, n}),
@@ -132,13 +143,17 @@ void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
           POLYBENCH_GEMVER_BODY4_RAJA;
         }
       );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_2");
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_3");
       RAJA::forall<EXEC_POL3> (res, RAJA::RangeSegment{0, n},
         [=] (Index_type i) {
           POLYBENCH_GEMVER_BODY5_RAJA;
         }
       );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_3");
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_4");
       RAJA::kernel_param_resource<EXEC_POL24>(
         RAJA::make_tuple(RAJA::RangeSegment{0, n},
                          RAJA::RangeSegment{0, n}),
@@ -155,6 +170,7 @@ void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
           POLYBENCH_GEMVER_BODY8_RAJA;
         }
       );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_4");
 
     }
     stopTimer();

@@ -98,11 +98,12 @@ void INDEXLIST_3LOOP::runCudaVariantImpl(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
 
+      RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_3LOOP_1");
       RPlaunchCudaKernel( (indexlist_conditional<block_size>),
                           grid_size, block_size,
                           shmem, stream,
                           x, counts, iend );
-
+      RP_CALI_SUBKERNEL_END("INDEXLIST_3LOOP_1");
       CAMP_CUDA_API_INVOKE_AND_CHECK(::cub::DeviceScan::ExclusiveScan,
           d_temp_storage, temp_storage_bytes,
           counts+ibegin,
@@ -112,10 +113,12 @@ void INDEXLIST_3LOOP::runCudaVariantImpl(VariantID vid)
           scan_size,
           stream);
 
+      RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_3LOOP_2");
       RPlaunchCudaKernel( (indexlist_make_list<block_size>),
                           grid_size, block_size,
                           shmem, stream,
                           list, counts, len, iend );
+      RP_CALI_SUBKERNEL_END("INDEXLIST_3LOOP_2");
 
       CAMP_CUDA_API_INVOKE_AND_CHECK( cudaStreamSynchronize, stream );
       m_len = *len;
@@ -139,17 +142,19 @@ void INDEXLIST_3LOOP::runCudaVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_3LOOP_1");
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend),
         [=] __device__ (Index_type i) {
         counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
       });
-
+      RP_CALI_SUBKERNEL_END("INDEXLIST_3LOOP_1");
       RAJA::exclusive_scan_inplace<
         RAJA::cuda_exec<block_size, true /*async*/> >(
           res,
           RAJA::make_span(counts+ibegin, iend+1-ibegin) );
 
+      RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_3LOOP_2");
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend),
         [=] __device__ (Index_type i) {
@@ -160,6 +165,7 @@ void INDEXLIST_3LOOP::runCudaVariantImpl(VariantID vid)
           *len = counts[i+1];
         }
       });
+      RP_CALI_SUBKERNEL_END("INDEXLIST_3LOOP_2");
 
       res.wait();
       m_len = *len;

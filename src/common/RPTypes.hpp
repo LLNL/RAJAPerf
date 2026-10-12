@@ -97,6 +97,8 @@ using Uchar_type = unsigned char;
 ///
 using Uchar_ptr = Uchar_type*;
 
+using Uint64_type = std::uint64_t ;
+
 /*!
  ******************************************************************************
  *

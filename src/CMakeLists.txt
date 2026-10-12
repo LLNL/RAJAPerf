@@ -17,6 +17,7 @@ add_subdirectory(apps-kokkos)
 add_subdirectory(lcals)
 add_subdirectory(lcals-kokkos)
 add_subdirectory(polybench)
+add_subdirectory(polybench-kokkos)
 add_subdirectory(stream)
 add_subdirectory(stream-kokkos)
 add_subdirectory(algorithm)
@@ -31,6 +32,7 @@ set(RAJA_PERFSUITE_LIBS
     lcals
     lcals-kokkos
     polybench
+    polybench-kokkos
     stream
     stream-kokkos
     algorithm
@@ -129,6 +131,8 @@ blt_add_executable(
   basic/INIT_VIEW1D_OFFSET.cpp
   basic/INIT_VIEW1D_OFFSET-Seq.cpp
   basic/INIT_VIEW1D_OFFSET-OMPTarget.cpp
+  basic/MAT_MAT.cpp
+  basic/MAT_MAT-Seq.cpp
   basic/MAT_MAT_SHARED.cpp
   basic/MAT_MAT_SHARED-Seq.cpp
   basic/MULADDSUB.cpp

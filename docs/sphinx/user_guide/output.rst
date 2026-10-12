@@ -169,18 +169,16 @@ Information reported in the file for each kernel is:
     a problem dimensionality of 3, because phi (g, m, and z) and psi
     (g, d, and z) are indexed over 3 dimensions.
 
-  ..note:: The Bytes*/rep attributes count how many bytes are accessed in memory
-           like DRAM or HBM under idealized conditions. They assume caching is
-           perfect so even if the same byte is read multiple times then it
-           assumes that the byte is only read from memory once.
+.. note:: The ``Bytes*/rep`` attributes count how many bytes are accessed in memory
+          like DRAM or HBM under idealized conditions. They assume caching is
+          perfect so even if the same byte is read multiple times then it
+          assumes that the byte is only read from memory once.
 
-  ..note:: The Bytes*/rep and FLOPs/rep counts are estimates for kernels
-           involving randomness or difficult to count algorithms.
-
-  ..note:: The Bytes*/rep and FLOPs/rep counts are intended to help give a
-           reasonable approximation of the achieved bandwidth and flop rate.
-           The kernels that perform significantly outside of expectations are
-           good candidates for more detailed performance studies.
+.. note:: The ``Bytes*/rep`` and ``FLOPs/rep`` counts are estimates for kernels
+          involving randomness or difficult to count algorithms. The counts are
+          meant to give a reasonable approximation of achieved bandwidth and flop
+          rate. Kernels that perform significantly outside of expectations are
+          good candidates for more detailed performance studies.
 
 .. _output_probsize-label:
 
@@ -273,6 +271,23 @@ Base_OpenMP-default.cali, Lambda_OpenMP-default.cali, Base_CUDA-block_128.cali, 
 Also, by using the `--variants` and `--tunings` options on the command-line,
 you can specify which variant/tunings to run.
 
+Kernels with multiple loop bodies or kernel launches may include an additional
+``subkernel`` level in the Caliper tree. Fixed-count subkernels are named with
+a numeric suffix, such as ``POLYBENCH_JACOBI_1D_1`` and
+``POLYBENCH_JACOBI_1D_2``. Kernels with a variable number of launches use a
+``_k`` suffix, such as ``HALO_PACKING_pack_k`` or
+``HALO_EXCHANGE_unpack_k``. Kernels with only one launch per repetition do not
+add this level.
+
+When Caliper support is enabled, subkernel regions are compiled in by default.
+To exclude these regions from the Caliper tree, configure the build with::
+
+  -DRAJA_PERFSUITE_USE_CALIPER_SUBKERNEL=Off
+
+This compiles the ``RP_CALI_SUBKERNEL_BEGIN`` and
+``RP_CALI_SUBKERNEL_END`` annotations away while preserving the top-level
+Caliper timing regions.
+
 There are several techniques to display the Caliper trees (Timing Hierarchy)
 
 | 1: Caliper's cali-query tool.
@@ -316,9 +331,7 @@ or the variant represented in this file::
 
 .. note:: The script above was written using caliper-reader 0.3.0, 
           but is fairly generic. Other version usage notes may be 
-          found at the link below
-
-`caliper-reader <https://pypi.org/project/caliper-reader/>`_ 
+          found at `caliper-reader <https://pypi.org/project/caliper-reader/>`_ 
 
 
 3: Using the *Hatchet* Python module for single files::
@@ -329,7 +342,7 @@ or the variant represented in this file::
   gf1 = ht.GraphFrame.from_caliperreader("RAJA_Seq.cali")
   print(gf1.tree())
 
-`Find out more on hatchet <https://github.com/LLNL/hatchet>`_
+To learn more about Hatchet, please see `Hatchet <https://github.com/LLNL/hatchet>`_
 
 4: Using the *Thicket* Python module for multiple files::
 
@@ -339,4 +352,4 @@ or the variant represented in this file::
   th1 = th.Thicket.from_caliperreader(["RAJA_Seq-default.cali", "Base_Seq-default.cali", "Base_CUDA-block_128", "Base_CUDA-block_256"])
   print(th1.tree())
 
-`Find out more on thicket <https://github.com/LLNL/thicket>`_
+To learn more about Thicket, please see `Thicket <https://github.com/LLNL/thicket>`_

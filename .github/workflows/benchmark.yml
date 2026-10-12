@@ -1,0 +1,49 @@
+name: Process Benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      benchmark_data:
+        description: 'Base64 encoded benchmark data'
+        required: true
+      benchmark_name:
+        description: 'Name for benchmark group on the dashboard'
+        required: false
+        default: 'RAJAPerf benchmarks'
+      commit_sha:
+        description: 'Commit SHA the benchmark data corresponds to'
+        required: true
+
+jobs:
+  store-and-visualize-on-develop:
+    if: github.ref == 'refs/heads/develop'
+    permissions:
+      # Needed to push to gh-pages branch
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.inputs.commit_sha }}
+
+      - name: Decode benchmark data
+        run: echo "${{ github.event.inputs.benchmark_data }}" | base64 -d > benchmark.json
+
+      - name: Store benchmark result
+        id: benchmark
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: ${{ github.event.inputs.benchmark_name }}
+          tool: 'customSmallerIsBetter'
+          output-file-path: benchmark.json
+          ref: ${{ github.event.inputs.commit_sha }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          gh-pages-branch: gh-pages
+          benchmark-data-dir-path: dev/bench
+          comment-always: false
+          comment-on-alert: false
+          summary-always: true
+          fail-on-alert: false
+          alert-threshold: '120%'
+          max-items-in-chart: 100

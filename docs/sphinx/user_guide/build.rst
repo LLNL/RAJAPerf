@@ -277,6 +277,13 @@ Caliper *annotation* uses the following tree structure::
   RAJAPerf
     Group
       Kernel
+        Subkernel
+
+The ``Subkernel`` level appears for kernels that contain multiple meaningful
+loop bodies or kernel launches. Kernels with only one launch per repetition are
+unchanged. Subkernel regions are intended to separate work within a kernel for
+Caliper analysis; they do not add synchronization around asynchronous GPU
+kernels.
 
 | Build against these Caliper versions
 |
@@ -289,6 +296,9 @@ Caliper *annotation* uses the following tree structure::
 
   In Cmake scripts add
     **-DRAJA_PERFSUITE_USE_CALIPER=On**
+
+  To exclude subkernel regions from Caliper output, also add
+    **-DRAJA_PERFSUITE_USE_CALIPER_SUBKERNEL=Off**
 
   Add to **-DCMAKE_PREFIX_PATH**
     ;${CALIPER_PREFIX}/share/cmake/caliper;${ADIAK_PREFIX}/lib/cmake/adiak

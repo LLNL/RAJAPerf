@@ -112,6 +112,7 @@ public:
   void defineSeqVariantTunings();
   void defineOpenMPVariantTunings();
   void defineOpenMPTargetVariantTunings();
+  void defineKokkosVariantTunings();
   void defineCudaVariantTunings();
   void defineHipVariantTunings();
   void defineSyclVariantTunings();
@@ -119,6 +120,7 @@ public:
   void runSeqVariant(VariantID vid);
   void runOpenMPVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
+  void runKokkosVariant(VariantID vid);
 
   template < size_t block_size >
   void runCudaVariantImpl(VariantID vid);

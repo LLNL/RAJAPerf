@@ -42,11 +42,13 @@ void ATOMIC::runOpenMPTargetVariantReplicate(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("ATOMIC_1");
       #pragma omp target is_device_ptr(atomic)
       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         ATOMIC_BODY(RAJAPERF_ATOMIC_ADD_OMP, i, ATOMIC_VALUE);
       }
+      RP_CALI_SUBKERNEL_END("ATOMIC_1");
 
     }
     stopTimer();
@@ -59,10 +61,12 @@ void ATOMIC::runOpenMPTargetVariantReplicate(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("ATOMIC_1");
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>( res,
         RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           ATOMIC_BODY(RAJAPERF_ATOMIC_ADD_RAJA_OMP, i, ATOMIC_VALUE);
       });
+      RP_CALI_SUBKERNEL_END("ATOMIC_1");
 
     }
     stopTimer();

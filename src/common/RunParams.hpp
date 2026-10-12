@@ -171,7 +171,7 @@ public:
    */
   enum WarmupMode {
     Disable,       /*!< no warmup kernels will be run */
-    Default,       /*!< run minimal set of warmup kernels based kernels to run */
+    Minimal,       /*!< run minimal set of warmup kernels based features used in kernels to run */
     PerfRunSame,   /*!< run warmup pass of each kernel to run */
     Explicit,      /*!< run warmup pass of each kernel explicitly named for warmup in input */
   };
@@ -184,8 +184,8 @@ public:
     switch (wm) {
       case WarmupMode::Disable:
         return "Disable";
-      case WarmupMode::Default:
-        return "Default";
+      case WarmupMode::Minimal:
+        return "Minimal";
       case WarmupMode::PerfRunSame:
         return "PerfRunSame";
       case WarmupMode::Explicit:

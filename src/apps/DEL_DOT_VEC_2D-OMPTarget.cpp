@@ -46,6 +46,7 @@ void DEL_DOT_VEC_2D::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("DEL_DOT_VEC_2D_1");
       #pragma omp target is_device_ptr(x1,x2,x3,x4, y1,y2,y3,y4, \
                                        fx1,fx2,fx3,fx4, fy1,fy2,fy3,fy4, \
                                        div, real_zones) device( did )
@@ -54,6 +55,7 @@ void DEL_DOT_VEC_2D::runOpenMPTargetVariant(VariantID vid)
         DEL_DOT_VEC_2D_BODY_INDEX;
         DEL_DOT_VEC_2D_BODY;
       }
+      RP_CALI_SUBKERNEL_END("DEL_DOT_VEC_2D_1");
 
     }
     stopTimer();
@@ -69,11 +71,13 @@ void DEL_DOT_VEC_2D::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("DEL_DOT_VEC_2D_1");
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>( res,
         RAJA::RangeSegment(ibegin, iend), [=](Index_type ii) {
         DEL_DOT_VEC_2D_BODY_INDEX;
         DEL_DOT_VEC_2D_BODY;
       });
+      RP_CALI_SUBKERNEL_END("DEL_DOT_VEC_2D_1");
 
     }
     stopTimer();

@@ -67,7 +67,7 @@ RunParams::RunParams(int argc, char** argv)
    checkrun_reps(1),
    reference_variant(),
    reference_vid(NumVariants),
-   warmup_mode(WarmupMode::Default),
+   warmup_mode(WarmupMode::PerfRunSame),
    warmup_kernel_input(),
    invalid_warmup_kernel_input(),
    kernel_input(),
@@ -1025,24 +1025,6 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         input_state = BadInput;
       }
 
-    } else if ( opt == std::string("--warmup-kernels") ||
-                opt == std::string("-wk") ) {
-
-      bool done = false;
-      i++;
-      while ( i < argc && !done ) {
-        opt = std::string(argv[i]);
-        if ( opt.at(0) == '-' ) {
-          i--;
-          done = true;
-        } else {
-          warmup_kernel_input.push_back(opt);
-          ++i;
-        }
-      }
-
-      warmup_mode = WarmupMode::Explicit;
-
     } else if ( opt == std::string("--kernels") ||
                 opt == std::string("-k") ) {
 
@@ -1342,9 +1324,31 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
       warmup_mode = WarmupMode::Disable;
 
+    } else if ( std::string(argv[i]) == std::string("--warmup-minimal") ) {
+
+      warmup_mode = WarmupMode::Minimal;
+
     } else if ( std::string(argv[i]) == std::string("--warmup-perfrun-same") ) {
 
       warmup_mode = WarmupMode::PerfRunSame;
+
+    } else if ( opt == std::string("--warmup-kernels") ||
+                opt == std::string("-wk") ) {
+
+      bool done = false;
+      i++;
+      while ( i < argc && !done ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+          done = true;
+        } else {
+          warmup_kernel_input.push_back(opt);
+          ++i;
+        }
+      }
+
+      warmup_mode = WarmupMode::Explicit;
 
     } else if ( std::string(argv[i]) == std::string("--checkrun") ) {
 
@@ -1557,15 +1561,18 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t --outfile mydata (output data will be in files named 'mydata*')\n"
       << "\t\t -of dat (output data will be in files named 'dat*')\n\n";
 
-  str << "\t Options for selecting which kernels to run....\n"
+  str << "\t Options for selecting kernels to run....\n"
       << "\t ========================================\n\n";
 
-  str << "\t For warmup kernels, the default case (no option given) will run a minimal set of warmup kernels based on\n"
-      << "\t RAJA features exercised in kernels selected to run. Other options are:\n\n";
+  str << "\t For warmup kernels, the default case (no option given) is to run the same set of kernels for warmup\n"
+      << "\t that are selected to run. Warmup options are:\n\n";
 
   str << "\t --warmup-disable (do not run any warmup kernels)\n\n";
 
-  str << "\t --warmup-perfrun-same (run same set of kernels for warmup as selected to run)\n\n";
+  str << "\t --warmup-minimal (run a minimal set of warmup kernels based on\n"
+      << "\t      RAJA features exercised in kernels selected to run)\n\n";
+
+  str << "\t --warmup-perfrun-same (run kernels for warmup that are selected to run, default case)\n\n";
 
   str << "\t --warmup-kernels, -wk <space-separated strings> [if no kernel names specified, none will be run for warmup]\n"
       << "\t      (names of individual kernels and/or groups of kernels to warmup)\n"

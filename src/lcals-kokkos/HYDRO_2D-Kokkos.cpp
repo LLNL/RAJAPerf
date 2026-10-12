@@ -51,6 +51,7 @@ void HYDRO_2D::runKokkosVariant(VariantID vid) {
 
       // Use MDRangePolicy for multidimensional arrays
 
+      RP_CALI_SUBKERNEL_BEGIN("HYDRO_2D_1");
       Kokkos::parallel_for(
           "HYDRO_2D_Kokkos Kokkos_Lambda--BODY1",
           Kokkos::MDRangePolicy<Kokkos::Rank<2>>({kbeg, jbeg}, {kend, jend}),
@@ -66,7 +67,9 @@ void HYDRO_2D::runKokkosVariant(VariantID vid) {
                                (zrdat_view(k, j) + zrdat_view(k - 1, j)) /
                                (zmdat_view(k, j) + zmdat_view(k, j - 1));
           });
+      RP_CALI_SUBKERNEL_END("HYDRO_2D_1");
 
+      RP_CALI_SUBKERNEL_BEGIN("HYDRO_2D_2");
       Kokkos::parallel_for(
           "HYDRO_2D_Kokkos Kokkos_Lambda--BODY2",
           Kokkos::MDRangePolicy<Kokkos::Rank<2>>({kbeg, jbeg}, {kend, jend}),
@@ -88,7 +91,9 @@ void HYDRO_2D::runKokkosVariant(VariantID vid) {
                  zbdat_view(k + 1, j) *
                      (zrdat_view(k, j) - zrdat_view(k + 1, j)));
           });
+      RP_CALI_SUBKERNEL_END("HYDRO_2D_2");
 
+      RP_CALI_SUBKERNEL_BEGIN("HYDRO_2D_3");
       Kokkos::parallel_for(
           "HYDRO_2D_Kokkos Kokkos_Lambda--BODY3",
           Kokkos::MDRangePolicy<Kokkos::Rank<2>>({kbeg, jbeg}, {kend, jend}),
@@ -96,6 +101,7 @@ void HYDRO_2D::runKokkosVariant(VariantID vid) {
             zroutdat_view(k, j) = zrdat_view(k, j) + t * zudat_view(k, j);
             zzoutdat_view(k, j) = zzdat_view(k, j) + t * zvdat_view(k, j);
           });
+      RP_CALI_SUBKERNEL_END("HYDRO_2D_3");
     }
 
     Kokkos::fence();

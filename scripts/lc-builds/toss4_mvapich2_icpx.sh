@@ -65,7 +65,7 @@ cmake \
   -DMPI_CXX_COMPILER="/usr/tce/packages/mvapich2/mvapich2-${MPI_VER}-intel-${COMP_VER}/bin/mpicxx" \
   -DCMAKE_CXX_COMPILER=icpx \
   -DCMAKE_C_COMPILER=icx \
-  -DBLT_CXX_STD=c++17 \
+  -DBLT_CXX_STD=c++20 \
   -C ${RAJA_HOSTCONFIG} \
   -DENABLE_MPI=ON \
   -DRAJA_ENABLE_FORCEINLINE_RECURSIVE=Off \

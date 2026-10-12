@@ -40,6 +40,9 @@ variables:
   GIT_SUBMODULE_STRATEGY: recursive
   GIT_SUBMODULE_UPDATE_FLAGS: --jobs 4
 
+# This sha fixes the version of RAJA used in gitlab CI by RAJAPerf
+  RAJA_REFERENCE: "a7230d0fd7b2d8df7433f8f0464e833db42d38df"
+
 # SHARED_CI CONFIGURATION
 # Required information about GitHub repository
   GITHUB_PROJECT_NAME: "RAJAPerf"
@@ -60,6 +63,7 @@ variables:
 stages:
   - prerequisites           # Required: machine availability checks
   - build-and-test          # Required: build and test jobs
+  - performance-measurements
 
 ###############################################################################
 # INCLUDES
@@ -71,7 +75,7 @@ include:
     file: 'id_tokens.yml'
 
   # Base pipeline templates and utilities
-  - component: $CI_SERVER_FQDN/radiuss/radiuss-shared-ci/base-pipeline@v2026.02.0
+  - component: $CI_SERVER_FQDN/radiuss/radiuss-shared-ci/base-pipeline@2026.6.0
     inputs:
       github_project_name: $GITHUB_PROJECT_NAME
       github_project_org: $GITHUB_PROJECT_ORG
@@ -97,7 +101,6 @@ generate-job-lists:
   stage: prerequisites
   tags: [shell, oslic]
   variables:
-    GIT_SUBMODULE_DEPTH: 2
     GIT_SUBMODULE_STRATEGY: recursive
     GIT_SUBMODULE_PATHS: tpl/RAJA
     RADIUSS_JOBS_PATH: "tpl/RAJA/scripts/radiuss-spack-configs/gitlab/radiuss-jobs"
@@ -127,7 +130,7 @@ dane-build-and-test:
   needs: [dane-up-check, generate-job-lists]
   trigger:
     include:
-      - component: $CI_SERVER_FQDN/radiuss/radiuss-shared-ci/dane-pipeline@v2026.02.0
+      - component: $CI_SERVER_FQDN/radiuss/radiuss-shared-ci/dane-pipeline@2026.6.0
         inputs:
           job_cmd: $JOB_CMD
           shared_alloc: $DANE_SHARED_ALLOC
@@ -149,7 +152,7 @@ matrix-build-and-test:
   needs: [matrix-up-check, generate-job-lists]
   trigger:
     include:
-      - component: $CI_SERVER_FQDN/radiuss/radiuss-shared-ci/matrix-pipeline@v2026.02.0
+      - component: $CI_SERVER_FQDN/radiuss/radiuss-shared-ci/matrix-pipeline@2026.6.0
         inputs:
           job_cmd: $JOB_CMD
           shared_alloc: $MATRIX_SHARED_ALLOC
@@ -171,7 +174,7 @@ corona-build-and-test:
   needs: [corona-up-check, generate-job-lists]
   trigger:
     include:
-      - component: $CI_SERVER_FQDN/radiuss/radiuss-shared-ci/corona-pipeline@v2026.02.0
+      - component: $CI_SERVER_FQDN/radiuss/radiuss-shared-ci/corona-pipeline@2026.6.0
         inputs:
           job_cmd: $JOB_CMD
           shared_alloc: $CORONA_SHARED_ALLOC
@@ -193,7 +196,7 @@ tioga-build-and-test:
   needs: [tioga-up-check, generate-job-lists]
   trigger:
     include:
-      - component: $CI_SERVER_FQDN/radiuss/radiuss-shared-ci/tioga-pipeline@v2026.02.0
+      - component: $CI_SERVER_FQDN/radiuss/radiuss-shared-ci/tioga-pipeline@2026.6.0
         inputs:
           job_cmd: $JOB_CMD
           shared_alloc: $TIOGA_SHARED_ALLOC
@@ -215,7 +218,7 @@ tuolumne-build-and-test:
   needs: [tuolumne-up-check, generate-job-lists]
   trigger:
     include:
-      - component: $CI_SERVER_FQDN/radiuss/radiuss-shared-ci/tuolumne-pipeline@v2026.02.0
+      - component: $CI_SERVER_FQDN/radiuss/radiuss-shared-ci/tuolumne-pipeline@2026.6.0
         inputs:
           job_cmd: $JOB_CMD
           shared_alloc: $TUOLUMNE_SHARED_ALLOC
@@ -225,3 +228,29 @@ tuolumne-build-and-test:
       - local: '.gitlab/custom-jobs.yml'
       - artifact: 'tuolumne-jobs.yml'
         job: 'generate-job-lists'
+
+# PERFORMANCE
+performance-measurements:
+  stage: performance-measurements
+  trigger:
+    include:
+      - local: '.gitlab/custom-variables.yml'
+      - component: $CI_SERVER_FQDN/radiuss/radiuss-shared-ci/performance-pipeline@2026.6.0
+        inputs:
+          job_cmd: $JOB_CMD
+          dane_perf_alloc: $DANE_PERF_ALLOC
+          tuolumne_perf_alloc: $TUOLUMNE_PERF_ALLOC
+          perf_processing_cmd: "${CI_PROJECT_DIR}/scripts/gitlab/caliper_to_github_benchmark.py"
+          perf_artifact_dir: $PERF_ARTIFACT_DIR
+          perf_results_file: "*_*-*.cali"
+          perf_processed_file: "processed_results.json"
+          github_token: $GITHUB_WORKFLOW_TOKEN
+          github_project_name: $GITHUB_PROJECT_NAME
+          github_project_org: $GITHUB_PROJECT_ORG
+      - local: '.gitlab/jobs/performances.yml'
+    strategy: depend
+    forward:
+      pipeline_variables: true
+  variables:
+    PERF_TESTS: "true"
+    PERF_ARTIFACT_DIR: "performance-results"

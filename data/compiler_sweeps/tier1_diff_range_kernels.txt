@@ -1,0 +1,3 @@
+# Tier 1 kernels with special factor ranges from RAJAPerf-Benchmark/2026-FCR/scripts/run_tier_mi300a.sh
+FEMSWEEP
+MASS3DEA

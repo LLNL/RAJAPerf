@@ -50,8 +50,10 @@ void MEMCPY::runHipVariantLibrary(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("MEMCPY_1");
       CAMP_HIP_API_INVOKE_AND_CHECK( hipMemcpyAsync,
           MEMCPY_STD_ARGS, hipMemcpyDefault, res.get_stream() );
+      RP_CALI_SUBKERNEL_END("MEMCPY_1");
 
     }
     stopTimer();
@@ -62,7 +64,9 @@ void MEMCPY::runHipVariantLibrary(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("MEMCPY_1");
       res.memcpy(MEMCPY_STD_ARGS);
+      RP_CALI_SUBKERNEL_END("MEMCPY_1");
 
     }
     stopTimer();
@@ -94,6 +98,7 @@ void MEMCPY::runHipVariantBlock(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("MEMCPY_1");
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
 
@@ -101,6 +106,7 @@ void MEMCPY::runHipVariantBlock(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          x, y, iend );
+      RP_CALI_SUBKERNEL_END("MEMCPY_1");
 
     }
     stopTimer();
@@ -111,6 +117,7 @@ void MEMCPY::runHipVariantBlock(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("MEMCPY_1");
       auto memcpy_lambda = [=] __device__ (Index_type i) {
         MEMCPY_BODY;
       };
@@ -123,6 +130,7 @@ void MEMCPY::runHipVariantBlock(VariantID vid)
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          ibegin, iend, memcpy_lambda );
+      RP_CALI_SUBKERNEL_END("MEMCPY_1");
 
     }
     stopTimer();
@@ -133,10 +141,12 @@ void MEMCPY::runHipVariantBlock(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("MEMCPY_1");
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           MEMCPY_BODY;
       });
+      RP_CALI_SUBKERNEL_END("MEMCPY_1");
 
     }
     stopTimer();

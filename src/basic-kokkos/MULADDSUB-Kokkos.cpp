@@ -40,6 +40,7 @@ void MULADDSUB::runKokkosVariant(VariantID vid) {
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("MULADDSUB_1");
       // If SIMD really matters , consider using Kokkos SIMD
       Kokkos::parallel_for(
           "MULTISUB-KokkosSeq Kokkos_Lambda",
@@ -49,6 +50,7 @@ void MULADDSUB::runKokkosVariant(VariantID vid) {
             out2_view[i] = in1_view[i] + in2_view[i];
             out3_view[i] = in1_view[i] - in2_view[i];
           });
+      RP_CALI_SUBKERNEL_END("MULADDSUB_1");
     }
 
     Kokkos::fence();

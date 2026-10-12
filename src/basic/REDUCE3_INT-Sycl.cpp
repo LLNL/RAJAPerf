@@ -50,13 +50,14 @@ void REDUCE3_INT::runSyclVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("REDUCE3_INT_1");
       const size_t global_size = work_group_size * RAJA_DIVIDE_CEILING_INT(iend, work_group_size);
 
       initSyclDeviceData(hsum, &m_vsum_init, 1, qu);
       initSyclDeviceData(hmin, &m_vmin_init, 1, qu);
       initSyclDeviceData(hmax, &m_vmax_init, 1, qu);
 
-      qu->submit([&] (sycl::handler& h) {
+      qu.submit([&] (sycl::handler& h) {
 
         auto sum_reduction = sycl::reduction(hsum, sycl::plus<>());
         auto min_reduction = sycl::reduction(hmin, sycl::minimum<>());
@@ -91,6 +92,7 @@ void REDUCE3_INT::runSyclVariantImpl(VariantID vid)
       Int_ptr plmax = &lmax;
       getSyclDeviceData(plmax, hmax, 1, qu);
       m_vmax = lmax;
+      RP_CALI_SUBKERNEL_END("REDUCE3_INT_1");
 
     } // for (RepIndex_type irep = ...
     stopTimer();
@@ -105,6 +107,7 @@ void REDUCE3_INT::runSyclVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("REDUCE3_INT_1");
       Int_type tvsum = m_vsum_init;
       Int_type tvmin = m_vmin_init;
       Int_type tvmax = m_vmax_init;
@@ -126,6 +129,7 @@ void REDUCE3_INT::runSyclVariantImpl(VariantID vid)
       m_vsum = static_cast<Int_type>(tvsum);
       m_vmin = static_cast<Int_type>(tvmin);
       m_vmax = static_cast<Int_type>(tvmax);
+      RP_CALI_SUBKERNEL_END("REDUCE3_INT_1");
 
     }
     stopTimer();

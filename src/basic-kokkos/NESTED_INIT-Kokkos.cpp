@@ -27,12 +27,6 @@ void NESTED_INIT::runKokkosVariant(VariantID vid) {
   // See the basic NESTED_INIT.hpp file for defnition of NESTED_INIT
 
   auto array_kokkos_view = getViewFromPointer(array, nk, nj, ni);
-  //
-  // Used in Kokkos variant (below).  Do not remove.
-  //
-  auto nestedinit_lam = [=](Index_type i, Index_type j, Index_type k) {
-    NESTED_INIT_BODY;
-  };
 
   switch (vid) {
 
@@ -44,6 +38,7 @@ void NESTED_INIT::runKokkosVariant(VariantID vid) {
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("NESTED_INIT_1");
       // MDRange can be optimized
       Kokkos::parallel_for(
           "NESTED_INIT KokkosSeq",
@@ -56,6 +51,7 @@ void NESTED_INIT::runKokkosVariant(VariantID vid) {
           KOKKOS_LAMBDA(Index_type k, Index_type j, Index_type i) {
             array_kokkos_view(k, j, i) = 0.00000001 * i * j * k;
           });
+      RP_CALI_SUBKERNEL_END("NESTED_INIT_1");
     }
 
     Kokkos::fence();

@@ -70,6 +70,7 @@ void GEN_LIN_RECUR::runHipVariantImpl(VariantID vid)
 
        const size_t grid_size1 = RAJA_DIVIDE_CEILING_INT(N, block_size);
 
+       RP_CALI_SUBKERNEL_BEGIN("GEN_LIN_RECUR_1");
        RPlaunchHipKernel( (genlinrecur1<block_size>),
                           grid_size1, block_size,
                           shmem, res.get_stream(),
@@ -77,9 +78,11 @@ void GEN_LIN_RECUR::runHipVariantImpl(VariantID vid)
                           sa, sb,
                           kb5i,
                           N );
+       RP_CALI_SUBKERNEL_END("GEN_LIN_RECUR_1");
 
        const size_t grid_size2 = RAJA_DIVIDE_CEILING_INT(N+1, block_size);
 
+       RP_CALI_SUBKERNEL_BEGIN("GEN_LIN_RECUR_2");
        RPlaunchHipKernel( (genlinrecur2<block_size>),
                           grid_size2, block_size,
                           shmem, res.get_stream(),
@@ -87,6 +90,7 @@ void GEN_LIN_RECUR::runHipVariantImpl(VariantID vid)
                           sa, sb,
                           kb5i,
                           N );
+       RP_CALI_SUBKERNEL_END("GEN_LIN_RECUR_2");
 
     }
     stopTimer();
@@ -97,15 +101,19 @@ void GEN_LIN_RECUR::runHipVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+       RP_CALI_SUBKERNEL_BEGIN("GEN_LIN_RECUR_1");
        RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(0, N), [=] __device__ (Index_type k) {
          GEN_LIN_RECUR_BODY1;
        });
+       RP_CALI_SUBKERNEL_END("GEN_LIN_RECUR_1");
 
+       RP_CALI_SUBKERNEL_BEGIN("GEN_LIN_RECUR_2");
        RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(1, N+1), [=] __device__ (Index_type i) {
          GEN_LIN_RECUR_BODY2;
        });
+       RP_CALI_SUBKERNEL_END("GEN_LIN_RECUR_2");
 
     }
     stopTimer();

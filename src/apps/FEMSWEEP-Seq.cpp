@@ -19,6 +19,7 @@ namespace apps
 {
 
 
+template < bool unroll >
 void FEMSWEEP::runSeqVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
@@ -33,6 +34,7 @@ void FEMSWEEP::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("FEMSWEEP_1");
         for (Index_type a = 0; a < na; ++a)
         {
           for (Index_type g = 0; g < ng; ++g)
@@ -44,12 +46,17 @@ void FEMSWEEP::runSeqVariant(VariantID vid)
               const Index_type nehp = phpaa_r[ohp + hp];
               for (Index_type k = 0; k < nehp; ++k)
               {
-                FEMSWEEP_KERNEL_HYPERPLANE_ELEMENT;
+                femsweepHyperplaneElement<unroll>(
+                    Bdat, Adat, Fdat, Xdat, Sgdat, M0dat,
+                    ne, ng, sharedinteriorfaces, order_r,
+                    AngleElem2FaceType, elem_to_faces, F_g2l, idx1, idx2,
+                    a, g, k, nehp_pos, Ffactor);
               }
               nehp_pos += nehp;
             }
           }
         }
+        RP_CALI_SUBKERNEL_END("FEMSWEEP_1");
 
       }
       stopTimer();
@@ -77,6 +84,7 @@ void FEMSWEEP::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("FEMSWEEP_1");
         RAJA::launch<launch_policy>( res,
             RAJA::LaunchParams(),
             [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
@@ -91,7 +99,11 @@ void FEMSWEEP::runSeqVariant(VariantID vid)
                  const Index_type nehp = phpaa_r[ohp + hp];
                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, nehp),
                      [&](Index_type k) {
-                   FEMSWEEP_KERNEL_HYPERPLANE_ELEMENT;
+                   femsweepHyperplaneElement<unroll>(
+                       Bdat, Adat, Fdat, Xdat, Sgdat, M0dat,
+                       ne, ng, sharedinteriorfaces, order_r,
+                       AngleElem2FaceType, elem_to_faces, F_g2l, idx1, idx2,
+                       a, g, k, nehp_pos, Ffactor);
                  });  // k loop
                  ctx.teamSync();
                  nehp_pos += nehp;
@@ -99,6 +111,7 @@ void FEMSWEEP::runSeqVariant(VariantID vid)
              });  // g loop
            });  // a loop
         });
+        RP_CALI_SUBKERNEL_END("FEMSWEEP_1");
 
       }
       stopTimer();
@@ -114,7 +127,16 @@ void FEMSWEEP::runSeqVariant(VariantID vid)
 
 }
 
-RAJAPERF_DEFAULT_TUNING_DEFINE_BOILERPLATE(FEMSWEEP, Seq, Base_Seq, RAJA_Seq)
+void FEMSWEEP::defineSeqVariantTunings()
+{
+  for (VariantID vid : {Base_Seq, RAJA_Seq}) {
+    addVariantTuning<&FEMSWEEP::runSeqVariant<false>>(
+        vid, getDefaultTuningName());
+
+    addVariantTuning<&FEMSWEEP::runSeqVariant<true>>(
+        vid, FEMSWEEP_UNROLL_TUNING_NAME);
+  }
+}
 
 } // end namespace apps
 } // end namespace rajaperf

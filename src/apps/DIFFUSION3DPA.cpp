@@ -64,12 +64,12 @@ void DIFFUSION3DPA::setSize(Index_type target_size, Index_type target_reps)
   setBytesModifyWrittenPerRep( 1*sizeof(Real_type) * diff::D1D*diff::D1D*diff::D1D*m_NE ); // y
   setBytesAtomicModifyWrittenPerRep( 0 );
 
-  setFLOPsPerRep(m_NE * (4 * diff::D1D * diff::D1D * diff::D1D + //DIFFUSION3DPA_3
-                         6 * diff::D1D * diff::Q1D * diff::Q1D + //DIFFUSION3DPA_4
+  setFLOPsPerRep(m_NE * (4 * diff::D1D * diff::D1D * diff::D1D * diff::Q1D + //DIFFUSION3DPA_3
+                         6 * diff::D1D * diff::D1D * diff::Q1D * diff::Q1D + //DIFFUSION3DPA_4
                          (6 * diff::D1D  + 15) * diff::Q1D * diff::Q1D * diff::Q1D + //DIFFUSION3DPA_5
                          (6 * diff::Q1D) * diff::D1D * diff::Q1D * diff::Q1D + //DIFFUSION3DPA_7
                          (6 * diff::Q1D) * diff::D1D * diff::D1D * diff::Q1D + //DIFFUSION3DPA_8
-                         (6 * diff::Q1D + 1)*diff::D1D*diff::D1D*diff::D1D)); //DIFFUSION3DPA_9
+                         (6 * diff::Q1D + 3) * diff::D1D * diff::D1D * diff::D1D)); //DIFFUSION3DPA_9
 }
 
 DIFFUSION3DPA::~DIFFUSION3DPA()

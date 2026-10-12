@@ -16,6 +16,7 @@ set(RAJA_PERFSUITE_TEST_EXECUTABLE_DEPENDS
     lcals
     lcals-kokkos
     polybench
+    polybench-kokkos
     stream
     stream-kokkos
     algorithm

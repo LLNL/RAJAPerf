@@ -31,6 +31,8 @@ void INTSC_HEXHEX::runSeqVariant(VariantID vid)
   const Index_type iend = m_nthreads ;
 
   const Index_type n_szpairs   = m_n_subz_intsc ;
+  const Index_type iend_fixup  =
+      RAJA_DIVIDE_CEILING_INT(m_n_subz_intsc, fixup_groupsize) ;
 
   INTSC_HEXHEX_DATA_SETUP ;
 
@@ -51,12 +53,16 @@ void INTSC_HEXHEX::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("INTSC_HEXHEX_1");
         for (Index_type i = ibegin ; i < iend ; ++i ) {
           INTSC_HEXHEX_SEQ ( i, iend ) ;
         }
-        for (Index_type i = ibegin ; i < n_szpairs ; ++i ) {
+        RP_CALI_SUBKERNEL_END("INTSC_HEXHEX_1");
+        RP_CALI_SUBKERNEL_BEGIN("INTSC_HEXHEX_2");
+        for (Index_type i = ibegin ; i < iend_fixup ; ++i ) {
           FIXUP_VV_BODY ;
         }
+        RP_CALI_SUBKERNEL_END("INTSC_HEXHEX_2");
 
       }
       stopTimer();
@@ -71,12 +77,16 @@ void INTSC_HEXHEX::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("INTSC_HEXHEX_1");
         for (Index_type i = ibegin ; i < iend; ++i ) {
           intsc_hexhex_lam( i );
         }
-        for (Index_type i = ibegin ; i < n_szpairs ; ++i ) {
+        RP_CALI_SUBKERNEL_END("INTSC_HEXHEX_1");
+        RP_CALI_SUBKERNEL_BEGIN("INTSC_HEXHEX_2");
+        for (Index_type i = ibegin ; i < iend_fixup ; ++i ) {
           fixup_vv_lam( i );
         }
+        RP_CALI_SUBKERNEL_END("INTSC_HEXHEX_2");
 
       }
       stopTimer();
@@ -92,10 +102,14 @@ void INTSC_HEXHEX::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("INTSC_HEXHEX_1");
         RAJA::forall<RAJA::seq_exec>( res,
           RAJA::RangeSegment(ibegin, iend), intsc_hexhex_lam);
+        RP_CALI_SUBKERNEL_END("INTSC_HEXHEX_1");
+        RP_CALI_SUBKERNEL_BEGIN("INTSC_HEXHEX_2");
         RAJA::forall<RAJA::seq_exec>( res,
-          RAJA::RangeSegment(ibegin, n_szpairs), fixup_vv_lam);
+          RAJA::RangeSegment(ibegin, iend_fixup), fixup_vv_lam);
+        RP_CALI_SUBKERNEL_END("INTSC_HEXHEX_2");
 
       }
       stopTimer();

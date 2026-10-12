@@ -39,7 +39,9 @@ void SORTPAIRS::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("SORTPAIRS_1");
         RAJA::sort_pairs<RAJA::omp_parallel_for_exec>(res, RAJA_SORTPAIRS_ARGS);
+        RP_CALI_SUBKERNEL_END("SORTPAIRS_1");
 
       }
       stopTimer();

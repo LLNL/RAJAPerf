@@ -34,6 +34,7 @@ void POLYBENCH_GEMM::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMM_1");
         for (Index_type i = 0; i < ni; ++i ) {
           for (Index_type j = 0; j < nj; ++j ) {
             POLYBENCH_GEMM_BODY1;
@@ -44,6 +45,7 @@ void POLYBENCH_GEMM::runSeqVariant(VariantID vid)
             POLYBENCH_GEMM_BODY4;
           }
         }
+        RP_CALI_SUBKERNEL_END("POLYBENCH_GEMM_1");
 
       }
       stopTimer();
@@ -70,6 +72,7 @@ void POLYBENCH_GEMM::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMM_1");
         for (Index_type i = 0; i < ni; ++i ) {
           for (Index_type j = 0; j < nj; ++j ) {
             POLYBENCH_GEMM_BODY1;
@@ -80,6 +83,7 @@ void POLYBENCH_GEMM::runSeqVariant(VariantID vid)
             poly_gemm_base_lam4(i, j, dot);
           }
         }
+        RP_CALI_SUBKERNEL_END("POLYBENCH_GEMM_1");
 
       }
       stopTimer();
@@ -126,6 +130,7 @@ void POLYBENCH_GEMM::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMM_1");
         RAJA::kernel_param_resource<EXEC_POL>(
 
           RAJA::make_tuple( RAJA::RangeSegment{0, ni},
@@ -140,6 +145,7 @@ void POLYBENCH_GEMM::runSeqVariant(VariantID vid)
           poly_gemm_lam4
 
         );
+        RP_CALI_SUBKERNEL_END("POLYBENCH_GEMM_1");
 
       }
       stopTimer();

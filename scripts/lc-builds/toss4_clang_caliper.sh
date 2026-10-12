@@ -57,7 +57,7 @@ module load cmake/${CMAKE_VER}
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_CXX_COMPILER=/usr/tce/packages/clang/clang-${COMP_VER}/bin/clang++ \
-  -DBLT_CXX_STD=c++17 \
+  -DBLT_CXX_STD=c++20 \
   -C ${RAJA_HOSTCONFIG} \
   -DENABLE_OPENMP=On \
   -DCMAKE_INSTALL_PREFIX=../install_${BUILD_SUFFIX} \

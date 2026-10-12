@@ -42,6 +42,7 @@ void REDUCE_SUM::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("REDUCE_SUM_1");
       Real_type sum = m_sum_init;
 
       #pragma omp target is_device_ptr(x) device( did ) map(tofrom:sum)
@@ -52,6 +53,7 @@ void REDUCE_SUM::runOpenMPTargetVariant(VariantID vid)
       }
 
       m_sum = sum;
+      RP_CALI_SUBKERNEL_END("REDUCE_SUM_1");
 
     }
     stopTimer();
@@ -64,6 +66,7 @@ void REDUCE_SUM::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("REDUCE_SUM_1");
       Real_type tsum = m_sum_init;
 
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>( res,
@@ -76,6 +79,7 @@ void REDUCE_SUM::runOpenMPTargetVariant(VariantID vid)
       );
 
       m_sum = static_cast<Real_type>(tsum);
+      RP_CALI_SUBKERNEL_END("REDUCE_SUM_1");
 
     }
     stopTimer();

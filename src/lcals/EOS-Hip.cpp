@@ -54,6 +54,7 @@ void EOS::runHipVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+       RP_CALI_SUBKERNEL_BEGIN("EOS_1");
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
        constexpr size_t shmem = 0;
 
@@ -63,6 +64,7 @@ void EOS::runHipVariantImpl(VariantID vid)
                           x, y, z, u,
                           q, r, t, 
                           iend );
+       RP_CALI_SUBKERNEL_END("EOS_1");
 
     }
     stopTimer();
@@ -73,10 +75,12 @@ void EOS::runHipVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+       RP_CALI_SUBKERNEL_BEGIN("EOS_1");
        RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          EOS_BODY;
        });
+       RP_CALI_SUBKERNEL_END("EOS_1");
 
     }
     stopTimer();

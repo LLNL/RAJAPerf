@@ -1,0 +1,59 @@
+##############################################################################
+# Copyright (c) 2025, Lawrence Livermore National Security, LLC
+# and RAJA Performance Suite project contributors.
+# See the RAJAPerf/LICENSE file for details.
+#
+# SPDX-License-Identifier: (BSD-3-Clause)
+##############################################################################
+
+clang_14_0_6_openmp_caliper:
+  variables:
+    SPEC: "~shared +openmp +caliper %%clang@=14.0.6"
+    PERF_KERNELS: "Basic"
+    PERF_VARIANTS: "RAJA_Seq RAJA_OpenMP"
+    PERF_RUN_OPTS: "--repfact 5.0 --sizefact 5.0"
+    OMP_NUM_THREADS: "16"
+  extends: .perf_on_dane
+
+gcc_10_3_1_openmp_caliper:
+  variables:
+    SPEC: "~shared +openmp +caliper %gcc@=10.3.1"
+    PERF_KERNELS: "Basic"
+    PERF_VARIANTS: "RAJA_Seq RAJA_OpenMP"
+    PERF_RUN_OPTS: "--repfact 5.0 --sizefact 5.0"
+    OMP_NUM_THREADS: "16"
+  extends: .perf_on_dane
+
+clang_14_0_6_mpi_caliper:
+  variables:
+    SPEC: "~shared +mpi +caliper %%clang@=14.0.6"
+    PERF_KERNELS: "Basic"
+    PERF_VARIANTS: "RAJA_Seq"
+    PERF_RUN_OPTS: "--repfact 5.0"
+    PERF_MPI_EXEC: "srun --overlap -n 112"
+  extends: .perf_on_dane
+
+rocmcc_6_4_3_hip_openmp_caliper:
+  variables:
+    # Use Caliper 2.13.1 to avoid issue in 2.14.0-- CMake issue where rocprofiler-sdk targets are referenced before being defined
+    SPEC: "~shared +rocm +openmp +caliper amdgpu_target=gfx942 %rocmcc@=6.4.3 ^hip@6.4.3 ^caliper@2.13.1~shared~libunwind ^adiak~shared~mpi"
+    PERF_KERNELS: "Basic"
+    PERF_VARIANTS: "RAJA_HIP"
+    PERF_RUN_OPTS: "--sizefact 5.0"
+  extends: .perf_on_tuolumne
+
+process_results:
+  extends: .caliper_to_gh_benchmark
+  dependencies:
+    - clang_14_0_6_openmp_caliper
+    - gcc_10_3_1_openmp_caliper
+    - clang_14_0_6_mpi_caliper
+    - rocmcc_6_4_3_hip_openmp_caliper
+
+report_results:
+  extends: .report_to_gh_benchmark
+  dependencies:
+    - process_results
+  # TODO The pushing of performance results up to github is failing due to permissions error.  Allowing failure until this can be resolved
+  # since hubcast will soon be required.
+  allow_failure: true

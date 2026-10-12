@@ -71,6 +71,26 @@
 
 #endif
 
+#if defined(RAJA_PERFSUITE_USE_CALIPER) && \
+    defined(RAJA_PERFSUITE_USE_CALIPER_SUBKERNEL)
+
+#define RP_CALI_SUBKERNEL_BEGIN(name) \
+    if (isCaliperTiming()) { \
+      cali_begin_string(Subkernel_attr, name); \
+    }
+
+#define RP_CALI_SUBKERNEL_END(name) \
+    if (isCaliperTiming()) { \
+      cali_end(Subkernel_attr); \
+    }
+
+#else
+
+#define RP_CALI_SUBKERNEL_BEGIN(name)
+#define RP_CALI_SUBKERNEL_END(name)
+
+#endif
+
 //
 // Macro to increment rep loop counter: quiets C++20 compiler warning
 //
@@ -410,7 +430,7 @@ public:
 #if defined(RAJA_ENABLE_SYCL)
     if ( running_variant == Base_SYCL ||
          running_variant == RAJA_SYCL ) {
-      getSyclResource().get_queue()->wait();
+      getSyclResource().get_queue().wait();
     }
 #endif
 
@@ -639,6 +659,7 @@ public:
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
   void caliperOn() { doCaliperTiming = true; }
   void caliperOff() { doCaliperTiming = false; }
+  bool isCaliperTiming() const { return doCaliperTiming; }
   void doOnceCaliMetaBegin(VariantID vid, size_t tune_idx);
   void doOnceCaliMetaEnd(VariantID vid, size_t tune_idx);
   static void setCaliperMgrVariantTuning(VariantID vid,
@@ -674,6 +695,11 @@ public:
 
 protected:
   const RunParams& run_params;
+
+#if defined(RAJA_PERFSUITE_USE_CALIPER) && \
+    defined(RAJA_PERFSUITE_USE_CALIPER_SUBKERNEL)
+  cali_id_t Subkernel_attr;
+#endif
 
   struct ChecksumTolerance
   {

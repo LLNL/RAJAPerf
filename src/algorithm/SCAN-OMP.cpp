@@ -43,6 +43,7 @@ void SCAN::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("SCAN_1");
         SCAN_PROLOGUE;
 
 #if _OPENMP >= 201811 && defined(RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN)
@@ -83,6 +84,7 @@ void SCAN::runOpenMPVariant(VariantID vid)
           }
         }
 #endif
+        RP_CALI_SUBKERNEL_END("SCAN_1");
 
       }
       stopTimer();
@@ -118,6 +120,7 @@ void SCAN::runOpenMPVariant(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
 
+        RP_CALI_SUBKERNEL_BEGIN("SCAN_1");
         SCAN_PROLOGUE;
 
 #if _OPENMP >= 201811 && defined(RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN)
@@ -156,6 +159,7 @@ void SCAN::runOpenMPVariant(VariantID vid)
           }
         }
 #endif
+        RP_CALI_SUBKERNEL_END("SCAN_1");
 
       }
       stopTimer();
@@ -171,7 +175,9 @@ void SCAN::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("SCAN_1");
         RAJA::exclusive_scan<RAJA::omp_parallel_for_exec>(res, RAJA_SCAN_ARGS);
+        RP_CALI_SUBKERNEL_END("SCAN_1");
 
       }
       stopTimer();

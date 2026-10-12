@@ -43,9 +43,10 @@ void FIRST_SUM::runSyclVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("FIRST_SUM_1");
       const size_t global_size = work_group_size * RAJA_DIVIDE_CEILING_INT(iend, work_group_size);
 
-      qu->submit([&] (sycl::handler& h) {
+      qu.submit([&] (sycl::handler& h) {
         h.parallel_for(sycl::nd_range<1>(global_size, work_group_size),
                        [=] (sycl::nd_item<1> item ) {
 
@@ -56,6 +57,7 @@ void FIRST_SUM::runSyclVariantImpl(VariantID vid)
 
         });
       });
+      RP_CALI_SUBKERNEL_END("FIRST_SUM_1");
 
     }
     stopTimer();
@@ -66,10 +68,12 @@ void FIRST_SUM::runSyclVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+       RP_CALI_SUBKERNEL_BEGIN("FIRST_SUM_1");
        RAJA::forall< RAJA::sycl_exec<work_group_size, true /*async*/> >( res,
          RAJA::RangeSegment(ibegin, iend), [=] (Index_type i) {
          FIRST_SUM_BODY;
        });
+       RP_CALI_SUBKERNEL_END("FIRST_SUM_1");
 
     }
     stopTimer();

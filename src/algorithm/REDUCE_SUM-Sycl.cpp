@@ -46,11 +46,12 @@ void REDUCE_SUM::runSyclVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("REDUCE_SUM_1");
       const size_t global_size = work_group_size * RAJA_DIVIDE_CEILING_INT(iend, work_group_size);
 
       initSyclDeviceData(sum, &m_sum_init, 1, qu); 
 
-      qu->submit([&] (sycl::handler& h) {
+      qu.submit([&] (sycl::handler& h) {
 
         auto sumReduction = sycl::reduction(sum, sycl::plus<Real_type>());
 
@@ -70,6 +71,7 @@ void REDUCE_SUM::runSyclVariantImpl(VariantID vid)
       Real_ptr plsum = &lsum;
       getSyclDeviceData(plsum, sum, 1, qu);
       m_sum = lsum;
+      RP_CALI_SUBKERNEL_END("REDUCE_SUM_1");
 
     }
     stopTimer();
@@ -80,6 +82,7 @@ void REDUCE_SUM::runSyclVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+       RP_CALI_SUBKERNEL_BEGIN("REDUCE_SUM_1");
        Real_type tsum = m_sum_init;
 
        RAJA::forall< RAJA::sycl_exec<work_group_size, true /*async*/> >( 
@@ -93,6 +96,7 @@ void REDUCE_SUM::runSyclVariantImpl(VariantID vid)
        );
 
        m_sum = static_cast<Real_type>(tsum);
+       RP_CALI_SUBKERNEL_END("REDUCE_SUM_1");
 
     }
     stopTimer();

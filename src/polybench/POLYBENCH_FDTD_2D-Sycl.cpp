@@ -49,7 +49,8 @@ void POLYBENCH_FDTD_2D::runSyclVariantImpl(VariantID vid)
 
       const size_t global_size1 = work_group_size * RAJA_DIVIDE_CEILING_INT(ny, work_group_size);
 
-      qu->submit([&] (sycl::handler& h) {
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_FDTD_2D_1");
+      qu.submit([&] (sycl::handler& h) {
         h.parallel_for(sycl::nd_range<1> (global_size1, work_group_size),
                        [=] (sycl::nd_item<1> item) {
 
@@ -60,6 +61,7 @@ void POLYBENCH_FDTD_2D::runSyclVariantImpl(VariantID vid)
 
         });
       });
+      RP_CALI_SUBKERNEL_END("POLYBENCH_FDTD_2D_1");
 
       sycl::range<3> global_dim234(1,
                                    i_wg_sz * RAJA_DIVIDE_CEILING_INT(nx, i_wg_sz),
@@ -67,7 +69,8 @@ void POLYBENCH_FDTD_2D::runSyclVariantImpl(VariantID vid)
 
       sycl::range<3> wkgroup_dim234(1, i_wg_sz, j_wg_sz);
 
-      qu->submit([&] (sycl::handler& h) {
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_FDTD_2D_2");
+      qu.submit([&] (sycl::handler& h) {
         h.parallel_for(sycl::nd_range<3>( global_dim234, wkgroup_dim234),
                        [=] (sycl::nd_item<3> item) {
 
@@ -80,8 +83,10 @@ void POLYBENCH_FDTD_2D::runSyclVariantImpl(VariantID vid)
 
         });
       });
+      RP_CALI_SUBKERNEL_END("POLYBENCH_FDTD_2D_2");
 
-      qu->submit([&] (sycl::handler& h) {
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_FDTD_2D_3");
+      qu.submit([&] (sycl::handler& h) {
         h.parallel_for(sycl::nd_range<3>( global_dim234, wkgroup_dim234),
                        [=] (sycl::nd_item<3> item) {
 
@@ -94,8 +99,10 @@ void POLYBENCH_FDTD_2D::runSyclVariantImpl(VariantID vid)
 
         });
       });
+      RP_CALI_SUBKERNEL_END("POLYBENCH_FDTD_2D_3");
 
-      qu->submit([&] (sycl::handler& h) {
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_FDTD_2D_4");
+      qu.submit([&] (sycl::handler& h) {
         h.parallel_for(sycl::nd_range<3>( global_dim234, wkgroup_dim234),
                        [=] (sycl::nd_item<3> item) {
 
@@ -108,6 +115,7 @@ void POLYBENCH_FDTD_2D::runSyclVariantImpl(VariantID vid)
 
         });
       });
+      RP_CALI_SUBKERNEL_END("POLYBENCH_FDTD_2D_4");
 
       t = (t+1) % m_tsteps;
     } // run_reps
@@ -134,11 +142,14 @@ void POLYBENCH_FDTD_2D::runSyclVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_FDTD_2D_1");
       RAJA::forall<EXEC_POL1>( res, RAJA::RangeSegment(0, ny),
       [=] (Index_type j) {
         POLYBENCH_FDTD_2D_BODY1_RAJA;
       });
+      RP_CALI_SUBKERNEL_END("POLYBENCH_FDTD_2D_1");
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_FDTD_2D_2");
       RAJA::kernel_resource<EXEC_POL234>(
         RAJA::make_tuple(RAJA::RangeSegment{1, nx},
                          RAJA::RangeSegment{0, ny}),
@@ -147,7 +158,9 @@ void POLYBENCH_FDTD_2D::runSyclVariantImpl(VariantID vid)
           POLYBENCH_FDTD_2D_BODY2_RAJA;
         }
       );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_FDTD_2D_2");
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_FDTD_2D_3");
       RAJA::kernel_resource<EXEC_POL234>(
         RAJA::make_tuple(RAJA::RangeSegment{0, nx},
                          RAJA::RangeSegment{1, ny}),
@@ -156,7 +169,9 @@ void POLYBENCH_FDTD_2D::runSyclVariantImpl(VariantID vid)
           POLYBENCH_FDTD_2D_BODY3_RAJA;
         }
       );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_FDTD_2D_3");
 
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_FDTD_2D_4");
       RAJA::kernel_resource<EXEC_POL234>(
         RAJA::make_tuple(RAJA::RangeSegment{0, nx-1},
                          RAJA::RangeSegment{0, ny-1}),
@@ -165,6 +180,7 @@ void POLYBENCH_FDTD_2D::runSyclVariantImpl(VariantID vid)
           POLYBENCH_FDTD_2D_BODY4_RAJA;
         }
       );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_FDTD_2D_4");
 
       t = (t+1) % m_tsteps;
     } // run_reps

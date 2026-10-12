@@ -86,6 +86,7 @@ void TRAP_INT::runHipVariantBase(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("TRAP_INT_1");
       RAJAPERF_HIP_REDUCER_INITIALIZE(&m_sumx_init, sumx, hsumx, 1, 1);
 
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
@@ -102,6 +103,7 @@ void TRAP_INT::runHipVariantBase(VariantID vid)
 
       RAJAPERF_HIP_REDUCER_COPY_BACK(sumx, hsumx, 1, 1);
       m_sumx += hsumx[0] * h;
+      RP_CALI_SUBKERNEL_END("TRAP_INT_1");
 
     }
     stopTimer();
@@ -140,6 +142,7 @@ void TRAP_INT::runHipVariantRAJA(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("TRAP_INT_1");
       RAJA::ReduceSum<reduction_policy, Real_type> sumx(m_sumx_init);
 
       RAJA::forall<exec_policy>( res,
@@ -148,6 +151,7 @@ void TRAP_INT::runHipVariantRAJA(VariantID vid)
       });
 
       m_sumx += static_cast<Real_type>(sumx.get()) * h;
+      RP_CALI_SUBKERNEL_END("TRAP_INT_1");
 
     }
     stopTimer();
@@ -180,6 +184,7 @@ void TRAP_INT::runHipVariantRAJANewReduce(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("TRAP_INT_1");
       Real_type tsumx = m_sumx_init;
 
       RAJA::forall<exec_policy>(
@@ -193,6 +198,7 @@ void TRAP_INT::runHipVariantRAJANewReduce(VariantID vid)
       );
 
       m_sumx += static_cast<Real_type>(tsumx) * h;
+      RP_CALI_SUBKERNEL_END("TRAP_INT_1");
 
     }
     stopTimer();

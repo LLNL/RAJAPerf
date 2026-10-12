@@ -36,21 +36,24 @@ void INDEXLIST_3LOOP::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_3LOOP_1");
         for (Index_type i = ibegin; i < iend; ++i ) {
           counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
         }
+        RP_CALI_SUBKERNEL_END("INDEXLIST_3LOOP_1");
 
         Index_type count = 0;
-
         for (Index_type i = ibegin; i < iend+1; ++i ) {
           Index_type inc = counts[i];
           counts[i] = count;
           count += inc;
         }
 
+        RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_3LOOP_2");
         for (Index_type i = ibegin; i < iend; ++i ) {
           INDEXLIST_3LOOP_MAKE_LIST;
         }
+        RP_CALI_SUBKERNEL_END("INDEXLIST_3LOOP_2");
 
         m_len = counts[iend];
 
@@ -79,21 +82,24 @@ void INDEXLIST_3LOOP::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_3LOOP_1");
         for (Index_type i = ibegin; i < iend; ++i ) {
           indexlist_conditional_lam(i);
         }
+        RP_CALI_SUBKERNEL_END("INDEXLIST_3LOOP_1");
 
         Index_type count = 0;
-
         for (Index_type i = ibegin; i < iend+1; ++i ) {
           Index_type inc = counts[i];
           counts[i] = count;
           count += inc;
         }
 
+        RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_3LOOP_2");
         for (Index_type i = ibegin; i < iend; ++i ) {
           indexlist_make_list_lam(i);
         }
+        RP_CALI_SUBKERNEL_END("INDEXLIST_3LOOP_2");
 
         m_len = counts[iend];
 
@@ -115,15 +121,17 @@ void INDEXLIST_3LOOP::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_3LOOP_1");
         RAJA::forall<RAJA::seq_exec>( res,
           RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
           counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
         });
-
+        RP_CALI_SUBKERNEL_END("INDEXLIST_3LOOP_1");
         RAJA::exclusive_scan_inplace<RAJA::seq_exec>( res,
             RAJA::make_span(counts+ibegin, iend+1-ibegin));
 
+        RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_3LOOP_2");
         RAJA::forall<RAJA::seq_exec>( res,
           RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
@@ -131,6 +139,7 @@ void INDEXLIST_3LOOP::runSeqVariant(VariantID vid)
             list[counts[i]] = i;
           }
         });
+        RP_CALI_SUBKERNEL_END("INDEXLIST_3LOOP_2");
 
         m_len = counts[iend];
 

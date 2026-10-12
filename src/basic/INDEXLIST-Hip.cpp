@@ -107,6 +107,7 @@ void INDEXLIST::runHipVariantCustom(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_1");
       CAMP_HIP_API_INVOKE_AND_CHECK( hipMemsetAsync,
           block_readys, 0, sizeof(unsigned)*grid_size, res.get_stream() );
 
@@ -119,6 +120,7 @@ void INDEXLIST::runHipVariantCustom(VariantID vid)
 
       CAMP_HIP_API_INVOKE_AND_CHECK( hipStreamSynchronize, res.get_stream() );
       m_len = *len;
+      RP_CALI_SUBKERNEL_END("INDEXLIST_1");
 
     }
     stopTimer();
