@@ -419,9 +419,9 @@ then
        cmake_options="-DBLT_MPI_COMMAND_APPEND:STRING=--overlap"
     elif [[ "${truehostname}" == "tuolumne" ]]
     then
-       # For El Capitan System use the LC recommendations
+       # For El Capitan systems use the LC recommendations:
        # https://hpc.llnl.gov/documentation/user-guides/using-el-capitan-systems/introduction-and-quickstart/pro-tips
-       # Without --exclusive all the MPI ranks were assigned to same GPU.
+       # Without the --exclusive all the MPI ranks were assigned to same GPU.
        # --exclusive requires number of nodes to be set
        cmake_options="-DBLT_MPI_COMMAND_APPEND:STRING=--exclusive;-N;1"
     fi
