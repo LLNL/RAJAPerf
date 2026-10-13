@@ -18,7 +18,7 @@ Motivation and Background
 
 The RAJA Performance Suite is designed to explore performance of loop-based
 computational kernels found in HPC applications. Specifically, it is
-used to assess and monitor runtime performance of kernels implemented using
+used to assess and monitor run time performance of kernels implemented using
 `RAJA C++ performance portability abstractions <https://github.com/LLNL/RAJA>`_.
 The Suite contains a variety of kernels implemented using common parallel 
 programming models, such as OpenMP and CUDA. Some important 
