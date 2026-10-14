@@ -36,6 +36,12 @@ blt_add_library(
           DAXPY_ATOMIC-Cuda.cpp
           DAXPY_ATOMIC-OMP.cpp
           DAXPY_ATOMIC-OMPTarget.cpp
+          DYANAMIC_TILE.cpp
+          DYANAMIC_TILE-Seq.cpp
+          DYANAMIC_TILE-Hip.cpp
+          DYANAMIC_TILE-Cuda.cpp
+          DYANAMIC_TILE-OMP.cpp
+          DYANAMIC_TILE-Sycl.cpp
           EMPTY.cpp
           EMPTY-Seq.cpp
           EMPTY-Hip.cpp
@@ -43,6 +49,12 @@ blt_add_library(
           EMPTY-OMP.cpp
           EMPTY-OMPTarget.cpp
           EMPTY-Sycl.cpp
+          QUADRATURE_LOOP.cpp
+          QUADRATURE_LOOP-Seq.cpp
+          QUADRATURE_LOOP-OMP.cpp
+          QUADRATURE_LOOP-Cuda.cpp
+          QUADRATURE_LOOP-Hip.cpp
+          QUADRATURE_LOOP-Sycl.cpp
           IF_QUAD.cpp
           IF_QUAD-Seq.cpp
           IF_QUAD-Hip.cpp

@@ -172,7 +172,161 @@ void NESTED_INIT::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(NESTED_INIT, Cuda, Base_CUDA, Lambda_CUDA, RAJA_CUDA)
+template < size_t block_size >
+void NESTED_INIT::runCudaVariantFornest(VariantID vid)
+{
+  setBlockSize(block_size);
+
+  const Index_type run_reps = getRunReps();
+
+  auto res{getCudaResource()};
+
+  NESTED_INIT_DATA_SETUP;
+
+  if ( vid == RAJA_CUDA ) {
+
+    using EXEC_POL =
+      RAJA::fornest_collapsed_policy<RAJA::cuda_exec<block_size, true /*async*/>>;
+
+    startTimer();
+    // Loop counter increment uses macro to quiet C++20 compiler warning
+    for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
+      RP_CALI_SUBKERNEL_BEGIN("NESTED_INIT_1");
+      RAJA::fornest(res, EXEC_POL {},
+                    RAJA::range(nk), RAJA::range(nj), RAJA::range(ni),
+                    [=] __device__ (Index_type k, Index_type j, Index_type i) {
+        NESTED_INIT_BODY;
+      });
+      RP_CALI_SUBKERNEL_END("NESTED_INIT_1");
+
+    }
+    stopTimer();
+
+  } else {
+     getCout() << "\n  NESTED_INIT : Unknown Cuda variant id = " << vid << std::endl;
+  }
+}
+
+template < size_t block_size, size_t tile_k, size_t tile_j, size_t tile_i >
+void NESTED_INIT::runCudaVariantFornestRuntimeTiled(VariantID vid)
+{
+  setBlockSize(block_size);
+
+  const Index_type run_reps = getRunReps();
+
+  auto res{getCudaResource()};
+
+  NESTED_INIT_DATA_SETUP;
+
+  if ( vid == RAJA_CUDA ) {
+
+    using EXEC_POL =
+      RAJA::fornest_tiling_policy<RAJA::cuda_exec<block_size, true /*async*/>,
+                                  RAJA::fornest_tile_runtime,
+                                  RAJA::fornest_tile_runtime,
+                                  RAJA::fornest_tile_runtime>;
+
+    startTimer();
+    // Loop counter increment uses macro to quiet C++20 compiler warning
+    for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
+      RP_CALI_SUBKERNEL_BEGIN("NESTED_INIT_1");
+      RAJA::fornest(res,
+                    EXEC_POL {RAJA::TileSize(tile_k),
+                              RAJA::TileSize(tile_j),
+                              RAJA::TileSize(tile_i)},
+                    RAJA::range(nk), RAJA::range(nj), RAJA::range(ni),
+                    [=] __device__ (Index_type k, Index_type j, Index_type i) {
+        NESTED_INIT_BODY;
+      });
+      RP_CALI_SUBKERNEL_END("NESTED_INIT_1");
+
+    }
+    stopTimer();
+
+  } else {
+     getCout() << "\n  NESTED_INIT : Unknown Cuda variant id = " << vid << std::endl;
+  }
+}
+
+template < size_t block_size >
+void NESTED_INIT::runCudaVariantFornestAutoTiled(VariantID vid)
+{
+  setBlockSize(block_size);
+
+  const Index_type run_reps = getRunReps();
+
+  auto res{getCudaResource()};
+
+  NESTED_INIT_DATA_SETUP;
+
+  if ( vid == RAJA_CUDA ) {
+
+    using EXEC_POL =
+      RAJA::fornest_tiling_policy<RAJA::cuda_exec<block_size, true /*async*/>,
+                                  RAJA::fornest_tile_auto,
+                                  RAJA::fornest_tile_auto,
+                                  RAJA::fornest_tile_auto>;
+
+    startTimer();
+    // Loop counter increment uses macro to quiet C++20 compiler warning
+    for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
+      RP_CALI_SUBKERNEL_BEGIN("NESTED_INIT_1");
+      RAJA::fornest(res, EXEC_POL {},
+                    RAJA::range(nk), RAJA::range(nj), RAJA::range(ni),
+                    [=] __device__ (Index_type k, Index_type j, Index_type i) {
+        NESTED_INIT_BODY;
+      });
+      RP_CALI_SUBKERNEL_END("NESTED_INIT_1");
+
+    }
+    stopTimer();
+
+  } else {
+     getCout() << "\n  NESTED_INIT : Unknown Cuda variant id = " << vid << std::endl;
+  }
+}
+
+void NESTED_INIT::defineCudaVariantTunings()
+{
+  for (VariantID vid : {Base_CUDA, Lambda_CUDA, RAJA_CUDA}) {
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        addVariantTuning<&NESTED_INIT::runCudaVariantImpl<block_size>>(
+            vid, "block_"+std::to_string(block_size));
+
+        if (vid == RAJA_CUDA) {
+          addVariantTuning<&NESTED_INIT::runCudaVariantFornest<block_size>>(
+              vid, "fornest-collapse_block_"+std::to_string(block_size));
+          addVariantTuning<&NESTED_INIT::runCudaVariantFornestAutoTiled<block_size>>(
+              vid, "fornest-auto-tile_block_"+std::to_string(block_size));
+
+          if constexpr (decltype(block_size)::value == 1 * 8 * 32) {
+            addVariantTuning<&NESTED_INIT::runCudaVariantFornestRuntimeTiled<block_size, 1, 8, 32>>(
+                vid, "fornest-runtime-tile_1x8x32_block_"+std::to_string(block_size));
+          }
+          if constexpr (decltype(block_size)::value == 2 * 4 * 32) {
+            addVariantTuning<&NESTED_INIT::runCudaVariantFornestRuntimeTiled<block_size, 2, 4, 32>>(
+                vid, "fornest-runtime-tile_2x4x32_block_"+std::to_string(block_size));
+          }
+          if constexpr (decltype(block_size)::value == 4 * 4 * 16) {
+            addVariantTuning<&NESTED_INIT::runCudaVariantFornestRuntimeTiled<block_size, 4, 4, 16>>(
+                vid, "fornest-runtime-tile_4x4x16_block_"+std::to_string(block_size));
+          }
+        }
+
+      }
+
+    });
+
+  }
+}
 
 } // end namespace basic
 } // end namespace rajaperf

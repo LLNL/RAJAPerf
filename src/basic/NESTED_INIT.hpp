@@ -68,12 +68,39 @@ public:
   void runOpenMPTargetVariant(VariantID vid);
   void runKokkosVariant(VariantID vid);
 
+  void runSeqVariantFornest(VariantID vid);
+  template < size_t tile_k, size_t tile_j, size_t tile_i >
+  void runSeqVariantFornestRuntimeTiled(VariantID vid);
+  void runSeqVariantFornestAutoTiled(VariantID vid);
+  void runOpenMPVariantFornest(VariantID vid);
+  template < size_t tile_k, size_t tile_j, size_t tile_i >
+  void runOpenMPVariantFornestRuntimeTiled(VariantID vid);
+  void runOpenMPVariantFornestAutoTiled(VariantID vid);
+
   template < size_t block_size >
   void runCudaVariantImpl(VariantID vid);
   template < size_t block_size >
+  void runCudaVariantFornest(VariantID vid);
+  template < size_t block_size, size_t tile_k, size_t tile_j, size_t tile_i >
+  void runCudaVariantFornestRuntimeTiled(VariantID vid);
+  template < size_t block_size >
+  void runCudaVariantFornestAutoTiled(VariantID vid);
+  template < size_t block_size >
   void runHipVariantImpl(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantFornest(VariantID vid);
+  template < size_t block_size, size_t tile_k, size_t tile_j, size_t tile_i >
+  void runHipVariantFornestRuntimeTiled(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantFornestAutoTiled(VariantID vid);
   template < size_t work_group_size >
   void runSyclVariantImpl(VariantID vid);
+  template < size_t work_group_size >
+  void runSyclVariantFornest(VariantID vid);
+  template < size_t work_group_size, size_t tile_k, size_t tile_j, size_t tile_i >
+  void runSyclVariantFornestRuntimeTiled(VariantID vid);
+  template < size_t work_group_size >
+  void runSyclVariantFornestAutoTiled(VariantID vid);
 
 private:
   static const size_t default_gpu_block_size = 256;

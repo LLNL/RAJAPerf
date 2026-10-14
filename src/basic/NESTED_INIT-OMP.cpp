@@ -145,7 +145,155 @@ RP_CALI_SUBKERNEL_END("NESTED_INIT_1");
 #endif
 }
 
-RAJAPERF_DEFAULT_TUNING_DEFINE_BOILERPLATE(NESTED_INIT, OpenMP, Base_OpenMP, Lambda_OpenMP, RAJA_OpenMP)
+void NESTED_INIT::runOpenMPVariantFornest(VariantID vid)
+{
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+
+  const Index_type run_reps = getRunReps();
+
+  NESTED_INIT_DATA_SETUP;
+
+  auto nestedinit_lam = [=](Index_type k, Index_type j, Index_type i) {
+                          NESTED_INIT_BODY;
+                        };
+
+  if ( vid == RAJA_OpenMP ) {
+
+    using EXEC_POL = RAJA::fornest_basic_omp_outer_3d<RAJA::seq_exec>;
+
+    startTimer();
+    // Loop counter increment uses macro to quiet C++20 compiler warning
+    for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
+      RP_CALI_SUBKERNEL_BEGIN("NESTED_INIT_1");
+      RAJA::fornest(EXEC_POL {},
+                    RAJA::range(nk), RAJA::range(nj), RAJA::range(ni),
+                    nestedinit_lam);
+      RP_CALI_SUBKERNEL_END("NESTED_INIT_1");
+
+    }
+    stopTimer();
+
+  } else {
+     getCout() << "\n  NESTED_INIT : Unknown variant id = " << vid << std::endl;
+  }
+
+#else
+  RAJA_UNUSED_VAR(vid);
+#endif
+}
+
+template < size_t tile_k, size_t tile_j, size_t tile_i >
+void NESTED_INIT::runOpenMPVariantFornestRuntimeTiled(VariantID vid)
+{
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+
+  const Index_type run_reps = getRunReps();
+
+  NESTED_INIT_DATA_SETUP;
+
+  auto nestedinit_lam = [=](Index_type k, Index_type j, Index_type i) {
+                          NESTED_INIT_BODY;
+                        };
+
+  if ( vid == RAJA_OpenMP ) {
+
+    using BASE_POL = RAJA::fornest_basic_omp_outer_3d<RAJA::seq_exec>;
+    using EXEC_POL =
+      RAJA::fornest_tiling_policy<BASE_POL,
+                                  RAJA::fornest_tile_runtime,
+                                  RAJA::fornest_tile_runtime,
+                                  RAJA::fornest_tile_runtime>;
+
+    startTimer();
+    // Loop counter increment uses macro to quiet C++20 compiler warning
+    for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
+      RP_CALI_SUBKERNEL_BEGIN("NESTED_INIT_1");
+      RAJA::fornest(EXEC_POL {RAJA::TileSize(tile_k),
+                              RAJA::TileSize(tile_j),
+                              RAJA::TileSize(tile_i)},
+                    RAJA::range(nk), RAJA::range(nj), RAJA::range(ni),
+                    nestedinit_lam);
+      RP_CALI_SUBKERNEL_END("NESTED_INIT_1");
+
+    }
+    stopTimer();
+
+  } else {
+     getCout() << "\n  NESTED_INIT : Unknown variant id = " << vid << std::endl;
+  }
+
+#else
+  RAJA_UNUSED_VAR(vid);
+#endif
+}
+
+void NESTED_INIT::runOpenMPVariantFornestAutoTiled(VariantID vid)
+{
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+
+  const Index_type run_reps = getRunReps();
+
+  NESTED_INIT_DATA_SETUP;
+
+  auto nestedinit_lam = [=](Index_type k, Index_type j, Index_type i) {
+                          NESTED_INIT_BODY;
+                        };
+
+  if ( vid == RAJA_OpenMP ) {
+
+    using BASE_POL = RAJA::fornest_basic_omp_outer_3d<RAJA::seq_exec>;
+    using EXEC_POL =
+      RAJA::fornest_tiling_policy<BASE_POL,
+                                  RAJA::fornest_tile_auto,
+                                  RAJA::fornest_tile_auto,
+                                  RAJA::fornest_tile_auto>;
+
+    startTimer();
+    // Loop counter increment uses macro to quiet C++20 compiler warning
+    for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
+      RP_CALI_SUBKERNEL_BEGIN("NESTED_INIT_1");
+      RAJA::fornest(EXEC_POL {},
+                    RAJA::range(nk), RAJA::range(nj), RAJA::range(ni),
+                    nestedinit_lam);
+      RP_CALI_SUBKERNEL_END("NESTED_INIT_1");
+
+    }
+    stopTimer();
+
+  } else {
+     getCout() << "\n  NESTED_INIT : Unknown variant id = " << vid << std::endl;
+  }
+
+#else
+  RAJA_UNUSED_VAR(vid);
+#endif
+}
+
+void NESTED_INIT::defineOpenMPVariantTunings()
+{
+  for (VariantID vid : {Base_OpenMP, Lambda_OpenMP, RAJA_OpenMP}) {
+
+    addVariantTuning<&NESTED_INIT::runOpenMPVariant>(
+        vid, getDefaultTuningName());
+
+    if (vid == RAJA_OpenMP) {
+      addVariantTuning<&NESTED_INIT::runOpenMPVariantFornest>(
+          vid, "fornest");
+      addVariantTuning<&NESTED_INIT::runOpenMPVariantFornestRuntimeTiled<1, 8, 32>>(
+          vid, "fornest-runtime-tile_1x8x32");
+      addVariantTuning<&NESTED_INIT::runOpenMPVariantFornestRuntimeTiled<2, 4, 32>>(
+          vid, "fornest-runtime-tile_2x4x32");
+      addVariantTuning<&NESTED_INIT::runOpenMPVariantFornestRuntimeTiled<4, 4, 16>>(
+          vid, "fornest-runtime-tile_4x4x16");
+      addVariantTuning<&NESTED_INIT::runOpenMPVariantFornestAutoTiled>(
+          vid, "fornest-auto-tile");
+    }
+
+  }
+}
 
 } // end namespace basic
 } // end namespace rajaperf
