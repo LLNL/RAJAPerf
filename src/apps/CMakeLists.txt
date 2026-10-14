@@ -10,6 +10,8 @@
 blt_add_library(
   NAME apps
   SOURCES AppsData.cpp
+          MC_HISTORY_PARTICLE_TRANSPORT.cpp
+          MC_HISTORY_PARTICLE_TRANSPORT-Seq.cpp
           CONVECTION3DPA.cpp
           CONVECTION3DPA-Cuda.cpp
           CONVECTION3DPA-Hip.cpp
