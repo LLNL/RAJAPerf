@@ -52,6 +52,30 @@
   } \
   out[i] = sum;
 
+#define FIR_BODY_SHD \
+  Index_type nthds_last_blk = iend & (block_size - 1); /* block_size=2^int */ \
+/* case where last block of grid has < FIR_COEFFLEN but > 0 threads */ \
+  if ( blockIdx.x == gridDim.x - 1 && \
+       nthds_last_blk < FIR_COEFFLEN && \
+       nthds_last_blk > 0 ) { \
+    Index_type ntrips_per_thd = (FIR_COEFFLEN - 1) / nthds_last_blk + 1; \
+    for (Index_type trip = 0; trip < ntrips_per_thd; trip++) { \
+      Index_type j = threadIdx.x + trip * nthds_last_blk; \
+      if ( j < FIR_COEFFLEN ) { \
+        coeff_shd[j] = coeff[j]; \
+      } \
+    } \
+  } \
+  else if (threadIdx.x < FIR_COEFFLEN) { \
+    coeff_shd[threadIdx.x] = coeff[threadIdx.x]; \
+  } \
+  __syncthreads(); \
+\
+  Real_type sum = 0.0; \
+  for (Index_type j = 0; j < coefflen; ++j ) { \
+    sum += coeff_shd[j]*in[i+j]; \
+  } \
+  out[i] = sum;
 
 #include "common/KernelBase.hpp"
 

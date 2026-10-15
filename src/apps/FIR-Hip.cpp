@@ -23,8 +23,10 @@ namespace rajaperf
 namespace apps
 {
 
-#define USE_HIP_CONSTANT_MEMORY
-// #undef USE_HIP_CONSTANT_MEMORY
+// #define USE_HIP_CONSTANT_MEMORY
+#undef USE_HIP_CONSTANT_MEMORY
+#define USE_HIP_SHARED_MEMORY
+// #undef USE_HIP_SHARED_MEMORY
 
 #if defined(USE_HIP_CONSTANT_MEMORY)
 
@@ -48,6 +50,29 @@ __global__ void fir(Real_ptr out, Real_ptr in,
    Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
      FIR_BODY;
+   }
+}
+
+#elif defined(USE_HIP_SHARED_MEMORY)
+
+__constant__ Real_type coeff[FIR_COEFFLEN];
+
+#define FIR_DATA_SETUP_HIP \
+  hipErrchk( hipMemcpyToSymbolAsync(HIP_SYMBOL(coeff), coeff_array, FIR_COEFFLEN * sizeof(Real_type), 0, hipMemcpyHostToDevice, res.get_stream()) );
+
+
+#define FIR_DATA_TEARDOWN_HIP
+
+template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void fir(Real_ptr out, Real_ptr in,
+                    const Index_type coefflen,
+                    Index_type iend)
+{
+   __shared__ Real_type coeff_shd[FIR_COEFFLEN];
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
+   if (i < iend) {
+     FIR_BODY_SHD;
    }
 }
 
@@ -107,7 +132,7 @@ void FIR::runHipVariantImpl(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
 
-#if defined(USE_HIP_CONSTANT_MEMORY)
+#if defined(USE_HIP_CONSTANT_MEMORY) || defined(USE_HIP_SHARED_MEMORY)
       RPlaunchHipKernel( (fir<block_size>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
