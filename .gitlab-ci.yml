@@ -41,7 +41,7 @@ variables:
   GIT_SUBMODULE_UPDATE_FLAGS: --jobs 4
 
 # This sha fixes the version of RAJA used in gitlab CI by RAJAPerf
-  RAJA_REFERENCE: "a7230d0fd7b2d8df7433f8f0464e833db42d38df"
+  RAJA_REFERENCE: "174edd1fe0b8d74441963a0b6c349a8ac261c0a9"
 
 # SHARED_CI CONFIGURATION
 # Required information about GitHub repository
