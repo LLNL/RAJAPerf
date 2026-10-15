@@ -99,6 +99,7 @@ enum KernelID {
   Basic_REDUCE_STRUCT,
   Basic_TRAP_INT,
   Basic_MULTI_REDUCE,
+  Basic_POINTER_CHASE,
 
 //
 // Lcals kernels...

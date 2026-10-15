@@ -122,6 +122,10 @@ blt_add_library(
           PI_REDUCE-OMP.cpp
           PI_REDUCE-OMPTarget.cpp
           PI_REDUCE-Sycl.cpp
+          POINTER_CHASE.cpp
+          POINTER_CHASE-Seq.cpp
+          POINTER_CHASE-Hip.cpp
+          POINTER_CHASE-Cuda.cpp
           REDUCE3_INT.cpp
           REDUCE3_INT-Seq.cpp
           REDUCE3_INT-Hip.cpp
